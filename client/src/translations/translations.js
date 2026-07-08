@@ -31,9 +31,9 @@ const en = {
   heroDevice: 'Wedding invitation',
   heroRsvp: 'RSVP',
   hashtags: ['# Web invitations', '# Wedding', '# Baptism', '# Birthday'],
-  storiesKicker: 'Visual stories',
-  storiesTitle: 'Welcome to Amulet',
-  storiesTitleAccent: 'Stories',
+  storiesKicker: 'Welcome to Amulet',
+  storiesTitle: 'Every celebration begins with a beautiful invitation',
+
   viewAllStories: 'View all stories',
   invitationGallery: 'Invitation gallery',
   morphTitle: 'Your story begins with the right invitation',
@@ -162,9 +162,8 @@ const hy = {
   heroTitle: '1 հրավեր՝ 1000 զանգի փոխարեն',
   heroDevice: 'Հարսանեկան հրավեր',
   hashtags: ['# Վեբ հրավիրատոմսեր', '# Հարսանիք', '# Մկրտություն', '# Ծնունդ'],
-  storiesKicker: 'Պատկերային պատմություններ',
-  storiesTitle: 'Բարի գալուստ Amulet',
-  storiesTitleAccent: 'Stories',
+  storiesKicker: 'Բարի գալուստ Ամուլետ',
+  storiesTitle: 'Յուրաքանչյուր տոն սկսվում է գեղեցիկ հրավերից',
   viewAllStories: 'Դիտել բոլոր պատմությունները',
   invitationGallery: 'Հրավերների պատկերասրահ',
   morphTitle: 'Քո պատմությունը սկսվում է ճիշտ հրավերից',
@@ -292,9 +291,8 @@ const ru = {
   heroTitle: '1 приглашение вместо 1000 звонков',
   heroDevice: 'Свадебное приглашение',
   hashtags: ['# Веб-приглашения', '# Свадьба', '# Крещение', '# День рождения'],
-  storiesKicker: 'Визуальные истории',
-  storiesTitle: 'Добро пожаловать в Amulet',
-  storiesTitleAccent: 'Stories',
+  storiesKicker: 'Добро пожаловать в Amulet',
+  storiesTitle: 'Каждый праздник начинается с красивого приглашения',
   viewAllStories: 'Смотреть все истории',
   invitationGallery: 'Галерея приглашений',
   morphTitle: 'Твоя история начинается с правильного приглашения',
@@ -355,8 +353,8 @@ const es = {
   viewTemplates: 'Ver invitaciones',
   orderCustom: 'Pedir invitación personalizada',
   heroTitle: '1 invitación en lugar de 1000 llamadas',
-  storiesKicker: 'Historias visuales',
-  storiesTitle: 'Bienvenido a Amulet',
+  storiesKicker: 'Bienvenido a Amulet',
+  storiesTitle: 'Cada celebración empieza con una invitación hermosa',
   viewAllStories: 'Ver todas las historias',
   invitationGallery: 'Galería de invitaciones',
   morphTitle: 'Tu historia empieza con la invitación correcta',
@@ -394,8 +392,8 @@ const fr = {
   viewTemplates: 'Voir les invitations',
   orderCustom: 'Commander une invitation sur mesure',
   heroTitle: '1 invitation au lieu de 1000 appels',
-  storiesKicker: 'Histoires visuelles',
-  storiesTitle: 'Bienvenue chez Amulet',
+  storiesKicker: 'Bienvenue chez Amulet',
+  storiesTitle: 'Chaque fête commence par une belle invitation',
   viewAllStories: 'Voir toutes les histoires',
   invitationGallery: 'Galerie d’invitations',
   morphTitle: 'Ton histoire commence par la bonne invitation',
@@ -433,8 +431,8 @@ const de = {
   viewTemplates: 'Einladungen ansehen',
   orderCustom: 'Individuelle Einladung bestellen',
   heroTitle: '1 Einladung statt 1000 Anrufen',
-  storiesKicker: 'Visuelle Geschichten',
-  storiesTitle: 'Willkommen bei Amulet',
+  storiesKicker: 'Willkommen bei Amulet',
+  storiesTitle: 'Jede Feier beginnt mit einer schönen Einladung',
   viewAllStories: 'Alle Geschichten ansehen',
   invitationGallery: 'Einladungsgalerie',
   morphTitle: 'Deine Geschichte beginnt mit der richtigen Einladung',
@@ -472,8 +470,8 @@ const it = {
   viewTemplates: 'Vedi inviti',
   orderCustom: 'Ordina invito personalizzato',
   heroTitle: '1 invito invece di 1000 chiamate',
-  storiesKicker: 'Storie visive',
-  storiesTitle: 'Benvenuto in Amulet',
+  storiesKicker: 'Benvenuto in Amulet',
+  storiesTitle: 'Ogni festa inizia con un bellissimo invito',
   viewAllStories: 'Vedi tutte le storie',
   invitationGallery: 'Galleria inviti',
   morphTitle: 'La tua storia inizia con l’invito giusto',
@@ -739,6 +737,273 @@ Object.assign(it, {
     ['Come invio l’invito web?', 'Puoi condividerlo via WhatsApp, Instagram, Viber, Telegram, Email, SMS o altra piattaforma.'],
     ['Quali lingue sono disponibili?', 'Gli inviti possono essere preparati in armeno, inglese, russo e altre lingue.']
   ]
+});
+
+const privacySectionsHy = [
+  {
+    title: 'Ինչ տվյալներ կարող ենք հավաքել',
+    items: [
+      'անուն, ազգանուն և կապի տվյալներ',
+      'հեռախոսահամար և էլ. փոստ',
+      'միջոցառման տեսակը, ամսաթիվը, ժամը և վայրը',
+      'հրավերի համար փոխանցված տեքստեր, լուսանկարներ և հյուրերի անուններ',
+      'տեխնիկական տվյալներ՝ սարքի տեսակ, դիտարկիչ, IP հասցե և էջի օգտագործման տվյալներ'
+    ]
+  },
+  {
+    title: 'Ինչ նպատակով ենք օգտագործում տվյալները',
+    text: [
+      'Տվյալներն օգտագործվում են պատվերը մշակելու, առցանց հրավիրատոմս պատրաստելու, հաճախորդի հետ կապ հաստատելու, ծառայության որակը բարելավելու և տեխնիկական անվտանգությունը ապահովելու համար։'
+    ]
+  },
+  {
+    title: 'Հրավերի հասանելիությունը',
+    text: [
+      'Հրավերի հղումը կարող է բացվել այն մարդկանց կողմից, որոնց փոխանցվել է հղումը։ Խորհուրդ ենք տալիս հրավիրատոմսում չտեղադրել չափազանց զգայուն տվյալներ։'
+    ]
+  },
+  {
+    title: 'Տվյալների փոխանցում երրորդ անձանց',
+    text: [
+      'Մենք չենք վաճառում կամ վարձակալությամբ չենք փոխանցում ձեր անձնական տվյալները։ Դրանք կարող են փոխանցվել միայն այն ծառայություններ մատուցողներին, որոնք օգնում են աշխատեցնել կայքը, մշակել վճարումները կամ ապահովել պատվերի կատարումը։'
+    ]
+  },
+  {
+    title: 'Վճարումներ',
+    text: [
+      'Վճարումները կարող են մշակվել վճարային համակարգերի միջոցով։ Amulet-ը չի պահպանում բանկային քարտի ամբողջական տվյալները։'
+    ]
+  },
+  {
+    title: 'Cookies և տեխնիկական տվյալներ',
+    text: [
+      'Կայքը կարող է օգտագործել cookies և նմանատիպ տեխնոլոգիաներ՝ լեզվի նախընտրությունը հիշելու, կայքի աշխատանքը վերլուծելու և փորձը բարելավելու համար։'
+    ]
+  },
+  {
+    title: 'Տվյալների պահպանում և անվտանգություն',
+    text: [
+      'Տվյալները պահվում են այնքան ժամանակ, որքան անհրաժեշտ է պատվերի, աջակցության կամ օրենքով նախատեսված պարտավորությունների համար։ Մենք կիրառում ենք ողջամիտ տեխնիկական և կազմակերպչական միջոցներ տվյալները պաշտպանելու համար։'
+    ]
+  },
+  {
+    title: 'Ձեր իրավունքները',
+    text: [
+      'Դուք կարող եք խնդրել տեսնել, ուղղել կամ ջնջել ձեր անձնական տվյալները, ինչպես նաև սահմանափակել դրանց օգտագործումը՝ կապ հաստատելով մեզ հետ։'
+    ]
+  },
+  {
+    title: 'Երեխաների տվյալներ և լուսանկարներ',
+    text: [
+      'Մկրտության կամ մանկական միջոցառումների դեպքում լուսանկարները և տվյալները պետք է փոխանցվեն ծնողի կամ օրինական ներկայացուցչի համաձայնությամբ։'
+    ]
+  },
+  {
+    title: 'Կապ մեզ հետ',
+    text: [
+      'Գաղտնիության քաղաքականության վերաբերյալ հարցերի դեպքում կարող եք գրել hello@amulet.local հասցեին կամ զանգահարել +374 77 805 607։'
+    ]
+  }
+];
+
+const privacySectionsEn = [
+  { title: 'Data we may collect', text: ['We may collect contact details, event information, invitation texts, photos, guest names, and technical data needed to provide and improve the service.'] },
+  { title: 'How we use data', text: ['We use data to process orders, prepare online invitations, contact customers, improve the website, prevent abuse, and meet legal requirements.'] },
+  { title: 'Invitation access', text: ['Anyone with the invitation link may be able to view it, so avoid adding highly sensitive information.'] },
+  { title: 'Sharing with third parties', text: ['We do not sell personal data. Data may be shared only with providers that help operate the website, process payments, or complete your order.'] },
+  { title: 'Payments', text: ['Payments may be processed through payment providers. Amulet does not store complete bank card details.'] },
+  { title: 'Cookies and technical data', text: ['We may use cookies to remember preferences, analyze usage, and improve the experience.'] },
+  { title: 'Storage and security', text: ['Data is kept only as long as needed for orders, support, or legal obligations, and we use reasonable safeguards to protect it.'] },
+  { title: 'Your rights', text: ['You may ask to access, correct, delete, or restrict the use of your personal data by contacting us.'] },
+  { title: 'Children data and photos', text: ['For baptisms or children events, photos and information should be provided with parent or legal guardian consent.'] },
+  { title: 'Contact', text: ['For privacy questions, contact hello@amulet.local or +374 77 805 607.'] }
+];
+
+const privacySectionsRu = [
+  { title: 'Какие данные мы можем собирать', text: ['Мы можем собирать контактные данные, информацию о событии, тексты приглашения, фотографии, имена гостей и технические данные для работы сервиса.'] },
+  { title: 'Как мы используем данные', text: ['Данные используются для обработки заказов, подготовки онлайн-приглашений, связи с клиентом, улучшения сайта и обеспечения безопасности.'] },
+  { title: 'Доступ к приглашению', text: ['Приглашение может быть доступно людям, у которых есть ссылка. Не размещайте в нем слишком чувствительную информацию.'] },
+  { title: 'Передача третьим лицам', text: ['Мы не продаем персональные данные. Они могут передаваться только поставщикам, которые помогают работе сайта, оплате или выполнению заказа.'] },
+  { title: 'Платежи', text: ['Платежи могут обрабатываться платежными системами. Amulet не хранит полные данные банковской карты.'] },
+  { title: 'Cookies и технические данные', text: ['Мы можем использовать cookies для запоминания настроек, анализа использования и улучшения опыта.'] },
+  { title: 'Хранение и безопасность', text: ['Данные хранятся столько, сколько нужно для заказа, поддержки или юридических обязательств.'] },
+  { title: 'Ваши права', text: ['Вы можете запросить доступ, исправление, удаление или ограничение использования ваших данных.'] },
+  { title: 'Данные и фото детей', text: ['Для детских событий данные и фото должны передаваться с согласием родителя или законного представителя.'] },
+  { title: 'Контакты', text: ['По вопросам конфиденциальности: hello@amulet.local или +374 77 805 607.'] }
+];
+
+const privacySectionsEs = [
+  { title: 'Datos que podemos recopilar', text: ['Podemos recopilar datos de contacto, información del evento, textos, fotos, nombres de invitados y datos técnicos necesarios para el servicio.'] },
+  { title: 'Cómo usamos los datos', text: ['Usamos los datos para procesar pedidos, preparar invitaciones online, contactar al cliente, mejorar el sitio y mantener la seguridad.'] },
+  { title: 'Acceso a la invitación', text: ['Quien tenga el enlace puede ver la invitación, por eso recomendamos no incluir información demasiado sensible.'] },
+  { title: 'Terceros', text: ['No vendemos datos personales. Solo los compartimos con proveedores necesarios para operar el sitio, pagos o pedidos.'] },
+  { title: 'Pagos', text: ['Los pagos pueden ser procesados por proveedores de pago. Amulet no guarda los datos completos de la tarjeta.'] },
+  { title: 'Cookies', text: ['Podemos usar cookies para recordar preferencias, analizar uso y mejorar la experiencia.'] },
+  { title: 'Seguridad', text: ['Conservamos los datos solo el tiempo necesario y usamos medidas razonables de protección.'] },
+  { title: 'Tus derechos', text: ['Puedes pedir acceso, corrección, eliminación o limitación del uso de tus datos.'] },
+  { title: 'Datos de niños', text: ['En eventos infantiles, las fotos y datos deben enviarse con consentimiento de los padres o tutores.'] },
+  { title: 'Contacto', text: ['Para privacidad: hello@amulet.local o +374 77 805 607.'] }
+];
+
+const privacySectionsFr = [
+  { title: 'Données collectées', text: ['Nous pouvons collecter les coordonnées, les informations de l’événement, les textes, photos, noms d’invités et données techniques nécessaires au service.'] },
+  { title: 'Utilisation des données', text: ['Les données servent à traiter les commandes, préparer les invitations, contacter le client, améliorer le site et assurer la sécurité.'] },
+  { title: 'Accès à l’invitation', text: ['Toute personne ayant le lien peut voir l’invitation. Évitez d’y ajouter des informations trop sensibles.'] },
+  { title: 'Partage avec des tiers', text: ['Nous ne vendons pas les données personnelles. Elles peuvent être partagées uniquement avec les prestataires nécessaires au service.'] },
+  { title: 'Paiements', text: ['Les paiements peuvent être traités par des prestataires de paiement. Amulet ne stocke pas les données complètes de carte bancaire.'] },
+  { title: 'Cookies', text: ['Nous pouvons utiliser des cookies pour mémoriser les préférences, analyser l’usage et améliorer l’expérience.'] },
+  { title: 'Sécurité', text: ['Les données sont conservées uniquement le temps nécessaire et protégées par des mesures raisonnables.'] },
+  { title: 'Vos droits', text: ['Vous pouvez demander l’accès, la correction, la suppression ou la limitation de vos données.'] },
+  { title: 'Données des enfants', text: ['Pour les événements d’enfants, les photos et données doivent être fournies avec l’accord d’un parent ou représentant légal.'] },
+  { title: 'Contact', text: ['Questions de confidentialité : hello@amulet.local ou +374 77 805 607.'] }
+];
+
+const privacySectionsDe = [
+  { title: 'Welche Daten wir erfassen können', text: ['Wir können Kontaktdaten, Eventinformationen, Einladungstexte, Fotos, Gästenamen und technische Daten erfassen, die für den Service nötig sind.'] },
+  { title: 'Wie wir Daten nutzen', text: ['Wir nutzen Daten für Bestellungen, Online-Einladungen, Kundenkontakt, Website-Verbesserung und Sicherheit.'] },
+  { title: 'Zugriff auf die Einladung', text: ['Wer den Link hat, kann die Einladung sehen. Bitte keine sehr sensiblen Informationen hinzufügen.'] },
+  { title: 'Weitergabe an Dritte', text: ['Wir verkaufen keine personenbezogenen Daten. Sie werden nur mit Dienstleistern geteilt, die für Website, Zahlung oder Auftrag nötig sind.'] },
+  { title: 'Zahlungen', text: ['Zahlungen können über Zahlungsanbieter verarbeitet werden. Amulet speichert keine vollständigen Kartendaten.'] },
+  { title: 'Cookies', text: ['Wir können Cookies nutzen, um Einstellungen zu speichern, Nutzung zu analysieren und die Erfahrung zu verbessern.'] },
+  { title: 'Speicherung und Sicherheit', text: ['Daten werden nur so lange gespeichert wie nötig und mit angemessenen Maßnahmen geschützt.'] },
+  { title: 'Ihre Rechte', text: ['Sie können Zugriff, Korrektur, Löschung oder Einschränkung Ihrer Daten beantragen.'] },
+  { title: 'Kinderdaten und Fotos', text: ['Bei Kinderveranstaltungen müssen Fotos und Daten mit Zustimmung der Eltern oder Erziehungsberechtigten bereitgestellt werden.'] },
+  { title: 'Kontakt', text: ['Datenschutzfragen: hello@amulet.local oder +374 77 805 607.'] }
+];
+
+const privacySectionsIt = [
+  { title: 'Dati che possiamo raccogliere', text: ['Possiamo raccogliere contatti, informazioni sull’evento, testi, foto, nomi degli ospiti e dati tecnici necessari al servizio.'] },
+  { title: 'Uso dei dati', text: ['Usiamo i dati per gestire ordini, preparare inviti online, contattare il cliente, migliorare il sito e garantire sicurezza.'] },
+  { title: 'Accesso all’invito', text: ['Chi possiede il link può vedere l’invito. Evita di inserire informazioni troppo sensibili.'] },
+  { title: 'Terze parti', text: ['Non vendiamo dati personali. Li condividiamo solo con fornitori necessari per sito, pagamenti o ordini.'] },
+  { title: 'Pagamenti', text: ['I pagamenti possono essere elaborati da provider di pagamento. Amulet non conserva i dati completi della carta.'] },
+  { title: 'Cookies', text: ['Possiamo usare cookies per ricordare preferenze, analizzare l’uso e migliorare l’esperienza.'] },
+  { title: 'Sicurezza', text: ['I dati sono conservati solo per il tempo necessario e protetti con misure ragionevoli.'] },
+  { title: 'I tuoi diritti', text: ['Puoi chiedere accesso, correzione, eliminazione o limitazione dei tuoi dati.'] },
+  { title: 'Dati e foto di bambini', text: ['Per eventi di bambini, foto e dati devono essere forniti con consenso dei genitori o tutori.'] },
+  { title: 'Contatto', text: ['Domande sulla privacy: hello@amulet.local o +374 77 805 607.'] }
+];
+
+Object.assign(hy, {
+  menuTagline: 'Հարմարավետ և ժամանակակից հրավիրատոմսեր քո միջոցառման համար',
+  menuPrivacy: 'Գաղտնիության քաղաքականություն',
+  menuPartners: 'Գործընկերների համար',
+  menuLogin: 'Մուտք',
+  allInvitations: 'Բոլոր հրավիրատոմսերը',
+  templateCatalogKicker: 'Հրավերների կատալոգ',
+  templateChooserTitle: 'Ընտրիր հրավիրատոմսի տեսակը',
+  templateChooserHint: 'Ընտրիր, թե ինչ հրավիրատոմս ես ուզում',
+  templatesAllLanguages: '• Մոդելները նշված են մեկ լեզվի համար',
+  templatesFastDelivery: '• Պատրաստման ժամկետը 4 օր',
+  customerTestimonialsKicker: 'Հաճախորդների կարծիքներ',
+  customerTestimonialsTitle: 'Հաճախորդների կարծիքները Amulet-ի մասին',
+  customerTestimonialsSubtitle: 'Իրական տպավորություններ տարբեր միջոցառումներից՝ հարսանիք, նշանադրություն, մկրտություն, ծնունդ և կորպորատիվ երեկոներ։',
+  privacyTitle: 'Գաղտնիության քաղաքականություն',
+  privacyUpdated: 'Վերջին թարմացում՝ 08.07.2026',
+  privacyIntro: 'Բարի գալուստ Amulet։ Այս քաղաքականությունը բացատրում է, թե ինչ տվյալներ ենք հավաքում, ինչպես ենք օգտագործում դրանք և ինչպես ենք պաշտպանում ձեր գաղտնիությունը առցանց հրավիրատոմսերի ծառայությունից օգտվելիս։',
+  privacySections: privacySectionsHy
+});
+
+Object.assign(en, {
+  menuTagline: 'Comfortable, modern invitations for every event',
+  allInvitations: 'All invitations',
+  templateCatalogKicker: 'Invitation catalog',
+  templateChooserTitle: 'Choose invitation type',
+  templateChooserHint: 'Choose what kind of invitation you want',
+  templatesAllLanguages: '• Templates are listed for one language',
+  templatesFastDelivery: '• Preparation time is 4 days',
+  customerTestimonialsKicker: 'Customer reviews',
+  customerTestimonialsTitle: 'What customers say about Amulet',
+  customerTestimonialsSubtitle: 'Warm feedback from weddings, engagements, baptisms, birthdays, and corporate events.',
+  privacyTitle: 'Privacy Policy',
+  privacyUpdated: 'Last updated: 08.07.2026',
+  privacyIntro: 'Welcome to Amulet. This policy explains what data we collect, how we use it, and how we protect your privacy while using our online invitation service.',
+  privacySections: privacySectionsEn
+});
+
+Object.assign(ru, {
+  menuTagline: 'Удобные современные приглашения для любого события',
+  allInvitations: 'Все приглашения',
+  templateCatalogKicker: 'Каталог приглашений',
+  templateChooserTitle: 'Выберите тип приглашения',
+  templateChooserHint: 'Выберите, какое приглашение вам нужно',
+  templatesAllLanguages: '• Шаблоны указаны для одного языка',
+  templatesFastDelivery: '• Срок подготовки 4 дня',
+  customerTestimonialsKicker: 'Отзывы клиентов',
+  customerTestimonialsTitle: 'Отзывы клиентов об Amulet',
+  customerTestimonialsSubtitle: 'Отзывы о свадьбах, помолвках, крещениях, днях рождения и корпоративных событиях.',
+  privacyTitle: 'Политика конфиденциальности',
+  privacyUpdated: 'Последнее обновление: 08.07.2026',
+  privacyIntro: 'Добро пожаловать в Amulet. Эта политика объясняет, какие данные мы собираем, как используем их и как защищаем вашу конфиденциальность.',
+  privacySections: privacySectionsRu
+});
+
+Object.assign(es, {
+  menuTagline: 'Invitaciones modernas y cómodas para cada evento',
+  allInvitations: 'Todas las invitaciones',
+  templateCatalogKicker: 'Catálogo de invitaciones',
+  templateChooserTitle: 'Elige el tipo de invitación',
+  templateChooserHint: 'Elige qué invitación quieres',
+  templatesAllLanguages: '• Los modelos están indicados para un idioma',
+  templatesFastDelivery: '• Tiempo de preparación: 4 días',
+  customerTestimonialsKicker: 'Opiniones',
+  customerTestimonialsTitle: 'Opiniones de clientes sobre Amulet',
+  customerTestimonialsSubtitle: 'Comentarios cálidos de bodas, compromisos, bautizos, cumpleaños y eventos corporativos.',
+  privacyTitle: 'Política de privacidad',
+  privacyUpdated: 'Última actualización: 08.07.2026',
+  privacyIntro: 'Bienvenido a Amulet. Esta política explica qué datos recopilamos, cómo los usamos y cómo protegemos tu privacidad.',
+  privacySections: privacySectionsEs
+});
+
+Object.assign(fr, {
+  menuTagline: 'Des invitations modernes et pratiques pour chaque événement',
+  allInvitations: 'Toutes les invitations',
+  templateCatalogKicker: 'Catalogue d’invitations',
+  templateChooserTitle: 'Choisir le type d’invitation',
+  templateChooserHint: 'Choisissez le type d’invitation souhaité',
+  templatesAllLanguages: '• Les modèles sont indiqués pour une langue',
+  templatesFastDelivery: '• Délai de préparation : 4 jours',
+  customerTestimonialsKicker: 'Avis clients',
+  customerTestimonialsTitle: 'Ce que les clients disent d’Amulet',
+  customerTestimonialsSubtitle: 'Des retours chaleureux pour mariages, fiançailles, baptêmes, anniversaires et événements corporate.',
+  privacyTitle: 'Politique de confidentialité',
+  privacyUpdated: 'Dernière mise à jour : 08.07.2026',
+  privacyIntro: 'Bienvenue chez Amulet. Cette politique explique quelles données nous collectons, comment nous les utilisons et comment nous protégeons votre confidentialité.',
+  privacySections: privacySectionsFr
+});
+
+Object.assign(de, {
+  menuTagline: 'Moderne, bequeme Einladungen für jedes Event',
+  allInvitations: 'Alle Einladungen',
+  templateCatalogKicker: 'Einladungskatalog',
+  templateChooserTitle: 'Einladungstyp wählen',
+  templateChooserHint: 'Wähle, welche Einladung du möchtest',
+  templatesAllLanguages: '• Vorlagen sind für eine Sprache angegeben',
+  templatesFastDelivery: '• Vorbereitungszeit: 4 Tage',
+  customerTestimonialsKicker: 'Kundenstimmen',
+  customerTestimonialsTitle: 'Was Kunden über Amulet sagen',
+  customerTestimonialsSubtitle: 'Feedback zu Hochzeiten, Verlobungen, Taufen, Geburtstagen und Firmenevents.',
+  privacyTitle: 'Datenschutzerklärung',
+  privacyUpdated: 'Letzte Aktualisierung: 08.07.2026',
+  privacyIntro: 'Willkommen bei Amulet. Diese Erklärung beschreibt, welche Daten wir erfassen, wie wir sie nutzen und wie wir Ihre Privatsphäre schützen.',
+  privacySections: privacySectionsDe
+});
+
+Object.assign(it, {
+  menuTagline: 'Inviti moderni e comodi per ogni evento',
+  allInvitations: 'Tutti gli inviti',
+  templateCatalogKicker: 'Catalogo inviti',
+  templateChooserTitle: 'Scegli il tipo di invito',
+  templateChooserHint: 'Scegli quale invito desideri',
+  templatesAllLanguages: '• I modelli sono indicati per una lingua',
+  templatesFastDelivery: '• Tempo di preparazione: 4 giorni',
+  customerTestimonialsKicker: 'Recensioni clienti',
+  customerTestimonialsTitle: 'Cosa dicono i clienti di Amulet',
+  customerTestimonialsSubtitle: 'Feedback da matrimoni, fidanzamenti, battesimi, compleanni ed eventi corporate.',
+  privacyTitle: 'Informativa sulla privacy',
+  privacyUpdated: 'Ultimo aggiornamento: 08.07.2026',
+  privacyIntro: 'Benvenuto in Amulet. Questa informativa spiega quali dati raccogliamo, come li usiamo e come proteggiamo la tua privacy.',
+  privacySections: privacySectionsIt
 });
 
 export const translations = { hy, en, ru, es, fr, de, it };

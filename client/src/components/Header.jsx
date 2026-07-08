@@ -16,6 +16,15 @@ export default function Header() {
     ['/about', t('about')],
     ['/contact', t('contact')]
   ];
+  const overlayLinks = [
+    ['/templates?category=wedding', t('weddingTitle')],
+    ['/templates?category=baptism', t('baptismTitle')],
+    ['/templates?category=birth', t('birthTitle')],
+    ['/templates?category=corporate', t('corporateTitle')],
+    ['/templates?category=engagement', t('engagement')],
+    ['/contact', t('menuPartners')],
+    ['/privacy', t('menuPrivacy')]
+  ];
 
   useEffect(() => {
     let frame = 0;
@@ -45,7 +54,7 @@ export default function Header() {
         <NavLink to="/" className="logo" onClick={() => setOpen(false)}>{t('brand')}</NavLink>
         <nav className="nav-links">
           {links.map(([to, label]) => <NavLink key={to} to={to} onClick={() => setOpen(false)}>{label}</NavLink>)}
-          <a className="header-phone" href="tel:+37477805607"><Phone size={16} /> +374 77 805 607</a>
+          <a className="header-phone" href="tel:+37455710208"><Phone size={16} /> +374 55 710 208</a>
           <LanguageSelector />
           <Button to="/order" className="nav-cta">{t('orderNow')}</Button>
         </nav>
@@ -58,13 +67,23 @@ export default function Header() {
           <button className="nav-overlay-close" onClick={() => setOpen(false)} aria-label="Close menu"><X size={34} /></button>
           <div className="nav-overlay-panel">
             <NavLink to="/" className="logo overlay-logo" onClick={() => setOpen(false)}>{t('brand')}</NavLink>
-            <NavLink to="/templates?category=wedding" onClick={() => setOpen(false)}>{t('weddingTitle')}</NavLink>
-            <NavLink to="/templates?category=baptism" onClick={() => setOpen(false)}>{t('baptismTitle')}</NavLink>
-            <NavLink to="/templates?category=birth" onClick={() => setOpen(false)}>{t('birthTitle')}</NavLink>
-            <NavLink to="/templates?category=corporate" onClick={() => setOpen(false)}>{t('corporateTitle')}</NavLink>
-            <NavLink to="/contact" onClick={() => setOpen(false)}>{t('menuPartners')}</NavLink>
-            <NavLink to="/about" onClick={() => setOpen(false)}>{t('about')}</NavLink>
-            <NavLink to="/admin/login" onClick={() => setOpen(false)}>{t('menuLogin')}</NavLink>
+            <p className="nav-overlay-tagline">{t('menuTagline')}</p>
+            <div className="nav-overlay-links">
+              {overlayLinks.map(([to, label], index) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  onClick={() => setOpen(false)}
+                  style={{ '--menu-index': index }}
+                >
+                  {label}
+                </NavLink>
+              ))}
+            </div>
+            <div className="nav-overlay-secondary">
+              <NavLink to="/about" onClick={() => setOpen(false)}>{t('about')}</NavLink>
+              <NavLink to="/admin/login" onClick={() => setOpen(false)}>{t('menuLogin')}</NavLink>
+            </div>
           </div>
         </div>
       )}

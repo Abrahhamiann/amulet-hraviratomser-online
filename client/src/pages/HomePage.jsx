@@ -12,6 +12,7 @@ import weddingTemple from '../assets/morph/wedding-temple.jpg';
 import Button from '../components/Button.jsx';
 import FAQItem from '../components/FAQItem.jsx';
 import TemplateCard from '../components/TemplateCard.jsx';
+import TestimonialV2 from '../components/ui/TestimonialV2.jsx';
 import CircularTestimonials from '../components/ui/CircularTestimonials.jsx';
 // import ScrollMorphHero from '../components/ui/ScrollMorphHero.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -82,6 +83,7 @@ export default function HomePage() {
   const [socialsOpen, setSocialsOpen] = useState(false);
   const [activeRoadmapIndex, setActiveRoadmapIndex] = useState(0);
   const [activeFaqIndex, setActiveFaqIndex] = useState(null);
+  const [activeEventIndex, setActiveEventIndex] = useState(0);
 
   useEffect(() => {
     api.get('/templates?featured=true').then(({ data }) => setFeatured(data)).catch(() => setFeatured([]));
@@ -129,6 +131,13 @@ export default function HomePage() {
   const roadmapSteps = t('roadmapSteps');
   const eventTestimonials = t('eventTestimonials').map((item) => ({
     ...item,
+    category: {
+      wedding: 'wedding',
+      baptism: 'baptism',
+      birth: 'birth',
+      corporate: 'corporate',
+      partners: 'corporate'
+    }[item.image],
     src: {
       wedding: weddingForest,
       baptism: baptismChurch,
@@ -137,6 +146,8 @@ export default function HomePage() {
       partners: engagementSmile
     }[item.image]
   }));
+  const activeEventCategory = eventTestimonials[activeEventIndex]?.category || '';
+  const activeInvitationPath = activeEventCategory ? `/templates?category=${activeEventCategory}` : '/templates';
   const scrollToFaq = () => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   return (
@@ -145,7 +156,7 @@ export default function HomePage() {
         <div className="gallery-grid-backdrop" aria-hidden="true" />
         <p className="gallery-kicker">{t('storiesKicker')}</p>
         <h1 id="gallery-title">
-          {t('storiesTitle')} <span>{t('storiesTitleAccent')}</span>
+          {t('storiesTitle')}{t() ? <span>{t()}</span> : null}
         </h1>
         <div className="gallery-stage" aria-label={t('gallery')}>
           {galleryPhotos.map((photo, index) => (
@@ -211,9 +222,10 @@ export default function HomePage() {
             arrowForeground: '#ffffff',
             arrowHoverBackground: '#ef382b'
           }}
+          onActiveChange={setActiveEventIndex}
         />
         <div className="events-testimonials-actions">
-          <Button to="/templates" className="red-pill">{t('chooseInvitation')}</Button>
+          <Button to={activeInvitationPath} className="red-pill">{t('chooseInvitation')}</Button>
           <Button to="/contact" variant="ghost" className="events-contact-link">{t('menuPartners')}</Button>
         </div>
       </section>
@@ -225,6 +237,8 @@ export default function HomePage() {
         </div>
         <div className="templates-grid">{featured.slice(0, 3).map((template) => <TemplateCard key={template._id} template={template} />)}</div>
       </section>
+
+      <TestimonialV2 />
 
       <section className="faq-amulet" id="faq">
         <h2>{t('faqTitle')}</h2>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { translations } from '../translations/translations.js';
 
 const LanguageContext = createContext(null);
@@ -11,6 +11,11 @@ const getInitialLanguage = () => {
 
 export const LanguageProvider = ({ children }) => {
   const [language, setLanguageState] = useState(getInitialLanguage);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
+
   const setLanguage = (code) => {
     if (!translations[code]) return;
     localStorage.setItem('language', code);
@@ -19,7 +24,11 @@ export const LanguageProvider = ({ children }) => {
   const value = useMemo(() => ({
     language,
     setLanguage,
-    t: (key) => translations[language]?.[key] || translations.en[key] || key
+    t: (key) => {
+      if (Object.prototype.hasOwnProperty.call(translations[language] || {}, key)) return translations[language][key];
+      if (Object.prototype.hasOwnProperty.call(translations.en, key)) return translations.en[key];
+      return key;
+    }
   }), [language]);
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 };

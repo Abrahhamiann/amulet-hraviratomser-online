@@ -14,6 +14,7 @@ export default function Footer() {
         <Link to="/templates">{t('templates')}</Link>
         <Link to="/about">{t('about')}</Link>
         <Link to="/contact">{t('contact')}</Link>
+        <Link to="/privacy">{t('menuPrivacy')}</Link>
         <Link to="/admin/login">{t('login')}</Link>
       </div>
     </footer>

@@ -1,14 +1,26 @@
 import React from 'react';
-import { Search } from 'lucide-react';
+import { ListFilter, Search, Sparkles } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../api/axios.js';
+import baptismChurch from '../assets/morph/baptism-church.webp';
+import birthdayCakeLights from '../assets/morph/birthday-cake-lights.jpg';
+import corporateEvent from '../assets/morph/corporate-event.jpg';
+import engagementSmile from '../assets/morph/engagement-smile.jpg';
+import weddingTemple from '../assets/morph/wedding-temple.jpg';
 import ErrorState from '../components/ErrorState.jsx';
 import Loading from '../components/Loading.jsx';
-import SectionTitle from '../components/SectionTitle.jsx';
 import TemplateCard from '../components/TemplateCard.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { categories } from '../data/categories.js';
+
+const categoryImages = {
+  wedding: weddingTemple,
+  baptism: baptismChurch,
+  birth: birthdayCakeLights,
+  corporate: corporateEvent,
+  engagement: engagementSmile
+};
 
 export default function TemplatesPage() {
   const { t } = useLanguage();
@@ -41,24 +53,63 @@ export default function TemplatesPage() {
     setParams(next);
   };
 
+  const chooseCategory = (value) => update('category', value);
+
   return (
-    <section className="section page-top">
-      <SectionTitle title={t('templates')} text={t('catalogIntro')} />
-      <div className="filters">
-        <label><Search size={18} /><input value={search} onChange={(e) => update('search', e.target.value)} placeholder={t('search')} /></label>
-        <select value={category} onChange={(e) => update('category', e.target.value)}>
-          <option value="">{t('all')}</option>
-          {categories.map((item) => <option key={item.key} value={item.key}>{t(item.key)}</option>)}
-        </select>
+    <section className="templates-catalog-page">
+      <div className="templates-catalog-hero">
+        <span><Sparkles size={16} /> {t('templateCatalogKicker')}</span>
+        <h1>{t('templates')}</h1>
+        <p>{t('catalogIntro')}</p>
+      </div>
+
+      <div className="templates-search-shell">
+        <label className="templates-search">
+          <Search size={21} />
+          <input value={search} onChange={(e) => update('search', e.target.value)} placeholder={t('search')} />
+        </label>
+
+        <div className="template-category-chips" aria-label={t('templateChooserTitle')}>
+          {categories.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className={category === item.key ? 'is-active' : ''}
+              onClick={() => chooseCategory(item.key)}
+            >
+              <img src={categoryImages[item.key]} alt="" aria-hidden="true" />
+              <span>{t(item.key)}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="template-catalog-notes">
+          <span>{t('templatesAllLanguages')}</span>
+          <span>{t('templatesFastDelivery')}</span>
+        </div>
+      </div>
+
+      <div className="template-type-dock" aria-label={t('templateChooserHint')}>
+        <button type="button" className={!category ? 'is-active' : ''} onClick={() => chooseCategory('')}>{t('allInvitations')}</button>
+        {categories.map((item) => (
+          <button key={item.key} type="button" className={category === item.key ? 'is-active' : ''} onClick={() => chooseCategory(item.key)}>
+            {t(item.key)}
+          </button>
+        ))}
+      </div>
+
+      <div className="catalog-sort-row">
+        <span><ListFilter size={16} /> {t('sort')}</span>
         <select value={sort} onChange={(e) => update('sort', e.target.value)}>
           <option value="newest">{t('newest')}</option>
           <option value="price_asc">{t('priceAsc')}</option>
           <option value="price_desc">{t('priceDesc')}</option>
         </select>
       </div>
+
       {state === 'loading' && <Loading text={t('loading')} />}
       {state === 'error' && <ErrorState text={t('error')} />}
-      {state === 'ready' && <div className="templates-grid">{templates.map((template) => <TemplateCard key={template._id} template={template} />)}</div>}
+      {state === 'ready' && <div className="templates-grid catalog-grid">{templates.map((template) => <TemplateCard key={template._id} template={template} />)}</div>}
     </section>
   );
 }

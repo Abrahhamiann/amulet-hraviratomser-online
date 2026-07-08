@@ -17,7 +17,8 @@ export default function CircularTestimonials({
   testimonials,
   autoplay = true,
   colors = {},
-  fontSizes = {}
+  fontSizes = {},
+  onActiveChange
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [hoverPrev, setHoverPrev] = useState(false);
@@ -50,6 +51,10 @@ export default function CircularTestimonials({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+    onActiveChange?.(activeIndex, activeTestimonial);
+  }, [activeIndex, activeTestimonial, onActiveChange]);
 
   useEffect(() => {
     if (!autoplay || testimonialsLength < 2) return undefined;

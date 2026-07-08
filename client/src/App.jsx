@@ -14,6 +14,7 @@ import ContactPage from './pages/ContactPage.jsx';
 import HomePage from './pages/HomePage.jsx';
 import InvitationPage from './pages/InvitationPage.jsx';
 import OrderPage from './pages/OrderPage.jsx';
+import PrivacyPage from './pages/PrivacyPage.jsx';
 import TemplateDetailsPage from './pages/TemplateDetailsPage.jsx';
 import TemplatesPage from './pages/TemplatesPage.jsx';
 
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="/order" element={<OrderPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
       </Route>
       <Route path="/invite/:slug" element={<InvitationPage />} />
       <Route path="/admin/login" element={<AdminLoginPage />} />
