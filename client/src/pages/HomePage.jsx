@@ -1,65 +1,76 @@
 import React from 'react';
 import { CreditCard, HelpCircle, Mail, MessageCircle, MonitorCheck, Pencil, Phone, Search, Send, Share2, Sparkles, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import api from '../api/axios.js';
-import iphoneFrame from '../assets/iphone-frame.png';
-import angelBg from '../assets/landing/angel-bg.jpg';
-import baptismBg from '../assets/landing/baptism-bg.webp';
-import birthdayBg from '../assets/landing/birthday-bg.jpg';
-import iphone17Frame from '../assets/landing/iphone17-frame.png';
-import weddingBg from '../assets/landing/wedding-bg.jpg';
+import baptismChurch from '../assets/morph/baptism-church.webp';
+import baptismLift from '../assets/morph/baptism-lift.jpg';
+import birthdayCakeLights from '../assets/morph/birthday-cake-lights.jpg';
+import corporateEvent from '../assets/morph/corporate-event.jpg';
+import engagementSmile from '../assets/morph/engagement-smile.jpg';
+import weddingForest from '../assets/morph/wedding-forest-optimized.jpg';
+import weddingTemple from '../assets/morph/wedding-temple.jpg';
 import Button from '../components/Button.jsx';
 import FAQItem from '../components/FAQItem.jsx';
 import TemplateCard from '../components/TemplateCard.jsx';
+import CircularTestimonials from '../components/ui/CircularTestimonials.jsx';
+import ScrollMorphHero from '../components/ui/ScrollMorphHero.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-
-const eventBands = [
-  {
-    key: 'wedding',
-    titleKey: 'weddingTitle',
-    subtitleKey: 'weddingSubtitle',
-    tone: 'wedding',
-    bg: weddingBg,
-    phoneKeys: ['phoneWeddingNames', 'phoneWeddingDate']
-  },
-  {
-    key: 'baptism',
-    titleKey: 'baptismTitle',
-    subtitleKey: 'baptismSubtitle',
-    tone: 'baptism',
-    bg: baptismBg,
-    accent: angelBg,
-    phoneKeys: ['phoneBaptismName', 'phoneBlessedDay']
-  },
-  {
-    key: 'birth',
-    titleKey: 'birthTitle',
-    subtitleKey: 'birthSubtitle',
-    tone: 'birthday',
-    bg: birthdayBg,
-    phoneKeys: ['phoneBirthday', 'phoneWeddingDate']
-  },
-  {
-    key: 'corporate',
-    titleKey: 'corporateTitle',
-    subtitleKey: 'corporateSubtitle',
-    tone: 'corporate',
-    bg: weddingBg,
-    phoneKeys: ['phoneCorporate', 'corporate']
-  }
-];
 
 const roadmapIcons = [Search, MonitorCheck, Pencil, Sparkles, CreditCard, Share2, MessageCircle];
 
-function PhoneMock({ label, tone = 'paper', small = false, frame = 'classic', tilt = 'left' }) {
-  const frameSrc = frame === 'pro' ? iphone17Frame : iphoneFrame;
+const galleryPhotos = [
+  {
+    id: 1,
+    src: weddingTemple,
+    altKey: 'wedding',
+    className: 'gallery-card-one'
+  },
+  {
+    id: 2,
+    src: baptismLift,
+    altKey: 'baptism',
+    className: 'gallery-card-two'
+  },
+  {
+    id: 3,
+    src: engagementSmile,
+    altKey: 'engagement',
+    className: 'gallery-card-three'
+  },
+  {
+    id: 4,
+    src: birthdayCakeLights,
+    altKey: 'birth',
+    className: 'gallery-card-four'
+  },
+  {
+    id: 5,
+    src: corporateEvent,
+    altKey: 'corporate',
+    className: 'gallery-card-five'
+  }
+];
+
+function GalleryPhoto({ photo, index, label }) {
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+
+  const handlePointerMove = (event) => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 14;
+    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 14;
+    setOffset({ x, y });
+  };
+
   return (
-    <div className={small ? `phone-mock small ${tone} tilt-${tilt}` : `phone-mock ${tone} tilt-${tilt}`}>
-      <div className="phone-screen">
-        <span>{label}</span>
-      </div>
-      <img src={frameSrc} alt="iPhone invitation preview" />
+    <div
+      className={`gallery-photo ${photo.className}`}
+      style={{ '--gallery-index': index, '--tilt-x': `${offset.y * -1}deg`, '--tilt-y': `${offset.x}deg` }}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={() => setOffset({ x: 0, y: 0 })}
+      tabIndex={0}
+    >
+      <img src={photo.src} alt={label} loading={index > 2 ? 'lazy' : 'eager'} draggable="false" />
     </div>
   );
 }
@@ -110,35 +121,35 @@ export default function HomePage() {
     };
   }, []);
 
-  const hashtags = t('hashtags');
   const faqItems = t('faqItems');
   const roadmapSteps = t('roadmapSteps');
+  const eventTestimonials = t('eventTestimonials').map((item) => ({
+    ...item,
+    src: {
+      wedding: weddingForest,
+      baptism: baptismChurch,
+      birth: birthdayCakeLights,
+      corporate: corporateEvent,
+      partners: engagementSmile
+    }[item.image]
+  }));
   const roadmapLastIndex = Math.max(roadmapSteps.length - 1, 1);
   const activeRoadmapIndex = Math.min(roadmapSteps.length - 1, Math.max(0, Math.round(roadmapProgress * roadmapLastIndex)));
   const scrollToFaq = () => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   return (
     <>
-      <section className="amulet-hero">
-        <div className="hero-light-orbit" />
-        <h1>{t('heroTitle')}</h1>
-        <div className="hero-showcase" aria-label="Invitation examples">
-          <div className="landmark landmark-left">LOVE</div>
-          <div className="hero-device-stage">
-            <PhoneMock label={t('heroDevice')} tone="paper" frame="pro" />
-            <PhoneMock label={t('heroRsvp')} tone="wedding" small frame="pro" tilt="right" />
-          </div>
-          <div className="landmark landmark-right">JOY</div>
+      <section className="photo-gallery-hero" aria-labelledby="gallery-title">
+        <div className="gallery-grid-backdrop" aria-hidden="true" />
+        <p className="gallery-kicker">{t('storiesKicker')}</p>
+        <h1 id="gallery-title">
+          {t('storiesTitle')} <span>{t('storiesTitleAccent')}</span>
+        </h1>
+        <div className="gallery-stage" aria-label={t('gallery')}>
+          {galleryPhotos.map((photo, index) => (
+            <GalleryPhoto key={photo.id} photo={photo} index={index} label={t(photo.altKey)} />
+          ))}
         </div>
-        <Button to="/order" className="red-pill">{t('orderNow')}</Button>
-      </section>
-
-      <section className="amulet-search">
-        <Search size={18} />
-        <Link to="/templates">{hashtags[0]}</Link>
-        <Link to="/templates?category=wedding">{hashtags[1]}</Link>
-        <Link to="/templates?category=baptism">{hashtags[2]}</Link>
-        <Link to="/templates?category=birth">{hashtags[3]}</Link>
       </section>
 
       <section className="roadmap-section" aria-labelledby="roadmap-title" ref={roadmapRef} style={{ '--roadmap-progress': roadmapProgress }}>
@@ -165,6 +176,7 @@ export default function HomePage() {
               const isActive = activeRoadmapIndex === index;
               const sideClass = index % 2 === 0 ? 'is-left' : 'is-right';
               const stateClass = `${isVisible ? 'is-visible' : 'is-upcoming'} ${isPast ? 'is-past' : ''} ${isActive ? 'is-active' : ''}`;
+
               return (
                 <article className={`roadmap-step ${sideClass} ${stateClass}`} key={step.title} style={{ '--step-index': index }}>
                   <div className="roadmap-step-icon"><Icon size={24} /></div>
@@ -179,37 +191,29 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="amulet-bands">
-        {eventBands.map((band, index) => (
-          <article
-            className={`event-band ${band.tone}`}
-            key={band.key}
-            style={{ '--band-bg': `url("${band.bg}")`, '--accent-bg': band.accent ? `url("${band.accent}")` : 'none' }}
-          >
-            <div className="band-photo-layer" />
-            {band.accent && <div className="angel-layer" aria-hidden="true" />}
-            <div className="band-copy">
-              <h2>{t(band.titleKey)}</h2>
-              <p>{t(band.subtitleKey)}</p>
-              <Button to={`/templates?category=${band.key}`} variant="ghost" className="outline-red">{t('chooseInvitation')}</Button>
-            </div>
-            <div className="band-phones">
-              <PhoneMock label={t(band.phoneKeys[0])} tone={band.tone} small frame="pro" tilt={index % 2 ? 'right' : 'left'} />
-              <PhoneMock label={t(band.phoneKeys[1])} tone={band.tone} small tilt={index % 2 ? 'left' : 'right'} />
-            </div>
-          </article>
-        ))}
-      </section>
+      <ScrollMorphHero />
 
-      <section className="partner-band" style={{ '--band-bg': `url("${birthdayBg}")` }}>
-        <div className="band-photo-layer" />
-        <h2>{t('partnerTitle')}</h2>
-        <p>{t('partnerSubtitle')}</p>
-        <div className="partner-phones">
-          <PhoneMock label="Cheers" tone="partner" small frame="pro" tilt="left" />
-          <PhoneMock label="Guests" tone="partner" small tilt="right" />
+      <section className="events-testimonials-section" aria-labelledby="events-testimonials-title">
+        <div className="events-testimonials-heading">
+          <p>{t('eventsKicker')}</p>
+          <h2 id="events-testimonials-title">{t('eventsTitle')}</h2>
         </div>
-        <Button to="/contact" variant="ghost">{t('partnerLogin')}</Button>
+        <CircularTestimonials
+          testimonials={eventTestimonials}
+          autoplay
+          colors={{
+            name: '#17202b',
+            designation: '#ef382b',
+            testimony: '#4a5565',
+            arrowBackground: '#17202b',
+            arrowForeground: '#ffffff',
+            arrowHoverBackground: '#ef382b'
+          }}
+        />
+        <div className="events-testimonials-actions">
+          <Button to="/templates" className="red-pill">{t('chooseInvitation')}</Button>
+          <Button to="/contact" variant="ghost" className="events-contact-link">{t('menuPartners')}</Button>
+        </div>
       </section>
 
       <section className="section featured-amulet">
