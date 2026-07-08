@@ -13,7 +13,7 @@ import Button from '../components/Button.jsx';
 import FAQItem from '../components/FAQItem.jsx';
 import TemplateCard from '../components/TemplateCard.jsx';
 import CircularTestimonials from '../components/ui/CircularTestimonials.jsx';
-import ScrollMorphHero from '../components/ui/ScrollMorphHero.jsx';
+// import ScrollMorphHero from '../components/ui/ScrollMorphHero.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 const roadmapIcons = [Search, MonitorCheck, Pencil, Sparkles, CreditCard, Share2, MessageCircle];
@@ -80,7 +80,8 @@ export default function HomePage() {
   const roadmapRef = useRef(null);
   const [featured, setFeatured] = useState([]);
   const [socialsOpen, setSocialsOpen] = useState(false);
-  const [roadmapProgress, setRoadmapProgress] = useState(0);
+  const [activeRoadmapIndex, setActiveRoadmapIndex] = useState(0);
+  const [activeFaqIndex, setActiveFaqIndex] = useState(null);
 
   useEffect(() => {
     api.get('/templates?featured=true').then(({ data }) => setFeatured(data)).catch(() => setFeatured([]));
@@ -101,8 +102,11 @@ export default function HomePage() {
       const end = -(rect.height - viewport * 0.28);
       const range = Math.max(1, start - end);
       const next = clamp((start - rect.top) / range);
+      const steps = Number(section.dataset.steps || 1);
+      const nextIndex = Math.min(steps - 1, Math.max(0, Math.round(next * Math.max(steps - 1, 1))));
 
-      setRoadmapProgress((current) => (Math.abs(current - next) > 0.003 ? next : current));
+      section.style.setProperty('--roadmap-progress', next.toFixed(4));
+      setActiveRoadmapIndex((current) => (current === nextIndex ? current : nextIndex));
     };
 
     const requestUpdate = () => {
@@ -133,8 +137,6 @@ export default function HomePage() {
       partners: engagementSmile
     }[item.image]
   }));
-  const roadmapLastIndex = Math.max(roadmapSteps.length - 1, 1);
-  const activeRoadmapIndex = Math.min(roadmapSteps.length - 1, Math.max(0, Math.round(roadmapProgress * roadmapLastIndex)));
   const scrollToFaq = () => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   return (
@@ -152,27 +154,26 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="roadmap-section" aria-labelledby="roadmap-title" ref={roadmapRef} style={{ '--roadmap-progress': roadmapProgress }}>
+      <section className="roadmap-section" aria-labelledby="roadmap-title" ref={roadmapRef} data-steps={roadmapSteps.length} style={{ '--roadmap-progress': 0 }}>
         <div className="roadmap-heading">
           <h2 id="roadmap-title">{t('roadmapTitle')}</h2>
           <span />
         </div>
         <div className="roadmap-stage">
-          <svg className="roadmap-line" viewBox="0 0 220 1320" preserveAspectRatio="none" aria-hidden="true">
-            <path className="roadmap-line-muted" d="M112 0 C205 105 196 205 112 300 C22 405 24 505 112 620 C198 735 195 838 112 952 C28 1068 28 1180 112 1320" pathLength="1" />
-            <path className="roadmap-line-live" d="M112 0 C205 105 196 205 112 300 C22 405 24 505 112 620 C198 735 195 838 112 952 C28 1068 28 1180 112 1320" pathLength="1" style={{ strokeDashoffset: 1 - roadmapProgress }} />
+          <svg className="roadmap-line" viewBox="0 0 220 1180" preserveAspectRatio="none" aria-hidden="true">
+            <path className="roadmap-line-muted" d="M112 0 C205 94 196 183 112 268 C22 362 24 451 112 554 C198 657 195 749 112 851 C28 955 28 1055 112 1180" pathLength="1" />
+            <path className="roadmap-line-live" d="M112 0 C205 94 196 183 112 268 C22 362 24 451 112 554 C198 657 195 749 112 851 C28 955 28 1055 112 1180" pathLength="1" />
           </svg>
           <div className="roadmap-traveler-track" aria-hidden="true">
-            <div className="roadmap-traveler" style={{ offsetDistance: `${roadmapProgress * 100}%` }}>
+            <div className="roadmap-traveler">
               <Mail size={30} />
             </div>
           </div>
           <div className="roadmap-items">
             {roadmapSteps.map((step, index) => {
               const Icon = roadmapIcons[index] || Sparkles;
-              const stepPoint = index / roadmapLastIndex;
-              const isVisible = roadmapProgress >= stepPoint - 0.055;
-              const isPast = roadmapProgress > stepPoint + 0.08;
+              const isVisible = activeRoadmapIndex >= index;
+              const isPast = activeRoadmapIndex > index;
               const isActive = activeRoadmapIndex === index;
               const sideClass = index % 2 === 0 ? 'is-left' : 'is-right';
               const stateClass = `${isVisible ? 'is-visible' : 'is-upcoming'} ${isPast ? 'is-past' : ''} ${isActive ? 'is-active' : ''}`;
@@ -191,7 +192,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      <ScrollMorphHero />
+      {/* Temporarily hidden. Uncomment this line when the invitation morph gallery is needed again. */}
+      {/* <ScrollMorphHero /> */}
 
       <section className="events-testimonials-section" aria-labelledby="events-testimonials-title">
         <div className="events-testimonials-heading">
@@ -228,7 +230,15 @@ export default function HomePage() {
         <h2>{t('faqTitle')}</h2>
         <strong>{t('faq')}</strong>
         <div className="faq-stack">
-          {faqItems.map(([question, answer]) => <FAQItem key={question} question={question} answer={answer} />)}
+          {faqItems.map(([question, answer], index) => (
+            <FAQItem
+              key={question}
+              question={question}
+              answer={answer}
+              open={activeFaqIndex === index}
+              onToggle={() => setActiveFaqIndex((current) => (current === index ? null : index))}
+            />
+          ))}
         </div>
       </section>
 
