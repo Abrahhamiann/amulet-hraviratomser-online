@@ -14,6 +14,7 @@ export default function AdminOrdersPage() {
     <section>
       <h1>Manage Orders</h1>
       <div className="admin-table">
+        
         {orders.map((order) => (
           <div className="admin-row tall" key={order._id}>
             <div><strong>{order.fullName}</strong><small>{order.email} · {order.phone}</small></div>

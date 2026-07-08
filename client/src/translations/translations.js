@@ -896,7 +896,7 @@ Object.assign(hy, {
   templatesAllLanguages: '• Մոդելները նշված են մեկ լեզվի համար',
   templatesFastDelivery: '• Պատրաստման ժամկետը 4 օր',
   customerTestimonialsKicker: 'Հաճախորդների կարծիքներ',
-  customerTestimonialsTitle: 'Հաճախորդների կարծիքները Amulet-ի մասին',
+  customerTestimonialsTitle: 'Հաճախորդների կարծիքները Ամուլետի մասին',
   customerTestimonialsSubtitle: 'Իրական տպավորություններ տարբեր միջոցառումներից՝ հարսանիք, նշանադրություն, մկրտություն, ծնունդ և կորպորատիվ երեկոներ։',
   privacyTitle: 'Գաղտնիության քաղաքականություն',
   privacyUpdated: 'Վերջին թարմացում՝ 08.07.2026',

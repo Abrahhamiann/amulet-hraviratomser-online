@@ -196,8 +196,9 @@ p { color: var(--muted); margin: 0; }
 
 /* Amulet landing page */
 :root {
-  --amulet-red: #ef382b;
-  --amulet-red-dark: #d9271d;
+  --amulet-red: #d8b98e;
+  --amulet-red-dark: #d8b98e;
+  --amulet-cream-text: #d8b98e;
   --amulet-ink: #17202b;
   --amulet-soft: #f7f7f7;
 }
@@ -213,7 +214,7 @@ body { background: #fff; }
 }
 .nav-shell { max-width: 1160px; padding: 9px 22px; }
 .logo {
-  color: var(--amulet-red);
+  color: var(--amulet-cream-text);
   font-size: 1.85rem;
   font-style: italic;
   line-height: .9;
@@ -242,8 +243,21 @@ body { background: #fff; }
   font-weight: 800;
 }
 .header-phone { display: inline-flex; align-items: center; gap: 8px; color: #29313d; }
-.header-phone svg { color: #e92377; fill: rgba(233, 35, 119, .08); }
-.language-select { width: auto; cursor: pointer; color: var(--amulet-red); }
+.header-phone svg { color: var(--amulet-cream-text); fill: rgba(216, 185, 142, .14); }
+.language-select {
+  width: auto;
+  cursor: pointer;
+  color: var(--amulet-cream-text);
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 10px 42px 10px 18px;
+  background-color: #f7f7f9;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23d8b98e' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 18px center;
+  background-size: 13px 13px;
+}
+.language-select::-ms-expand { display: none; }
 .nav-cta { display: none; }
 .menu-btn { display: inline-grid; place-items: center; background: #f7f7f9; color: #555; }
 
@@ -354,7 +368,7 @@ body { background: #fff; }
 .overlay-logo {
   font-size: clamp(2.55rem, 6vw, 4.35rem);
   margin-bottom: 8px;
-  color: var(--amulet-red);
+  color: var(--amulet-cream-text);
 }
 .nav-overlay-secondary {
   display: flex;
@@ -569,16 +583,16 @@ body { background: #fff; }
 }
 .photo-gallery-hero h1 {
   max-width: 800px;
-  color: #e6869b;
+  color: var(--amulet-cream-text);
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(2.25rem, 5.15vw, 4.65rem);
   font-weight: 500;
   line-height: .98;
   text-align: center;
-  text-shadow: 0 14px 34px rgba(232, 169, 183, .24);
+  text-shadow: 0 14px 34px rgba(216, 185, 142, .24);
 }
 .photo-gallery-hero h1 span {
-  color: var(--amulet-red);
+  color: var(--amulet-cream-text);
   font-family: Georgia, "Times New Roman", serif;
   font-style: italic;
 }
@@ -699,8 +713,8 @@ body { background: #fff; }
   color: #777;
   font-size: .95rem;
 }
-.amulet-search svg { color: var(--amulet-red); }
-.amulet-search a:hover { color: var(--amulet-red); }
+.amulet-search svg { color: var(--amulet-cream-text); }
+.amulet-search a:hover { color: var(--amulet-cream-text); }
 
 .roadmap-section {
   max-width: 1080px;
@@ -863,9 +877,9 @@ body { background: #fff; }
   transition: color .35s ease, box-shadow .35s ease, scale .35s ease;
 }
 .roadmap-step.is-active .roadmap-step-icon {
-  color: var(--amulet-red);
+  color: var(--amulet-cream-text);
   scale: 1.08;
-  box-shadow: 0 18px 38px rgba(239, 56, 43, .16), inset 0 0 0 2px rgba(239,56,43,.15);
+  box-shadow: 0 18px 38px rgba(216, 185, 142, .18), inset 0 0 0 2px rgba(216,185,142,.22);
 }
 .roadmap-step-copy > * {
   opacity: 0;
@@ -974,8 +988,8 @@ body { background: #fff; }
 .band-copy p { margin-top: 10px; color: var(--amulet-ink); font-weight: 600; }
 .outline-red, .btn.outline-red {
   margin-top: 18px;
-  border: 1px solid var(--amulet-red);
-  color: var(--amulet-red);
+  border: 1px solid var(--amulet-cream-text);
+  color: var(--amulet-cream-text);
   background: rgba(255,255,255,.72);
   border-radius: 999px;
   min-width: 210px;
@@ -997,7 +1011,7 @@ body { background: #fff; }
   background: #fbfbfb;
   min-height: 540px;
 }
-.partner-band p { color: var(--amulet-red); font-weight: 700; margin: 8px 0 18px; }
+.partner-band p { color: var(--amulet-cream-text); font-weight: 700; margin: 8px 0 18px; }
 .partner-phones { display: flex; align-items: end; justify-content: center; margin-top: 20px; }
 .partner-band .btn { border-radius: 999px; min-width: 205px; margin-top: 18px; border-color: #111; color: #111; }
 .scroll-morph-section {
@@ -1029,7 +1043,7 @@ body { background: #fff; }
   pointer-events: none;
 }
 .scroll-morph-copy p {
-  color: var(--amulet-red);
+  color: var(--amulet-cream-text);
   font-size: .76rem;
   font-weight: 900;
   letter-spacing: .2em;
@@ -1132,7 +1146,7 @@ body { background: #fff; }
   text-align: center;
 }
 .events-testimonials-heading p {
-  color: var(--amulet-red);
+  color: var(--amulet-cream-text);
   font-size: .78rem;
   font-weight: 900;
   letter-spacing: .18em;
@@ -1231,7 +1245,7 @@ body { background: #fff; }
   box-shadow: none;
 }
 .featured-amulet { padding-top: 18px; }
-.amulet-heading { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 26px; color: var(--amulet-red); }
+.amulet-heading { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 26px; color: var(--amulet-cream-text); }
 
 .faq-amulet {
   max-width: 680px;
@@ -1239,7 +1253,7 @@ body { background: #fff; }
   padding: 0 22px;
   text-align: center;
 }
-.faq-amulet > strong { display: block; color: red; font-size: 1.65rem; line-height: 1; margin-bottom: 34px; }
+.faq-amulet > strong { display: block; color: var(--amulet-cream-text); font-size: 1.65rem; line-height: 1; margin-bottom: 34px; }
 .faq-stack { display: grid; gap: 10px; text-align: left; }
 .faq-stack .faq-item {
   border: 0;
@@ -1316,7 +1330,7 @@ body { background: #fff; }
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: var(--amulet-red);
+  color: var(--amulet-cream-text);
   font-size: .76rem;
   font-weight: 900;
   letter-spacing: .16em;
@@ -1364,7 +1378,7 @@ body { background: #fff; }
   box-shadow: 0 18px 44px rgba(23, 32, 43, .08);
 }
 .customer-review-card svg {
-  color: var(--amulet-red);
+  color: var(--amulet-cream-text);
 }
 .customer-review-card p {
   color: #343d4c;
@@ -1394,7 +1408,7 @@ body { background: #fff; }
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: var(--amulet-red);
+  color: var(--amulet-cream-text);
   font-size: .75rem;
   font-weight: 900;
   letter-spacing: .16em;
@@ -1462,7 +1476,7 @@ body { background: #fff; }
 }
 .template-category-chips button:hover,
 .template-category-chips button.is-active {
-  color: var(--amulet-red);
+  color: var(--amulet-cream-text);
   transform: translateY(-3px);
 }
 .template-category-chips img {
@@ -1477,14 +1491,14 @@ body { background: #fff; }
 .template-category-chips button:hover img,
 .template-category-chips button.is-active img {
   transform: scale(1.06);
-  box-shadow: 0 20px 34px rgba(239,56,43,.18);
-  outline-color: rgba(239,56,43,.16);
+  box-shadow: 0 20px 34px rgba(216,185,142,.22);
+  outline-color: rgba(216,185,142,.24);
 }
 .template-catalog-notes {
   display: grid;
   gap: 6px;
   justify-items: center;
-  color: var(--amulet-red);
+  color: var(--amulet-cream-text);
   font-size: clamp(.95rem, 2vw, 1.18rem);
   font-weight: 700;
 }
@@ -1572,7 +1586,7 @@ body { background: #fff; }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--amulet-red);
+  color: var(--amulet-cream-text);
   font-size: .78rem;
   font-weight: 900;
   letter-spacing: .14em;
