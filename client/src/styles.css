@@ -1271,13 +1271,26 @@ body { background: #fff; }
   background: #f4f4f4;
 }
 .faq-stack .faq-item button {
-  min-height: 82px;
-  padding: 18px 26px;
+  position: relative;
+  min-height: 14px;
+  padding: 5px 10px;
   color: #625852;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   transition: color .25s ease;
 }
+.faq-stack .faq-item button span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 20px;
+  flex: 1;
+  min-height: 1.35em;
+  line-height: 1.15;
+  text-align: center;
+}
 .faq-stack .faq-item button svg {
+  position: absolute;
+  right: 10px;
   flex: 0 0 auto;
   transition: transform .28s cubic-bezier(.2, .82, .2, 1);
 }
@@ -1969,8 +1982,8 @@ body { background: #fff; }
   .circular-quote { font-size: .98rem !important; line-height: 1.7; }
   .circular-arrow-button { width: 44px; height: 44px; }
   .faq-stack .faq-item { border-radius: 20px; }
-  .faq-stack .faq-item button { min-height: 64px; padding: 14px 18px; font-size: .95rem; }
-  .faq-stack .faq-item p { padding-inline: 18px; font-size: .92rem; }
+  .faq-stack .faq-item button { min-height: 52px; padding: 8px 16px; font-size: .95rem; }
+  .faq-stack .faq-item p { padding-inline: 16px; padding-bottom: 16px; font-size: .92rem; }
   .roadmap-line { left: 27px; width: 74px; }
   .roadmap-items { padding-left: 68px; }
   .roadmap-step-icon { left: -66px; width: 50px; height: 50px; }
