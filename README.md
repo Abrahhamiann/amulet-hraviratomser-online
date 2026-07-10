@@ -42,10 +42,6 @@ Client: `http://localhost:5173`
 
 Server: `http://localhost:5000`
 
-## Seeded Admin
-
-- Email: `admin@einvite.local`
-- Password: `Admin123!`
 
 ## Main Features
 
