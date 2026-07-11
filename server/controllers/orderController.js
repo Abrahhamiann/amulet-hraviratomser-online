@@ -17,6 +17,11 @@ export const getOrders = asyncHandler(async (req, res) => {
   res.json(orders);
 });
 
+export const getMyOrders = asyncHandler(async (req, res) => {
+  const orders = await Order.find({ email: req.user.email }).populate('templateId').sort({ createdAt: -1 });
+  res.json(orders);
+});
+
 export const getOrder = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id).populate('templateId');
   if (!order) {

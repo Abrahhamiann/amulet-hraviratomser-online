@@ -1,35 +1,29 @@
 import React from 'react';
-import { ListFilter, Search, Sparkles } from 'lucide-react';
+import { ChevronDown, Search, Sparkles } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../api/axios.js';
-import baptismChurch from '../assets/morph/baptism-church.webp';
-import birthdayCakeLights from '../assets/morph/birthday-cake-lights.jpg';
-import corporateEvent from '../assets/morph/corporate-event.jpg';
-import engagementSmile from '../assets/morph/engagement-smile.jpg';
-import weddingTemple from '../assets/morph/wedding-temple.jpg';
 import ErrorState from '../components/ErrorState.jsx';
 import Loading from '../components/Loading.jsx';
 import TemplateCard from '../components/TemplateCard.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { categories } from '../data/categories.js';
 
-const categoryImages = {
-  wedding: weddingTemple,
-  baptism: baptismChurch,
-  birth: birthdayCakeLights,
-  corporate: corporateEvent,
-  engagement: engagementSmile
-};
-
 export default function TemplatesPage() {
   const { t } = useLanguage();
   const [params, setParams] = useSearchParams();
   const [templates, setTemplates] = useState([]);
   const [state, setState] = useState('loading');
+  const [sortOpen, setSortOpen] = useState(false);
   const category = params.get('category') || '';
   const search = params.get('search') || '';
   const sort = params.get('sort') || 'newest';
+  const sortOptions = [
+    ['newest', t('newest')],
+    ['price_asc', t('priceAsc')],
+    ['price_desc', t('priceDesc')]
+  ];
+  const activeSort = sortOptions.find(([value]) => value === sort) || sortOptions[0];
 
   const query = useMemo(() => {
     const next = new URLSearchParams();
@@ -54,6 +48,10 @@ export default function TemplatesPage() {
   };
 
   const chooseCategory = (value) => update('category', value);
+  const chooseSort = (value) => {
+    update('sort', value);
+    setSortOpen(false);
+  };
 
   return (
     <section className="templates-catalog-page">
@@ -68,25 +66,6 @@ export default function TemplatesPage() {
           <Search size={21} />
           <input value={search} onChange={(e) => update('search', e.target.value)} placeholder={t('search')} />
         </label>
-
-        <div className="template-category-chips" aria-label={t('templateChooserTitle')}>
-          {categories.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              className={category === item.key ? 'is-active' : ''}
-              onClick={() => chooseCategory(item.key)}
-            >
-              <img src={categoryImages[item.key]} alt="" aria-hidden="true" />
-              <span>{t(item.key)}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="template-catalog-notes">
-          <span>{t('templatesAllLanguages')}</span>
-          <span>{t('templatesFastDelivery')}</span>
-        </div>
       </div>
 
       <div className="template-type-dock" aria-label={t('templateChooserHint')}>
@@ -99,12 +78,28 @@ export default function TemplatesPage() {
       </div>
 
       <div className="catalog-sort-row">
-        <span><ListFilter size={16} /> {t('sort')}</span>
-        <select value={sort} onChange={(e) => update('sort', e.target.value)}>
-          <option value="newest">{t('newest')}</option>
-          <option value="price_asc">{t('priceAsc')}</option>
-          <option value="price_desc">{t('priceDesc')}</option>
-        </select>
+        <div className="catalog-sort-picker">
+          <button type="button" onClick={() => setSortOpen((value) => !value)} aria-expanded={sortOpen}>
+            <span>{activeSort[1]}</span>
+            <ChevronDown size={16} />
+          </button>
+          {sortOpen && (
+            <div className="catalog-sort-menu" role="listbox" aria-label={t('sort')}>
+              {sortOptions.map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={value === sort ? 'is-active' : ''}
+                  onClick={() => chooseSort(value)}
+                  role="option"
+                  aria-selected={value === sort}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {state === 'loading' && <Loading text={t('loading')} />}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Quote, Sparkles } from 'lucide-react';
+import { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 
 const hyTexts = [
@@ -499,12 +500,29 @@ function ReviewCard({ item }) {
 
 export default function TestimonialV2() {
   const { language, t } = useLanguage();
+  const [paused, setPaused] = useState(false);
   const testimonials = makeTestimonials(language);
   const firstRow = testimonials.slice(0, 25);
   const secondRow = testimonials.slice(25);
 
+  const pauseForPointer = (event) => {
+    if (event.pointerType === 'mouse' || event.pointerType === 'touch' || event.pointerType === 'pen') setPaused(true);
+  };
+
+  const resumeForPointer = (event) => {
+    if (event.pointerType === 'mouse' || event.pointerType === 'touch' || event.pointerType === 'pen') setPaused(false);
+  };
+
   return (
-    <section className="customer-testimonials-section" aria-labelledby="customer-testimonials-title">
+    <section
+      className={paused ? 'customer-testimonials-section is-paused' : 'customer-testimonials-section'}
+      aria-labelledby="customer-testimonials-title"
+      onPointerEnter={(event) => event.pointerType === 'mouse' && setPaused(true)}
+      onPointerLeave={(event) => event.pointerType === 'mouse' && setPaused(false)}
+      onPointerDown={pauseForPointer}
+      onPointerUp={resumeForPointer}
+      onPointerCancel={resumeForPointer}
+    >
       <div className="customer-testimonials-heading">
         <span><Sparkles size={16} /> {t('customerTestimonialsKicker')}</span>
         <h2 id="customer-testimonials-title">{t('customerTestimonialsTitle')}</h2>

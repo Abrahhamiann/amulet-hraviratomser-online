@@ -53,22 +53,10 @@ const galleryPhotos = [
 ];
 
 function GalleryPhoto({ photo, index, label }) {
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-
-  const handlePointerMove = (event) => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 14;
-    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 14;
-    setOffset({ x, y });
-  };
-
   return (
     <div
       className={`gallery-photo ${photo.className}`}
-      style={{ '--gallery-index': index, '--tilt-x': `${offset.y * -1}deg`, '--tilt-y': `${offset.x}deg` }}
-      onPointerMove={handlePointerMove}
-      onPointerLeave={() => setOffset({ x: 0, y: 0 })}
+      style={{ '--gallery-index': index }}
       tabIndex={0}
     >
       <img src={photo.src} alt={label} loading={index > 2 ? 'lazy' : 'eager'} draggable="false" />
@@ -100,12 +88,13 @@ export default function HomePage() {
       const stage = section.querySelector('.roadmap-stage') || section;
       const rect = stage.getBoundingClientRect();
       const viewport = window.innerHeight || document.documentElement.clientHeight || 1;
-      const start = viewport * 0.72;
-      const end = -(rect.height - viewport * 0.28);
+      const start = viewport * 0.88;
+      const end = -(rect.height - viewport * 0.34);
       const range = Math.max(1, start - end);
       const next = clamp((start - rect.top) / range);
+      const textProgress = clamp(next + 0.12);
       const steps = Number(section.dataset.steps || 1);
-      const nextIndex = Math.min(steps - 1, Math.max(0, Math.round(next * Math.max(steps - 1, 1))));
+      const nextIndex = Math.min(steps - 1, Math.max(0, Math.floor(textProgress * steps)));
 
       section.style.setProperty('--roadmap-progress', next.toFixed(4));
       setActiveRoadmapIndex((current) => (current === nextIndex ? current : nextIndex));
@@ -216,11 +205,11 @@ export default function HomePage() {
           autoplay
           colors={{
             name: '#17202b',
-            designation: '#ef382b',
+            designation: '#d8b98e',
             testimony: '#4a5565',
             arrowBackground: '#17202b',
             arrowForeground: '#ffffff',
-            arrowHoverBackground: '#ef382b'
+            arrowHoverBackground: '#d8b98e'
           }}
           onActiveChange={setActiveEventIndex}
         />

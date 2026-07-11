@@ -122,11 +122,11 @@ export default function CircularTestimonials({
   if (!activeTestimonial) return null;
 
   const colorName = colors.name ?? '#17202b';
-  const colorDesignation = colors.designation ?? '#ef382b';
+  const colorDesignation = colors.designation ?? '#d8b98e';
   const colorTestimony = colors.testimony ?? '#4a5565';
   const colorArrowBg = colors.arrowBackground ?? '#17202b';
   const colorArrowFg = colors.arrowForeground ?? '#ffffff';
-  const colorArrowHoverBg = colors.arrowHoverBackground ?? '#ef382b';
+  const colorArrowHoverBg = colors.arrowHoverBackground ?? '#d8b98e';
 
   return (
     <div className="circular-testimonials">
