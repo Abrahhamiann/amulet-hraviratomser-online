@@ -21,7 +21,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
-const port = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:5173',
   process.env.ADMIN_URL || 'http://localhost:5174',
@@ -64,10 +64,10 @@ app.use(errorHandler);
 
 connectDB()
   .then(() => {
-    const server = app.listen(port, () => console.log(`Server running on port ${port}`));
+    const server = app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
     server.on('error', (error) => {
       if (error.code === 'EADDRINUSE') {
-        console.error(`Port ${port} is already in use. Stop the existing server or set a different PORT in server/.env.`);
+        console.error(`Port ${PORT} is already in use. Stop the existing server or set a different PORT in server/.env.`);
         process.exit(1);
       }
       throw error;
