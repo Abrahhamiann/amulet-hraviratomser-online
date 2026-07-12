@@ -7,6 +7,7 @@ import Review from '../models/Review.js';
 import Setting from '../models/Setting.js';
 import Template from '../models/Template.js';
 import User from '../models/User.js';
+import { emailShell, sendMail } from '../utils/mailer.js';
 import { makeSlug } from '../utils/slug.js';
 
 const categoryLabels = {
@@ -26,6 +27,18 @@ const supportedLanguages = [
   { code: 'de', name: 'German', nativeName: 'Deutsch' },
   { code: 'it', name: 'Italian', nativeName: 'Italiano' }
 ];
+
+const adminRoles = ['admin', 'super_admin'];
+const userRoles = ['user', ...adminRoles];
+
+const isSuperAdmin = (user) => user?.role === 'super_admin';
+
+const assertSuperAdmin = (req, res) => {
+  if (!isSuperAdmin(req.user)) {
+    res.status(403);
+    throw new Error('Super administrator access required');
+  }
+};
 
 const orderAmount = (order) => Number(order.templateId?.price || 0);
 
@@ -60,19 +73,44 @@ const buildMonthlyData = (orders) => {
   return months.map(({ key, ...item }) => item);
 };
 
+const emptyMonthlyData = () => buildMonthlyData([]);
+
+const periodStart = (period) => {
+  const now = new Date();
+  if (period === 'today') return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (period === 'week') return new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+  if (period === 'year') return new Date(now.getFullYear(), 0, 1);
+  return null;
+};
+
+const filterByPeriod = (items, period) => {
+  if (period === 'zero') return [];
+  const start = periodStart(period);
+  if (!start) return items;
+  return items.filter((item) => new Date(item.createdAt) >= start);
+};
+
 const mapOrder = (order) => ({
   id: String(order._id),
+  _id: String(order._id),
   customer: order.fullName,
   email: order.email,
   phone: order.phone,
   invitation: order.mainNames,
   eventType: order.eventType,
+  template: order.templateId?.title || '',
   amount: orderAmount(order),
   method: 'Manual',
   payment: paymentStatus(order.status),
   status: order.status,
   date: order.createdAt,
-  eventDate: order.eventDate
+  eventDate: order.eventDate,
+  eventTime: order.eventTime,
+  eventLocation: order.eventLocation,
+  mapLink: order.mapLink,
+  eventMessage: order.eventMessage,
+  preferredLanguage: order.preferredLanguage,
+  notes: order.notes
 });
 
 const mapTemplate = (template, usage = 0) => ({
@@ -138,52 +176,60 @@ const buildNotifications = ({ orders, messages, invitations }) => {
 };
 
 export const getAdminDashboard = asyncHandler(async (req, res) => {
+  const period = ['zero', 'today', 'week', 'year', 'all'].includes(req.query.period) ? req.query.period : 'all';
   const [templates, orders, invitations, rsvps, messages, users] = await Promise.all([
     Template.find().sort({ createdAt: -1 }),
     Order.find().populate('templateId').sort({ createdAt: -1 }),
     Invitation.find().populate('orderId templateId').sort({ createdAt: -1 }),
-    RSVP.countDocuments(),
+    RSVP.find().sort({ createdAt: -1 }),
     ContactMessage.find().sort({ createdAt: -1 }),
-    User.countDocuments({ role: 'user' })
+    User.find({ role: 'user' }).sort({ createdAt: -1 })
   ]);
+  const periodOrders = filterByPeriod(orders, period);
+  const periodInvitations = filterByPeriod(invitations, period);
+  const periodMessages = filterByPeriod(messages, period);
+  const periodRsvps = filterByPeriod(rsvps, period);
+  const periodUsers = filterByPeriod(users, period);
+  const visibleTemplates = period === 'zero' ? [] : templates;
 
-  const revenue = orders.reduce((sum, order) => sum + orderAmount(order), 0);
-  const pendingOrders = orders.filter((order) => ['new', 'in_progress'].includes(order.status)).length;
-  const templateUsage = orders.reduce((map, order) => {
+  const revenue = periodOrders.reduce((sum, order) => sum + orderAmount(order), 0);
+  const pendingOrders = periodOrders.filter((order) => ['new', 'in_progress'].includes(order.status)).length;
+  const templateUsage = periodOrders.reduce((map, order) => {
     const id = order.templateId?._id ? String(order.templateId._id) : null;
     if (id) map.set(id, (map.get(id) || 0) + 1);
     return map;
   }, new Map());
 
-  const categoryCounts = templates.reduce((map, template) => {
+  const categoryCounts = visibleTemplates.reduce((map, template) => {
     const label = categoryLabels[template.category] || template.category;
     map.set(label, (map.get(label) || 0) + 1);
     return map;
   }, new Map());
-  const categoryTotal = Math.max(templates.length, 1);
+  const categoryTotal = Math.max(visibleTemplates.length, 1);
 
   res.json({
     stats: {
       revenue,
-      orders: orders.length,
-      invitations: invitations.length,
-      customers: users,
+      orders: periodOrders.length,
+      invitations: periodInvitations.length,
+      customers: periodUsers.length,
       pendingOrders,
-      unreadMessages: messages.length,
-      rsvps
+      unreadMessages: periodMessages.length,
+      rsvps: periodRsvps.length
     },
-    revenueByMonth: buildMonthlyData(orders),
+    period,
+    revenueByMonth: period === 'zero' ? emptyMonthlyData() : buildMonthlyData(periodOrders),
     categoryDistribution: Array.from(categoryCounts, ([name, count]) => ({
       name,
       value: Math.round((count / categoryTotal) * 100)
     })),
-    paymentMethodStats: [{ name: 'Manual', value: orders.length }],
-    latestOrders: orders.slice(0, 6).map(mapOrder),
-    topTemplates: templates
+    paymentMethodStats: [{ name: 'Manual', value: periodOrders.length }],
+    latestOrders: periodOrders.slice(0, 6).map(mapOrder),
+    topTemplates: visibleTemplates
       .map((template) => mapTemplate(template, templateUsage.get(String(template._id)) || 0))
       .sort((a, b) => b.usage - a.usage)
       .slice(0, 5),
-    notifications: buildNotifications({ orders, messages, invitations })
+    notifications: buildNotifications({ orders: periodOrders, messages: periodMessages, invitations: periodInvitations })
   });
 });
 
@@ -220,6 +266,8 @@ export const getAdminCustomers = asyncHandler(async (req, res) => {
       id: String(user._id),
       name: user.name,
       email: user.email,
+      provider: user.provider,
+      googleId: user.googleId,
       phone: userOrders[0]?.phone || '',
       joined: user.createdAt,
       orders: userOrders.length,
@@ -228,6 +276,34 @@ export const getAdminCustomers = asyncHandler(async (req, res) => {
       lastActive: userOrders[0]?.createdAt || user.updatedAt
     };
   }));
+});
+
+export const getAdminCustomer = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user || user.role !== 'user') {
+    res.status(404);
+    throw new Error('Customer not found');
+  }
+
+  const orders = await Order.find({ email: user.email }).populate('templateId').sort({ createdAt: -1 });
+  const invitations = await Invitation.find({ orderId: { $in: orders.map((order) => order._id) } })
+    .populate('orderId templateId')
+    .sort({ createdAt: -1 });
+
+  res.json({
+    id: String(user._id),
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    provider: user.provider,
+    isEmailVerified: user.isEmailVerified,
+    joined: user.createdAt,
+    lastActive: user.updatedAt,
+    phone: orders[0]?.phone || '',
+    orders: orders.map(mapOrder),
+    invitations: invitations.map(mapInvitation),
+    spent: orders.reduce((sum, order) => sum + orderAmount(order), 0)
+  });
 });
 
 export const getAdminPayments = asyncHandler(async (req, res) => {
@@ -253,8 +329,10 @@ export const getAdminMessages = asyncHandler(async (req, res) => {
     subject: 'Contact request',
     message: message.message,
     priority: 'normal',
-    read: false,
-    date: message.createdAt
+    read: Boolean(message.repliedAt),
+    date: message.createdAt,
+    replies: message.replies || [],
+    repliedAt: message.repliedAt
   })));
 });
 
@@ -281,16 +359,18 @@ export const getAdminLanguages = asyncHandler(async (req, res) => {
 });
 
 export const getAdminAdministrators = asyncHandler(async (req, res) => {
-  const admins = await User.find({ role: 'admin' }).sort({ createdAt: -1 });
+  const admins = await User.find({ role: { $in: adminRoles } }).sort({ createdAt: -1 });
   res.json(admins.map((admin) => ({
     id: String(admin._id),
     name: admin.name,
     email: admin.email,
-    role: 'Administrator',
+    role: admin.role,
     status: admin.isEmailVerified ? 'active' : 'pending',
     joined: admin.createdAt,
     lastActive: admin.updatedAt,
-    permissions: ['View', 'Create', 'Edit', 'Delete', 'Publish', 'Manage admins']
+    permissions: admin.role === 'super_admin'
+      ? ['View', 'Create', 'Edit', 'Delete', 'Publish', 'Manage payments', 'Manage admins']
+      : ['View', 'Create', 'Edit', 'Delete', 'Publish']
   })));
 });
 
@@ -388,6 +468,25 @@ export const updateAdminOrderStatus = asyncHandler(async (req, res) => {
   res.json(mapOrder(order));
 });
 
+export const deleteAdminOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) {
+    res.status(404);
+    throw new Error('Order not found');
+  }
+  await Invitation.deleteMany({ orderId: order._id });
+  await order.deleteOne();
+  res.json({ message: 'Order deleted' });
+});
+
+export const deleteAllAdminOrders = asyncHandler(async (req, res) => {
+  const orders = await Order.find().select('_id');
+  const ids = orders.map((order) => order._id);
+  const invitations = await Invitation.deleteMany({ orderId: { $in: ids } });
+  const result = await Order.deleteMany({});
+  res.json({ deleted: result.deletedCount || 0, invitationsDeleted: invitations.deletedCount || 0 });
+});
+
 export const createAdminInvitation = asyncHandler(async (req, res) => {
   let payload = { ...req.body };
   if (payload.orderId) {
@@ -451,11 +550,51 @@ export const deleteAdminMessage = asyncHandler(async (req, res) => {
   res.json({ message: 'Message deleted' });
 });
 
+export const replyAdminMessage = asyncHandler(async (req, res) => {
+  const { subject = 'Reply from Amulet', message } = req.body;
+  if (!message) {
+    res.status(400);
+    throw new Error('Reply message is required');
+  }
+
+  const contact = await ContactMessage.findById(req.params.id);
+  if (!contact) {
+    res.status(404);
+    throw new Error('Message not found');
+  }
+
+  await sendMail({
+    to: contact.email,
+    subject,
+    replyTo: process.env.SMTP_USER,
+    html: emailShell({
+      title: subject,
+      intro: `Hello ${contact.name}, thank you for contacting Amulet.`,
+      body: String(message).replace(/\n/g, '<br />'),
+      footer: 'Amulet team'
+    }),
+    text: message
+  });
+
+  contact.replies.push({ subject, message });
+  contact.repliedAt = new Date();
+  await contact.save();
+
+  res.json({ message: 'Reply sent' });
+});
+
 export const createAdminUser = asyncHandler(async (req, res) => {
   const { name, email, password = 'Adminamulet2026', role = 'user' } = req.body;
   if (!name || !email) {
     res.status(400);
     throw new Error('Name and email are required');
+  }
+  if (!userRoles.includes(role)) {
+    res.status(400);
+    throw new Error('Invalid user role');
+  }
+  if (adminRoles.includes(role)) {
+    assertSuperAdmin(req, res);
   }
   const existing = await User.findOne({ email: email.trim().toLowerCase() });
   if (existing) {
@@ -489,8 +628,91 @@ export const deleteAdminUser = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('User not found');
   }
+  if (adminRoles.includes(user.role)) {
+    assertSuperAdmin(req, res);
+  }
   await user.deleteOne();
   res.json({ message: 'User deleted' });
+});
+
+export const updateAdminUserRole = asyncHandler(async (req, res) => {
+  assertSuperAdmin(req, res);
+  const { role } = req.body;
+  if (!userRoles.includes(role)) {
+    res.status(400);
+    throw new Error('Invalid user role');
+  }
+  if (String(req.user._id) === req.params.id && role !== 'super_admin') {
+    res.status(400);
+    throw new Error('You cannot remove your own super administrator role');
+  }
+
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+  user.role = role;
+  if (adminRoles.includes(role)) user.isEmailVerified = true;
+  await user.save();
+  res.json({
+    id: String(user._id),
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    status: user.isEmailVerified ? 'active' : 'pending',
+    lastActive: user.updatedAt
+  });
+});
+
+export const sendAdminCustomerEmail = asyncHandler(async (req, res) => {
+  const { subject, message } = req.body;
+  if (!subject || !message) {
+    res.status(400);
+    throw new Error('Subject and message are required');
+  }
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  await sendMail({
+    to: user.email,
+    subject,
+    html: emailShell({
+      title: subject,
+      intro: `Hello ${user.name},`,
+      body: String(message).replace(/\n/g, '<br />'),
+      footer: 'Amulet team'
+    }),
+    text: message
+  });
+
+  res.json({ message: 'Email sent' });
+});
+
+export const broadcastAdminEmail = asyncHandler(async (req, res) => {
+  const { subject, message } = req.body;
+  if (!subject || !message) {
+    res.status(400);
+    throw new Error('Subject and message are required');
+  }
+
+  const users = await User.find({ role: 'user', isEmailVerified: true });
+  await Promise.all(users.map((user) => sendMail({
+    to: user.email,
+    subject,
+    html: emailShell({
+      title: subject,
+      intro: `Hello ${user.name},`,
+      body: String(message).replace(/\n/g, '<br />'),
+      footer: 'Amulet team'
+    }),
+    text: message
+  })));
+
+  res.json({ sent: users.length });
 });
 
 export const createAdminReview = asyncHandler(async (req, res) => {

@@ -67,7 +67,7 @@ const run = async () => {
     name: 'Admin',
     email: 'admin@einvite.local',
     password: 'Admin123!',
-    role: 'admin',
+    role: 'super_admin',
     isEmailVerified: true
   });
   const createdTemplates = await Template.insertMany(templates);

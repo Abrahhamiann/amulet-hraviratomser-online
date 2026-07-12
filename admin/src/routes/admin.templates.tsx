@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Copy, Edit, Eye, LayoutGrid, List, MoreHorizontal, Plus, Star, Trash2 } from "lucide-react";
+import { Copy, Edit, Eye, LayoutGrid, List, MoreHorizontal, Plus, Star, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -151,7 +151,7 @@ function TemplatesPage() {
                 <TemplateForm form={form} setForm={setForm} />
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setDialogOpen(false)}>{t("cancel")}</Button>
-                  <Button disabled={saving || !form.title || !form.description} onClick={saveTemplate} className="gold-gradient border-0 text-white">
+                  <Button disabled={saving || !form.title || !form.description || !form.mainImage} onClick={saveTemplate} className="gold-gradient border-0 text-white">
                     {t("save")}
                   </Button>
                 </DialogFooter>
@@ -253,6 +253,12 @@ function TemplateActions({ template, onEdit, onDuplicate, onDelete }: any) {
 function TemplateForm({ form, setForm }: any) {
   const { t } = useAdminI18n();
   const set = (key: string, value: any) => setForm((current: any) => ({ ...current, [key]: value }));
+  const chooseImage = (file?: File) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => set("mainImage", String(reader.result || ""));
+    reader.readAsDataURL(file);
+  };
   return (
     <div className="grid gap-4 sm:grid-cols-2 py-2">
       <div className="space-y-2"><Label>{t("title")}</Label><Input value={form.title} onChange={(event) => set("title", event.target.value)} /></div>
@@ -260,7 +266,19 @@ function TemplateForm({ form, setForm }: any) {
       <div className="space-y-2"><Label>{t("category")}</Label><Input value={form.category} onChange={(event) => set("category", event.target.value)} /></div>
       <div className="space-y-2"><Label>{t("price")}</Label><Input type="number" value={form.price} onChange={(event) => set("price", event.target.value)} /></div>
       <div className="space-y-2 sm:col-span-2"><Label>{t("description")}</Label><Textarea value={form.description} onChange={(event) => set("description", event.target.value)} /></div>
-      <div className="space-y-2 sm:col-span-2"><Label>{t("mainImage")}</Label><Input value={form.mainImage} onChange={(event) => set("mainImage", event.target.value)} /></div>
+      <div className="space-y-2 sm:col-span-2">
+        <Label>{t("mainImage")}</Label>
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+          <Input value={form.mainImage} onChange={(event) => set("mainImage", event.target.value)} placeholder="https://... կամ ընտրիր նկար" />
+          <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border/70 bg-background px-4 text-sm font-medium shadow-sm transition hover:border-[color:var(--gold)]">
+            <Upload className="h-4 w-4" />
+            Upload
+            <input className="sr-only" type="file" accept="image/*" onChange={(event) => chooseImage(event.target.files?.[0])} />
+          </label>
+        </div>
+        <p className="text-xs text-muted-foreground">{t("mainImage")} link կամ համակարգչից ընտրված նկար՝ մեկը պարտադիր է։</p>
+        {form.mainImage ? <img src={form.mainImage} alt="" className="mt-2 h-24 w-24 rounded-xl object-cover border border-border/60" /> : null}
+      </div>
       <div className="space-y-2"><Label>{t("gallery")}</Label><Textarea value={form.gallery} onChange={(event) => set("gallery", event.target.value)} rows={4} /></div>
       <div className="space-y-2"><Label>{t("features")}</Label><Textarea value={form.features} onChange={(event) => set("features", event.target.value)} rows={4} /></div>
       <label className="flex items-center gap-3"><Switch checked={form.isFeatured} onCheckedChange={(checked) => set("isFeatured", checked)} /> {t("featured")}</label>

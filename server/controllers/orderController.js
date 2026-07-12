@@ -1,14 +1,32 @@
 import asyncHandler from 'express-async-handler';
+import mongoose from 'mongoose';
 import Order from '../models/Order.js';
+
+const normalizeDateValue = (value) => {
+  if (!value) return value;
+  const match = String(value).match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+  if (match) return `${match[3]}-${match[2]}-${match[1]}`;
+  return value;
+};
 
 export const createOrder = asyncHandler(async (req, res) => {
   const required = ['fullName', 'phone', 'email', 'eventType', 'eventDate', 'eventTime', 'eventLocation', 'mainNames'];
-  const missing = required.filter((field) => !req.body[field]);
+  const payload = Object.fromEntries(
+    Object.entries(req.body || {})
+      .map(([key, value]) => [key, typeof value === 'string' ? value.trim() : value])
+      .filter(([, value]) => value !== '')
+  );
+
+  payload.eventDate = normalizeDateValue(payload.eventDate);
+  if (!payload.templateId || !mongoose.Types.ObjectId.isValid(payload.templateId)) delete payload.templateId;
+
+  const missing = required.filter((field) => !payload[field]);
   if (missing.length) {
     res.status(400);
     throw new Error(`Missing fields: ${missing.join(', ')}`);
   }
-  const order = await Order.create(req.body);
+
+  const order = await Order.create(payload);
   res.status(201).json(order);
 });
 

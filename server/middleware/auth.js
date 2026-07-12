@@ -20,7 +20,7 @@ export const protect = asyncHandler(async (req, res, next) => {
 });
 
 export const adminOnly = (req, res, next) => {
-  if (req.user?.role !== 'admin') {
+  if (!['admin', 'super_admin'].includes(req.user?.role)) {
     res.status(403);
     throw new Error('Admin access required');
   }

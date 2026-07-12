@@ -4,14 +4,18 @@ import {
   createAdminReview,
   createAdminTemplate,
   createAdminUser,
+  broadcastAdminEmail,
   deleteAdminInvitation,
   deleteAdminMessage,
+  deleteAdminOrder,
+  deleteAllAdminOrders,
   deleteAdminReview,
   deleteAdminTemplate,
   deleteAdminUser,
   getAdminAdministrators,
   getAdminCategories,
   getAdminCustomers,
+  getAdminCustomer,
   getAdminDashboard,
   getAdminInvitations,
   getAdminLanguages,
@@ -26,7 +30,10 @@ import {
   updateAdminOrderStatus,
   updateAdminReview,
   updateAdminSettings,
-  updateAdminTemplate
+  updateAdminUserRole,
+  updateAdminTemplate,
+  replyAdminMessage,
+  sendAdminCustomerEmail
 } from '../controllers/adminController.js';
 import { adminOnly, protect } from '../middleware/auth.js';
 
@@ -36,7 +43,9 @@ router.use(protect, adminOnly);
 
 router.get('/dashboard', getAdminDashboard);
 router.get('/orders', getAdminOrders);
+router.delete('/orders', deleteAllAdminOrders);
 router.patch('/orders/:id/status', updateAdminOrderStatus);
+router.delete('/orders/:id', deleteAdminOrder);
 router.get('/templates', getAdminTemplates);
 router.post('/templates', createAdminTemplate);
 router.put('/templates/:id', updateAdminTemplate);
@@ -46,14 +55,19 @@ router.post('/invitations', createAdminInvitation);
 router.put('/invitations/:id', updateAdminInvitation);
 router.delete('/invitations/:id', deleteAdminInvitation);
 router.get('/customers', getAdminCustomers);
+router.get('/customers/:id', getAdminCustomer);
+router.post('/customers/:id/email', sendAdminCustomerEmail);
 router.get('/payments', getAdminPayments);
 router.get('/messages', getAdminMessages);
+router.post('/messages/:id/reply', replyAdminMessage);
 router.delete('/messages/:id', deleteAdminMessage);
 router.get('/categories', getAdminCategories);
 router.get('/languages', getAdminLanguages);
 router.get('/administrators', getAdminAdministrators);
 router.post('/users', createAdminUser);
+router.patch('/users/:id/role', updateAdminUserRole);
 router.delete('/users/:id', deleteAdminUser);
+router.post('/broadcast', broadcastAdminEmail);
 router.get('/notifications', getAdminNotifications);
 router.get('/reviews', getAdminReviews);
 router.post('/reviews', createAdminReview);

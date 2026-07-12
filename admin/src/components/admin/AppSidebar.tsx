@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, FileText, LayoutTemplate, ShoppingBag, Users, CreditCard,
   Star, MessageSquare, FolderTree, Languages, Bell, ShieldCheck,
-  Settings, LogOut, Sparkles,
+  LogOut, Sparkles,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
@@ -28,7 +28,6 @@ const configNav = [
   { title: "languages", url: "/admin/languages", icon: Languages },
   { title: "notifications", url: "/admin/notifications", icon: Bell },
   { title: "administrators", url: "/admin/administrators", icon: ShieldCheck },
-  { title: "settings", url: "/admin/settings", icon: Settings },
 ];
 
 export function AppSidebar() {

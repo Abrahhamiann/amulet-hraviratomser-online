@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouterState } from "@tanstack/react-router";
-import { Bell, ChevronDown, Globe, LogOut, Moon, Search, Settings, Sun, User } from "lucide-react";
+import { Bell, ChevronDown, Globe, LogOut, Moon, Search, Sun, User } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -129,8 +129,6 @@ export function TopHeader() {
           <DropdownMenuLabel>{t("myAccount")}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem><User className="h-4 w-4 mr-2" />{t("profile")}</DropdownMenuItem>
-          <DropdownMenuItem><Settings className="h-4 w-4 mr-2" />{t("settings")}</DropdownMenuItem>
-          <DropdownMenuSeparator />
           <DropdownMenuItem
             className="text-destructive"
             onClick={() => {

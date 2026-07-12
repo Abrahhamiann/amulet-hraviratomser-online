@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail, MapPin, Phone } from 'lucide-react';
+import { CheckCircle2, Mail, MapPin, Phone } from 'lucide-react';
 import { useState } from 'react';
 import api from '../api/axios.js';
 import Button from '../components/Button.jsx';
@@ -15,6 +15,7 @@ export default function ContactPage() {
 
   const submit = async (event) => {
     event.preventDefault();
+    const formElement = event.currentTarget;
     const data = toForm(event);
     const nextErrors = required(data, ['name', 'phone', 'email', 'message']);
     setErrors(nextErrors);
@@ -22,7 +23,7 @@ export default function ContactPage() {
     setStatus('loading');
     try {
       await api.post('/contact', data);
-      event.currentTarget.reset();
+      formElement.reset();
       setStatus('success');
     } catch {
       setStatus('error');
@@ -45,8 +46,17 @@ export default function ContactPage() {
         <Input label={t('phone')} name="phone" type="tel" error={errors.phone} />
         <Input label={t('email')} name="email" type="email" error={errors.email} />
         <Input label={t('message')} name="message" as="textarea" rows="5" error={errors.message} />
-        <Button disabled={status === 'loading'}>{t('submit')}</Button>
-        {status === 'success' && <p className="success">{t('successContact')}</p>}
+        <Button disabled={status === 'loading'}>{status === 'loading' ? t('loading') : t('submit')}</Button>
+        {status === 'success' && (
+          <div className="form-success-card" role="status" aria-live="polite">
+            <CheckCircle2 size={22} />
+            <div>
+              <strong>{t('successContact')}</strong>
+              <span>{t('successContactDetails')}</span>
+            </div>
+          </div>
+        )}
+        {status === 'error' && <p className="form-error">{t('error')}</p>}
       </form>
     </section>
   );

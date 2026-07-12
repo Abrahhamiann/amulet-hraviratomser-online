@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail, ShieldCheck } from 'lucide-react';
+import { LogIn, Mail, ShieldCheck, UserPlus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
@@ -59,17 +59,20 @@ export default function AuthPage() {
           }
         }
       });
+      googleRef.current.innerHTML = '';
       window.google.accounts.id.renderButton(googleRef.current, {
         theme: 'outline',
         size: 'large',
-        width: googleRef.current.offsetWidth || 320
+        shape: 'pill',
+        text: mode === 'register' ? 'signup_with' : 'signin_with',
+        width: Math.min(Math.max(googleRef.current.offsetWidth || 320, 240), 400)
       });
     });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [mode]);
 
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
 
@@ -152,8 +155,8 @@ export default function AuthPage() {
         {!verificationEmail ? (
           <>
             <div className="auth-tabs">
-              <button type="button" className={mode === 'login' ? 'is-active' : ''} onClick={() => setMode('login')}>{t('login')}</button>
-              <button type="button" className={mode === 'register' ? 'is-active' : ''} onClick={() => setMode('register')}>{t('authRegister')}</button>
+              <button type="button" className={mode === 'login' ? 'is-active' : ''} onClick={() => setMode('login')}><LogIn size={16} />{t('login')}</button>
+              <button type="button" className={mode === 'register' ? 'is-active' : ''} onClick={() => setMode('register')}><UserPlus size={16} />{t('authRegister')}</button>
             </div>
 
             <form className="auth-form" onSubmit={submit}>
@@ -171,7 +174,10 @@ export default function AuthPage() {
                 <span>Password</span>
                 <input type="password" value={form.password} onChange={(event) => update('password', event.target.value)} placeholder="••••••••" required minLength={6} />
               </label>
-              <button className="auth-submit" type="submit" disabled={busy}>{busy ? t('authWait') : mode === 'register' ? t('authCreateAccount') : t('authSignIn')}</button>
+              <button className="auth-submit" type="submit" disabled={busy}>
+                {mode === 'register' ? <UserPlus size={18} /> : <LogIn size={18} />}
+                <span>{busy ? t('authWait') : mode === 'register' ? t('authCreateAccount') : t('authSignIn')}</span>
+              </button>
             </form>
 
             <div className="auth-divider"><span>{t('authOr')}</span></div>
@@ -195,7 +201,10 @@ export default function AuthPage() {
                 />
               ))}
             </div>
-            <button className="auth-submit" type="submit" disabled={busy || verificationComplete}>{busy ? t('authChecking') : t('authConfirm')}</button>
+            <button className="auth-submit" type="submit" disabled={busy || verificationComplete}>
+              <ShieldCheck size={18} />
+              <span>{busy ? t('authChecking') : t('authConfirm')}</span>
+            </button>
           </form>
         )}
 

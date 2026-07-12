@@ -129,6 +129,21 @@ p { color: var(--muted); margin: 0; }
 .field small, .form-error { color: var(--danger); }
 .success { color: var(--success); font-weight: 800; }
 .panel-form .btn, .panel-form .success, .panel-form .form-error { justify-self: start; }
+.form-success-card {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(216, 185, 142, 0.45);
+  border-radius: 18px;
+  background: rgba(216, 185, 142, 0.12);
+  color: var(--text);
+  animation: contactPop .35s ease both;
+}
+.form-success-card svg { color: #d8b98e; flex: 0 0 auto; margin-top: 2px; }
+.form-success-card strong { display: block; font-weight: 800; margin-bottom: 3px; }
+.form-success-card span { display: block; color: var(--muted); line-height: 1.55; }
 
 .contact-list { display: grid; gap: 14px; }
 .contact-list span { display: flex; gap: 10px; align-items: center; color: var(--muted); }
@@ -1804,6 +1819,10 @@ body { background: #fff; }
   font-weight: 900;
 }
 .auth-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   border-radius: 12px;
   background: transparent;
   color: #6a7280;
@@ -1837,6 +1856,11 @@ body { background: #fff; }
 }
 .auth-submit {
   min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
   border-radius: 999px;
   background: #d8b98e;
   color: #fff;
@@ -1863,10 +1887,15 @@ body { background: #fff; }
   min-height: 42px;
   display: grid;
   place-items: center;
+  width: 100%;
+  max-width: 400px;
+  justify-self: center;
+  overflow: hidden;
   color: #7b8492;
   font-weight: 750;
   text-align: center;
 }
+.google-auth-slot > div { max-width: 100%; }
 .auth-status,
 .auth-error {
   display: flex;
@@ -2642,10 +2671,37 @@ body { background: #fff; }
     min-height: 38px;
   }
   .auth-page {
-    padding-inline: 10px;
+    padding: 28px 10px 54px;
   }
   .auth-panel {
     padding: 20px 14px;
+    gap: 15px;
+  }
+  .auth-tabs {
+    min-height: 42px;
+    gap: 4px;
+    padding: 4px;
+  }
+  .auth-tabs button {
+    gap: 5px;
+    font-size: .86rem;
+  }
+  .auth-submit {
+    width: 100%;
+    min-height: 44px;
+  }
+  .google-auth-slot {
+    max-width: 100%;
+  }
+  .verification-code-row {
+    grid-template-columns: repeat(6, minmax(34px, 1fr));
+    width: 100%;
+    gap: 6px;
+  }
+  .verification-code-row input {
+    width: 100%;
+    height: 46px;
+    min-width: 0;
   }
   .account-page {
     padding-inline: 12px;

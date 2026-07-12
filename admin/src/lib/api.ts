@@ -5,7 +5,7 @@ export type AdminUser = {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "user";
+  role: "admin" | "super_admin" | "user";
 };
 
 export const currency = (value: number) =>
@@ -52,7 +52,7 @@ export async function login(email: string, password: string) {
     body: JSON.stringify({ email, password }),
   });
 
-  if (data.user.role !== "admin") {
+  if (!["admin", "super_admin"].includes(data.user.role)) {
     throw new Error("Admin access required");
   }
 
@@ -62,11 +62,12 @@ export async function login(email: string, password: string) {
 
 export const adminApi = {
   me: () => request<AdminUser>("/auth/me"),
-  dashboard: () => request<any>("/admin/dashboard"),
+  dashboard: (period = "all") => request<any>(`/admin/dashboard?period=${encodeURIComponent(period)}`),
   orders: () => request<any[]>("/admin/orders"),
   templates: () => request<any[]>("/admin/templates"),
   invitations: () => request<any[]>("/admin/invitations"),
   customers: () => request<any[]>("/admin/customers"),
+  customer: (id: string) => request<any>(`/admin/customers/${id}`),
   payments: () => request<any[]>("/admin/payments"),
   messages: () => request<any[]>("/admin/messages"),
   categories: () => request<any[]>("/admin/categories"),
@@ -80,12 +81,19 @@ export const adminApi = {
   deleteTemplate: (id: string) => request<any>(`/admin/templates/${id}`, { method: "DELETE" }),
   updateOrderStatus: (id: string, status: string) =>
     request<any>(`/admin/orders/${id}/status`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  deleteOrder: (id: string) => request<any>(`/admin/orders/${id}`, { method: "DELETE" }),
+  deleteAllOrders: () => request<any>("/admin/orders", { method: "DELETE" }),
   createInvitation: (data: any) => request<any>("/admin/invitations", { method: "POST", body: JSON.stringify(data) }),
   updateInvitation: (id: string, data: any) => request<any>(`/admin/invitations/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deleteInvitation: (id: string) => request<any>(`/admin/invitations/${id}`, { method: "DELETE" }),
   deleteMessage: (id: string) => request<any>(`/admin/messages/${id}`, { method: "DELETE" }),
+  replyMessage: (id: string, data: any) => request<any>(`/admin/messages/${id}/reply`, { method: "POST", body: JSON.stringify(data) }),
   createUser: (data: any) => request<any>("/admin/users", { method: "POST", body: JSON.stringify(data) }),
+  updateUserRole: (id: string, role: string) =>
+    request<any>(`/admin/users/${id}/role`, { method: "PATCH", body: JSON.stringify({ role }) }),
   deleteUser: (id: string) => request<any>(`/admin/users/${id}`, { method: "DELETE" }),
+  sendCustomerEmail: (id: string, data: any) => request<any>(`/admin/customers/${id}/email`, { method: "POST", body: JSON.stringify(data) }),
+  broadcastEmail: (data: any) => request<any>("/admin/broadcast", { method: "POST", body: JSON.stringify(data) }),
   createReview: (data: any) => request<any>("/admin/reviews", { method: "POST", body: JSON.stringify(data) }),
   updateReview: (id: string, data: any) => request<any>(`/admin/reviews/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deleteReview: (id: string) => request<any>(`/admin/reviews/${id}`, { method: "DELETE" }),

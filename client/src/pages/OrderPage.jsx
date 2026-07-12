@@ -10,12 +10,30 @@ import { categories } from '../data/categories.js';
 import { languages } from '../translations/translations.js';
 import { required, toForm } from '../utils/forms.js';
 
+const normalizeDateValue = (value) => {
+  if (!value) return value;
+  const match = String(value).match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+  if (match) return `${match[3]}-${match[2]}-${match[1]}`;
+  return value;
+};
+
+const cleanOrderPayload = (data) => {
+  const payload = Object.fromEntries(
+    Object.entries(data)
+      .map(([key, value]) => [key, typeof value === 'string' ? value.trim() : value])
+      .filter(([, value]) => value !== '')
+  );
+  payload.eventDate = normalizeDateValue(payload.eventDate);
+  return payload;
+};
+
 export default function OrderPage() {
   const { t, language } = useLanguage();
   const [params] = useSearchParams();
   const [templates, setTemplates] = useState([]);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState('');
+  const [serverError, setServerError] = useState('');
 
   useEffect(() => {
     api.get('/templates').then(({ data }) => setTemplates(data)).catch(() => setTemplates([]));
@@ -23,16 +41,20 @@ export default function OrderPage() {
 
   const submit = async (event) => {
     event.preventDefault();
-    const data = toForm(event);
+    const formElement = event.currentTarget;
+    const data = cleanOrderPayload(toForm(event));
     const nextErrors = required(data, ['fullName', 'phone', 'email', 'eventType', 'eventDate', 'eventTime', 'eventLocation', 'mainNames']);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
     setStatus('loading');
+    setServerError('');
     try {
       await api.post('/orders', data);
-      event.currentTarget.reset();
+      formElement.reset();
       setStatus('success');
-    } catch {
+    } catch (error) {
+      const message = error?.response?.data?.message;
+      setServerError(message || (error?.request ? t('orderConnectionError') : t('orderErrorDetails')));
       setStatus('error');
     }
   };
@@ -64,7 +86,7 @@ export default function OrderPage() {
         <Input label={t('notes')} name="notes" as="textarea" rows="4" />
         <Button type="submit" disabled={status === 'loading'}>{status === 'loading' ? t('loading') : t('submit')}</Button>
         {status === 'success' && <p className="success">{t('successOrder')}</p>}
-        {status === 'error' && <p className="form-error">{t('error')}</p>}
+        {status === 'error' && <p className="form-error">{serverError || t('error')}</p>}
       </form>
     </section>
   );

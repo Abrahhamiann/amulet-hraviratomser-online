@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   AlertCircle,
   CheckCircle2,
@@ -45,7 +46,8 @@ const CHART_COLORS = ["#C99A3D", "#8B6F3D", "#D4B26A", "#A67C3D", "#E5C88A"];
 
 function Dashboard() {
   const { t } = useAdminI18n();
-  const { data: dashboard, isLoading, error } = useDashboard();
+  const [period, setPeriod] = useState("all");
+  const { data: dashboard, isLoading, error } = useDashboard(period);
   const stats = dashboard?.stats ?? {};
   const revenueByMonth = dashboard?.revenueByMonth ?? [];
   const categoryDistribution = dashboard?.categoryDistribution ?? [];
@@ -65,12 +67,13 @@ function Dashboard() {
               : t("liveOverview")
         }
         actions={
-          <Tabs defaultValue="30d">
+          <Tabs value={period} onValueChange={setPeriod}>
             <TabsList className="bg-secondary/60">
+              <TabsTrigger value="zero">Zero</TabsTrigger>
               <TabsTrigger value="today">Today</TabsTrigger>
-              <TabsTrigger value="7d">7 days</TabsTrigger>
-              <TabsTrigger value="30d">30 days</TabsTrigger>
+              <TabsTrigger value="week">Week</TabsTrigger>
               <TabsTrigger value="year">Year</TabsTrigger>
+              <TabsTrigger value="all">All</TabsTrigger>
             </TabsList>
           </Tabs>
         }

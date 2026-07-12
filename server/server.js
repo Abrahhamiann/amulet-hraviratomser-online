@@ -46,7 +46,7 @@ app.use(cors({
     callback(new Error('Not allowed by CORS'));
   }
 }));
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '15mb' }));
 app.use(morgan('dev'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));

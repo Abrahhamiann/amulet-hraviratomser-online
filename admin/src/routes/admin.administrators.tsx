@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { format } from "date-fns";
 import { Edit, Plus, Shield, Trash2 } from "lucide-react";
@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatusBadge } from "@/components/admin/StatusBadge";
@@ -21,26 +22,46 @@ import { useAdministrators } from "@/hooks/useAdminData";
 export const Route = createFileRoute("/admin/administrators")({ component: AdminsPage });
 
 const permissions = ["View", "Create", "Edit", "Delete", "Publish", "Manage payments", "Manage admins"];
-const roles = ["Super Admin", "Admin", "Content Manager", "Order Manager", "Support Manager"];
+const roles = [
+  { value: "super_admin", label: "Super Administrator" },
+  { value: "admin", label: "Administrator" },
+  { value: "content_manager", label: "Content Manager" },
+  { value: "order_manager", label: "Order Manager" },
+  { value: "support_manager", label: "Support Manager" },
+];
+
+const roleLabel = (role: string) => roles.find((item) => item.value === role)?.label || role;
+
+const hasPermission = (role: string, permission: string) => {
+  if (role === "super_admin") return true;
+  if (role === "admin") return permission !== "Manage admins";
+  return false;
+};
 
 function AdminsPage() {
   const { t } = useAdminI18n();
   const { data: admins, isLoading, error } = useAdministrators();
+  const { data: me } = useQuery({ queryKey: ["admin", "me"], queryFn: adminApi.me, retry: false });
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingAdmin, setEditingAdmin] = useState<any>(null);
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "admin" });
+  const [roleForm, setRoleForm] = useState("admin");
   const [saving, setSaving] = useState(false);
+  const canManageAdmins = me?.role === "super_admin";
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ["admin", "administrators"] });
 
   const createAdmin = async () => {
+    if (!canManageAdmins) return toast.error("Super administrator access required");
     setSaving(true);
     try {
-      await adminApi.createUser({ ...form, role: "admin" });
+      await adminApi.createUser(form);
       await refresh();
       toast.success(t("done"));
       setOpen(false);
-      setForm({ name: "", email: "", password: "" });
+      setForm({ name: "", email: "", password: "", role: "admin" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("failed"));
     } finally {
@@ -49,6 +70,7 @@ function AdminsPage() {
   };
 
   const deleteAdmin = async (admin: any) => {
+    if (!canManageAdmins) return toast.error("Super administrator access required");
     if (!confirm(`${t("delete")}: ${admin.email}?`)) return;
     try {
       await adminApi.deleteUser(admin.id);
@@ -56,6 +78,28 @@ function AdminsPage() {
       toast.success(t("done"));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("failed"));
+    }
+  };
+
+  const openRoleEditor = (admin: any) => {
+    setEditingAdmin(admin);
+    setRoleForm(admin.role);
+    setEditOpen(true);
+  };
+
+  const updateRole = async () => {
+    if (!canManageAdmins || !editingAdmin) return toast.error("Super administrator access required");
+    setSaving(true);
+    try {
+      await adminApi.updateUserRole(editingAdmin.id, roleForm);
+      await refresh();
+      toast.success(t("done"));
+      setEditOpen(false);
+      setEditingAdmin(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("failed"));
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -67,7 +111,7 @@ function AdminsPage() {
         actions={
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="gold-gradient border-0 text-white rounded-full"><Plus className="h-4 w-4 mr-2" />{t("inviteAdmin")}</Button>
+              <Button disabled={!canManageAdmins} className="gold-gradient border-0 text-white rounded-full"><Plus className="h-4 w-4 mr-2" />{t("inviteAdmin")}</Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle className="font-display text-2xl">{t("inviteAdmin")}</DialogTitle></DialogHeader>
@@ -75,10 +119,19 @@ function AdminsPage() {
                 <div className="space-y-2"><Label>{t("name")}</Label><Input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></div>
                 <div className="space-y-2"><Label>{t("email")}</Label><Input type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></div>
                 <div className="space-y-2"><Label>{t("password")}</Label><Input value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} /></div>
+                <div className="space-y-2">
+                  <Label>{t("role")}</Label>
+                  <Select value={form.role} onValueChange={(role) => setForm({ ...form, role })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {roles.slice(0, 2).map((role) => <SelectItem key={role.value} value={role.value}>{role.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)}>{t("cancel")}</Button>
-                <Button disabled={saving || !form.name || !form.email || !form.password} onClick={createAdmin} className="gold-gradient border-0 text-white">{t("save")}</Button>
+                <Button disabled={saving || !canManageAdmins || !form.name || !form.email || !form.password} onClick={createAdmin} className="gold-gradient border-0 text-white">{t("save")}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -113,14 +166,14 @@ function AdminsPage() {
                   </TableCell>
                   <TableCell>
                     <span className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full bg-[color:var(--cream)] text-[color:var(--gold)] font-medium">
-                      <Shield className="h-3 w-3" /> {admin.role}
+                      <Shield className="h-3 w-3" /> {roleLabel(admin.role)}
                     </span>
                   </TableCell>
                   <TableCell><StatusBadge status={admin.status} /></TableCell>
                   <TableCell className="text-muted-foreground text-sm">{format(new Date(admin.lastActive), "MMM d, yyyy")}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" disabled><Edit className="h-4 w-4" /></Button>
-                    <Button onClick={() => deleteAdmin(admin)} variant="ghost" size="icon" className="text-destructive"><Trash2 className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" disabled={!canManageAdmins} onClick={() => openRoleEditor(admin)}><Edit className="h-4 w-4" /></Button>
+                    <Button disabled={!canManageAdmins} onClick={() => deleteAdmin(admin)} variant="ghost" size="icon" className="text-destructive"><Trash2 className="h-4 w-4" /></Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -128,6 +181,33 @@ function AdminsPage() {
           </Table>
         </div>
       </Card>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-display text-2xl">{t("edit")} {t("role")}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-2">
+            <div className="rounded-2xl border border-border/60 p-4">
+              <div className="font-medium">{editingAdmin?.name}</div>
+              <div className="text-sm text-muted-foreground">{editingAdmin?.email}</div>
+            </div>
+            <div className="space-y-2">
+              <Label>{t("role")}</Label>
+              <Select value={roleForm} onValueChange={setRoleForm}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {roles.slice(0, 2).map((role) => <SelectItem key={role.value} value={role.value}>{role.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>{t("cancel")}</Button>
+            <Button disabled={saving || !canManageAdmins} onClick={updateRole} className="gold-gradient border-0 text-white">{t("save")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Card className="p-6 rounded-2xl border-border/60 shadow-[var(--shadow-soft)]">
         <h3 className="font-display text-xl">Roles & permissions</h3>
@@ -137,16 +217,16 @@ function AdminsPage() {
             <TableHeader>
               <TableRow className="hover:bg-transparent border-border/60">
                 <TableHead>Permission</TableHead>
-                {roles.map((role) => <TableHead key={role} className="text-center text-xs">{role}</TableHead>)}
+                {roles.map((role) => <TableHead key={role.value} className="text-center text-xs">{role.label}</TableHead>)}
               </TableRow>
             </TableHeader>
             <TableBody>
               {permissions.map((permission) => (
                 <TableRow key={permission} className="border-border/60">
                   <TableCell className="font-medium">{permission}</TableCell>
-                  {roles.map((role, index) => (
-                    <TableCell key={role} className="text-center">
-                      <Checkbox disabled defaultChecked={index === 0 || (index === 1 && permission !== "Manage admins")} />
+                  {roles.map((role) => (
+                    <TableCell key={role.value} className="text-center">
+                      <Checkbox disabled checked={hasPermission(role.value, permission)} />
                     </TableCell>
                   ))}
                 </TableRow>
