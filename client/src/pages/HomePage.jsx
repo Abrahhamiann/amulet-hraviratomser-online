@@ -1,7 +1,6 @@
 import React from 'react';
 import { CreditCard, HelpCircle, Mail, MessageCircle, MonitorCheck, Pencil, Phone, Search, Send, Share2, Sparkles, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import api from '../api/axios.js';
 import baptismChurch from '../assets/morph/baptism-church.webp';
 import baptismLift from '../assets/morph/baptism-lift.jpg';
 import birthdayCakeLights from '../assets/morph/birthday-cake-lights.jpg';
@@ -11,7 +10,6 @@ import weddingForest from '../assets/morph/wedding-forest-optimized.jpg';
 import weddingTemple from '../assets/morph/wedding-temple.jpg';
 import Button from '../components/Button.jsx';
 import FAQItem from '../components/FAQItem.jsx';
-import TemplateCard from '../components/TemplateCard.jsx';
 import TestimonialV2 from '../components/ui/TestimonialV2.jsx';
 import CircularTestimonials from '../components/ui/CircularTestimonials.jsx';
 // import ScrollMorphHero from '../components/ui/ScrollMorphHero.jsx';
@@ -67,15 +65,10 @@ function GalleryPhoto({ photo, index, label }) {
 export default function HomePage() {
   const { t } = useLanguage();
   const roadmapRef = useRef(null);
-  const [featured, setFeatured] = useState([]);
   const [socialsOpen, setSocialsOpen] = useState(false);
   const [activeRoadmapIndex, setActiveRoadmapIndex] = useState(0);
   const [activeFaqIndex, setActiveFaqIndex] = useState(null);
   const [activeEventIndex, setActiveEventIndex] = useState(0);
-
-  useEffect(() => {
-    api.get('/templates?featured=true').then(({ data }) => setFeatured(data)).catch(() => setFeatured([]));
-  }, []);
 
   useEffect(() => {
     const section = roadmapRef.current;
@@ -217,14 +210,6 @@ export default function HomePage() {
           <Button to={activeInvitationPath} className="red-pill">{t('chooseInvitation')}</Button>
           <Button to="/contact" variant="ghost" className="events-contact-link">{t('menuPartners')}</Button>
         </div>
-      </section>
-
-      <section className="section featured-amulet">
-        <div className="amulet-heading">
-          <Sparkles size={22} />
-          <h2>{t('featured')}</h2>
-        </div>
-        <div className="templates-grid">{featured.slice(0, 3).map((template) => <TemplateCard key={template._id} template={template} />)}</div>
       </section>
 
       <TestimonialV2 />

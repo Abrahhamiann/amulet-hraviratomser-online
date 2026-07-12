@@ -15,7 +15,7 @@ export default function AccountPage() {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
 
   useEffect(() => {
-    if (!token) return undefined;
+    if (!token) return undefined;  
     api.get('/orders/my/list')
       .then(({ data }) => {
         setOrders(data);

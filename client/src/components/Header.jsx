@@ -90,6 +90,9 @@ export default function Header() {
               <UserCircle size={22} />
             </NavLink>
           )}
+          <div className="mobile-header-language">
+            <LanguageSelector compact />
+          </div>
           <button className="icon-btn menu-btn" onClick={() => setOpen((value) => !value)} aria-label="Menu">
             {open ? <X size={22} /> : <Menu size={22} />}
           </button>
@@ -97,6 +100,10 @@ export default function Header() {
         <div className="mobile-language-row">
           <LanguageSelector />
         </div>
+        <nav className="mobile-scroll-links" aria-label="Mobile quick navigation">
+          {links.map(([to, label]) => <NavLink key={to} to={to} onClick={() => setOpen(false)}>{label}</NavLink>)}
+          <a className="mobile-scroll-phone" href="tel:+37455710208"><Phone size={14} /> +374 55 710 208</a>
+        </nav>
       </div>
       {open && (
         <div className="nav-overlay" role="dialog" aria-modal="true" aria-label="Navigation menu">

@@ -8,8 +8,10 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace server\" \"npm run dev --workspace client\"",
+    "dev:admin": "npm run dev --prefix admin",
     "install:all": "npm install",
     "build": "npm run build --workspace client",
+    "build:admin": "npm run build --prefix admin",
     "seed": "npm run seed --workspace server"
   },
   "devDependencies": {

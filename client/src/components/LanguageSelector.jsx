@@ -1,10 +1,10 @@
 import React from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Languages } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { languages } from '../translations/translations.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
-export default function LanguageSelector() {
+export default function LanguageSelector({ compact = false }) {
   const { language, setLanguage } = useLanguage();
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
@@ -25,10 +25,11 @@ export default function LanguageSelector() {
   };
 
   return (
-    <div className="language-picker" ref={rootRef}>
+    <div className={compact ? 'language-picker language-picker-compact' : 'language-picker'} ref={rootRef}>
       <button className="language-select" type="button" onClick={() => setOpen((value) => !value)} aria-label="Language" aria-expanded={open}>
-        <span>{activeLanguage.label}</span>
-        <ChevronDown size={15} />
+        {compact && <Languages className="language-icon" size={18} aria-hidden="true" />}
+        <span>{compact ? activeLanguage.code.toUpperCase() : activeLanguage.label}</span>
+        <ChevronDown className="language-chevron" size={15} />
       </button>
       {open && (
         <div className="language-menu" role="listbox" aria-label="Language">
