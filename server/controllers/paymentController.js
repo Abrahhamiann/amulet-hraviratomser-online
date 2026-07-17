@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import Stripe from 'stripe';
 import Invitation from '../models/Invitation.js';
+import InvitationDraft from '../models/InvitationDraft.js';
 import Order from '../models/Order.js';
 import Template from '../models/Template.js';
 
@@ -17,15 +18,27 @@ const metadataText = (value, fallback = '', limit = 420) => {
   return text.slice(0, limit);
 };
 
+const uniqueImages = (images = []) => [...new Set(
+  images.filter((image) => typeof image === 'string' && image.trim())
+)];
+
+const isAllowedImage = (image) => /^(https?:\/\/|data:image\/)/.test(image) && image.length < 2500000;
+
 const normalizeDraft = (draft, template) => {
   const source = draft && typeof draft === 'object' ? draft : {};
+  const sourceGallery = Array.isArray(source.gallery) ? source.gallery : [];
+  const gallery = uniqueImages([source.image, ...sourceGallery])
+    .filter(isAllowedImage)
+    .slice(0, 8);
 
   return {
     mainNames: metadataText(source.mainNames, template.title, 120),
     eventDate: metadataText(source.eventDate, '', 32),
     eventTime: metadataText(source.eventTime, '18:00', 24),
     eventLocation: metadataText(source.eventLocation, 'Yerevan, Armenia', 180),
-    eventMessage: metadataText(source.eventMessage, template.description, 420)
+    eventMessage: metadataText(source.eventMessage, template.description, 420),
+    image: metadataText(source.image, template.mainImage || template.gallery?.[0] || '', 2500000),
+    gallery
   };
 };
 
@@ -44,6 +57,12 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
   }
 
   const draft = normalizeDraft(req.body.draft, template);
+  const checkoutDraft = await InvitationDraft.create({
+    userId: req.user._id,
+    templateId: template._id,
+    data: draft,
+    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 6)
+  });
   const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
@@ -65,6 +84,7 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
     metadata: {
       templateId: String(template._id),
       userId: String(req.user._id),
+      draftId: String(checkoutDraft._id),
       mainNames: draft.mainNames,
       eventDate: draft.eventDate,
       eventTime: draft.eventTime,
@@ -132,15 +152,29 @@ export const confirmCheckoutSession = asyncHandler(async (req, res) => {
     throw new Error('Template not found');
   }
 
+  const checkoutDraft = session.metadata?.draftId
+    ? await InvitationDraft.findOne({
+      _id: session.metadata.draftId,
+      userId: req.user._id,
+      templateId: template._id
+    })
+    : null;
+  const draftData = checkoutDraft?.data || {};
+
   const fallbackDate = new Date();
   fallbackDate.setMonth(fallbackDate.getMonth() + 1);
 
-  const requestedDate = session.metadata?.eventDate ? new Date(session.metadata.eventDate) : null;
+  const requestedDate = draftData.eventDate || session.metadata?.eventDate ? new Date(draftData.eventDate || session.metadata.eventDate) : null;
   const eventDate = requestedDate && !Number.isNaN(requestedDate.getTime()) ? requestedDate : fallbackDate;
-  const mainNames = metadataText(session.metadata?.mainNames, template.title, 120);
-  const eventTime = metadataText(session.metadata?.eventTime, '18:00', 24);
-  const eventLocation = metadataText(session.metadata?.eventLocation, 'Yerevan, Armenia', 180);
-  const eventMessage = metadataText(session.metadata?.eventMessage, template.description, 420);
+  const mainNames = metadataText(draftData.mainNames || session.metadata?.mainNames, template.title, 120);
+  const eventTime = metadataText(draftData.eventTime || session.metadata?.eventTime, '18:00', 24);
+  const eventLocation = metadataText(draftData.eventLocation || session.metadata?.eventLocation, 'Yerevan, Armenia', 180);
+  const eventMessage = metadataText(draftData.eventMessage || session.metadata?.eventMessage, template.description, 420);
+  const gallery = uniqueImages([
+    draftData.image,
+    ...(Array.isArray(draftData.gallery) ? draftData.gallery : []),
+    ...(template.gallery || [])
+  ]).filter(isAllowedImage);
 
   const order = await Order.create({
     fullName: req.user.name || req.user.email,
@@ -170,13 +204,14 @@ export const confirmCheckoutSession = asyncHandler(async (req, res) => {
     time: order.eventTime,
     location: order.eventLocation,
     message: eventMessage,
-    gallery: template.gallery || [],
+    gallery,
     language: 'hy',
     isPublished: true
   });
 
   order.invitationId = invitation._id;
   await order.save();
+  if (checkoutDraft) await InvitationDraft.deleteOne({ _id: checkoutDraft._id });
   await order.populate('templateId invitationId');
 
   res.status(201).json(order);

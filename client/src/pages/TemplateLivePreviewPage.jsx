@@ -6,6 +6,7 @@ import api from '../api/axios.js';
 import ErrorState from '../components/ErrorState.jsx';
 import Loading from '../components/Loading.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { getTestWeddingDraft, isTestTemplate, TestWeddingLivePreview } from '../invitationTemplates/TestWeddingTemplate.jsx';
 import { startStripeCheckout } from '../utils/checkout.js';
 
 const previewDate = new Date();
@@ -13,13 +14,42 @@ previewDate.setMonth(previewDate.getMonth() + 1);
 
 const toDateInputValue = (date) => date.toISOString().slice(0, 10);
 
-const createInitialDraft = (template) => ({
-  mainNames: template.title,
-  eventDate: toDateInputValue(previewDate),
-  eventTime: '18:00',
-  eventLocation: 'Yerevan, Armenia',
-  eventMessage: template.description,
-  image: template.mainImage || template.gallery?.[0] || ''
+const uniqueImages = (images) => [...new Set(images.filter(Boolean))];
+
+const createInitialDraft = (template) => {
+  if (isTestTemplate(template)) return getTestWeddingDraft();
+
+  const gallery = uniqueImages([template.mainImage, ...(template.gallery || [])]);
+
+  return {
+    mainNames: template.title,
+    eventDate: toDateInputValue(previewDate),
+    eventTime: '18:00',
+    eventLocation: 'Yerevan, Armenia',
+    eventMessage: template.description,
+    image: gallery[0] || '',
+    gallery
+  };
+};
+
+const fileToGalleryImage = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onerror = reject;
+  reader.onload = () => {
+    const img = new Image();
+    img.onerror = reject;
+    img.onload = () => {
+      const maxSize = 900;
+      const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(img.width * scale));
+      canvas.height = Math.max(1, Math.round(img.height * scale));
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', 0.74));
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
 });
 
 export default function TemplateLivePreviewPage() {
@@ -48,11 +78,19 @@ export default function TemplateLivePreviewPage() {
     setDraft((current) => ({ ...current, [name]: value }));
   };
 
-  const updateImage = (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const updateImages = async (event) => {
+    const files = Array.from(event.target.files || []).slice(0, 10);
+    if (!files.length) return;
 
-    setDraft((current) => ({ ...current, image: URL.createObjectURL(file) }));
+    const images = await Promise.all(files.map(fileToGalleryImage));
+    setDraft((current) => {
+      const gallery = uniqueImages([...images, ...(current.gallery || [])]).slice(0, 12);
+      return { ...current, image: images[0], gallery };
+    });
+  };
+
+  const selectImage = (image) => {
+    setDraft((current) => ({ ...current, image }));
   };
 
   const saveDraft = (event) => {
@@ -71,7 +109,10 @@ export default function TemplateLivePreviewPage() {
     setWarning('');
     setCheckoutState('loading');
     try {
-      await startStripeCheckout(template._id, draft);
+      await startStripeCheckout(template._id, {
+        ...draft,
+        gallery: uniqueImages([draft.image, ...(draft.gallery || [])])
+      });
     } catch {
       setCheckoutState('error');
     }
@@ -80,11 +121,30 @@ export default function TemplateLivePreviewPage() {
   if (state === 'loading') return <Loading text={t('loading')} />;
   if (state === 'error') return <ErrorState text={t('error')} />;
 
+  const isTest = isTestTemplate(template);
   const image = draft?.image || template.mainImage || template.gallery?.[0];
   const formattedDate = draft?.eventDate ? new Date(draft.eventDate).toLocaleDateString() : previewDate.toLocaleDateString();
 
   return (
-    <main className="template-live-page">
+    <main className={isTest ? 'template-live-page test-wedding-page' : 'template-live-page'}>
+      {isTest ? (
+        <>
+          <TestWeddingLivePreview
+            draft={draft}
+            price={template.price}
+            loading={checkoutState === 'loading'}
+            onEdit={() => setEditing(true)}
+            onOrder={orderTemplate}
+          />
+          {warning && (
+            <p className="template-live-warning" role="alert">
+              <AlertCircle size={18} />
+              {warning}
+            </p>
+          )}
+          {checkoutState === 'error' && <p className="template-live-error">{t('checkoutError')}</p>}
+        </>
+      ) : (
       <article className="template-live-card">
         <section className="template-live-hero">
           {image && <img src={image} alt={draft?.mainNames || template.title} />}
@@ -126,6 +186,7 @@ export default function TemplateLivePreviewPage() {
         )}
         {checkoutState === 'error' && <p className="template-live-error">{t('checkoutError')}</p>}
       </article>
+      )}
 
       {editing && draft && (
         <section className="demo-editor-panel" aria-label="Edit invitation">
@@ -155,10 +216,27 @@ export default function TemplateLivePreviewPage() {
               Հրավերի տեքստ
               <textarea name="eventMessage" rows="4" value={draft.eventMessage} onChange={updateDraft} required />
             </label>
+            {draft.gallery?.length > 0 && (
+              <div className="demo-gallery-picker">
+                <span>Նկարները</span>
+                <div>
+                  {draft.gallery.map((galleryImage, index) => (
+                    <button
+                      key={`${galleryImage.slice(0, 48)}-${index}`}
+                      type="button"
+                      className={galleryImage === draft.image ? 'is-selected' : ''}
+                      onClick={() => selectImage(galleryImage)}
+                    >
+                      <img src={galleryImage} alt={`Template ${index + 1}`} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <label className="demo-upload-field">
               <ImagePlus size={20} />
               <span>Ավելացնել նկար</span>
-              <input type="file" accept="image/*" onChange={updateImage} />
+              <input type="file" accept="image/*" multiple onChange={updateImages} />
             </label>
 
             <button className="demo-save-btn" type="submit">Ցուցադրել թարմացված հրավերը</button>

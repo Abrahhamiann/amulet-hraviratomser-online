@@ -2,14 +2,16 @@ import React from 'react';
 import { Calendar, Eye, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { isTestTemplate, TestWeddingCardPreview } from '../invitationTemplates/TestWeddingTemplate.jsx';
 
 export default function TemplateCard({ template }) {
   const { t } = useLanguage();
+  const isTest = isTestTemplate(template);
 
   return (
     <article className="template-card reveal">
       <Link to={`/templates/${template._id}`} className="template-image">
-        {template.mainImage ? <img src={template.mainImage} alt={template.title} loading="lazy" /> : <span>{template.title}</span>}
+        {isTest ? <TestWeddingCardPreview /> : template.mainImage ? <img src={template.mainImage} alt={template.title} loading="lazy" /> : <span>{template.title}</span>}
       </Link>
       <div className="template-body">
         <div className="card-meta"><Calendar size={16} /> {t(template.category)}</div>

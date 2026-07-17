@@ -1,5 +1,5 @@
 import React from 'react';
-import { CalendarPlus, MapPin, Share2 } from 'lucide-react';
+import { CalendarDays, CalendarPlus, CheckCircle2, Clock, MapPin, Share2, Sparkles, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../api/axios.js';
@@ -8,6 +8,7 @@ import ErrorState from '../components/ErrorState.jsx';
 import Input from '../components/Input.jsx';
 import Loading from '../components/Loading.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { isTestTemplate, TestWeddingInvitationView } from '../invitationTemplates/TestWeddingTemplate.jsx';
 import { required, toForm } from '../utils/forms.js';
 
 export default function InvitationPage() {
@@ -16,6 +17,7 @@ export default function InvitationPage() {
   const [invitation, setInvitation] = useState(null);
   const [state, setState] = useState('loading');
   const [rsvpStatus, setRsvpStatus] = useState('');
+  const [successOpen, setSuccessOpen] = useState(false);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
@@ -32,6 +34,7 @@ export default function InvitationPage() {
 
   const submit = async (event) => {
     event.preventDefault();
+    const form = event.currentTarget;
     const data = toForm(event);
     const nextErrors = required(data, ['guestName', 'phone', 'status']);
     setErrors(nextErrors);
@@ -39,8 +42,9 @@ export default function InvitationPage() {
     setRsvpStatus('loading');
     try {
       await api.post(`/rsvp/${invitation._id}`, data);
-      event.currentTarget.reset();
+      form.reset();
       setRsvpStatus('success');
+      setSuccessOpen(true);
     } catch {
       setRsvpStatus('error');
     }
@@ -55,26 +59,113 @@ export default function InvitationPage() {
   if (state === 'loading') return <Loading text={t('loading')} />;
   if (state === 'error') return <ErrorState text={t('error')} />;
 
-  const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(invitation.names)}&dates=${new Date(invitation.date).toISOString().slice(0, 10).replaceAll('-', '')}/${new Date(invitation.date).toISOString().slice(0, 10).replaceAll('-', '')}&location=${encodeURIComponent(invitation.location)}`;
+  const eventDate = new Date(invitation.date);
+  const calendarDate = eventDate.toISOString().slice(0, 10).replaceAll('-', '');
+  const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(invitation.names)}&dates=${calendarDate}/${calendarDate}&location=${encodeURIComponent(invitation.location)}`;
+  const heroImage = invitation.gallery?.[0];
+  const secondaryGallery = invitation.gallery?.slice(1) || [];
+  const isTest = isTestTemplate(invitation.templateId);
+  const gallery = (invitation.gallery || []).filter((image) => {
+    if (typeof image !== 'string' || !image.trim()) return false;
+    if (!isTest) return true;
+    return /^(https?:\/\/|data:image\/)/.test(image);
+  });
+  const rsvpForm = (
+    <form className="panel-form compact test-wedding-rsvp-form" onSubmit={submit}>
+      <Input label={t('guestName')} name="guestName" error={errors.guestName} />
+      <Input label={t('phone')} name="phone" type="tel" error={errors.phone} />
+      <Input label={t('attendance')} name="status" as="select" error={errors.status}>
+        <option value="">-</option>
+        <option value="attending">{t('attending')}</option>
+        <option value="declined">{t('declined')}</option>
+        <option value="unsure">{t('unsure')}</option>
+      </Input>
+      <Input label={t('guestCount')} name="guestCount" type="number" min="1" defaultValue="1" />
+      <Input label={t('message')} name="message" as="textarea" rows="3" />
+      <Button disabled={rsvpStatus === 'loading'}>{rsvpStatus === 'loading' ? t('loading') : t('submit')}</Button>
+      {rsvpStatus === 'error' && <p className="form-error">{t('error')}</p>}
+    </form>
+  );
+  const inviteActions = (
+    <>
+      {invitation.mapLink && <Button to={invitation.mapLink} variant="secondary"><MapPin size={18} />{t('openMap')}</Button>}
+      <Button type="button" onClick={share}><Share2 size={18} />{t('share')}</Button>
+      <Button to={calendarUrl} variant="ghost"><CalendarPlus size={18} />{t('addCalendar')}</Button>
+    </>
+  );
+  const successModal = successOpen && (
+    <div className="rsvp-success-backdrop" role="dialog" aria-modal="true" aria-labelledby="rsvp-success-title">
+      <div className="rsvp-success-modal">
+        <button type="button" onClick={() => setSuccessOpen(false)} aria-label="Close RSVP message"><X size={20} /></button>
+        <CheckCircle2 size={44} />
+        <h2 id="rsvp-success-title">Ձեր պատասխանը ուղարկվել է</h2>
+        <p>Շնորհակալություն, հրավիրողը կտեսնի Ձեր անունը, հյուրերի քանակը և մեկնաբանությունը իր էջում։</p>
+      </div>
+    </div>
+  );
+
+  if (isTest) {
+    const testDraft = {
+      mainNames: invitation.names,
+      eventDate: eventDate.toISOString().slice(0, 10),
+      eventTime: invitation.time,
+      eventLocation: invitation.location,
+      eventMessage: invitation.message,
+      image: gallery[0] || '',
+      gallery
+    };
+
+    return (
+      <main className="invite-page test-wedding-page test-wedding-public-page">
+        <TestWeddingInvitationView
+          draft={testDraft}
+          daysLeftText={`${daysLeft ?? 0} ${t('daysToGo')}`}
+          actions={inviteActions}
+          rsvpForm={rsvpForm}
+        />
+        {successModal}
+      </main>
+    );
+  }
 
   return (
     <main className="invite-page">
-      <section className="invite-card">
-        <span className="eyebrow">{t(invitation.eventType) || invitation.eventType}</span>
-        <h1>{invitation.names}</h1>
-        <p>{invitation.message}</p>
-        <div className="invite-date">{new Date(invitation.date).toLocaleDateString()} · {invitation.time}</div>
-        <div className="countdown">{daysLeft} {t('daysToGo')}</div>
-        <p>{invitation.location}</p>
-        <div className="invite-actions">
-          {invitation.mapLink && <Button to={invitation.mapLink} variant="secondary"><MapPin size={18} />{t('openMap')}</Button>}
-          <Button type="button" onClick={share}><Share2 size={18} />{t('share')}</Button>
-          <Button to={calendarUrl} variant="ghost"><CalendarPlus size={18} />{t('addCalendar')}</Button>
-        </div>
-      </section>
-      <section className="invite-gallery">
-        {invitation.gallery?.map((image, index) => <img key={index} src={image} alt={`${invitation.names} ${index + 1}`} />)}
-      </section>
+      <article className="invite-template-card">
+        <section className="invite-template-hero">
+          {heroImage && <img src={heroImage} alt={invitation.names} />}
+          <div className="invite-template-scrim" />
+          <div className="invite-template-copy">
+            <span><Sparkles size={16} /> {t(invitation.eventType) || invitation.eventType}</span>
+            <h1>{invitation.names}</h1>
+            <p>{invitation.message}</p>
+          </div>
+        </section>
+
+        <section className="invite-template-details">
+          <div><CalendarDays size={20} /><span>{eventDate.toLocaleDateString()}</span></div>
+          <div><Clock size={20} /><span>{invitation.time}</span></div>
+          <div><MapPin size={20} /><span>{invitation.location}</span></div>
+        </section>
+
+        <section className="invite-template-footer">
+          <div>
+            <span>{daysLeft} {t('daysToGo')}</span>
+            <strong>{invitation.location}</strong>
+          </div>
+          <div className="invite-actions">
+            {invitation.mapLink && <Button to={invitation.mapLink} variant="secondary"><MapPin size={18} />{t('openMap')}</Button>}
+            <Button type="button" onClick={share}><Share2 size={18} />{t('share')}</Button>
+            <Button to={calendarUrl} variant="ghost"><CalendarPlus size={18} />{t('addCalendar')}</Button>
+          </div>
+        </section>
+      </article>
+
+      {secondaryGallery.length > 0 && (
+        <section className="invite-gallery">
+          {secondaryGallery.map((image, index) => <img key={index} src={image} alt={`${invitation.names} ${index + 2}`} />)}
+        </section>
+      )}
+
       <section className="rsvp-panel">
         <h2>{t('rsvp')}</h2>
         <form className="panel-form compact" onSubmit={submit}>
@@ -88,10 +179,21 @@ export default function InvitationPage() {
           </Input>
           <Input label={t('guestCount')} name="guestCount" type="number" min="1" defaultValue="1" />
           <Input label={t('message')} name="message" as="textarea" rows="3" />
-          <Button disabled={rsvpStatus === 'loading'}>{t('submit')}</Button>
-          {rsvpStatus === 'success' && <p className="success">{t('rsvpSaved')}</p>}
+          <Button disabled={rsvpStatus === 'loading'}>{rsvpStatus === 'loading' ? t('loading') : t('submit')}</Button>
+          {rsvpStatus === 'error' && <p className="form-error">{t('error')}</p>}
         </form>
       </section>
+
+      {successOpen && (
+        <div className="rsvp-success-backdrop" role="dialog" aria-modal="true" aria-labelledby="rsvp-success-title">
+          <div className="rsvp-success-modal">
+            <button type="button" onClick={() => setSuccessOpen(false)} aria-label="Close RSVP message"><X size={20} /></button>
+            <CheckCircle2 size={44} />
+            <h2 id="rsvp-success-title">Ձեր պատասխանը ուղարկվել է</h2>
+            <p>Շնորհակալություն, հրավիրողը կտեսնի ձեր անունը, հյուրերի քանակը և մեկնաբանությունը իր էջում։</p>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
