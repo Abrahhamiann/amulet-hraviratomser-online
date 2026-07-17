@@ -1,7 +1,9 @@
 import React from 'react';
 import { Menu, Phone, UserCircle, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink } from 'react-router-dom';
+import logoImage from '../assets/logo.png';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import Button from './Button.jsx';
 import LanguageSelector from './LanguageSelector.jsx';
@@ -74,10 +76,72 @@ export default function Header() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const scrollY = window.scrollY;
+    const { style } = document.body;
+    const previous = {
+      position: style.position,
+      top: style.top,
+      left: style.left,
+      right: style.right,
+      width: style.width
+    };
+
+    document.body.classList.add('nav-lock');
+    style.position = 'fixed';
+    style.top = `-${scrollY}px`;
+    style.left = '0';
+    style.right = '0';
+    style.width = '100%';
+
+    return () => {
+      document.body.classList.remove('nav-lock');
+      style.position = previous.position;
+      style.top = previous.top;
+      style.left = previous.left;
+      style.right = previous.right;
+      style.width = previous.width;
+      window.scrollTo(0, scrollY);
+    };
+  }, [open]);
+
+  const brandLogo = (
+    <img className="logo-image" src={logoImage} alt={t('brand')} width="72" height="72" />
+  );
+
+  const overlay = (
+    <div className="nav-overlay" role="dialog" aria-modal="true" aria-label="Navigation menu">
+      <button className="nav-overlay-close" onClick={() => setOpen(false)} aria-label="Close menu"><X size={34} /></button>
+      <div className="nav-overlay-panel">
+        <NavLink to="/" className="logo overlay-logo" onClick={() => setOpen(false)}>{brandLogo}</NavLink>
+        <p className="nav-overlay-tagline">{t('menuTagline')}</p>
+        <div className="nav-overlay-links">
+          {overlayLinks.map(([to, label], index) => (
+            <NavLink
+              key={to}
+              to={to}
+              onClick={() => setOpen(false)}
+              style={{ '--menu-index': index }}
+            >
+              {label}
+            </NavLink>
+          ))}
+        </div>
+        <div className="nav-overlay-secondary">
+          <NavLink to="/about" onClick={() => setOpen(false)}>{t('about')}</NavLink>
+          {user && <NavLink to="/account" onClick={() => setOpen(false)}>{t('accountTitle')}</NavLink>}
+          {!user && <NavLink to="/login" onClick={() => setOpen(false)}>{t('menuLogin')}</NavLink>}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <header className={scrolled || open ? 'site-header is-scrolled' : 'site-header'}>
       <div className="nav-shell">
-        <NavLink to="/" className="logo" onClick={() => setOpen(false)}>{t('brand')}</NavLink>
+        <NavLink to="/" className="logo" onClick={() => setOpen(false)}>{brandLogo}</NavLink>
         <nav className="nav-links">
           {links.map(([to, label]) => <NavLink key={to} to={to} onClick={() => setOpen(false)}>{label}</NavLink>)}
           <a className="header-phone" href="tel:+37455710208"><Phone size={16} /> +374 55 710 208</a>
@@ -105,32 +169,7 @@ export default function Header() {
           <a className="mobile-scroll-phone" href="tel:+37455710208"><Phone size={14} /> +374 55 710 208</a>
         </nav>
       </div>
-      {open && (
-        <div className="nav-overlay" role="dialog" aria-modal="true" aria-label="Navigation menu">
-          <button className="nav-overlay-close" onClick={() => setOpen(false)} aria-label="Close menu"><X size={34} /></button>
-          <div className="nav-overlay-panel">
-            <NavLink to="/" className="logo overlay-logo" onClick={() => setOpen(false)}>{t('brand')}</NavLink>
-            <p className="nav-overlay-tagline">{t('menuTagline')}</p>
-            <div className="nav-overlay-links">
-              {overlayLinks.map(([to, label], index) => (
-                <NavLink
-                  key={to}
-                  to={to}
-                  onClick={() => setOpen(false)}
-                  style={{ '--menu-index': index }}
-                >
-                  {label}
-                </NavLink>
-              ))}
-            </div>
-            <div className="nav-overlay-secondary">
-              <NavLink to="/about" onClick={() => setOpen(false)}>{t('about')}</NavLink>
-              {user && <NavLink to="/account" onClick={() => setOpen(false)}>{t('accountTitle')}</NavLink>}
-              {!user && <NavLink to="/login" onClick={() => setOpen(false)}>{t('menuLogin')}</NavLink>}
-            </div>
-          </div>
-        </div>
-      )}
+      {open && typeof document !== 'undefined' && createPortal(overlay, document.body)}
     </header>
   );
 }

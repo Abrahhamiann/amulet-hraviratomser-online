@@ -37,8 +37,11 @@ export default function TemplateDetailsPage() {
         <h3>{t('features')}</h3>
         <ul className="feature-list">{template.features?.map((item) => <li key={item}>{item}</li>)}</ul>
         <div className="hero-actions">
-          <Button to={`/order?template=${template._id}`}><ShoppingBag size={18} />{t('orderThis')}</Button>
-          <Button variant="secondary" to="/invite/sample-rose"><ExternalLink size={18} />{t('livePreview')}</Button>
+          <a className="btn btn-primary" href={`/templates/${template._id}/live`} target="_blank" rel="noreferrer">
+            <ShoppingBag size={18} />
+            {t('orderThis')}
+          </a>
+          <Button variant="secondary" to={`/templates/${template._id}/live`}><ExternalLink size={18} />{t('livePreview')}</Button>
         </div>
       </div>
       <div className="gallery-strip">

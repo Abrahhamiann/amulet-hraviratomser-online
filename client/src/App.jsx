@@ -8,8 +8,10 @@ import ContactPage from './pages/ContactPage.jsx';
 import HomePage from './pages/HomePage.jsx';
 import InvitationPage from './pages/InvitationPage.jsx';
 import OrderPage from './pages/OrderPage.jsx';
+import PaymentSuccessPage from './pages/PaymentSuccessPage.jsx';
 import PrivacyPage from './pages/PrivacyPage.jsx';
 import TemplateDetailsPage from './pages/TemplateDetailsPage.jsx';
+import TemplateLivePreviewPage from './pages/TemplateLivePreviewPage.jsx';
 import TemplatesPage from './pages/TemplatesPage.jsx';
 
 export default function App() {
@@ -26,7 +28,9 @@ export default function App() {
         <Route path="/login" element={<AuthPage />} />
         <Route path="/verify-email" element={<AuthPage />} />
         <Route path="/account" element={<AccountPage />} />
+        <Route path="/payment/success" element={<PaymentSuccessPage />} />
       </Route>
+      <Route path="/templates/:id/live" element={<TemplateLivePreviewPage />} />
       <Route path="/invite/:slug" element={<InvitationPage />} />
     </Routes>
   );

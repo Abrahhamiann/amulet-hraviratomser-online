@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { startStripeCheckout } from '../utils/checkout.js';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -25,6 +26,22 @@ export default function AuthPage() {
     localStorage.setItem('userToken', token);
     localStorage.setItem('user', JSON.stringify(user));
     window.dispatchEvent(new Event('amulet-auth-change'));
+    const pendingTemplate = localStorage.getItem('amulet_pending_template');
+    if (pendingTemplate) {
+      const pendingDraft = localStorage.getItem('amulet_pending_draft');
+      localStorage.removeItem('amulet_pending_template');
+      localStorage.removeItem('amulet_pending_draft');
+      let parsedDraft = null;
+
+      try {
+        parsedDraft = pendingDraft ? JSON.parse(pendingDraft) : null;
+      } catch {
+        parsedDraft = null;
+      }
+
+      startStripeCheckout(pendingTemplate, parsedDraft).catch(() => navigate(`/templates/${pendingTemplate}/live`));
+      return;
+    }
     navigate('/');
   };
 

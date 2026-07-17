@@ -25,6 +25,11 @@ export default function TemplatesPage() {
   ];
   const activeSort = sortOptions.find(([value]) => value === sort) || sortOptions[0];
 
+  useEffect(() => {
+    document.body.classList.add('templates-route');
+    return () => document.body.classList.remove('templates-route');
+  }, []);
+
   const query = useMemo(() => {
     const next = new URLSearchParams();
     if (category) next.set('category', category);

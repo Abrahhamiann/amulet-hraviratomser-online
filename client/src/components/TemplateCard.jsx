@@ -2,10 +2,10 @@ import React from 'react';
 import { Calendar, Eye, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import Button from './Button.jsx';
 
 export default function TemplateCard({ template }) {
   const { t } = useLanguage();
+
   return (
     <article className="template-card reveal">
       <Link to={`/templates/${template._id}`} className="template-image">
@@ -18,8 +18,14 @@ export default function TemplateCard({ template }) {
         <div className="card-foot">
           <strong>{Number(template.price).toLocaleString()} AMD</strong>
           <div className="card-actions">
-            <Button to={`/templates/${template._id}`} variant="ghost"><Eye size={16} />{t('preview')}</Button>
-            <Button to={`/order?template=${template._id}`}><ShoppingBag size={16} />{t('order')}</Button>
+            <a className="btn btn-ghost" href={`/templates/${template._id}/live`} target="_blank" rel="noreferrer">
+              <Eye size={16} />
+              {t('preview')}
+            </a>
+            <a className="btn btn-primary" href={`/templates/${template._id}/live`} target="_blank" rel="noreferrer">
+              <ShoppingBag size={16} />
+              {t('order')}
+            </a>
           </div>
         </div>
       </div>

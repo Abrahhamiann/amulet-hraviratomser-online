@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate, Navigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/admin/AppSidebar";
@@ -8,6 +8,7 @@ import { getToken } from "@/lib/api";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
+  notFoundComponent: () => <Navigate to="/admin/" replace />,
 });
 
 function AdminLayout() {

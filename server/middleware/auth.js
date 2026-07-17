@@ -9,7 +9,13 @@ export const protect = asyncHandler(async (req, res, next) => {
     res.status(401);
     throw new Error('Not authorized');
   }
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch {
+    res.status(401);
+    throw new Error('Invalid or expired token');
+  }
   const user = await User.findById(decoded.id).select('-password');
   if (!user) {
     res.status(401);

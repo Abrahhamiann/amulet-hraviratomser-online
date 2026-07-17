@@ -15,6 +15,14 @@ const orderSchema = new mongoose.Schema(
     eventMessage: { type: String, default: '' },
     preferredLanguage: { type: String, default: 'hy' },
     notes: { type: String, default: '' },
+    amount: { type: Number, default: 0 },
+    paymentStatus: {
+      type: String,
+      enum: ['unpaid', 'paid', 'refunded'],
+      default: 'unpaid'
+    },
+    stripeSessionId: { type: String, unique: true, sparse: true },
+    invitationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Invitation' },
     status: {
       type: String,
       enum: ['new', 'in_progress', 'completed', 'cancelled'],

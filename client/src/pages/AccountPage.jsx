@@ -57,7 +57,8 @@ export default function AccountPage() {
                 <strong>{order.mainNames}</strong>
                 <span>{order.eventType}</span>
                 <span>{new Date(order.eventDate).toLocaleDateString()}</span>
-                {order.templateId && <Link to={`/templates/${order.templateId._id}`}>{t('accountViewDesign')}</Link>}
+                {order.invitationId?.slug && <Link to={`/invite/${order.invitationId.slug}`}>{t('accountViewInvitation')}</Link>}
+                {order.templateId && <Link to={`/templates/${order.templateId._id}/live`} target="_blank" rel="noreferrer">{t('accountViewDesign')}</Link>}
               </article>
             ))}
           </div>

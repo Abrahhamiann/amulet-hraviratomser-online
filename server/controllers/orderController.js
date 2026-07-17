@@ -36,7 +36,7 @@ export const getOrders = asyncHandler(async (req, res) => {
 });
 
 export const getMyOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({ email: req.user.email }).populate('templateId').sort({ createdAt: -1 });
+  const orders = await Order.find({ email: req.user.email }).populate('templateId invitationId').sort({ createdAt: -1 });
   res.json(orders);
 });
 
