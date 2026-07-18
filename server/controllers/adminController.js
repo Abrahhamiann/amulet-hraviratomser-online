@@ -48,6 +48,21 @@ const paymentStatus = (status) => {
   return 'pending';
 };
 
+const clampNumber = (value, min, max, fallback) => {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(max, Math.max(min, number));
+};
+
+const normalizeImagePosition = (position = {}) => {
+  const safePosition = position || {};
+  return {
+    x: clampNumber(safePosition.x, 0, 100, 50),
+    y: clampNumber(safePosition.y, 0, 100, 50),
+    zoom: clampNumber(safePosition.zoom, 1, 2, 1)
+  };
+};
+
 const startOfMonth = (date) => new Date(date.getFullYear(), date.getMonth(), 1);
 
 const monthKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -119,10 +134,14 @@ const mapTemplate = (template, usage = 0) => ({
   slug: template.slug,
   category: categoryLabels[template.category] || template.category,
   price: template.price,
+  designKey: template.designKey || 'classic',
   cover: template.mainImage || template.gallery?.[0] || '',
+  imagePosition: normalizeImagePosition(template.imagePosition),
   gallery: template.gallery || [],
+  galleryConfigured: Boolean(template.galleryConfigured),
   featured: template.isFeatured,
-  status: 'active',
+  active: template.isActive !== false,
+  status: template.isActive === false ? 'inactive' : 'active',
   languages: ['HY'],
   usage,
   discount: 0,
@@ -422,7 +441,11 @@ export const createAdminTemplate = asyncHandler(async (req, res) => {
     ...data,
     slug,
     features: Array.isArray(data.features) ? data.features : String(data.features || '').split('\n').filter(Boolean),
-    gallery: Array.isArray(data.gallery) ? data.gallery : String(data.gallery || '').split('\n').filter(Boolean)
+    gallery: Array.isArray(data.gallery) ? data.gallery : String(data.gallery || '').split('\n').filter(Boolean),
+    galleryConfigured: Boolean(data.galleryConfigured),
+    imagePosition: normalizeImagePosition(data.imagePosition),
+    designKey: data.designKey || 'classic',
+    isActive: data.isActive !== false
   });
   res.status(201).json(mapTemplate(template));
 });
@@ -436,6 +459,8 @@ export const updateAdminTemplate = asyncHandler(async (req, res) => {
   const data = { ...req.body };
   if (typeof data.features === 'string') data.features = data.features.split('\n').filter(Boolean);
   if (typeof data.gallery === 'string') data.gallery = data.gallery.split('\n').filter(Boolean);
+  data.galleryConfigured = Boolean(data.galleryConfigured);
+  data.imagePosition = normalizeImagePosition(data.imagePosition);
   Object.assign(template, data);
   if (data.title && !data.slug) template.slug = makeSlug(data.title);
   await template.save();

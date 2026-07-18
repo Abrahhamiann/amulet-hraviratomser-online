@@ -1,12 +1,13 @@
 import React from 'react';
-import { AlertCircle, CalendarDays, Clock, ImagePlus, MapPin, Pencil, ShoppingBag, Sparkles, X } from 'lucide-react';
+import { AlertCircle, CalendarDays, Clock, ImagePlus, MapPin, Pencil, ShoppingBag, Sparkles, Trash2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../api/axios.js';
 import ErrorState from '../components/ErrorState.jsx';
 import Loading from '../components/Loading.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { getTestWeddingDraft, isTestTemplate, TestWeddingLivePreview } from '../invitationTemplates/TestWeddingTemplate.jsx';
+import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
+import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
 import { startStripeCheckout } from '../utils/checkout.js';
 
 const previewDate = new Date();
@@ -17,7 +18,8 @@ const toDateInputValue = (date) => date.toISOString().slice(0, 10);
 const uniqueImages = (images) => [...new Set(images.filter(Boolean))];
 
 const createInitialDraft = (template) => {
-  if (isTestTemplate(template)) return getTestWeddingDraft();
+  const occasionTemplate = getOccasionTemplate(template);
+  if (occasionTemplate?.getInitialDraft) return occasionTemplate.getInitialDraft(template);
 
   const gallery = uniqueImages([template.mainImage, ...(template.gallery || [])]);
 
@@ -39,13 +41,13 @@ const fileToGalleryImage = (file) => new Promise((resolve, reject) => {
     const img = new Image();
     img.onerror = reject;
     img.onload = () => {
-      const maxSize = 900;
+      const maxSize = 1400;
       const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
       const canvas = document.createElement('canvas');
       canvas.width = Math.max(1, Math.round(img.width * scale));
       canvas.height = Math.max(1, Math.round(img.height * scale));
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL('image/jpeg', 0.74));
+      resolve(canvas.toDataURL('image/jpeg', 0.88));
     };
     img.src = reader.result;
   };
@@ -79,11 +81,14 @@ export default function TemplateLivePreviewPage() {
   };
 
   const updateImages = async (event) => {
-    const files = Array.from(event.target.files || []).slice(0, 10);
+    const isSingleImageTemplate = getOccasionTemplate(template)?.key === 'midnight-vows';
+    const files = Array.from(event.target.files || []).slice(0, isSingleImageTemplate ? 1 : 10);
     if (!files.length) return;
 
     const images = await Promise.all(files.map(fileToGalleryImage));
     setDraft((current) => {
+      if (isSingleImageTemplate) return { ...current, image: images[0], gallery: [images[0]] };
+
       const gallery = uniqueImages([...images, ...(current.gallery || [])]).slice(0, 12);
       return { ...current, image: images[0], gallery };
     });
@@ -91,6 +96,14 @@ export default function TemplateLivePreviewPage() {
 
   const selectImage = (image) => {
     setDraft((current) => ({ ...current, image }));
+  };
+
+  const removeImage = (imageToRemove) => {
+    setDraft((current) => {
+      const gallery = (current.gallery || []).filter((galleryImage) => galleryImage !== imageToRemove);
+      const image = current.image === imageToRemove ? (gallery[0] || '') : current.image;
+      return { ...current, image, gallery };
+    });
   };
 
   const saveDraft = (event) => {
@@ -121,15 +134,17 @@ export default function TemplateLivePreviewPage() {
   if (state === 'loading') return <Loading text={t('loading')} />;
   if (state === 'error') return <ErrorState text={t('error')} />;
 
-  const isTest = isTestTemplate(template);
-  const image = draft?.image || template.mainImage || template.gallery?.[0];
+  const occasionTemplate = getOccasionTemplate(template);
+  const LivePreview = occasionTemplate?.LivePreview;
+  const isSingleImageTemplate = occasionTemplate?.key === 'midnight-vows';
+  const image = resolveTemplateImage(draft?.image || template.mainImage || template.gallery?.[0]);
   const formattedDate = draft?.eventDate ? new Date(draft.eventDate).toLocaleDateString() : previewDate.toLocaleDateString();
 
   return (
-    <main className={isTest ? 'template-live-page test-wedding-page' : 'template-live-page'}>
-      {isTest ? (
+    <main className={LivePreview ? 'template-live-page test-wedding-page' : 'template-live-page'}>
+      {LivePreview ? (
         <>
-          <TestWeddingLivePreview
+          <LivePreview
             draft={draft}
             price={template.price}
             loading={checkoutState === 'loading'}
@@ -189,9 +204,9 @@ export default function TemplateLivePreviewPage() {
       )}
 
       {editing && draft && (
-        <section className="demo-editor-panel" aria-label="Edit invitation">
-          <form className="demo-editor-form" onSubmit={saveDraft}>
-            <div className="demo-editor-title">
+        <section className="invitation-editor-panel" aria-label="Edit invitation">
+          <form className="invitation-editor-form" onSubmit={saveDraft}>
+            <div className="invitation-editor-title">
               <span>Խմբագրել հրավերը</span>
               <button type="button" onClick={() => setEditing(false)} aria-label="Close editor"><X size={20} /></button>
             </div>
@@ -212,34 +227,44 @@ export default function TemplateLivePreviewPage() {
               Վայրը
               <input name="eventLocation" value={draft.eventLocation} onChange={updateDraft} required />
             </label>
-            <label className="demo-editor-wide">
+            <label className="invitation-editor-wide">
               Հրավերի տեքստ
               <textarea name="eventMessage" rows="4" value={draft.eventMessage} onChange={updateDraft} required />
             </label>
             {draft.gallery?.length > 0 && (
-              <div className="demo-gallery-picker">
+              <div className="invitation-gallery-picker">
                 <span>Նկարները</span>
                 <div>
                   {draft.gallery.map((galleryImage, index) => (
-                    <button
-                      key={`${galleryImage.slice(0, 48)}-${index}`}
-                      type="button"
-                      className={galleryImage === draft.image ? 'is-selected' : ''}
-                      onClick={() => selectImage(galleryImage)}
-                    >
-                      <img src={galleryImage} alt={`Template ${index + 1}`} />
-                    </button>
+                    <div className="invitation-gallery-item" key={`${galleryImage.slice(0, 48)}-${index}`}>
+                      <button
+                        type="button"
+                        className={`invitation-gallery-select${galleryImage === draft.image ? ' is-selected' : ''}`}
+                        onClick={() => selectImage(galleryImage)}
+                        aria-label={`Select image ${index + 1}`}
+                      >
+                        <img src={galleryImage} alt={`Template ${index + 1}`} />
+                      </button>
+                      <button
+                        type="button"
+                        className="invitation-gallery-remove"
+                        onClick={() => removeImage(galleryImage)}
+                        aria-label={`Remove image ${index + 1}`}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   ))}
                 </div>
               </div>
             )}
-            <label className="demo-upload-field">
+            <label className="invitation-upload-field">
               <ImagePlus size={20} />
               <span>Ավելացնել նկար</span>
-              <input type="file" accept="image/*" multiple onChange={updateImages} />
+              <input type="file" accept="image/*" multiple={!isSingleImageTemplate} onChange={updateImages} />
             </label>
 
-            <button className="demo-save-btn" type="submit">Ցուցադրել թարմացված հրավերը</button>
+            <button className="invitation-save-btn" type="submit">Ցուցադրել թարմացված հրավերը</button>
           </form>
         </section>
       )}

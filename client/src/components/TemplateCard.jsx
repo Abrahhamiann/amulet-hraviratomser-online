@@ -2,16 +2,39 @@ import React from 'react';
 import { Calendar, Eye, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { isTestTemplate, TestWeddingCardPreview } from '../invitationTemplates/TestWeddingTemplate.jsx';
+import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
+import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
 
 export default function TemplateCard({ template }) {
   const { t } = useLanguage();
-  const isTest = isTestTemplate(template);
+  const occasionTemplate = getOccasionTemplate(template);
+  const CardPreview = occasionTemplate?.CardPreview;
+  const imagePosition = template.imagePosition || {};
+  const x = Number.isFinite(Number(imagePosition.x)) ? Number(imagePosition.x) : 50;
+  const y = Number.isFinite(Number(imagePosition.y)) ? Number(imagePosition.y) : 50;
+  const zoom = Number.isFinite(Number(imagePosition.zoom)) ? Math.min(2, Math.max(1, Number(imagePosition.zoom))) : 1;
+  const objectPosition = `${x}% ${y}%`;
+  const mainImage = resolveTemplateImage(template.mainImage);
 
   return (
     <article className="template-card reveal">
       <Link to={`/templates/${template._id}`} className="template-image">
-        {isTest ? <TestWeddingCardPreview /> : template.mainImage ? <img src={template.mainImage} alt={template.title} loading="lazy" /> : <span>{template.title}</span>}
+        {mainImage ? (
+          <img
+            src={mainImage}
+            alt={template.title}
+            loading="lazy"
+            style={{
+              '--template-image-zoom': zoom,
+              objectPosition,
+              transformOrigin: objectPosition
+            }}
+          />
+        ) : CardPreview ? (
+          <CardPreview template={template} />
+        ) : (
+          <span>{template.title}</span>
+        )}
       </Link>
       <div className="template-body">
         <div className="card-meta"><Calendar size={16} /> {t(template.category)}</div>

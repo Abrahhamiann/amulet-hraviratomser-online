@@ -8,8 +8,11 @@ import ErrorState from '../components/ErrorState.jsx';
 import Input from '../components/Input.jsx';
 import Loading from '../components/Loading.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { isTestTemplate, TestWeddingInvitationView } from '../invitationTemplates/TestWeddingTemplate.jsx';
+import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
+import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
 import { required, toForm } from '../utils/forms.js';
+
+const isDisplayableImage = (image) => /^(https?:\/\/|data:image\/|\/|asset:)/.test(image);
 
 export default function InvitationPage() {
   const { slug } = useParams();
@@ -64,12 +67,13 @@ export default function InvitationPage() {
   const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(invitation.names)}&dates=${calendarDate}/${calendarDate}&location=${encodeURIComponent(invitation.location)}`;
   const heroImage = invitation.gallery?.[0];
   const secondaryGallery = invitation.gallery?.slice(1) || [];
-  const isTest = isTestTemplate(invitation.templateId);
+  const occasionTemplate = getOccasionTemplate(invitation.templateId);
+  const PublicView = occasionTemplate?.PublicView;
   const gallery = (invitation.gallery || []).filter((image) => {
     if (typeof image !== 'string' || !image.trim()) return false;
-    if (!isTest) return true;
-    return /^(https?:\/\/|data:image\/)/.test(image);
-  });
+    if (!PublicView) return true;
+    return isDisplayableImage(image);
+  }).map(resolveTemplateImage);
   const rsvpForm = (
     <form className="panel-form compact test-wedding-rsvp-form" onSubmit={submit}>
       <Input label={t('guestName')} name="guestName" error={errors.guestName} />
@@ -104,8 +108,8 @@ export default function InvitationPage() {
     </div>
   );
 
-  if (isTest) {
-    const testDraft = {
+  if (PublicView) {
+    const publicDraft = {
       mainNames: invitation.names,
       eventDate: eventDate.toISOString().slice(0, 10),
       eventTime: invitation.time,
@@ -117,8 +121,8 @@ export default function InvitationPage() {
 
     return (
       <main className="invite-page test-wedding-page test-wedding-public-page">
-        <TestWeddingInvitationView
-          draft={testDraft}
+        <PublicView
+          draft={publicDraft}
           daysLeftText={`${daysLeft ?? 0} ${t('daysToGo')}`}
           actions={inviteActions}
           rsvpForm={rsvpForm}

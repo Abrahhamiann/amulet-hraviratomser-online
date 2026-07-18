@@ -22,7 +22,7 @@ const uniqueImages = (images = []) => [...new Set(
   images.filter((image) => typeof image === 'string' && image.trim())
 )];
 
-const isAllowedImage = (image) => /^(https?:\/\/|data:image\/)/.test(image) && image.length < 2500000;
+const isAllowedImage = (image) => /^(https?:\/\/|data:image\/|\/|asset:)/.test(image) && image.length < 2500000;
 
 const normalizeDraft = (draft, template) => {
   const source = draft && typeof draft === 'object' ? draft : {};
@@ -54,6 +54,10 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
   if (!template) {
     res.status(404);
     throw new Error('Template not found');
+  }
+  if (template.isActive === false) {
+    res.status(400);
+    throw new Error('Template is not active');
   }
 
   const draft = normalizeDraft(req.body.draft, template);
@@ -170,10 +174,10 @@ export const confirmCheckoutSession = asyncHandler(async (req, res) => {
   const eventTime = metadataText(draftData.eventTime || session.metadata?.eventTime, '18:00', 24);
   const eventLocation = metadataText(draftData.eventLocation || session.metadata?.eventLocation, 'Yerevan, Armenia', 180);
   const eventMessage = metadataText(draftData.eventMessage || session.metadata?.eventMessage, template.description, 420);
+  const draftGallery = Array.isArray(draftData.gallery) ? draftData.gallery : [];
   const gallery = uniqueImages([
     draftData.image,
-    ...(Array.isArray(draftData.gallery) ? draftData.gallery : []),
-    ...(template.gallery || [])
+    ...draftGallery
   ]).filter(isAllowedImage);
 
   const order = await Order.create({

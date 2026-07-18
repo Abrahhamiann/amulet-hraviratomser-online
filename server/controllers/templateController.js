@@ -4,7 +4,7 @@ import { makeSlug } from '../utils/slug.js';
 
 export const getTemplates = asyncHandler(async (req, res) => {
   const { category, search, sort = 'newest', featured } = req.query;
-  const query = {};
+  const query = { isActive: { $ne: false } };
   if (category) query.category = category;
   if (featured === 'true') query.isFeatured = true;
   if (search) query.title = { $regex: search, $options: 'i' };

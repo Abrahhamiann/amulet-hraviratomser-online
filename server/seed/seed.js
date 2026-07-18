@@ -48,9 +48,11 @@ const templates = [
   price,
   description: 'A refined digital invitation with elegant sections, RSVP support, gallery, map link, and mobile-friendly layout.',
   features: ['Responsive invitation page', 'RSVP form', 'Map button', 'Gallery section', 'Calendar-ready event details'],
+  designKey: index === 0 ? 'romantic-gold' : 'classic',
   mainImage: svgData(title, tone),
   gallery: [svgData(`${title} I`, tone), svgData(`${title} II`, tone)],
-  isFeatured: index < 6
+  isFeatured: index < 6,
+  isActive: true
 }));
 
 const run = async () => {

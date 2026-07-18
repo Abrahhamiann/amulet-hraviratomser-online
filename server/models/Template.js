@@ -12,9 +12,17 @@ const templateSchema = new mongoose.Schema(
     price: { type: Number, required: true },
     description: { type: String, required: true },
     features: [{ type: String }],
+    designKey: { type: String, default: 'classic', trim: true },
     mainImage: { type: String, default: '' },
+    imagePosition: {
+      x: { type: Number, default: 50, min: 0, max: 100 },
+      y: { type: Number, default: 50, min: 0, max: 100 },
+      zoom: { type: Number, default: 1, min: 1, max: 2 }
+    },
     gallery: [{ type: String }],
-    isFeatured: { type: Boolean, default: false }
+    galleryConfigured: { type: Boolean, default: false },
+    isFeatured: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: true }
   },
   { timestamps: true }
 );
