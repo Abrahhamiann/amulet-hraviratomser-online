@@ -17,9 +17,30 @@ const toDateInputValue = (date) => date.toISOString().slice(0, 10);
 
 const uniqueImages = (images) => [...new Set(images.filter(Boolean))];
 
+const defaultColors = {
+  accent: '#d8b98e',
+  text: '#ffffff',
+  overlay: '#202020'
+};
+
+const cleanMapLinks = (links = []) => links
+  .map((item, index) => ({
+    label: String(item?.label || `Քարտեզ ${index + 1}`).trim(),
+    url: String(item?.url || '').trim()
+  }))
+  .filter((item) => item.url);
+
 const createInitialDraft = (template) => {
   const occasionTemplate = getOccasionTemplate(template);
-  if (occasionTemplate?.getInitialDraft) return occasionTemplate.getInitialDraft(template);
+  if (occasionTemplate?.getInitialDraft) {
+    const draft = occasionTemplate.getInitialDraft(template);
+    return {
+      ...draft,
+      mapLink: draft.mapLink || '',
+      mapLinks: draft.mapLinks || [],
+      colors: { ...defaultColors, ...(draft.colors || {}) }
+    };
+  }
 
   const gallery = uniqueImages([template.mainImage, ...(template.gallery || [])]);
 
@@ -28,9 +49,12 @@ const createInitialDraft = (template) => {
     eventDate: toDateInputValue(previewDate),
     eventTime: '18:00',
     eventLocation: 'Yerevan, Armenia',
+    mapLink: '',
+    mapLinks: [],
     eventMessage: template.description,
     image: gallery[0] || '',
-    gallery
+    gallery,
+    colors: defaultColors
   };
 };
 
@@ -80,6 +104,38 @@ export default function TemplateLivePreviewPage() {
     setDraft((current) => ({ ...current, [name]: value }));
   };
 
+  const updateMapLink = (index, field, value) => {
+    setDraft((current) => {
+      const mapLinks = [...(current.mapLinks?.length ? current.mapLinks : [{ label: 'Քարտեզ 1', url: current.mapLink || '' }])];
+      mapLinks[index] = { ...mapLinks[index], [field]: value };
+      return { ...current, mapLinks, mapLink: mapLinks[0]?.url || '' };
+    });
+  };
+
+  const addMapLink = () => {
+    setDraft((current) => {
+      const currentLinks = current.mapLinks?.length ? current.mapLinks : [{ label: 'Քարտեզ 1', url: current.mapLink || '' }];
+      return {
+        ...current,
+        mapLinks: [...currentLinks, { label: `Քարտեզ ${currentLinks.length + 1}`, url: '' }]
+      };
+    });
+  };
+
+  const removeMapLink = (index) => {
+    setDraft((current) => {
+      const mapLinks = (current.mapLinks || []).filter((_, itemIndex) => itemIndex !== index);
+      return { ...current, mapLinks, mapLink: mapLinks[0]?.url || '' };
+    });
+  };
+
+  const updateColor = (key, value) => {
+    setDraft((current) => ({
+      ...current,
+      colors: { ...defaultColors, ...(current.colors || {}), [key]: value }
+    }));
+  };
+
   const updateImages = async (event) => {
     const isSingleImageTemplate = getOccasionTemplate(template)?.key === 'midnight-vows';
     const files = Array.from(event.target.files || []).slice(0, isSingleImageTemplate ? 1 : 10);
@@ -124,6 +180,9 @@ export default function TemplateLivePreviewPage() {
     try {
       await startStripeCheckout(template._id, {
         ...draft,
+        mapLink: cleanMapLinks(draft.mapLinks)[0]?.url || draft.mapLink || '',
+        mapLinks: cleanMapLinks(draft.mapLinks),
+        colors: { ...defaultColors, ...(draft.colors || {}) },
         gallery: uniqueImages([draft.image, ...(draft.gallery || [])])
       });
     } catch {
@@ -139,6 +198,8 @@ export default function TemplateLivePreviewPage() {
   const isSingleImageTemplate = occasionTemplate?.key === 'midnight-vows';
   const image = resolveTemplateImage(draft?.image || template.mainImage || template.gallery?.[0]);
   const formattedDate = draft?.eventDate ? new Date(draft.eventDate).toLocaleDateString() : previewDate.toLocaleDateString();
+  const editorMapLinks = draft?.mapLinks?.length ? draft.mapLinks : [{ label: 'Քարտեզ 1', url: draft?.mapLink || '' }];
+  const editorColors = { ...defaultColors, ...(draft?.colors || {}) };
 
   return (
     <main className={LivePreview ? 'template-live-page test-wedding-page' : 'template-live-page'}>
@@ -227,6 +288,49 @@ export default function TemplateLivePreviewPage() {
               Վայրը
               <input name="eventLocation" value={draft.eventLocation} onChange={updateDraft} required />
             </label>
+            <div className="invitation-map-links invitation-editor-wide">
+              <div className="invitation-editor-section-head">
+                <span>Քարտեզի հղումներ</span>
+                <button type="button" onClick={addMapLink}>Ավելացնել քարտեզ</button>
+              </div>
+              {editorMapLinks.map((item, index) => (
+                <div className="invitation-map-link-row" key={`map-link-${index}`}>
+                  <input
+                    value={item.label}
+                    onChange={(event) => updateMapLink(index, 'label', event.target.value)}
+                    placeholder={`Վայր ${index + 1}`}
+                    aria-label={`Map label ${index + 1}`}
+                  />
+                  <input
+                    value={item.url}
+                    onChange={(event) => updateMapLink(index, 'url', event.target.value)}
+                    placeholder="https://maps.google.com/..."
+                    aria-label={`Map URL ${index + 1}`}
+                  />
+                  {editorMapLinks.length > 1 && (
+                    <button type="button" onClick={() => removeMapLink(index)} aria-label={`Remove map ${index + 1}`}>
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="invitation-color-controls invitation-editor-wide">
+              <span>Հրավերի գույները</span>
+              <div className="invitation-color-grid">
+                {[
+                  ['accent', 'Գլխավոր գույն'],
+                  ['text', 'Տեքստի գույն'],
+                  ['overlay', 'Ֆոնի շերտ']
+                ].map(([key, label]) => (
+                  <label className="invitation-color-field" key={key}>
+                    <span>{label}</span>
+                    <input type="color" value={editorColors[key]} onChange={(event) => updateColor(key, event.target.value)} />
+                    <em>{editorColors[key]}</em>
+                  </label>
+                ))}
+              </div>
+            </div>
             <label className="invitation-editor-wide">
               Հրավերի տեքստ
               <textarea name="eventMessage" rows="4" value={draft.eventMessage} onChange={updateDraft} required />

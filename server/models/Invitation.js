@@ -11,8 +11,17 @@ const invitationSchema = new mongoose.Schema(
     time: { type: String, required: true },
     location: { type: String, required: true },
     mapLink: { type: String, default: '' },
+    mapLinks: [{
+      label: { type: String, default: '' },
+      url: { type: String, default: '' }
+    }],
     message: { type: String, default: '' },
     gallery: [{ type: String }],
+    colors: {
+      accent: { type: String, default: '#d8b98e' },
+      text: { type: String, default: '#ffffff' },
+      overlay: { type: String, default: '#202020' }
+    },
     language: { type: String, default: 'hy' },
     isPublished: { type: Boolean, default: false }
   },

@@ -23,6 +23,29 @@ const uniqueImages = (images = []) => [...new Set(
 )];
 
 const isAllowedImage = (image) => /^(https?:\/\/|data:image\/|\/|asset:)/.test(image) && image.length < 2500000;
+const isHexColor = (value) => /^#[0-9a-f]{6}$/i.test(String(value || '').trim());
+const normalizeMapLinks = (source) => {
+  const links = Array.isArray(source?.mapLinks) ? source.mapLinks : [];
+  const normalized = links
+    .map((item, index) => ({
+      label: metadataText(item?.label, `Քարտեզ ${index + 1}`, 80),
+      url: metadataText(item?.url, '', 600)
+    }))
+    .filter((item) => /^(https?:\/\/)/.test(item.url));
+
+  const mapLink = metadataText(source?.mapLink, '', 600);
+  if (mapLink && /^(https?:\/\/)/.test(mapLink) && !normalized.some((item) => item.url === mapLink)) {
+    normalized.unshift({ label: 'Քարտեզ', url: mapLink });
+  }
+
+  return normalized.slice(0, 5);
+};
+
+const normalizeColors = (source = {}) => ({
+  accent: isHexColor(source.accent) ? source.accent : '#d8b98e',
+  text: isHexColor(source.text) ? source.text : '#ffffff',
+  overlay: isHexColor(source.overlay) ? source.overlay : '#202020'
+});
 
 const normalizeDraft = (draft, template) => {
   const source = draft && typeof draft === 'object' ? draft : {};
@@ -30,15 +53,19 @@ const normalizeDraft = (draft, template) => {
   const gallery = uniqueImages([source.image, ...sourceGallery])
     .filter(isAllowedImage)
     .slice(0, 8);
+  const mapLinks = normalizeMapLinks(source);
 
   return {
     mainNames: metadataText(source.mainNames, template.title, 120),
     eventDate: metadataText(source.eventDate, '', 32),
     eventTime: metadataText(source.eventTime, '18:00', 24),
     eventLocation: metadataText(source.eventLocation, 'Yerevan, Armenia', 180),
+    mapLink: mapLinks[0]?.url || '',
+    mapLinks,
     eventMessage: metadataText(source.eventMessage, template.description, 420),
     image: metadataText(source.image, template.mainImage || template.gallery?.[0] || '', 2500000),
-    gallery
+    gallery,
+    colors: normalizeColors(source.colors)
   };
 };
 
@@ -174,6 +201,9 @@ export const confirmCheckoutSession = asyncHandler(async (req, res) => {
   const eventTime = metadataText(draftData.eventTime || session.metadata?.eventTime, '18:00', 24);
   const eventLocation = metadataText(draftData.eventLocation || session.metadata?.eventLocation, 'Yerevan, Armenia', 180);
   const eventMessage = metadataText(draftData.eventMessage || session.metadata?.eventMessage, template.description, 420);
+  const mapLinks = normalizeMapLinks(draftData);
+  const mapLink = mapLinks[0]?.url || '';
+  const colors = normalizeColors(draftData.colors);
   const draftGallery = Array.isArray(draftData.gallery) ? draftData.gallery : [];
   const gallery = uniqueImages([
     draftData.image,
@@ -189,8 +219,11 @@ export const confirmCheckoutSession = asyncHandler(async (req, res) => {
     eventDate,
     eventTime,
     eventLocation,
+    mapLink,
+    mapLinks,
     mainNames,
     eventMessage,
+    colors,
     preferredLanguage: 'hy',
     amount: template.price,
     paymentStatus: 'paid',
@@ -207,8 +240,11 @@ export const confirmCheckoutSession = asyncHandler(async (req, res) => {
     date: order.eventDate,
     time: order.eventTime,
     location: order.eventLocation,
+    mapLink,
+    mapLinks,
     message: eventMessage,
     gallery,
+    colors,
     language: 'hy',
     isPublished: true
   });

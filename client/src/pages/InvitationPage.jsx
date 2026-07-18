@@ -14,6 +14,22 @@ import { required, toForm } from '../utils/forms.js';
 
 const isDisplayableImage = (image) => /^(https?:\/\/|data:image\/|\/|asset:)/.test(image);
 
+const normalizeMapLinks = (invitation) => {
+  const links = Array.isArray(invitation?.mapLinks) ? invitation.mapLinks : [];
+  const normalized = links
+    .map((item, index) => ({
+      label: String(item?.label || `Քարտեզ ${index + 1}`).trim(),
+      url: String(item?.url || '').trim()
+    }))
+    .filter((item) => item.url);
+
+  if (invitation?.mapLink && !normalized.some((item) => item.url === invitation.mapLink)) {
+    normalized.unshift({ label: 'Քարտեզ', url: invitation.mapLink });
+  }
+
+  return normalized;
+};
+
 export default function InvitationPage() {
   const { slug } = useParams();
   const { t } = useLanguage();
@@ -69,6 +85,7 @@ export default function InvitationPage() {
   const secondaryGallery = invitation.gallery?.slice(1) || [];
   const occasionTemplate = getOccasionTemplate(invitation.templateId);
   const PublicView = occasionTemplate?.PublicView;
+  const mapLinks = normalizeMapLinks(invitation);
   const gallery = (invitation.gallery || []).filter((image) => {
     if (typeof image !== 'string' || !image.trim()) return false;
     if (!PublicView) return true;
@@ -76,14 +93,18 @@ export default function InvitationPage() {
   }).map(resolveTemplateImage);
   const rsvpForm = (
     <form className="panel-form compact test-wedding-rsvp-form" onSubmit={submit}>
+      <fieldset className="rsvp-choice-group">
+        <legend>Հյուրի կողմը</legend>
+        <label className="rsvp-radio"><input type="radio" name="guestSide" value="bride" defaultChecked /><span>Հարսի կողմ</span></label>
+        <label className="rsvp-radio"><input type="radio" name="guestSide" value="groom" /><span>Փեսայի կողմ</span></label>
+      </fieldset>
       <Input label={t('guestName')} name="guestName" error={errors.guestName} />
       <Input label={t('phone')} name="phone" type="tel" error={errors.phone} />
-      <Input label={t('attendance')} name="status" as="select" error={errors.status}>
-        <option value="">-</option>
-        <option value="attending">{t('attending')}</option>
-        <option value="declined">{t('declined')}</option>
-        <option value="unsure">{t('unsure')}</option>
-      </Input>
+      <fieldset className="rsvp-choice-group">
+        <legend>{t('attendance')}</legend>
+        <label className="rsvp-radio"><input type="radio" name="status" value="attending" defaultChecked /><span>Սիրով կմասնակցենք</span></label>
+        <label className="rsvp-radio"><input type="radio" name="status" value="declined" /><span>Ցավոք, չենք կարող ներկա լինել</span></label>
+      </fieldset>
       <Input label={t('guestCount')} name="guestCount" type="number" min="1" defaultValue="1" />
       <Input label={t('message')} name="message" as="textarea" rows="3" />
       <Button disabled={rsvpStatus === 'loading'}>{rsvpStatus === 'loading' ? t('loading') : t('submit')}</Button>
@@ -92,7 +113,12 @@ export default function InvitationPage() {
   );
   const inviteActions = (
     <>
-      {invitation.mapLink && <Button to={invitation.mapLink} variant="secondary"><MapPin size={18} />{t('openMap')}</Button>}
+      {mapLinks.map((item, index) => (
+        <Button key={`${item.url}-${index}`} to={item.url} variant="secondary">
+          <MapPin size={18} />
+          {item.label || t('openMap')}
+        </Button>
+      ))}
       <Button type="button" onClick={share}><Share2 size={18} />{t('share')}</Button>
       <Button to={calendarUrl} variant="ghost"><CalendarPlus size={18} />{t('addCalendar')}</Button>
     </>
@@ -114,9 +140,12 @@ export default function InvitationPage() {
       eventDate: eventDate.toISOString().slice(0, 10),
       eventTime: invitation.time,
       eventLocation: invitation.location,
+      mapLink: mapLinks[0]?.url || '',
+      mapLinks,
       eventMessage: invitation.message,
       image: gallery[0] || '',
-      gallery
+      gallery,
+      colors: invitation.colors || undefined
     };
 
     return (
@@ -157,7 +186,12 @@ export default function InvitationPage() {
             <strong>{invitation.location}</strong>
           </div>
           <div className="invite-actions">
-            {invitation.mapLink && <Button to={invitation.mapLink} variant="secondary"><MapPin size={18} />{t('openMap')}</Button>}
+            {mapLinks.map((item, index) => (
+              <Button key={`${item.url}-${index}`} to={item.url} variant="secondary">
+                <MapPin size={18} />
+                {item.label || t('openMap')}
+              </Button>
+            ))}
             <Button type="button" onClick={share}><Share2 size={18} />{t('share')}</Button>
             <Button to={calendarUrl} variant="ghost"><CalendarPlus size={18} />{t('addCalendar')}</Button>
           </div>

@@ -1118,6 +1118,31 @@ body.templates-route .template-type-dock {
   align-self: center;
   font-weight: 800;
 }
+.test-wedding-rsvp-form .rsvp-choice-group {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.test-wedding-rsvp-form .rsvp-choice-group legend {
+  margin-bottom: 2px;
+  color: inherit;
+  font-weight: 850;
+}
+.test-wedding-rsvp-form .rsvp-radio {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.test-wedding-rsvp-form .rsvp-radio input {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+  accent-color: #d8b98e;
+}
 .test-wedding-public .test-wedding-actions {
   background: #fff;
 }
@@ -1895,6 +1920,76 @@ body { background: #fff; }
   background: #fff4f4;
   box-shadow: 0 12px 28px rgba(215,79,79,.2);
   transform: translateY(-1px) scale(1.04);
+}
+.invitation-map-links,
+.invitation-color-controls {
+  display: grid;
+  gap: 12px;
+}
+.invitation-editor-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.invitation-editor-section-head span,
+.invitation-color-controls > span {
+  color: #2f241c;
+  font-weight: 900;
+}
+.invitation-editor-section-head button,
+.invitation-map-link-row > button {
+  min-height: 42px;
+  border: 1px solid rgba(216,185,142,.42);
+  border-radius: 999px;
+  background: #fffaf4;
+  color: #82623a;
+  font-weight: 850;
+  cursor: pointer;
+}
+.invitation-editor-section-head button {
+  padding: 0 16px;
+}
+.invitation-map-link-row {
+  display: grid;
+  grid-template-columns: minmax(120px, .7fr) minmax(180px, 1.3fr) 44px;
+  gap: 10px;
+}
+.invitation-map-link-row > button {
+  display: grid;
+  place-items: center;
+  color: #d74f4f;
+}
+.invitation-color-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.invitation-color-field {
+  min-height: 112px;
+  display: grid !important;
+  align-content: center;
+  justify-items: center;
+  gap: 8px !important;
+  padding: 14px;
+  border: 1px solid rgba(216,185,142,.32);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fffdf8, #fff8ef);
+}
+.invitation-color-field input[type="color"] {
+  width: 64px;
+  height: 42px;
+  min-height: 42px;
+  padding: 4px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.invitation-color-field em {
+  color: #82623a;
+  font-size: .78rem;
+  font-style: normal;
+  font-weight: 850;
+  text-transform: uppercase;
 }
 .invitation-save-btn {
   min-height: 50px;
@@ -5602,12 +5697,15 @@ body.nav-lock {
 }
 
 .midnight-vows-invite {
+  --midnight-accent: #d8b98e;
+  --midnight-text: #fff;
+  --midnight-overlay: #202020;
   width: 100%;
   min-height: 100dvh;
   position: relative;
   overflow: clip;
   background: #070707;
-  color: #fff;
+  color: var(--midnight-text);
   isolation: isolate;
 }
 
@@ -5642,8 +5740,8 @@ body.nav-lock {
   pointer-events: none;
   background:
     radial-gradient(circle at 50% 48%, rgba(255,255,255,.08), transparent 34%),
-    linear-gradient(90deg, rgba(0,0,0,.38), rgba(0,0,0,.08) 46%, rgba(0,0,0,.42)),
-    linear-gradient(180deg, rgba(0,0,0,.16), rgba(0,0,0,.42));
+    linear-gradient(90deg, color-mix(in srgb, var(--midnight-overlay) 42%, transparent), rgba(0,0,0,.08) 46%, color-mix(in srgb, var(--midnight-overlay) 46%, transparent)),
+    linear-gradient(180deg, rgba(0,0,0,.16), color-mix(in srgb, var(--midnight-overlay) 48%, transparent));
 }
 
 .midnight-particles {
@@ -5784,10 +5882,35 @@ body.nav-lock {
 
 .midnight-cover-copy p {
   max-width: 640px;
-  color: rgba(255,255,255,.86);
+  color: color-mix(in srgb, var(--midnight-text) 86%, transparent);
   font-size: clamp(.96rem, 2vw, 1.1rem);
   font-weight: 700;
   line-height: 1.7;
+}
+
+.midnight-cover-copy,
+.midnight-cover-copy h1,
+.midnight-cover-copy strong,
+.midnight-message-card,
+.midnight-message-card span,
+.midnight-message-card p,
+.midnight-message-card strong,
+.midnight-event-block p,
+.midnight-event-block strong,
+.midnight-event-block h3,
+.midnight-rsvp-shell h2,
+.midnight-signature,
+.midnight-signature p {
+  color: var(--midnight-text);
+}
+
+.midnight-cover-copy > span,
+.midnight-cover-copy svg,
+.midnight-event-block a:hover,
+.midnight-public-actions span,
+.midnight-public-actions .btn-secondary,
+.midnight-public-actions .btn-ghost {
+  color: var(--midnight-accent);
 }
 
 .midnight-music-button {
@@ -5798,7 +5921,7 @@ body.nav-lock {
   justify-content: center;
   margin-top: 4px;
   padding: 0;
-  border: 1px solid rgba(216,185,142,.86);
+  border: 1px solid color-mix(in srgb, var(--midnight-accent) 86%, transparent);
   border-radius: 50%;
   background: rgba(18,16,13,.48);
   color: #fff;
@@ -5811,8 +5934,8 @@ body.nav-lock {
 
 .midnight-music-button:hover,
 .midnight-music-button.is-playing {
-  border-color: rgba(216,185,142,1);
-  background: rgba(216,185,142,.92);
+  border-color: var(--midnight-accent);
+  background: color-mix(in srgb, var(--midnight-accent) 92%, transparent);
   color: #17120c;
   box-shadow: 0 20px 48px rgba(0,0,0,.28), 0 0 0 8px rgba(216,185,142,.13);
   transform: translateY(-1px);
@@ -6051,6 +6174,33 @@ body.nav-lock {
   color: #fff;
   font-weight: 900;
 }
+.midnight-rsvp-section .test-wedding-rsvp-form .rsvp-choice-group {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: rgba(255,255,255,.76);
+}
+.midnight-rsvp-section .test-wedding-rsvp-form .rsvp-choice-group legend {
+  margin-bottom: 2px;
+  color: rgba(255,255,255,.78);
+  font-weight: 850;
+}
+.midnight-rsvp-section .test-wedding-rsvp-form .rsvp-radio {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--midnight-text);
+  font-weight: 850;
+}
+.midnight-rsvp-section .test-wedding-rsvp-form .rsvp-radio input {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  accent-color: var(--midnight-text);
+}
 
 .midnight-signature {
   display: grid;
@@ -6073,13 +6223,18 @@ body.nav-lock {
 .midnight-public-actions {
   position: relative;
   z-index: 4;
+  width: min(1180px, calc(100% - 36px));
+  margin: 0 auto clamp(18px, 4vw, 44px);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
   padding: clamp(22px, 4vw, 38px) clamp(18px, 5vw, 58px);
-  border-top: 1px solid rgba(255,255,255,.12);
-  background: #090909;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--midnight-overlay) 72%, transparent);
+  box-shadow: 0 24px 70px rgba(0,0,0,.24);
+  backdrop-filter: blur(16px);
 }
 
 .midnight-public-actions span {
@@ -6099,6 +6254,30 @@ body.nav-lock {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.midnight-vows-invite .midnight-cover-copy h1,
+.midnight-vows-invite .midnight-cover-copy strong,
+.midnight-vows-invite .midnight-cover-copy p,
+.midnight-vows-invite .midnight-message-card span,
+.midnight-vows-invite .midnight-message-card p,
+.midnight-vows-invite .midnight-message-card strong,
+.midnight-vows-invite .midnight-event-block p,
+.midnight-vows-invite .midnight-event-block strong,
+.midnight-vows-invite .midnight-event-block h3,
+.midnight-vows-invite .midnight-rsvp-shell h2,
+.midnight-vows-invite .midnight-signature,
+.midnight-vows-invite .midnight-signature p,
+.midnight-vows-invite .midnight-rsvp-section .test-wedding-rsvp-form .rsvp-radio {
+  color: var(--midnight-text);
+}
+
+.midnight-vows-invite .midnight-cover-copy > span,
+.midnight-vows-invite .midnight-cover-copy svg,
+.midnight-vows-invite .midnight-public-actions span,
+.midnight-vows-invite .midnight-public-actions .btn-secondary,
+.midnight-vows-invite .midnight-public-actions .btn-ghost {
+  color: var(--midnight-accent);
 }
 
 @media (max-width: 760px) {
@@ -6136,6 +6315,14 @@ body.nav-lock {
     padding-block: 48px 96px;
   }
 
+  .midnight-music-button {
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
+    flex: 0 0 50px;
+    margin-top: 0;
+  }
+
   .midnight-message-section {
     align-items: center;
     padding-inline: 14px;
@@ -6160,6 +6347,11 @@ body.nav-lock {
   .midnight-public-actions .btn {
     width: 100%;
   }
+
+  .invitation-map-link-row,
+  .invitation-color-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 430px) {
@@ -6182,10 +6374,17 @@ body.nav-lock {
   }
 
   .midnight-event-block a,
-  .midnight-music-button,
   .midnight-rsvp-form button,
   .midnight-rsvp-section .test-wedding-rsvp-form .btn {
     width: 100%;
+  }
+
+  .midnight-music-button {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    flex-basis: 48px;
+    border-radius: 50%;
   }
 }
 

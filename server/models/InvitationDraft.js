@@ -9,9 +9,19 @@ const invitationDraftSchema = new mongoose.Schema(
       eventDate: { type: String, default: '' },
       eventTime: { type: String, default: '18:00' },
       eventLocation: { type: String, default: '' },
+      mapLink: { type: String, default: '' },
+      mapLinks: [{
+        label: { type: String, default: '' },
+        url: { type: String, default: '' }
+      }],
       eventMessage: { type: String, default: '' },
       image: { type: String, default: '' },
-      gallery: [{ type: String }]
+      gallery: [{ type: String }],
+      colors: {
+        accent: { type: String, default: '#d8b98e' },
+        text: { type: String, default: '#ffffff' },
+        overlay: { type: String, default: '#202020' }
+      }
     },
     expiresAt: { type: Date, required: true }
   },

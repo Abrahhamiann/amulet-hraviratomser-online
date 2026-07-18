@@ -65,6 +65,11 @@ export default function AccountPage() {
     declined: { icon: XCircle, label: t('declined') },
     unsure: { icon: HelpCircle, label: t('unsure') }
   };
+  const guestSideLabels = {
+    bride: 'Հարսի կողմ',
+    groom: 'Փեսայի կողմ',
+    other: ''
+  };
 
   return (
     <section className="account-page">
@@ -138,6 +143,7 @@ export default function AccountPage() {
                       <span>{info.label}</span>
                     </div>
                     <span>{Number(rsvp.guestCount || 1)} հյուր</span>
+                    {guestSideLabels[rsvp.guestSide] && <span>{guestSideLabels[rsvp.guestSide]}</span>}
                     <span>{rsvp.phone}</span>
                     {rsvp.message && (
                       <p>

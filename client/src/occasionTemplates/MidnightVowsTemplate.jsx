@@ -21,6 +21,28 @@ const normalizeKey = (value) => String(value || '')
 
 const uniqueImages = (images = []) => [...new Set(images.filter((image) => typeof image === 'string' && image.trim()))];
 
+const defaultColors = {
+  accent: '#d8b98e',
+  text: '#ffffff',
+  overlay: '#202020'
+};
+
+const normalizeMapLinks = (draft) => {
+  const links = Array.isArray(draft?.mapLinks) ? draft.mapLinks : [];
+  const normalized = links
+    .map((item, index) => ({
+      label: String(item?.label || `Քարտեզ ${index + 1}`).trim(),
+      url: String(item?.url || '').trim()
+    }))
+    .filter((item) => item.url);
+
+  if (draft?.mapLink && !normalized.some((item) => item.url === draft.mapLink)) {
+    normalized.unshift({ label: 'Քարտեզ', url: draft.mapLink });
+  }
+
+  return normalized;
+};
+
 const splitNames = (value) => {
   const text = String(value || 'Արամ և Անի').trim();
   const parts = text.split(/\s*(?:և|եւ|&|\+|\/)\s*/i).filter(Boolean);
@@ -58,8 +80,11 @@ export const getMidnightVowsDraft = (template = {}) => {
     eventTime: '15:00',
     eventLocation: 'Սուրբ Հռիփսիմե եկեղեցի',
     eventMessage: template.description || 'Սիրով հրավիրում ենք Ձեզ կիսել մեր կյանքի ամենագեղեցիկ օրը և Ձեր ներկայությամբ ջերմացնել մեր հարսանիքը։',
+    mapLink: '',
+    mapLinks: [],
     image: gallery[0] || weddingForest,
-    gallery
+    gallery,
+    colors: defaultColors
   };
 };
 
@@ -91,7 +116,7 @@ function PreviewRsvpForm() {
   );
 }
 
-function EventBlock({ title, time, location, address, delay = 0 }) {
+function EventBlock({ title, time, location, address, mapLink, delay = 0 }) {
   return (
     <motion.article
       className="midnight-event-block"
@@ -105,7 +130,7 @@ function EventBlock({ title, time, location, address, delay = 0 }) {
       <strong>{time}</strong>
       <h3>{location}</h3>
       <span>{address}</span>
-      <a href="#midnight-rsvp">Ինչպես հասնել</a>
+      <a href={mapLink || '#midnight-rsvp'} target={mapLink ? '_blank' : undefined} rel={mapLink ? 'noreferrer' : undefined}>Ինչպես հասնել</a>
     </motion.article>
   );
 }
@@ -117,6 +142,8 @@ function MidnightVowsLayout({ draft, price, onEdit, onOrder, loading, actions, r
   const gallery = uniqueImages([...draftImages, ...(draftImages.length ? [] : fallbackGallery)]).slice(0, 1);
   const heroImage = draft?.image || gallery[0] || weddingForest;
   const [firstName, secondName] = splitNames(draft?.mainNames);
+  const mapLinks = normalizeMapLinks(draft);
+  const colors = { ...defaultColors, ...(draft?.colors || {}) };
   const particles = useMemo(() => Array.from({ length: 18 }, (_, index) => ({
     id: index,
     left: `${(index * 13) % 96}%`,
@@ -147,7 +174,14 @@ function MidnightVowsLayout({ draft, price, onEdit, onOrder, loading, actions, r
   }, []);
 
   return (
-    <article className={`midnight-vows-invite ${mode === 'public' ? 'is-public' : 'is-preview'}`}>
+    <article
+      className={`midnight-vows-invite ${mode === 'public' ? 'is-public' : 'is-preview'}`}
+      style={{
+        '--midnight-accent': colors.accent,
+        '--midnight-text': colors.text,
+        '--midnight-overlay': colors.overlay
+      }}
+    >
       <audio ref={audioRef} src={weddingSong} preload="auto" loop />
       <div className="midnight-fixed-photo" aria-hidden="true">
         <img src={heroImage} alt="" loading="eager" decoding="async" fetchPriority="high" />
@@ -225,12 +259,14 @@ function MidnightVowsLayout({ draft, price, onEdit, onOrder, loading, actions, r
             time={draft?.eventTime || '15:00'}
             location={draft?.eventLocation || 'Սուրբ Հռիփսիմե եկեղեցի'}
             address="Հասցեն կարող եք փոփոխել խմբագրման ժամանակ"
+            mapLink={mapLinks[0]?.url}
           />
           <EventBlock
             title="Հարսանյաց հանդիսություն"
             time="17:30"
             location="Ռեստորանային համալիր"
             address="Հասցեն կարող եք նշել հրավերի խմբագրման մեջ"
+            mapLink={mapLinks[1]?.url || mapLinks[0]?.url}
             delay={0.12}
           />
         </div>
