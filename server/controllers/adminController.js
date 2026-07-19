@@ -30,6 +30,8 @@ const supportedLanguages = [
 
 const adminRoles = ['admin', 'super_admin'];
 const userRoles = ['user', ...adminRoles];
+const DEFAULT_DESIGN_KEY = 'midnight-vows';
+const PUBLIC_DESIGN_KEYS = ['midnight-vows', 'baptism-blessing'];
 
 const isSuperAdmin = (user) => user?.role === 'super_admin';
 
@@ -134,7 +136,7 @@ const mapTemplate = (template, usage = 0) => ({
   slug: template.slug,
   category: categoryLabels[template.category] || template.category,
   price: template.price,
-  designKey: template.designKey || 'classic',
+  designKey: template.designKey || DEFAULT_DESIGN_KEY,
   cover: template.mainImage || template.gallery?.[0] || '',
   imagePosition: normalizeImagePosition(template.imagePosition),
   gallery: template.gallery || [],
@@ -197,7 +199,7 @@ const buildNotifications = ({ orders, messages, invitations }) => {
 export const getAdminDashboard = asyncHandler(async (req, res) => {
   const period = ['zero', 'today', 'week', 'year', 'all'].includes(req.query.period) ? req.query.period : 'all';
   const [templates, orders, invitations, rsvps, messages, users] = await Promise.all([
-    Template.find().sort({ createdAt: -1 }),
+    Template.find({ designKey: { $in: PUBLIC_DESIGN_KEYS } }).sort({ createdAt: -1 }),
     Order.find().populate('templateId').sort({ createdAt: -1 }),
     Invitation.find().populate('orderId templateId').sort({ createdAt: -1 }),
     RSVP.find().sort({ createdAt: -1 }),
@@ -258,7 +260,10 @@ export const getAdminOrders = asyncHandler(async (req, res) => {
 });
 
 export const getAdminTemplates = asyncHandler(async (req, res) => {
-  const [templates, orders] = await Promise.all([Template.find().sort({ createdAt: -1 }), Order.find()]);
+  const [templates, orders] = await Promise.all([
+    Template.find({ designKey: { $in: PUBLIC_DESIGN_KEYS } }).sort({ createdAt: -1 }),
+    Order.find()
+  ]);
   const usage = orders.reduce((map, order) => {
     const id = order.templateId ? String(order.templateId) : null;
     if (id) map.set(id, (map.get(id) || 0) + 1);
@@ -356,7 +361,7 @@ export const getAdminMessages = asyncHandler(async (req, res) => {
 });
 
 export const getAdminCategories = asyncHandler(async (req, res) => {
-  const [templates, orders] = await Promise.all([Template.find(), Order.find()]);
+  const [templates, orders] = await Promise.all([Template.find({ designKey: { $in: PUBLIC_DESIGN_KEYS } }), Order.find()]);
   res.json(Object.entries(categoryLabels).map(([key, name]) => ({
     id: key,
     name,
@@ -368,7 +373,7 @@ export const getAdminCategories = asyncHandler(async (req, res) => {
 });
 
 export const getAdminLanguages = asyncHandler(async (req, res) => {
-  const [templates, orders] = await Promise.all([Template.countDocuments(), Order.find()]);
+  const [templates, orders] = await Promise.all([Template.countDocuments({ designKey: { $in: PUBLIC_DESIGN_KEYS } }), Order.find()]);
   res.json(supportedLanguages.map((language) => ({
     ...language,
     templates,
@@ -444,7 +449,7 @@ export const createAdminTemplate = asyncHandler(async (req, res) => {
     gallery: Array.isArray(data.gallery) ? data.gallery : String(data.gallery || '').split('\n').filter(Boolean),
     galleryConfigured: Boolean(data.galleryConfigured),
     imagePosition: normalizeImagePosition(data.imagePosition),
-    designKey: data.designKey || 'classic',
+    designKey: PUBLIC_DESIGN_KEYS.includes(data.designKey) ? data.designKey : DEFAULT_DESIGN_KEY,
     isActive: data.isActive !== false
   });
   res.status(201).json(mapTemplate(template));
@@ -457,6 +462,7 @@ export const updateAdminTemplate = asyncHandler(async (req, res) => {
     throw new Error('Template not found');
   }
   const data = { ...req.body };
+  data.designKey = PUBLIC_DESIGN_KEYS.includes(data.designKey) ? data.designKey : DEFAULT_DESIGN_KEY;
   if (typeof data.features === 'string') data.features = data.features.split('\n').filter(Boolean);
   if (typeof data.gallery === 'string') data.gallery = data.gallery.split('\n').filter(Boolean);
   data.galleryConfigured = Boolean(data.galleryConfigured);

@@ -8,6 +8,7 @@ import Loading from '../components/Loading.jsx';
 import TemplateCard from '../components/TemplateCard.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { categories } from '../data/categories.js';
+import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
 
 export default function TemplatesPage() {
   const { t } = useLanguage();
@@ -41,7 +42,7 @@ export default function TemplatesPage() {
   useEffect(() => {
     setState('loading');
     api.get(`/templates?${query}`).then(({ data }) => {
-      setTemplates(data);
+      setTemplates(data.filter((template) => getOccasionTemplate(template)));
       setState('ready');
     }).catch(() => setState('error'));
   }, [query]);

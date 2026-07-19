@@ -85,6 +85,7 @@ export default function InvitationPage() {
   const secondaryGallery = invitation.gallery?.slice(1) || [];
   const occasionTemplate = getOccasionTemplate(invitation.templateId);
   const PublicView = occasionTemplate?.PublicView;
+  const isBaptismTemplate = occasionTemplate?.key === 'baptism-blessing';
   const mapLinks = normalizeMapLinks(invitation);
   const gallery = (invitation.gallery || []).filter((image) => {
     if (typeof image !== 'string' || !image.trim()) return false;
@@ -92,11 +93,11 @@ export default function InvitationPage() {
     return isDisplayableImage(image);
   }).map(resolveTemplateImage);
   const rsvpForm = (
-    <form className="panel-form compact test-wedding-rsvp-form" onSubmit={submit}>
+    <form className={`panel-form compact test-wedding-rsvp-form${isBaptismTemplate ? ' baptism-live-rsvp-form' : ''}`} onSubmit={submit}>
       <fieldset className="rsvp-choice-group">
-        <legend>Հյուրի կողմը</legend>
-        <label className="rsvp-radio"><input type="radio" name="guestSide" value="bride" defaultChecked /><span>Հարսի կողմ</span></label>
-        <label className="rsvp-radio"><input type="radio" name="guestSide" value="groom" /><span>Փեսայի կողմ</span></label>
+        <legend>{isBaptismTemplate ? 'Հյուրի կապը' : 'Հյուրի կողմը'}</legend>
+        <label className="rsvp-radio"><input type="radio" name="guestSide" value="bride" defaultChecked /><span>{isBaptismTemplate ? 'Ընտանիքի հյուր' : 'Հարսի կողմ'}</span></label>
+        <label className="rsvp-radio"><input type="radio" name="guestSide" value="groom" /><span>{isBaptismTemplate ? 'Կնքահոր / կնքամոր հյուր' : 'Փեսայի կողմ'}</span></label>
       </fieldset>
       <Input label={t('guestName')} name="guestName" error={errors.guestName} />
       <Input label={t('phone')} name="phone" type="tel" error={errors.phone} />
@@ -105,8 +106,8 @@ export default function InvitationPage() {
         <label className="rsvp-radio"><input type="radio" name="status" value="attending" defaultChecked /><span>Սիրով կմասնակցենք</span></label>
         <label className="rsvp-radio"><input type="radio" name="status" value="declined" /><span>Ցավոք, չենք կարող ներկա լինել</span></label>
       </fieldset>
-      <Input label={t('guestCount')} name="guestCount" type="number" min="1" defaultValue="1" />
-      <Input label={t('message')} name="message" as="textarea" rows="3" />
+      <Input label={isBaptismTemplate ? 'Հյուրերի քանակ' : t('guestCount')} name="guestCount" type="number" min="1" defaultValue="1" />
+      <Input label={isBaptismTemplate ? 'Հաղորդագրություն' : t('message')} name="message" as="textarea" rows="3" />
       <Button disabled={rsvpStatus === 'loading'}>{rsvpStatus === 'loading' ? t('loading') : t('submit')}</Button>
       {rsvpStatus === 'error' && <p className="form-error">{t('error')}</p>}
     </form>

@@ -7,6 +7,8 @@ import Button from '../components/Button.jsx';
 import ErrorState from '../components/ErrorState.jsx';
 import Loading from '../components/Loading.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
+import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
 
 export default function TemplateDetailsPage() {
   const { id } = useParams();
@@ -16,6 +18,10 @@ export default function TemplateDetailsPage() {
 
   useEffect(() => {
     api.get(`/templates/${id}`).then(({ data }) => {
+      if (!getOccasionTemplate(data)) {
+        setState('error');
+        return;
+      }
       setTemplate(data);
       setState('ready');
     }).catch(() => setState('error'));
@@ -23,11 +29,12 @@ export default function TemplateDetailsPage() {
 
   if (state === 'loading') return <Loading text={t('loading')} />;
   if (state === 'error') return <ErrorState text={t('error')} />;
+  const mainImage = resolveTemplateImage(template.mainImage);
 
   return (
     <section className="section page-top details-grid">
       <div className="details-media">
-        <img src={template.mainImage} alt={template.title} />
+        <img src={mainImage} alt={template.title} />
       </div>
       <div className="details-copy">
         <span className="eyebrow">{t(template.category)}</span>
@@ -45,7 +52,7 @@ export default function TemplateDetailsPage() {
         </div>
       </div>
       <div className="gallery-strip">
-        {template.gallery?.map((image, index) => <img key={index} src={image} alt={`${template.title} ${index + 1}`} />)}
+        {template.gallery?.map((image, index) => <img key={index} src={resolveTemplateImage(image)} alt={`${template.title} ${index + 1}`} />)}
       </div>
     </section>
   );

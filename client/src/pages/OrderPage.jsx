@@ -7,6 +7,7 @@ import Input from '../components/Input.jsx';
 import SectionTitle from '../components/SectionTitle.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { categories } from '../data/categories.js';
+import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
 import { languages } from '../translations/translations.js';
 import { required, toForm } from '../utils/forms.js';
 
@@ -36,7 +37,9 @@ export default function OrderPage() {
   const [serverError, setServerError] = useState('');
 
   useEffect(() => {
-    api.get('/templates').then(({ data }) => setTemplates(data)).catch(() => setTemplates([]));
+    api.get('/templates')
+      .then(({ data }) => setTemplates(data.filter((template) => getOccasionTemplate(template))))
+      .catch(() => setTemplates([]));
   }, []);
 
   const submit = async (event) => {

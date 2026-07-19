@@ -47,6 +47,8 @@ const normalizeColors = (source = {}) => ({
   overlay: isHexColor(source.overlay) ? source.overlay : '#202020'
 });
 
+const PUBLIC_DESIGN_KEYS = ['midnight-vows', 'baptism-blessing'];
+
 const normalizeDraft = (draft, template) => {
   const source = draft && typeof draft === 'object' ? draft : {};
   const sourceGallery = Array.isArray(source.gallery) ? source.gallery : [];
@@ -82,7 +84,7 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Template not found');
   }
-  if (template.isActive === false) {
+  if (template.isActive === false || !PUBLIC_DESIGN_KEYS.includes(template.designKey)) {
     res.status(400);
     throw new Error('Template is not active');
   }

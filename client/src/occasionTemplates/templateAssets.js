@@ -1,43 +1,50 @@
-import defaultHeroImage from '../assets/occasion/test-wedding-hero.jpg';
 import midnightVowsDefault from '../assets/occasion/midnight-vows-default.jpg';
-import engagementRoses from '../assets/morph/engagement-roses.jpg';
-import weddingChurchRed from '../assets/morph/wedding-church-red.jpg';
-import weddingForest from '../assets/morph/wedding-forest-optimized.jpg';
-import weddingSunset from '../assets/morph/wedding-sunset.jpg';
-import weddingTemple from '../assets/morph/wedding-temple.jpg';
-import weddingWhiteHall from '../assets/morph/wedding-white-hall.jpg';
+import baptismAngel from '../assets/baptism/baptism-angel.png';
+import baptismBabyChurch from '../assets/baptism/baptism-baby-church.png';
+import baptismCandle from '../assets/baptism/baptism-candle.png';
+import baptismChurchIcon from '../assets/baptism/baptism-church-icon.png';
+import baptismCross from '../assets/baptism/baptism-cross.png';
+import baptismDove from '../assets/baptism/baptism-dove.png';
+import baptismEnvelope from '../assets/baptism/baptism-envelope.png';
+import baptismFamily from '../assets/baptism/baptism-family.png';
+import baptismFamilyPhoto from '../assets/morph/baptism-family.jpg';
+import baptismLiftPhoto from '../assets/morph/baptism-lift.jpg';
+import baptismPriestPhoto from '../assets/morph/baptism-priest.jpg';
+import baptismSoftPhoto from '../assets/morph/baptism-soft.webp';
+import baptismVoguePhoto from '../assets/morph/baptism-vogue.jpg';
+import baptismWaterPhoto from '../assets/morph/baptism-water.jpg';
 
 export const templateAssetSources = {
-  'asset:occasion/test-wedding-hero.jpg': defaultHeroImage,
   'asset:occasion/midnight-vows-default.jpg': midnightVowsDefault,
-  'asset:morph/engagement-roses.jpg': engagementRoses,
-  'asset:morph/wedding-church-red.jpg': weddingChurchRed,
-  'asset:morph/wedding-forest-optimized.jpg': weddingForest,
-  'asset:morph/wedding-sunset.jpg': weddingSunset,
-  'asset:morph/wedding-temple.jpg': weddingTemple,
-  'asset:morph/wedding-white-hall.jpg': weddingWhiteHall
+  'asset:baptism/baptism-angel.png': baptismAngel,
+  'asset:baptism/baptism-baby-church.png': baptismBabyChurch,
+  'asset:baptism/baptism-candle.png': baptismCandle,
+  'asset:baptism/baptism-church-icon.png': baptismChurchIcon,
+  'asset:baptism/baptism-cross.png': baptismCross,
+  'asset:baptism/baptism-dove.png': baptismDove,
+  'asset:baptism/baptism-envelope.png': baptismEnvelope,
+  'asset:baptism/baptism-family.png': baptismFamily,
+  'asset:morph/baptism-family.jpg': baptismFamilyPhoto,
+  'asset:morph/baptism-lift.jpg': baptismLiftPhoto,
+  'asset:morph/baptism-priest.jpg': baptismPriestPhoto,
+  'asset:morph/baptism-soft.webp': baptismSoftPhoto,
+  'asset:morph/baptism-vogue.jpg': baptismVoguePhoto,
+  'asset:morph/baptism-water.jpg': baptismWaterPhoto
 };
 
 export const templateDefaultGalleryIds = {
-  'test-wedding': [
-    'asset:occasion/test-wedding-hero.jpg',
-    'asset:morph/wedding-sunset.jpg',
-    'asset:morph/wedding-forest-optimized.jpg',
-    'asset:morph/wedding-temple.jpg',
-    'asset:morph/wedding-white-hall.jpg',
-    'asset:morph/wedding-church-red.jpg',
-    'asset:morph/engagement-roses.jpg'
-  ],
-  'romantic-gold': [
-    'asset:morph/wedding-sunset.jpg',
-    'asset:morph/wedding-forest-optimized.jpg',
-    'asset:morph/wedding-temple.jpg',
-    'asset:morph/wedding-white-hall.jpg',
-    'asset:morph/wedding-church-red.jpg',
-    'asset:morph/engagement-roses.jpg'
-  ],
   'midnight-vows': [
     'asset:occasion/midnight-vows-default.jpg'
+  ],
+  'baptism-blessing': [
+    'asset:baptism/baptism-baby-church.png',
+    'asset:baptism/baptism-family.png',
+    'asset:morph/baptism-family.jpg',
+    'asset:morph/baptism-lift.jpg',
+    'asset:morph/baptism-priest.jpg',
+    'asset:morph/baptism-soft.webp',
+    'asset:morph/baptism-vogue.jpg',
+    'asset:morph/baptism-water.jpg'
   ]
 };
 

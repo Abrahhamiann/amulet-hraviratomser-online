@@ -67,7 +67,7 @@ export const isMidnightVowsTemplate = (template) => {
     normalizeKey(template?.title)
   ];
 
-  return values.some((value) => ['midnight-vows', 'midnightvows', 'dark-wedding'].includes(value));
+  return values.some((value) => ['midnight-vows', 'midnight-vows-fullscreen', 'midnightvows', 'dark-wedding'].includes(value));
 };
 
 export const getMidnightVowsDraft = (template = {}) => {
@@ -129,7 +129,7 @@ function EventBlock({ title, time, location, address, mapLink, delay = 0 }) {
       <p>{title}</p>
       <strong>{time}</strong>
       <h3>{location}</h3>
-      <span>{address}</span>
+      {address && <span>{address}</span>}
       <a href={mapLink || '#midnight-rsvp'} target={mapLink ? '_blank' : undefined} rel={mapLink ? 'noreferrer' : undefined}>Ինչպես հասնել</a>
     </motion.article>
   );
@@ -258,14 +258,12 @@ function MidnightVowsLayout({ draft, price, onEdit, onOrder, loading, actions, r
             title="Պսակադրություն"
             time={draft?.eventTime || '15:00'}
             location={draft?.eventLocation || 'Սուրբ Հռիփսիմե եկեղեցի'}
-            address="Հասցեն կարող եք փոփոխել խմբագրման ժամանակ"
             mapLink={mapLinks[0]?.url}
           />
           <EventBlock
             title="Հարսանյաց հանդիսություն"
             time="17:30"
             location="Ռեստորանային համալիր"
-            address="Հասցեն կարող եք նշել հրավերի խմբագրման մեջ"
             mapLink={mapLinks[1]?.url || mapLinks[0]?.url}
             delay={0.12}
           />

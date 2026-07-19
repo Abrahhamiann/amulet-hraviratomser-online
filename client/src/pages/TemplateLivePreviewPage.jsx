@@ -16,6 +16,8 @@ previewDate.setMonth(previewDate.getMonth() + 1);
 const toDateInputValue = (date) => date.toISOString().slice(0, 10);
 
 const uniqueImages = (images) => [...new Set(images.filter(Boolean))];
+const isEnvelopeImage = (image) => /baptism-envelope(?:[.-])/.test(String(image || ''));
+const withoutEnvelopeImages = (images = []) => images.filter((image) => !isEnvelopeImage(resolveTemplateImage(image)));
 
 const defaultColors = {
   accent: '#d8b98e',
@@ -34,8 +36,13 @@ const createInitialDraft = (template) => {
   const occasionTemplate = getOccasionTemplate(template);
   if (occasionTemplate?.getInitialDraft) {
     const draft = occasionTemplate.getInitialDraft(template);
+    const isBaptismTemplate = occasionTemplate.key === 'baptism-blessing';
+    const gallery = isBaptismTemplate ? withoutEnvelopeImages(draft.gallery || []) : (draft.gallery || []);
+    const image = isBaptismTemplate && isEnvelopeImage(resolveTemplateImage(draft.image)) ? (gallery[0] || '') : draft.image;
     return {
       ...draft,
+      image,
+      gallery,
       mapLink: draft.mapLink || '',
       mapLinks: draft.mapLinks || [],
       colors: { ...defaultColors, ...(draft.colors || {}) }
@@ -137,7 +144,8 @@ export default function TemplateLivePreviewPage() {
   };
 
   const updateImages = async (event) => {
-    const isSingleImageTemplate = getOccasionTemplate(template)?.key === 'midnight-vows';
+    const occasionTemplateKey = getOccasionTemplate(template)?.key;
+    const isSingleImageTemplate = occasionTemplateKey === 'midnight-vows';
     const files = Array.from(event.target.files || []).slice(0, isSingleImageTemplate ? 1 : 10);
     if (!files.length) return;
 
@@ -145,12 +153,13 @@ export default function TemplateLivePreviewPage() {
     setDraft((current) => {
       if (isSingleImageTemplate) return { ...current, image: images[0], gallery: [images[0]] };
 
-      const gallery = uniqueImages([...images, ...(current.gallery || [])]).slice(0, 12);
+      const gallery = withoutEnvelopeImages(uniqueImages([...images, ...(current.gallery || [])])).slice(0, 12);
       return { ...current, image: images[0], gallery };
     });
   };
 
   const selectImage = (image) => {
+    if (isEnvelopeImage(resolveTemplateImage(image))) return;
     setDraft((current) => ({ ...current, image }));
   };
 
@@ -178,12 +187,15 @@ export default function TemplateLivePreviewPage() {
     setWarning('');
     setCheckoutState('loading');
     try {
+      const cleanGallery = uniqueImages([draft.image, ...(draft.gallery || [])])
+        .filter((image) => !isEnvelopeImage(resolveTemplateImage(image)));
       await startStripeCheckout(template._id, {
         ...draft,
+        image: isEnvelopeImage(resolveTemplateImage(draft.image)) ? (cleanGallery[0] || '') : draft.image,
         mapLink: cleanMapLinks(draft.mapLinks)[0]?.url || draft.mapLink || '',
         mapLinks: cleanMapLinks(draft.mapLinks),
         colors: { ...defaultColors, ...(draft.colors || {}) },
-        gallery: uniqueImages([draft.image, ...(draft.gallery || [])])
+        gallery: cleanGallery
       });
     } catch {
       setCheckoutState('error');
@@ -195,6 +207,7 @@ export default function TemplateLivePreviewPage() {
 
   const occasionTemplate = getOccasionTemplate(template);
   const LivePreview = occasionTemplate?.LivePreview;
+  if (!LivePreview) return <ErrorState text={t('error')} />;
   const isSingleImageTemplate = occasionTemplate?.key === 'midnight-vows';
   const image = resolveTemplateImage(draft?.image || template.mainImage || template.gallery?.[0]);
   const formattedDate = draft?.eventDate ? new Date(draft.eventDate).toLocaleDateString() : previewDate.toLocaleDateString();
@@ -335,11 +348,11 @@ export default function TemplateLivePreviewPage() {
               Հրավերի տեքստ
               <textarea name="eventMessage" rows="4" value={draft.eventMessage} onChange={updateDraft} required />
             </label>
-            {draft.gallery?.length > 0 && (
+            {withoutEnvelopeImages(draft.gallery || []).length > 0 && (
               <div className="invitation-gallery-picker">
                 <span>Նկարները</span>
                 <div>
-                  {draft.gallery.map((galleryImage, index) => (
+                  {withoutEnvelopeImages(draft.gallery || []).map((galleryImage, index) => (
                     <div className="invitation-gallery-item" key={`${galleryImage.slice(0, 48)}-${index}`}>
                       <button
                         type="button"

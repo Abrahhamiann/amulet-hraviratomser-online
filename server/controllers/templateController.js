@@ -2,9 +2,11 @@ import asyncHandler from 'express-async-handler';
 import Template from '../models/Template.js';
 import { makeSlug } from '../utils/slug.js';
 
+const PUBLIC_DESIGN_KEYS = ['midnight-vows', 'baptism-blessing'];
+
 export const getTemplates = asyncHandler(async (req, res) => {
   const { category, search, sort = 'newest', featured } = req.query;
-  const query = { isActive: { $ne: false } };
+  const query = { isActive: { $ne: false }, designKey: { $in: PUBLIC_DESIGN_KEYS } };
   if (category) query.category = category;
   if (featured === 'true') query.isFeatured = true;
   if (search) query.title = { $regex: search, $options: 'i' };
@@ -21,7 +23,7 @@ export const getTemplates = asyncHandler(async (req, res) => {
 
 export const getTemplate = asyncHandler(async (req, res) => {
   const template = await Template.findById(req.params.id);
-  if (!template) {
+  if (!template || !PUBLIC_DESIGN_KEYS.includes(template.designKey) || template.isActive === false) {
     res.status(404);
     throw new Error('Template not found');
   }

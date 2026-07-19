@@ -5,6 +5,23 @@ import { Link, Navigate, useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
+const normalizeKey = (value) => String(value || '')
+  .trim()
+  .toLowerCase()
+  .replace(/[_\s]+/g, '-')
+  .replace(/[^a-z0-9-]/g, '');
+
+const isBaptismOrder = (order) => {
+  const values = [
+    order?.eventType,
+    order?.templateId?.designKey,
+    order?.templateId?.slug,
+    order?.templateId?.title
+  ].map(normalizeKey);
+
+  return values.some((value) => value.includes('baptism'));
+};
+
 export default function AccountPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -51,7 +68,8 @@ export default function AccountPage() {
     return (rsvpsByInvitation[invitation?._id] || []).map((rsvp) => ({
       ...rsvp,
       invitationTitle: order.mainNames,
-      invitationSlug: invitation?.slug
+      invitationSlug: invitation?.slug,
+      isBaptism: isBaptismOrder(order)
     }));
   });
   const attendingGuests = allRsvps
@@ -65,10 +83,11 @@ export default function AccountPage() {
     declined: { icon: XCircle, label: t('declined') },
     unsure: { icon: HelpCircle, label: t('unsure') }
   };
-  const guestSideLabels = {
-    bride: 'Հարսի կողմ',
-    groom: 'Փեսայի կողմ',
-    other: ''
+  const getGuestSideLabel = (rsvp) => {
+    const labels = rsvp.isBaptism
+      ? { bride: 'Ընտանիքի հյուր', groom: 'Կնքահոր / կնքամոր հյուր', other: '' }
+      : { bride: 'Հարսի կողմ', groom: 'Փեսայի կողմ', other: '' };
+    return labels[rsvp.guestSide] || '';
   };
 
   return (
@@ -143,7 +162,7 @@ export default function AccountPage() {
                       <span>{info.label}</span>
                     </div>
                     <span>{Number(rsvp.guestCount || 1)} հյուր</span>
-                    {guestSideLabels[rsvp.guestSide] && <span>{guestSideLabels[rsvp.guestSide]}</span>}
+                    {getGuestSideLabel(rsvp) && <span>{getGuestSideLabel(rsvp)}</span>}
                     <span>{rsvp.phone}</span>
                     {rsvp.message && (
                       <p>

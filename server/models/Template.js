@@ -12,7 +12,7 @@ const templateSchema = new mongoose.Schema(
     price: { type: Number, required: true },
     description: { type: String, required: true },
     features: [{ type: String }],
-    designKey: { type: String, default: 'classic', trim: true },
+    designKey: { type: String, default: 'midnight-vows', trim: true },
     mainImage: { type: String, default: '' },
     imagePosition: {
       x: { type: Number, default: 50, min: 0, max: 100 },

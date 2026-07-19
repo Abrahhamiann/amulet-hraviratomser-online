@@ -20,13 +20,14 @@ import { adminApi, currency } from "@/lib/api";
 import { useAdminI18n } from "@/lib/i18n";
 import { useTemplates } from "@/hooks/useAdminData";
 import midnightVowsDefault from "../../../client/src/assets/occasion/midnight-vows-default.jpg";
-import defaultHeroImage from "../../../client/src/assets/occasion/test-wedding-hero.jpg";
-import engagementRoses from "../../../client/src/assets/morph/engagement-roses.jpg";
-import weddingChurchRed from "../../../client/src/assets/morph/wedding-church-red.jpg";
-import weddingForest from "../../../client/src/assets/morph/wedding-forest-optimized.jpg";
-import weddingSunset from "../../../client/src/assets/morph/wedding-sunset.jpg";
-import weddingTemple from "../../../client/src/assets/morph/wedding-temple.jpg";
-import weddingWhiteHall from "../../../client/src/assets/morph/wedding-white-hall.jpg";
+import baptismAngel from "../../../client/src/assets/baptism/baptism-angel.png";
+import baptismBabyChurch from "../../../client/src/assets/baptism/baptism-baby-church.png";
+import baptismCandle from "../../../client/src/assets/baptism/baptism-candle.png";
+import baptismChurchIcon from "../../../client/src/assets/baptism/baptism-church-icon.png";
+import baptismCross from "../../../client/src/assets/baptism/baptism-cross.png";
+import baptismDove from "../../../client/src/assets/baptism/baptism-dove.png";
+import baptismEnvelope from "../../../client/src/assets/baptism/baptism-envelope.png";
+import baptismFamily from "../../../client/src/assets/baptism/baptism-family.png";
 
 export const Route = createFileRoute("/admin/templates")({ component: TemplatesPage });
 
@@ -37,43 +38,35 @@ const defaultImagePosition = {
 };
 
 const staticDesignOptions = [
-  { key: "classic", label: "Classic / default" },
-  { key: "test-wedding", label: "Test wedding editorial" },
-  { key: "romantic-gold", label: "Romantic gold HTML/CSS" },
   { key: "midnight-vows", label: "Midnight vows fullscreen" },
+  { key: "baptism-blessing", label: "Baptism blessing envelope" },
 ];
 
 const templateAssetPreviews: Record<string, string> = {
-  "asset:occasion/test-wedding-hero.jpg": defaultHeroImage,
   "asset:occasion/midnight-vows-default.jpg": midnightVowsDefault,
-  "asset:morph/engagement-roses.jpg": engagementRoses,
-  "asset:morph/wedding-church-red.jpg": weddingChurchRed,
-  "asset:morph/wedding-forest-optimized.jpg": weddingForest,
-  "asset:morph/wedding-sunset.jpg": weddingSunset,
-  "asset:morph/wedding-temple.jpg": weddingTemple,
-  "asset:morph/wedding-white-hall.jpg": weddingWhiteHall,
+  "asset:baptism/baptism-angel.png": baptismAngel,
+  "asset:baptism/baptism-baby-church.png": baptismBabyChurch,
+  "asset:baptism/baptism-candle.png": baptismCandle,
+  "asset:baptism/baptism-church-icon.png": baptismChurchIcon,
+  "asset:baptism/baptism-cross.png": baptismCross,
+  "asset:baptism/baptism-dove.png": baptismDove,
+  "asset:baptism/baptism-envelope.png": baptismEnvelope,
+  "asset:baptism/baptism-family.png": baptismFamily,
 };
 
 const defaultDesignGalleries: Record<string, string[]> = {
-  "test-wedding": [
-    "asset:occasion/test-wedding-hero.jpg",
-    "asset:morph/wedding-sunset.jpg",
-    "asset:morph/wedding-forest-optimized.jpg",
-    "asset:morph/wedding-temple.jpg",
-    "asset:morph/wedding-white-hall.jpg",
-    "asset:morph/wedding-church-red.jpg",
-    "asset:morph/engagement-roses.jpg",
-  ],
-  "romantic-gold": [
-    "asset:morph/wedding-sunset.jpg",
-    "asset:morph/wedding-forest-optimized.jpg",
-    "asset:morph/wedding-temple.jpg",
-    "asset:morph/wedding-white-hall.jpg",
-    "asset:morph/wedding-church-red.jpg",
-    "asset:morph/engagement-roses.jpg",
-  ],
   "midnight-vows": [
     "asset:occasion/midnight-vows-default.jpg",
+  ],
+  "baptism-blessing": [
+    "asset:baptism/baptism-envelope.png",
+    "asset:baptism/baptism-baby-church.png",
+    "asset:baptism/baptism-family.png",
+    "asset:baptism/baptism-cross.png",
+    "asset:baptism/baptism-candle.png",
+    "asset:baptism/baptism-church-icon.png",
+    "asset:baptism/baptism-angel.png",
+    "asset:baptism/baptism-dove.png",
   ],
 };
 
@@ -82,10 +75,10 @@ const emptyForm = {
   slug: "",
   category: "wedding",
   price: "29000",
-  designKey: "classic",
+  designKey: "midnight-vows",
   description: "",
-  mainImage: "",
-  gallery: "",
+  mainImage: "asset:occasion/midnight-vows-default.jpg",
+  gallery: "asset:occasion/midnight-vows-default.jpg",
   features: "",
   isFeatured: false,
   isActive: true,
@@ -122,7 +115,9 @@ const galleryFromText = (value: string) => String(value || "")
   .map((image) => image.trim())
   .filter(Boolean);
 
-const getDefaultGalleryForDesign = (designKey?: string) => defaultDesignGalleries[designKey || "classic"] || [];
+const isKnownDesignKey = (designKey?: string) => staticDesignOptions.some((option) => option.key === designKey);
+
+const getDefaultGalleryForDesign = (designKey?: string) => defaultDesignGalleries[designKey || "midnight-vows"] || defaultDesignGalleries["midnight-vows"];
 
 const sameImageList = (first: string[], second: string[]) => (
   first.length === second.length && first.every((image, index) => image === second[index])
@@ -145,14 +140,12 @@ function getClientBaseUrl() {
 
 function toForm(template?: any) {
   if (!template) return emptyForm;
-  const designKey = template.designKey || "classic";
+  const designKey = isKnownDesignKey(template.designKey) ? template.designKey : "midnight-vows";
   const savedGallery = template.gallery || [];
   const defaultGallery = getDefaultGalleryForDesign(designKey);
   const gallery = savedGallery.length || template.galleryConfigured
     ? savedGallery
-    : designKey === "midnight-vows"
-      ? defaultGallery
-      : [template.cover, ...defaultGallery].filter(Boolean);
+    : defaultGallery;
   return {
     title: template.name || "",
     slug: template.slug || "",
@@ -179,6 +172,10 @@ function TemplatesPage() {
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const visibleTemplates = useMemo(
+    () => (templates || []).filter((template: any) => isKnownDesignKey(template.designKey)),
+    [templates]
+  );
 
   const subtitle = error ? error.message : isLoading ? t("loading") : t("templates");
 
@@ -199,7 +196,7 @@ function TemplatesPage() {
     slug: form.slug || undefined,
     category: form.category,
     price: Number(form.price || 0),
-    designKey: form.designKey || "classic",
+    designKey: isKnownDesignKey(form.designKey) ? form.designKey : "midnight-vows",
     description: form.description,
     mainImage: form.mainImage,
     gallery: form.gallery,
@@ -294,7 +291,7 @@ function TemplatesPage() {
       <Tabs value={view}>
         <TabsContent value="cards">
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {templates.map((template: any) => (
+            {visibleTemplates.map((template: any) => (
               <Card key={template.id} className="group overflow-hidden rounded-2xl border-border/60 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-gold)] transition-all hover:-translate-y-1 pt-0">
                 <div className="relative aspect-[4/5] bg-secondary overflow-hidden">
                   {template.cover ? <img src={getPreviewImage(template.cover)} alt={template.name} className="h-full w-full object-cover transition duration-500" style={getImageStyle(template.imagePosition)} /> : null}
@@ -309,7 +306,7 @@ function TemplatesPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <h3 className="font-display text-lg truncate">{template.name}</h3>
-                      <p className="text-xs text-muted-foreground">{template.category} · {template.designKey || "classic"}</p>
+                      <p className="text-xs text-muted-foreground">{template.category} · {template.designKey}</p>
                     </div>
                     <div className="font-display text-lg text-[color:var(--gold)]">{currency(template.price)}</div>
                   </div>
@@ -339,7 +336,7 @@ function TemplatesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {templates.map((template: any) => (
+                  {visibleTemplates.map((template: any) => (
                     <TableRow key={template.id} className="border-border/60 hover:bg-secondary/30">
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -348,7 +345,7 @@ function TemplatesPage() {
                         </div>
                       </TableCell>
                       <TableCell>{template.category}</TableCell>
-                      <TableCell>{template.designKey || "classic"}</TableCell>
+                      <TableCell>{template.designKey}</TableCell>
                       <TableCell>{currency(template.price)}</TableCell>
                       <TableCell>{template.usage}</TableCell>
                       <TableCell><StatusBadge status={template.status} /></TableCell>
@@ -407,9 +404,7 @@ function TemplateForm({ form, setForm }: any) {
       const currentDefaults = getDefaultGalleryForDesign(current.designKey);
       const currentDefaultGallery = [current.mainImage, ...currentDefaults].filter(Boolean);
       const nextDefaults = getDefaultGalleryForDesign(designKey);
-      const nextDefaultGallery = designKey === "midnight-vows"
-        ? nextDefaults
-        : [current.mainImage, ...nextDefaults].filter(Boolean);
+      const nextDefaultGallery = nextDefaults;
       const shouldUseNextDefaults = currentGallery.length === 0 ||
         sameImageList(currentGallery, currentDefaults) ||
         sameImageList(currentGallery, currentDefaultGallery);
@@ -417,6 +412,8 @@ function TemplateForm({ form, setForm }: any) {
       return {
         ...current,
         designKey,
+        mainImage: shouldUseNextDefaults ? (nextDefaultGallery[0] || current.mainImage) : current.mainImage,
+        imagePosition: shouldUseNextDefaults ? defaultImagePosition : current.imagePosition,
         gallery: shouldUseNextDefaults ? nextDefaultGallery.join("\n") : current.gallery,
         galleryConfigured: shouldUseNextDefaults ? false : current.galleryConfigured,
       };
@@ -582,7 +579,7 @@ function TemplateCardPreview({ form }: any) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="truncate font-display text-lg">{form.title || "Template title"}</h3>
-            <p className="text-xs text-muted-foreground">{form.category || "category"} · {form.designKey || "classic"}</p>
+            <p className="text-xs text-muted-foreground">{form.category || "category"} · {form.designKey}</p>
           </div>
           <div className="font-display text-lg text-[color:var(--gold)]">{currency(Number(form.price || 0))}</div>
         </div>
