@@ -29,16 +29,18 @@ const normalizeMapLinks = (source) => {
   const normalized = links
     .map((item, index) => ({
       label: metadataText(item?.label, `Քարտեզ ${index + 1}`, 80),
+      time: metadataText(item?.time, '', 24),
+      address: metadataText(item?.address, '', 180),
       url: metadataText(item?.url, '', 600)
     }))
-    .filter((item) => /^(https?:\/\/)/.test(item.url));
+    .filter((item) => item.label || item.time || item.address || /^(https?:\/\/)/.test(item.url));
 
   const mapLink = metadataText(source?.mapLink, '', 600);
   if (mapLink && /^(https?:\/\/)/.test(mapLink) && !normalized.some((item) => item.url === mapLink)) {
     normalized.unshift({ label: 'Քարտեզ', url: mapLink });
   }
 
-  return normalized.slice(0, 5);
+  return normalized.slice(0, 20);
 };
 
 const normalizeColors = (source = {}) => ({
@@ -47,7 +49,7 @@ const normalizeColors = (source = {}) => ({
   overlay: isHexColor(source.overlay) ? source.overlay : '#202020'
 });
 
-const PUBLIC_DESIGN_KEYS = ['midnight-vows', 'baptism-blessing'];
+const PUBLIC_DESIGN_KEYS = ['midnight-vows', 'baptism-blessing', 'engagement-serenade'];
 
 const normalizeDraft = (draft, template) => {
   const source = draft && typeof draft === 'object' ? draft : {};

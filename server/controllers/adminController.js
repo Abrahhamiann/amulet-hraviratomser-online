@@ -31,7 +31,7 @@ const supportedLanguages = [
 const adminRoles = ['admin', 'super_admin'];
 const userRoles = ['user', ...adminRoles];
 const DEFAULT_DESIGN_KEY = 'midnight-vows';
-const PUBLIC_DESIGN_KEYS = ['midnight-vows', 'baptism-blessing'];
+const PUBLIC_DESIGN_KEYS = ['midnight-vows', 'baptism-blessing', 'engagement-serenade'];
 
 const isSuperAdmin = (user) => user?.role === 'super_admin';
 

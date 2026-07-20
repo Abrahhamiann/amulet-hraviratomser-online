@@ -1847,6 +1847,12 @@ body { background: #fff; }
   border-color: #d8b98e;
   box-shadow: 0 0 0 3px rgba(216,185,142,.2);
 }
+
+.invitation-editor-form > label:has(input[name="eventTime"]),
+.invitation-editor-form > label:has(input[name="eventLocation"]) {
+  display: none;
+}
+
 .invitation-upload-field {
   min-height: 58px;
   display: flex !important;
@@ -1952,7 +1958,7 @@ body { background: #fff; }
 }
 .invitation-map-link-row {
   display: grid;
-  grid-template-columns: minmax(120px, .7fr) minmax(180px, 1.3fr) 44px;
+  grid-template-columns: minmax(112px, .8fr) minmax(110px, .55fr) minmax(160px, 1fr) minmax(180px, 1.2fr) 44px;
   gap: 10px;
 }
 .invitation-map-link-row > button {
@@ -8822,7 +8828,762 @@ body.nav-lock {
   }
 }
 
+@font-face {
+  font-family: 'SHK_dzeragir';
+  src: url('./assets/fonts/SHK_Dzeragir.otf') format('opentype');
+  font-display: swap;
+}
+
+.engagement-card-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #17110d;
+}
+
+.engagement-card-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: auto;
+}
+
+.engagement-card-preview:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(20,14,10,.04), rgba(20,14,10,.44));
+}
+
+.engagement-card-preview span {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1;
+  font-family: 'SHK_dzeragir', 'SHK Dzeragir', 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1.65rem, 8vw, 2.55rem);
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 2px 16px rgba(0,0,0,.5);
+}
+
+.engagement-serenade-invite {
+  --engagement-accent: #efe4d8;
+  --engagement-text: #fff;
+  --engagement-overlay: #2b211b;
+  position: relative;
+  min-height: 100dvh;
+  overflow-x: visible;
+  background: #17110d;
+  color: var(--engagement-text);
+  font-family: 'SHK_dzeragir', 'SHK Dzeragir', 'Montserrat', 'Arial', sans-serif;
+}
+
+.engagement-serenade-invite :where(h1, h2, h3, p, span, strong, b, em, label, legend, input, textarea, a, button) {
+  color: var(--engagement-text) !important;
+}
+
+.engagement-serenade-invite ::placeholder {
+  color: color-mix(in srgb, var(--engagement-text) 62%, transparent) !important;
+}
+
+.engagement-serenade-invite button,
+.engagement-serenade-invite input,
+.engagement-serenade-invite textarea {
+  font: inherit;
+}
+
+.engagement-fixed-photo,
+.engagement-global-scrim {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.engagement-fixed-photo {
+  z-index: 0;
+  background: #17110d;
+}
+
+.engagement-fixed-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0;
+  transform: scale(1.015);
+  transition: opacity 1100ms ease, transform 6200ms ease;
+  image-rendering: auto;
+  backface-visibility: hidden;
+}
+
+.engagement-fixed-photo img.is-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.engagement-global-scrim {
+  z-index: 1;
+  background:
+    radial-gradient(circle at 18% 24%, rgba(255,222,170,.2), transparent 30%),
+    linear-gradient(90deg, color-mix(in srgb, var(--engagement-overlay) 36%, transparent), rgba(0,0,0,.1) 52%, color-mix(in srgb, var(--engagement-overlay) 34%, transparent)),
+    linear-gradient(180deg, rgba(0,0,0,.2), rgba(0,0,0,.32) 58%, rgba(0,0,0,.54));
+}
+
+.engagement-photo-screen {
+  position: relative;
+  z-index: 2;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: clamp(72px, 8vw, 116px) clamp(18px, 5vw, 72px);
+  text-align: center;
+}
+
+.engagement-cover {
+  display: block;
+  overflow: visible;
+}
+
+.engagement-floating-actions {
+  position: fixed;
+  top: max(20px, env(safe-area-inset-top, 0px));
+  right: max(20px, env(safe-area-inset-right, 0px));
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 999px;
+  background: rgba(17,12,9,.58);
+  box-shadow: 0 20px 48px rgba(0,0,0,.28);
+  backdrop-filter: blur(18px);
+}
+
+.engagement-floating-actions > span {
+  padding: 0 10px 0 14px;
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--engagement-text);
+}
+
+.engagement-floating-actions .btn {
+  min-height: 44px;
+  border-radius: 999px;
+  color: var(--engagement-text) !important;
+}
+
+.engagement-floating-actions .btn-ghost {
+  border-color: rgba(255,255,255,.34);
+  background: rgba(255,255,255,.08);
+}
+
+.engagement-floating-actions .btn-primary {
+  border-color: color-mix(in srgb, var(--engagement-accent) 58%, transparent);
+  background: color-mix(in srgb, var(--engagement-accent) 28%, rgba(0,0,0,.32));
+}
+
+.engagement-cover-copy {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(calc(100vw - 48px), 1680px);
+  min-height: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: clamp(14px, 2vw, 24px);
+  color: var(--engagement-text);
+  text-shadow: 0 3px 22px rgba(0,0,0,.44);
+  translate: -50% -50%;
+}
+
+.engagement-cover-copy > span {
+  font-size: clamp(1.15rem, 2.3vw, 2rem);
+  font-weight: 300;
+  letter-spacing: 0;
+}
+
+.engagement-cover-copy h1 {
+  width: 100%;
+  max-width: 100%;
+  display: grid;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(2px, 1vw, 12px);
+  margin: 0;
+  font-family: 'SHK_dzeragir', 'SHK Dzeragir', 'Cormorant Garamond', Georgia, serif;
+  font-size: var(--engagement-name-size, clamp(3.6rem, 8.6vw, 8.8rem));
+  font-weight: 400;
+  line-height: .92;
+  text-align: center;
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  line-break: anywhere;
+}
+
+.engagement-cover-copy h1.has-two-names {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.engagement-cover-copy h1.has-one-name {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.engagement-cover-copy h1 b {
+  font: inherit;
+  font-weight: 300;
+  display: block;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  line-break: anywhere;
+  text-align: center;
+}
+
+.engagement-cover-copy h1.has-two-names b:first-child {
+  text-align: right;
+}
+
+.engagement-cover-copy h1.has-two-names b:last-child {
+  text-align: left;
+}
+
+.engagement-cover-copy h1 em {
+  margin-inline: -.08em;
+  font-style: normal;
+  font-size: .58em;
+  color: color-mix(in srgb, var(--engagement-text) 48%, transparent);
+}
+
+.engagement-cover-copy i,
+.engagement-location i {
+  width: 82px;
+  height: 1px;
+  background: color-mix(in srgb, var(--engagement-text) 72%, transparent);
+}
+
+.engagement-cover-copy strong {
+  font-size: clamp(1.65rem, 3.5vw, 2.65rem);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.engagement-music-button {
+  width: 48px;
+  height: 48px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.66);
+  border-radius: 50%;
+  background: rgba(255,255,255,.94);
+  color: #1c1511 !important;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(0,0,0,.25);
+  transition: transform 180ms ease, background 180ms ease;
+}
+
+.engagement-music-button:hover,
+.engagement-music-button.is-playing {
+  transform: translateY(-2px) scale(1.03);
+  background: var(--engagement-accent);
+  color: #1c1511 !important;
+}
+
+.engagement-details {
+  align-content: start;
+  gap: clamp(28px, 4vw, 48px);
+  min-height: auto;
+  padding-block: clamp(92px, 10vw, 150px);
+}
+
+.engagement-message-copy {
+  width: min(620px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  color: var(--engagement-text);
+  text-shadow: 0 2px 18px rgba(0,0,0,.5);
+}
+
+.engagement-message-copy h2 {
+  margin: 0;
+  font-family: 'SHK_dzeragir', 'SHK Dzeragir', 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  line-height: 1.1;
+  font-weight: 400;
+}
+
+.engagement-message-copy p {
+  max-width: 560px;
+  margin: 0;
+  font-size: clamp(1rem, 1.8vw, 1.25rem);
+  font-weight: 700;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.engagement-message-copy span {
+  margin-top: 18px;
+  font-family: 'SHK_dzeragir', 'SHK Dzeragir', 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(2rem, 4vw, 3.35rem);
+}
+
+.engagement-week {
+  width: min(640px, 100%);
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: clamp(8px, 1.8vw, 18px);
+  margin-inline: auto;
+}
+
+.engagement-week div {
+  position: relative;
+  min-height: 86px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  color: color-mix(in srgb, var(--engagement-text) 74%, transparent);
+}
+
+.engagement-week span {
+  font-family: 'SHK_dzeragir', 'SHK Dzeragir', 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1rem, 2vw, 1.55rem);
+  line-height: 1;
+}
+
+.engagement-week strong {
+  position: relative;
+  z-index: 2;
+  font-family: 'SHK_dzeragir', 'SHK Dzeragir', 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(1.05rem, 2vw, 1.45rem);
+  font-weight: 400;
+  line-height: 1;
+}
+
+.engagement-week img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  width: clamp(86px, 10vw, 124px);
+  height: auto;
+  object-fit: contain;
+  transform: translate(-50%, -50%);
+  transform-origin: 50% 50%;
+  opacity: .92;
+  pointer-events: none;
+  animation: engagement-ring-swing 2.8s ease-in-out infinite;
+}
+
+@keyframes engagement-ring-swing {
+  0%, 100% {
+    transform: translate(-50%, -50%) rotate(-18deg);
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(18deg);
+  }
+}
+
+.engagement-location {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  color: var(--engagement-text);
+  text-shadow: 0 2px 18px rgba(0,0,0,.5);
+}
+
+.engagement-place-list {
+  width: min(720px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: clamp(18px, 3vw, 28px);
+  margin-inline: auto;
+}
+
+.engagement-place-card {
+  width: min(100%, 620px);
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding-block: clamp(6px, 1.4vw, 12px);
+}
+
+.engagement-location strong,
+.engagement-place-card strong {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 300;
+}
+
+.engagement-location b,
+.engagement-place-card b {
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+}
+
+.engagement-location span,
+.engagement-place-card span {
+  max-width: min(560px, 100%);
+  font-size: clamp(.95rem, 1.6vw, 1.1rem);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.engagement-map-button {
+  min-width: 190px;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  border: 1px solid rgba(255,255,255,.8);
+  border-radius: 999px;
+  color: var(--engagement-text);
+  text-decoration: none;
+  font-weight: 700;
+  transition: background 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.engagement-map-button:not(.is-disabled):hover {
+  background: var(--engagement-text);
+  color: #211813;
+  transform: translateY(-2px);
+}
+
+.engagement-map-button.is-disabled {
+  opacity: .68;
+}
+
+.engagement-rsvp-shell {
+  width: min(760px, 100%);
+  display: grid;
+  justify-items: stretch;
+  gap: 22px;
+  padding-top: clamp(28px, 5vw, 64px);
+  color: var(--engagement-text);
+  text-align: left;
+  text-shadow: 0 2px 18px rgba(0,0,0,.5);
+}
+
+.engagement-rsvp-shell h2 {
+  max-width: 620px;
+  justify-self: center;
+  margin: 0 0 10px;
+  text-align: center;
+  font-size: clamp(1.25rem, 2.8vw, 2rem);
+  line-height: 1.35;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.engagement-rsvp-section .test-wedding-rsvp-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.engagement-rsvp-section .test-wedding-rsvp-form .field,
+.engagement-rsvp-section .test-wedding-rsvp-form .rsvp-choice-group {
+  margin: 0;
+}
+
+.engagement-rsvp-section .test-wedding-rsvp-form .field:nth-child(5),
+.engagement-rsvp-section .test-wedding-rsvp-form .btn,
+.engagement-rsvp-section .test-wedding-rsvp-form .form-error {
+  grid-column: 1 / -1;
+}
+
+.engagement-rsvp-section .test-wedding-rsvp-form .input,
+.engagement-rsvp-section .test-wedding-rsvp-form select,
+.engagement-rsvp-section .test-wedding-rsvp-form textarea {
+  border: 0;
+  border-bottom: 1px solid rgba(255,255,255,.82);
+  border-radius: 0;
+  background: transparent;
+  color: var(--engagement-text);
+  box-shadow: none;
+}
+
+.engagement-rsvp-section .test-wedding-rsvp-form .input:focus {
+  outline: 0;
+  border-color: var(--engagement-accent);
+}
+
+.engagement-rsvp-section .test-wedding-rsvp-form .rsvp-radio {
+  color: var(--engagement-text);
+}
+
+.engagement-rsvp-section .rsvp-radio input {
+  accent-color: var(--engagement-text);
+}
+
+.engagement-rsvp-section .test-wedding-rsvp-form .btn {
+  justify-self: center;
+  min-width: 230px;
+  min-height: 56px;
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  color: var(--engagement-text);
+}
+
+.engagement-love-mark {
+  justify-self: center;
+  width: min(170px, 52vw);
+  margin-top: 12px;
+  filter: brightness(1.2);
+}
+
+.engagement-rsvp-shell > p {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(1.25rem, 2.5vw, 1.8rem);
+  font-weight: 700;
+}
+
+.engagement-final {
+  min-height: 76dvh;
+  align-content: center;
+  gap: 16px;
+  color: var(--engagement-text);
+  text-shadow: 0 2px 18px rgba(0,0,0,.5);
+}
+
+.engagement-final > span {
+  font-size: clamp(1rem, 2vw, 1.35rem);
+}
+
+.engagement-final > strong {
+  font-family: 'SHK_dzeragir', 'SHK Dzeragir', 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(3.2rem, 9vw, 7rem);
+  font-weight: 300;
+  line-height: .9;
+}
+
+.engagement-final > p {
+  max-width: 620px;
+  margin: 0;
+  line-height: 1.55;
+}
+
+.engagement-public-actions {
+  width: min(980px, 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 34px;
+  padding: 18px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 8px;
+  background: rgba(15,10,8,.58);
+  backdrop-filter: blur(16px);
+}
+
+.engagement-public-actions > div:first-child {
+  display: grid;
+  gap: 5px;
+  text-align: left;
+}
+
+.engagement-public-actions > div:first-child span {
+  color: var(--engagement-accent);
+  font-size: .85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.engagement-public-actions > div:first-child strong {
+  font-size: .98rem;
+}
+
+.engagement-public-actions > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@media (max-width: 900px) {
+  .engagement-floating-actions {
+    left: 12px;
+    right: 12px;
+    top: auto;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    justify-content: center;
+    background: rgba(18,12,9,.84);
+  }
+
+  .engagement-floating-actions > span {
+    display: none;
+  }
+
+  .engagement-floating-actions .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-inline: 10px;
+  }
+
+  .engagement-cover-copy h1 {
+    font-size: clamp(3rem, 14vw, 6.6rem);
+    line-height: .92;
+  }
+
+  .engagement-cover-copy h1.has-two-names {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .engagement-cover-copy h1 b {
+    max-width: 100%;
+    text-align: center !important;
+  }
+
+  .engagement-cover-copy h1 em {
+    margin: -.04em 0 -.1em;
+    line-height: .75;
+  }
+
+  .engagement-cover-copy {
+    width: min(calc(100vw - 32px), 680px);
+  }
+
+  .engagement-rsvp-section .test-wedding-rsvp-form {
+    grid-template-columns: 1fr;
+  }
+
+  .engagement-rsvp-section .test-wedding-rsvp-form .field:nth-child(5) {
+    grid-column: auto;
+  }
+
+  .engagement-public-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .engagement-public-actions > div:last-child,
+  .engagement-public-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .engagement-photo-screen {
+    min-height: 100svh;
+    padding: 68px 18px;
+  }
+
+  .engagement-fixed-photo img {
+    object-position: center center;
+  }
+
+  .engagement-global-scrim {
+    background:
+      linear-gradient(90deg, rgba(24,17,13,.36), rgba(24,17,13,.22)),
+      linear-gradient(180deg, rgba(0,0,0,.24), rgba(0,0,0,.62));
+  }
+
+  .engagement-cover-copy > span {
+    font-size: 1rem;
+  }
+
+  .engagement-cover-copy h1 {
+    font-size: clamp(2.35rem, 12.5vw, 4.7rem);
+    line-height: .9;
+  }
+
+  .engagement-cover-copy strong {
+    font-size: clamp(1.35rem, 7vw, 2rem);
+  }
+
+  .engagement-week {
+    gap: 2px;
+  }
+
+  .engagement-week div {
+    min-height: 82px;
+  }
+
+  .engagement-week img {
+    top: 50%;
+    width: 86px;
+  }
+
+  .engagement-place-list {
+    gap: 22px;
+  }
+
+  .engagement-details {
+    min-height: auto;
+    align-content: start;
+    padding-block: 76px 92px;
+  }
+
+  .engagement-location strong,
+  .engagement-place-card strong {
+    font-size: clamp(1.65rem, 8vw, 2.35rem);
+  }
+
+  .engagement-rsvp-shell {
+    gap: 18px;
+  }
+
+  .engagement-rsvp-section .test-wedding-rsvp-form .btn,
+  .engagement-map-button {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .engagement-fixed-photo img,
+  .engagement-music-button,
+  .engagement-map-button,
+  .engagement-week img {
+    transition: none;
+    animation: none;
+  }
+}
+
 @media (max-width: 420px) {
+  .engagement-photo-screen {
+    padding-inline: 14px;
+  }
+
+  .engagement-cover-copy {
+    width: calc(100vw - 28px);
+    gap: 12px;
+  }
+
+  .engagement-cover-copy h1 {
+    font-size: clamp(2.05rem, 11.5vw, 3.75rem);
+    line-height: .88;
+  }
+
+  .engagement-cover-copy > span {
+    font-size: .88rem;
+  }
+
+  .engagement-music-button {
+    width: 44px;
+    height: 44px;
+  }
+
   .baptism-blessing-invite .baptism-hero-copy h1 {
     font-size: clamp(3.2rem, 20vw, 5.2rem);
   }

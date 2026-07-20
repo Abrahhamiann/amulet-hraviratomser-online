@@ -12,10 +12,18 @@ import {
   getBaptismBlessingDraft,
   isBaptismBlessingTemplate
 } from './BaptismBlessingTemplate.jsx';
+import {
+  EngagementSerenadeCardPreview,
+  EngagementSerenadeInvitationView,
+  EngagementSerenadeLivePreview,
+  getEngagementSerenadeDraft,
+  isEngagementSerenadeTemplate
+} from './EngagementSerenadeTemplate.jsx';
 
 export const availableOccasionTemplates = [
   { key: 'midnight-vows', label: 'Midnight vows fullscreen' },
-  { key: 'baptism-blessing', label: 'Baptism blessing envelope' }
+  { key: 'baptism-blessing', label: 'Baptism blessing envelope' },
+  { key: 'engagement-serenade', label: 'Engagement serenade fullscreen' }
 ];
 
 const normalizeTemplateKey = (value) => String(value || '')
@@ -43,6 +51,15 @@ export const occasionTemplates = [
     LivePreview: BaptismBlessingLivePreview,
     PublicView: BaptismBlessingInvitationView,
     getInitialDraft: getBaptismBlessingDraft
+  },
+  {
+    key: 'engagement-serenade',
+    aliases: ['engagement-serenade', 'engagementserenade', 'engagement-photo', 'proposal-lake'],
+    match: isEngagementSerenadeTemplate,
+    CardPreview: EngagementSerenadeCardPreview,
+    LivePreview: EngagementSerenadeLivePreview,
+    PublicView: EngagementSerenadeInvitationView,
+    getInitialDraft: getEngagementSerenadeDraft
   }
 ];
 

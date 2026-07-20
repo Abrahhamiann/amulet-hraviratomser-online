@@ -1,6 +1,6 @@
 import React from 'react';
 import { AlertCircle, CalendarDays, Clock, ImagePlus, MapPin, Pencil, ShoppingBag, Sparkles, Trash2, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../api/axios.js';
 import ErrorState from '../components/ErrorState.jsx';
@@ -31,6 +31,22 @@ const cleanMapLinks = (links = []) => links
     url: String(item?.url || '').trim()
   }))
   .filter((item) => item.url);
+
+const cleanVenueLinks = (links = []) => links
+  .map((item, index) => ({
+    label: String(item?.label || `Վայր ${index + 1}`).trim(),
+    time: String(item?.time || '').trim(),
+    address: String(item?.address || '').trim(),
+    url: String(item?.url || '').trim()
+  }))
+  .filter((item) => item.label || item.time || item.address || item.url);
+
+const createDefaultVenue = (draft = {}, index = 0) => ({
+  label: `Վայր ${index + 1}`,
+  time: index === 0 ? draft.eventTime || '' : '',
+  address: index === 0 ? draft.eventLocation || '' : '',
+  url: index === 0 ? draft.mapLink || '' : ''
+});
 
 const createInitialDraft = (template) => {
   const occasionTemplate = getOccasionTemplate(template);
@@ -69,16 +85,21 @@ const fileToGalleryImage = (file) => new Promise((resolve, reject) => {
   const reader = new FileReader();
   reader.onerror = reject;
   reader.onload = () => {
+    if (file.size <= 2300000) {
+      resolve(String(reader.result || ''));
+      return;
+    }
+
     const img = new Image();
     img.onerror = reject;
     img.onload = () => {
-      const maxSize = 1400;
+      const maxSize = 2400;
       const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
       const canvas = document.createElement('canvas');
       canvas.width = Math.max(1, Math.round(img.width * scale));
       canvas.height = Math.max(1, Math.round(img.height * scale));
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL('image/jpeg', 0.88));
+      resolve(canvas.toDataURL('image/jpeg', 0.96));
     };
     img.src = reader.result;
   };
@@ -95,12 +116,18 @@ export default function TemplateLivePreviewPage() {
   const [warning, setWarning] = useState('');
   const [state, setState] = useState('loading');
   const [checkoutState, setCheckoutState] = useState('idle');
+  const [pendingColors, setPendingColors] = useState(defaultColors);
+  const pendingColorsRef = useRef(defaultColors);
 
   useEffect(() => {
     api.get(`/templates/${id}`)
       .then(({ data }) => {
+        const initialDraft = createInitialDraft(data);
         setTemplate(data);
-        setDraft(createInitialDraft(data));
+        setDraft(initialDraft);
+        const initialColors = { ...defaultColors, ...(initialDraft.colors || {}) };
+        pendingColorsRef.current = initialColors;
+        setPendingColors(initialColors);
         setState('ready');
       })
       .catch(() => setState('error'));
@@ -108,14 +135,35 @@ export default function TemplateLivePreviewPage() {
 
   const updateDraft = (event) => {
     const { name, value } = event.target;
-    setDraft((current) => ({ ...current, [name]: value }));
+    setDraft((current) => {
+      if (name !== 'eventTime' && name !== 'eventLocation') return { ...current, [name]: value };
+
+      const mapLinks = current.mapLinks?.length ? [...current.mapLinks] : [createDefaultVenue(current, 0)];
+      mapLinks[0] = {
+        ...createDefaultVenue(current, 0),
+        ...(mapLinks[0] || {}),
+        ...(name === 'eventTime' ? { time: value } : { address: value })
+      };
+
+      return {
+        ...current,
+        [name]: value,
+        mapLinks
+      };
+    });
   };
 
   const updateMapLink = (index, field, value) => {
     setDraft((current) => {
       const mapLinks = [...(current.mapLinks?.length ? current.mapLinks : [{ label: 'Քարտեզ 1', url: current.mapLink || '' }])];
-      mapLinks[index] = { ...mapLinks[index], [field]: value };
-      return { ...current, mapLinks, mapLink: mapLinks[0]?.url || '' };
+      mapLinks[index] = { ...createDefaultVenue(current, index), ...(mapLinks[index] || {}), [field]: value };
+      return {
+        ...current,
+        eventTime: index === 0 && field === 'time' ? value : current.eventTime,
+        eventLocation: index === 0 && field === 'address' ? value : current.eventLocation,
+        mapLinks,
+        mapLink: mapLinks[0]?.url || ''
+      };
     });
   };
 
@@ -136,10 +184,41 @@ export default function TemplateLivePreviewPage() {
     });
   };
 
+  const addVenue = () => {
+    setDraft((current) => {
+      const currentLinks = current.mapLinks?.length ? current.mapLinks : [createDefaultVenue(current, 0)];
+      return {
+        ...current,
+        mapLinks: [...currentLinks, createDefaultVenue(current, currentLinks.length)]
+      };
+    });
+  };
+
+  const removeVenue = (index) => {
+    setDraft((current) => {
+      const mapLinks = (current.mapLinks?.length ? current.mapLinks : [createDefaultVenue(current, 0)])
+        .filter((_, itemIndex) => itemIndex !== index);
+      const nextLinks = mapLinks.length ? mapLinks : [createDefaultVenue(current, 0)];
+      return {
+        ...current,
+        eventTime: nextLinks[0]?.time || current.eventTime,
+        eventLocation: nextLinks[0]?.address || current.eventLocation,
+        mapLinks: nextLinks,
+        mapLink: nextLinks[0]?.url || ''
+      };
+    });
+  };
+
   const updateColor = (key, value) => {
+    pendingColorsRef.current = { ...pendingColorsRef.current, [key]: value };
+  };
+
+  const commitColors = () => {
+    const nextColors = { ...defaultColors, ...pendingColorsRef.current };
+    setPendingColors(nextColors);
     setDraft((current) => ({
       ...current,
-      colors: { ...defaultColors, ...(current.colors || {}), [key]: value }
+      colors: nextColors
     }));
   };
 
@@ -173,9 +252,17 @@ export default function TemplateLivePreviewPage() {
 
   const saveDraft = (event) => {
     event.preventDefault();
+    commitColors();
     setIsEdited(true);
     setWarning('');
     setEditing(false);
+  };
+
+  const openEditor = () => {
+    const nextColors = { ...defaultColors, ...(draft?.colors || {}) };
+    pendingColorsRef.current = nextColors;
+    setPendingColors(nextColors);
+    setEditing(true);
   };
 
   const orderTemplate = async () => {
@@ -192,8 +279,8 @@ export default function TemplateLivePreviewPage() {
       await startStripeCheckout(template._id, {
         ...draft,
         image: isEnvelopeImage(resolveTemplateImage(draft.image)) ? (cleanGallery[0] || '') : draft.image,
-        mapLink: cleanMapLinks(draft.mapLinks)[0]?.url || draft.mapLink || '',
-        mapLinks: cleanMapLinks(draft.mapLinks),
+        mapLink: cleanVenueLinks(draft.mapLinks)[0]?.url || draft.mapLink || '',
+        mapLinks: cleanVenueLinks(draft.mapLinks),
         colors: { ...defaultColors, ...(draft.colors || {}) },
         gallery: cleanGallery
       });
@@ -211,8 +298,8 @@ export default function TemplateLivePreviewPage() {
   const isSingleImageTemplate = occasionTemplate?.key === 'midnight-vows';
   const image = resolveTemplateImage(draft?.image || template.mainImage || template.gallery?.[0]);
   const formattedDate = draft?.eventDate ? new Date(draft.eventDate).toLocaleDateString() : previewDate.toLocaleDateString();
-  const editorMapLinks = draft?.mapLinks?.length ? draft.mapLinks : [{ label: 'Քարտեզ 1', url: draft?.mapLink || '' }];
-  const editorColors = { ...defaultColors, ...(draft?.colors || {}) };
+  const editorMapLinks = draft?.mapLinks?.length ? draft.mapLinks : [createDefaultVenue(draft, 0)];
+  const editorColors = { ...defaultColors, ...pendingColors };
 
   return (
     <main className={LivePreview ? 'template-live-page test-wedding-page' : 'template-live-page'}>
@@ -222,7 +309,7 @@ export default function TemplateLivePreviewPage() {
             draft={draft}
             price={template.price}
             loading={checkoutState === 'loading'}
-            onEdit={() => setEditing(true)}
+            onEdit={openEditor}
             onOrder={orderTemplate}
           />
           {warning && (
@@ -257,7 +344,7 @@ export default function TemplateLivePreviewPage() {
             <strong>{Number(template.price).toLocaleString()} AMD</strong>
           </div>
           <div className="template-live-actions">
-            <button className="btn btn-ghost template-live-edit" type="button" onClick={() => setEditing(true)}>
+            <button className="btn btn-ghost template-live-edit" type="button" onClick={openEditor}>
               <Pencil size={18} />
               Խմբագրել
             </button>
@@ -304,7 +391,7 @@ export default function TemplateLivePreviewPage() {
             <div className="invitation-map-links invitation-editor-wide">
               <div className="invitation-editor-section-head">
                 <span>Քարտեզի հղումներ</span>
-                <button type="button" onClick={addMapLink}>Ավելացնել քարտեզ</button>
+                <button type="button" onClick={addVenue}>Ավելացնել վայր</button>
               </div>
               {editorMapLinks.map((item, index) => (
                 <div className="invitation-map-link-row" key={`map-link-${index}`}>
@@ -315,16 +402,26 @@ export default function TemplateLivePreviewPage() {
                     aria-label={`Map label ${index + 1}`}
                   />
                   <input
-                    value={item.url}
+                    type="time"
+                    value={item.time || (index === 0 ? draft.eventTime || '' : '')}
+                    onChange={(event) => updateMapLink(index, 'time', event.target.value)}
+                    aria-label={`Venue time ${index + 1}`}
+                  />
+                  <input
+                    value={item.address || (index === 0 ? draft.eventLocation || '' : '')}
+                    onChange={(event) => updateMapLink(index, 'address', event.target.value)}
+                    placeholder="Հասցե"
+                    aria-label={`Venue address ${index + 1}`}
+                  />
+                  <input
+                    value={item.url || ''}
                     onChange={(event) => updateMapLink(index, 'url', event.target.value)}
                     placeholder="https://maps.google.com/..."
                     aria-label={`Map URL ${index + 1}`}
                   />
-                  {editorMapLinks.length > 1 && (
-                    <button type="button" onClick={() => removeMapLink(index)} aria-label={`Remove map ${index + 1}`}>
-                      <Trash2 size={16} />
-                    </button>
-                  )}
+                  <button type="button" onClick={() => removeVenue(index)} aria-label={`Remove venue ${index + 1}`}>
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               ))}
             </div>
@@ -338,7 +435,14 @@ export default function TemplateLivePreviewPage() {
                 ].map(([key, label]) => (
                   <label className="invitation-color-field" key={key}>
                     <span>{label}</span>
-                    <input type="color" value={editorColors[key]} onChange={(event) => updateColor(key, event.target.value)} />
+                    <input
+                      type="color"
+                      defaultValue={editorColors[key]}
+                      onChange={(event) => updateColor(key, event.target.value)}
+                      onBlur={commitColors}
+                      onMouseUp={commitColors}
+                      onTouchEnd={commitColors}
+                    />
                     <em>{editorColors[key]}</em>
                   </label>
                 ))}

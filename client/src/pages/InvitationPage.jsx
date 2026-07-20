@@ -19,9 +19,11 @@ const normalizeMapLinks = (invitation) => {
   const normalized = links
     .map((item, index) => ({
       label: String(item?.label || `Քարտեզ ${index + 1}`).trim(),
+      time: String(item?.time || '').trim(),
+      address: String(item?.address || '').trim(),
       url: String(item?.url || '').trim()
     }))
-    .filter((item) => item.url);
+    .filter((item) => item.label || item.time || item.address || item.url);
 
   if (invitation?.mapLink && !normalized.some((item) => item.url === invitation.mapLink)) {
     normalized.unshift({ label: 'Քարտեզ', url: invitation.mapLink });
@@ -86,14 +88,16 @@ export default function InvitationPage() {
   const occasionTemplate = getOccasionTemplate(invitation.templateId);
   const PublicView = occasionTemplate?.PublicView;
   const isBaptismTemplate = occasionTemplate?.key === 'baptism-blessing';
+  const isEngagementTemplate = occasionTemplate?.key === 'engagement-serenade';
   const mapLinks = normalizeMapLinks(invitation);
+  const mapActionLinks = mapLinks.filter((item) => item.url);
   const gallery = (invitation.gallery || []).filter((image) => {
     if (typeof image !== 'string' || !image.trim()) return false;
     if (!PublicView) return true;
     return isDisplayableImage(image);
   }).map(resolveTemplateImage);
   const rsvpForm = (
-    <form className={`panel-form compact test-wedding-rsvp-form${isBaptismTemplate ? ' baptism-live-rsvp-form' : ''}`} onSubmit={submit}>
+    <form className={`panel-form compact test-wedding-rsvp-form${isBaptismTemplate ? ' baptism-live-rsvp-form' : ''}${isEngagementTemplate ? ' engagement-live-rsvp-form' : ''}`} onSubmit={submit}>
       <fieldset className="rsvp-choice-group">
         <legend>{isBaptismTemplate ? 'Հյուրի կապը' : 'Հյուրի կողմը'}</legend>
         <label className="rsvp-radio"><input type="radio" name="guestSide" value="bride" defaultChecked /><span>{isBaptismTemplate ? 'Ընտանիքի հյուր' : 'Հարսի կողմ'}</span></label>
@@ -114,7 +118,7 @@ export default function InvitationPage() {
   );
   const inviteActions = (
     <>
-      {mapLinks.map((item, index) => (
+      {mapActionLinks.map((item, index) => (
         <Button key={`${item.url}-${index}`} to={item.url} variant="secondary">
           <MapPin size={18} />
           {item.label || t('openMap')}
@@ -187,7 +191,7 @@ export default function InvitationPage() {
             <strong>{invitation.location}</strong>
           </div>
           <div className="invite-actions">
-            {mapLinks.map((item, index) => (
+            {mapActionLinks.map((item, index) => (
               <Button key={`${item.url}-${index}`} to={item.url} variant="secondary">
                 <MapPin size={18} />
                 {item.label || t('openMap')}

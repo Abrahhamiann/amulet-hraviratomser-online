@@ -20,14 +20,16 @@ import { adminApi, currency } from "@/lib/api";
 import { useAdminI18n } from "@/lib/i18n";
 import { useTemplates } from "@/hooks/useAdminData";
 import midnightVowsDefault from "../../../client/src/assets/occasion/midnight-vows-default.jpg";
-import baptismAngel from "../../../client/src/assets/baptism/baptism-angel.png";
 import baptismBabyChurch from "../../../client/src/assets/baptism/baptism-baby-church.png";
-import baptismCandle from "../../../client/src/assets/baptism/baptism-candle.png";
-import baptismChurchIcon from "../../../client/src/assets/baptism/baptism-church-icon.png";
-import baptismCross from "../../../client/src/assets/baptism/baptism-cross.png";
-import baptismDove from "../../../client/src/assets/baptism/baptism-dove.png";
 import baptismEnvelope from "../../../client/src/assets/baptism/baptism-envelope.png";
 import baptismFamily from "../../../client/src/assets/baptism/baptism-family.png";
+import engagementBouquet from "../../../client/src/assets/morph/engagement-bouquet-red.jpg";
+import engagementChandelier from "../../../client/src/assets/morph/engagement-chandelier.jpg";
+import engagementHand from "../../../client/src/assets/morph/engagement-hand.jpg";
+import engagementRing from "../../../client/src/assets/morph/engagement-ring.jpg";
+import engagementRoses from "../../../client/src/assets/morph/engagement-roses.jpg";
+import engagementSmile from "../../../client/src/assets/morph/engagement-smile.jpg";
+import weddingSunset from "../../../client/src/assets/morph/wedding-sunset.jpg";
 
 export const Route = createFileRoute("/admin/templates")({ component: TemplatesPage });
 
@@ -40,18 +42,26 @@ const defaultImagePosition = {
 const staticDesignOptions = [
   { key: "midnight-vows", label: "Midnight vows fullscreen" },
   { key: "baptism-blessing", label: "Baptism blessing envelope" },
+  { key: "engagement-serenade", label: "Engagement serenade fullscreen" },
 ];
 
 const templateAssetPreviews: Record<string, string> = {
   "asset:occasion/midnight-vows-default.jpg": midnightVowsDefault,
-  "asset:baptism/baptism-angel.png": baptismAngel,
+  "asset:baptism/baptism-angel.png": baptismBabyChurch,
   "asset:baptism/baptism-baby-church.png": baptismBabyChurch,
-  "asset:baptism/baptism-candle.png": baptismCandle,
-  "asset:baptism/baptism-church-icon.png": baptismChurchIcon,
-  "asset:baptism/baptism-cross.png": baptismCross,
-  "asset:baptism/baptism-dove.png": baptismDove,
+  "asset:baptism/baptism-candle.png": baptismEnvelope,
+  "asset:baptism/baptism-church-icon.png": baptismBabyChurch,
+  "asset:baptism/baptism-cross.png": baptismEnvelope,
+  "asset:baptism/baptism-dove.png": baptismFamily,
   "asset:baptism/baptism-envelope.png": baptismEnvelope,
   "asset:baptism/baptism-family.png": baptismFamily,
+  "asset:morph/engagement-bouquet-red.jpg": engagementBouquet,
+  "asset:morph/engagement-chandelier.jpg": engagementChandelier,
+  "asset:morph/engagement-hand.jpg": engagementHand,
+  "asset:morph/engagement-ring.jpg": engagementRing,
+  "asset:morph/engagement-roses.jpg": engagementRoses,
+  "asset:morph/engagement-smile.jpg": engagementSmile,
+  "asset:morph/wedding-sunset.jpg": weddingSunset,
 };
 
 const defaultDesignGalleries: Record<string, string[]> = {
@@ -67,6 +77,15 @@ const defaultDesignGalleries: Record<string, string[]> = {
     "asset:baptism/baptism-church-icon.png",
     "asset:baptism/baptism-angel.png",
     "asset:baptism/baptism-dove.png",
+  ],
+  "engagement-serenade": [
+    "asset:morph/wedding-sunset.jpg",
+    "asset:morph/engagement-smile.jpg",
+    "asset:morph/engagement-hand.jpg",
+    "asset:morph/engagement-ring.jpg",
+    "asset:morph/engagement-roses.jpg",
+    "asset:morph/engagement-bouquet-red.jpg",
+    "asset:morph/engagement-chandelier.jpg",
   ],
 };
 

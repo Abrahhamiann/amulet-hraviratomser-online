@@ -13,6 +13,8 @@ const invitationSchema = new mongoose.Schema(
     mapLink: { type: String, default: '' },
     mapLinks: [{
       label: { type: String, default: '' },
+      time: { type: String, default: '' },
+      address: { type: String, default: '' },
       url: { type: String, default: '' }
     }],
     message: { type: String, default: '' },

@@ -46,6 +46,28 @@ const templates = [
     galleryConfigured: false,
     isFeatured: true,
     isActive: true
+  },
+  {
+    title: 'Engagement Serenade',
+    slug: 'engagement-serenade',
+    category: 'engagement',
+    price: 29000,
+    description: 'Romantic fullscreen engagement invitation with Armenian script, John Legend music, smooth photo transitions, RSVP, and map links.',
+    features: ['Fullscreen photo transitions', 'Custom Armenian font', 'Music button', 'RSVP form', 'Map buttons', 'Responsive layout'],
+    designKey: 'engagement-serenade',
+    mainImage: 'asset:morph/wedding-sunset.jpg',
+    gallery: [
+      'asset:morph/wedding-sunset.jpg',
+      'asset:morph/engagement-smile.jpg',
+      'asset:morph/engagement-hand.jpg',
+      'asset:morph/engagement-ring.jpg',
+      'asset:morph/engagement-roses.jpg',
+      'asset:morph/engagement-bouquet-red.jpg',
+      'asset:morph/engagement-chandelier.jpg'
+    ],
+    galleryConfigured: false,
+    isFeatured: true,
+    isActive: true
   }
 ];
 
