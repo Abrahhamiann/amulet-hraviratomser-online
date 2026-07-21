@@ -101,6 +101,7 @@ export const adminApi = {
   languages: () => request<any[]>("/admin/languages"),
   administrators: () => request<any[]>("/admin/administrators"),
   notifications: () => request<any[]>("/admin/notifications"),
+  faq: () => request<any>("/admin/faq"),
   reviews: () => request<any[]>("/admin/reviews"),
   settings: () => request<any>("/admin/settings"),
   createTemplate: (data: any) => request<any>("/admin/templates", { method: "POST", body: JSON.stringify(data) }),
@@ -124,5 +125,6 @@ export const adminApi = {
   createReview: (data: any) => request<any>("/admin/reviews", { method: "POST", body: JSON.stringify(data) }),
   updateReview: (id: string, data: any) => request<any>(`/admin/reviews/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deleteReview: (id: string) => request<any>(`/admin/reviews/${id}`, { method: "DELETE" }),
+  updateFaq: (data: any) => request<any>("/admin/faq", { method: "PUT", body: JSON.stringify(data) }),
   updateSettings: (data: any) => request<any>("/admin/settings", { method: "PUT", body: JSON.stringify(data) }),
 };

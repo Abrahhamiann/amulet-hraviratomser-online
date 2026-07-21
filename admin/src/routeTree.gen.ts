@@ -22,6 +22,7 @@ import { Route as AdminNotificationsRouteImport } from './routes/admin.notificat
 import { Route as AdminMessagesRouteImport } from './routes/admin.messages'
 import { Route as AdminLanguagesRouteImport } from './routes/admin.languages'
 import { Route as AdminInvitationsRouteImport } from './routes/admin.invitations'
+import { Route as AdminFaqRouteImport } from './routes/admin.faq'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminAdministratorsRouteImport } from './routes/admin.administrators'
@@ -91,6 +92,11 @@ const AdminInvitationsRoute = AdminInvitationsRouteImport.update({
   path: '/invitations',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminFaqRoute = AdminFaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCustomersRoute = AdminCustomersRouteImport.update({
   id: '/customers',
   path: '/customers',
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/admin/administrators': typeof AdminAdministratorsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/faq': typeof AdminFaqRoute
   '/admin/invitations': typeof AdminInvitationsRoute
   '/admin/languages': typeof AdminLanguagesRoute
   '/admin/messages': typeof AdminMessagesRoute
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/admin/administrators': typeof AdminAdministratorsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/faq': typeof AdminFaqRoute
   '/admin/invitations': typeof AdminInvitationsRoute
   '/admin/languages': typeof AdminLanguagesRoute
   '/admin/messages': typeof AdminMessagesRoute
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/admin/administrators': typeof AdminAdministratorsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
+  '/admin/faq': typeof AdminFaqRoute
   '/admin/invitations': typeof AdminInvitationsRoute
   '/admin/languages': typeof AdminLanguagesRoute
   '/admin/messages': typeof AdminMessagesRoute
@@ -171,6 +180,7 @@ export interface FileRouteTypes {
     | '/admin/administrators'
     | '/admin/categories'
     | '/admin/customers'
+    | '/admin/faq'
     | '/admin/invitations'
     | '/admin/languages'
     | '/admin/messages'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/admin/administrators'
     | '/admin/categories'
     | '/admin/customers'
+    | '/admin/faq'
     | '/admin/invitations'
     | '/admin/languages'
     | '/admin/messages'
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '/admin/administrators'
     | '/admin/categories'
     | '/admin/customers'
+    | '/admin/faq'
     | '/admin/invitations'
     | '/admin/languages'
     | '/admin/messages'
@@ -317,6 +329,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminInvitationsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/faq': {
+      id: '/admin/faq'
+      path: '/faq'
+      fullPath: '/admin/faq'
+      preLoaderRoute: typeof AdminFaqRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/customers': {
       id: '/admin/customers'
       path: '/customers'
@@ -345,6 +364,7 @@ interface AdminRouteChildren {
   AdminAdministratorsRoute: typeof AdminAdministratorsRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
+  AdminFaqRoute: typeof AdminFaqRoute
   AdminInvitationsRoute: typeof AdminInvitationsRoute
   AdminLanguagesRoute: typeof AdminLanguagesRoute
   AdminMessagesRoute: typeof AdminMessagesRoute
@@ -360,6 +380,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAdministratorsRoute: AdminAdministratorsRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCustomersRoute: AdminCustomersRoute,
+  AdminFaqRoute: AdminFaqRoute,
   AdminInvitationsRoute: AdminInvitationsRoute,
   AdminLanguagesRoute: AdminLanguagesRoute,
   AdminMessagesRoute: AdminMessagesRoute,

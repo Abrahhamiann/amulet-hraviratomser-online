@@ -17,6 +17,7 @@ import {
   getAdminCustomers,
   getAdminCustomer,
   getAdminDashboard,
+  getAdminFaq,
   getAdminInvitations,
   getAdminLanguages,
   getAdminMessages,
@@ -27,6 +28,7 @@ import {
   getAdminSettings,
   getAdminTemplates,
   updateAdminInvitation,
+  updateAdminFaq,
   updateAdminOrderStatus,
   updateAdminReview,
   updateAdminSettings,
@@ -69,6 +71,8 @@ router.patch('/users/:id/role', updateAdminUserRole);
 router.delete('/users/:id', deleteAdminUser);
 router.post('/broadcast', broadcastAdminEmail);
 router.get('/notifications', getAdminNotifications);
+router.get('/faq', getAdminFaq);
+router.put('/faq', updateAdminFaq);
 router.get('/reviews', getAdminReviews);
 router.post('/reviews', createAdminReview);
 router.put('/reviews/:id', updateAdminReview);

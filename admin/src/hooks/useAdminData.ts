@@ -25,5 +25,6 @@ export const useCategories = () => useAdminData("categories", adminApi.categorie
 export const useLanguages = () => useAdminData("languages", adminApi.languages, []);
 export const useAdministrators = () => useAdminData("administrators", adminApi.administrators, []);
 export const useNotifications = () => useAdminData("notifications", adminApi.notifications, []);
+export const useFaq = () => useAdminData("faq", adminApi.faq, { items: [] });
 export const useReviews = () => useAdminData("reviews", adminApi.reviews, []);
 export const useSettings = () => useAdminData("settings", adminApi.settings, null);

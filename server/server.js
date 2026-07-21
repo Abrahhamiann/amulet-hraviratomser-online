@@ -15,6 +15,7 @@ import paymentRoutes from './routes/paymentRoutes.js';
 import rsvpRoutes from './routes/rsvpRoutes.js';
 import statsRoutes from './routes/statsRoutes.js';
 import templateRoutes from './routes/templateRoutes.js';
+import { getPublicFaq } from './controllers/adminController.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -53,6 +54,7 @@ app.use(morgan('dev'));
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.get('/api/faq', getPublicFaq);
 app.use('/api/templates', templateRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);

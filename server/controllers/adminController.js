@@ -32,6 +32,7 @@ const adminRoles = ['admin', 'super_admin'];
 const userRoles = ['user', ...adminRoles];
 const DEFAULT_DESIGN_KEY = 'midnight-vows';
 const PUBLIC_DESIGN_KEYS = ['midnight-vows', 'baptism-blessing', 'engagement-serenade'];
+const FAQ_SETTING_KEY = 'faqItems';
 
 const isSuperAdmin = (user) => user?.role === 'super_admin';
 
@@ -195,6 +196,23 @@ const buildNotifications = ({ orders, messages, invitations }) => {
     .sort((a, b) => new Date(b.time) - new Date(a.time))
     .slice(0, 10);
 };
+
+const normalizeFaqItems = (items) => {
+  if (!Array.isArray(items)) return [];
+  return items
+    .map((item, index) => ({
+      id: String(item.id || `faq-${Date.now()}-${index}`),
+      question: String(item.question || '').trim(),
+      answer: String(item.answer || '').trim(),
+      active: item.active !== false
+    }))
+    .filter((item) => item.question && item.answer);
+};
+
+export const getPublicFaq = asyncHandler(async (req, res) => {
+  const saved = await Setting.findOne({ key: FAQ_SETTING_KEY });
+  res.json({ items: normalizeFaqItems(saved?.value?.items).filter((item) => item.active) });
+});
 
 export const getAdminDashboard = asyncHandler(async (req, res) => {
   const period = ['zero', 'today', 'week', 'year', 'all'].includes(req.query.period) ? req.query.period : 'all';
@@ -437,6 +455,21 @@ export const getAdminSettings = asyncHandler(async (req, res) => {
     totals: { templates, orders, invitations, messages, users },
     clientUrl: process.env.CLIENT_URL || ''
   });
+});
+
+export const getAdminFaq = asyncHandler(async (req, res) => {
+  const saved = await Setting.findOne({ key: FAQ_SETTING_KEY });
+  res.json({ items: normalizeFaqItems(saved?.value?.items) });
+});
+
+export const updateAdminFaq = asyncHandler(async (req, res) => {
+  const items = normalizeFaqItems(req.body?.items);
+  const setting = await Setting.findOneAndUpdate(
+    { key: FAQ_SETTING_KEY },
+    { value: { items } },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
+  res.json({ items: normalizeFaqItems(setting.value?.items) });
 });
 
 export const createAdminTemplate = asyncHandler(async (req, res) => {

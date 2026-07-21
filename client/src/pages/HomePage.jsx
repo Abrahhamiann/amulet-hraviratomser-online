@@ -1,5 +1,5 @@
 import React from 'react';
-import { CreditCard, HelpCircle, Mail, MessageCircle, MonitorCheck, Pencil, Phone, Search, Send, Share2, Sparkles, X } from 'lucide-react';
+import { Bot, CreditCard, HelpCircle, Mail, MessageCircle, MonitorCheck, Pencil, Phone, Search, Send, Share2, Sparkles, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import baptismChurch from '../assets/morph/baptism-church.webp';
 import baptismLift from '../assets/morph/baptism-lift.jpg';
@@ -8,6 +8,7 @@ import corporateEvent from '../assets/morph/corporate-event.jpg';
 import engagementSmile from '../assets/morph/engagement-smile.jpg';
 import weddingForest from '../assets/morph/wedding-forest-optimized.jpg';
 import weddingTemple from '../assets/morph/wedding-temple.jpg';
+import api from '../api/axios.js';
 import Button from '../components/Button.jsx';
 import FAQItem from '../components/FAQItem.jsx';
 import TestimonialV2 from '../components/ui/TestimonialV2.jsx';
@@ -66,6 +67,11 @@ export default function HomePage() {
   const { t } = useLanguage();
   const roadmapRef = useRef(null);
   const [socialsOpen, setSocialsOpen] = useState(false);
+  const [faqChatOpen, setFaqChatOpen] = useState(false);
+  const [chatFaqIndex, setChatFaqIndex] = useState(0);
+  const [displayedChatFaqIndex, setDisplayedChatFaqIndex] = useState(0);
+  const [chatTyping, setChatTyping] = useState(false);
+  const [serverFaqItems, setServerFaqItems] = useState([]);
   const [activeRoadmapIndex, setActiveRoadmapIndex] = useState(0);
   const [activeFaqIndex, setActiveFaqIndex] = useState(null);
   const [activeEventIndex, setActiveEventIndex] = useState(0);
@@ -109,7 +115,29 @@ export default function HomePage() {
     };
   }, []);
 
-  const faqItems = t('faqItems');
+  useEffect(() => {
+    let isMounted = true;
+
+    api.get('/faq')
+      .then(({ data }) => {
+        const items = Array.isArray(data?.items)
+          ? data.items
+            .filter((item) => item?.question && item?.answer && item.active !== false)
+            .map((item) => [item.question, item.answer])
+          : [];
+        if (isMounted) setServerFaqItems(items);
+      })
+      .catch(() => {
+        if (isMounted) setServerFaqItems([]);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const fallbackFaqItems = t('faqItems');
+  const faqItems = serverFaqItems.length ? serverFaqItems : fallbackFaqItems;
   const roadmapSteps = t('roadmapSteps');
   const eventTestimonials = t('eventTestimonials').map((item) => ({
     ...item,
@@ -130,7 +158,30 @@ export default function HomePage() {
   }));
   const activeEventCategory = eventTestimonials[activeEventIndex]?.category || '';
   const activeInvitationPath = activeEventCategory ? `/templates?category=${activeEventCategory}` : '/templates';
-  const scrollToFaq = () => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  useEffect(() => {
+    if (!faqItems.length) return undefined;
+    if (!faqChatOpen) {
+      setChatTyping(false);
+      return undefined;
+    }
+
+    setChatTyping(true);
+    const timeout = window.setTimeout(() => {
+      setDisplayedChatFaqIndex(chatFaqIndex);
+      setChatTyping(false);
+    }, 920);
+
+    return () => window.clearTimeout(timeout);
+  }, [chatFaqIndex, faqChatOpen, faqItems.length]);
+
+  useEffect(() => {
+    if (!faqItems.length) return;
+    if (chatFaqIndex > faqItems.length - 1) {
+      setChatFaqIndex(0);
+      setDisplayedChatFaqIndex(0);
+    }
+  }, [chatFaqIndex, faqItems.length]);
 
   return (
     <>
@@ -231,6 +282,44 @@ export default function HomePage() {
       </section>
 
       <div className={socialsOpen ? 'floating-help expanded' : 'floating-help'} aria-label="Quick contact buttons">
+        {faqChatOpen && (
+          <div className="faq-chatbot is-open" role="dialog" aria-label={`${t('brand')} ${t('faq')}`}>
+            <div className="faq-chatbot-header">
+              <span><Bot size={18} /> {t('faq')}</span>
+              <button type="button" onClick={() => setFaqChatOpen(false)} aria-label="Close FAQ chat"><X size={18} /></button>
+            </div>
+            <div className="faq-chatbot-body">
+              <div className="faq-chatbot-greeting">
+                <Bot size={18} />
+                <p>{t('faqTitle')}</p>
+              </div>
+              <div className="faq-chatbot-questions" aria-label={t('faqTitle')}>
+                {faqItems.map(([question], index) => (
+                  <button
+                    key={question}
+                    type="button"
+                    className={chatFaqIndex === index ? 'is-active' : ''}
+                    onClick={() => setChatFaqIndex(index)}
+                    aria-pressed={chatFaqIndex === index}
+                  >
+                    {question}
+                  </button>
+                ))}
+              </div>
+              {chatTyping ? (
+                <div className="faq-chatbot-answer is-typing" aria-live="polite">
+                  <span><Bot size={16} /></span>
+                  <p><i /> <i /> <i /></p>
+                </div>
+              ) : (
+                <div className="faq-chatbot-answer" key={displayedChatFaqIndex} aria-live="polite">
+                  <span><Bot size={16} /></span>
+                  <p>{faqItems[displayedChatFaqIndex]?.[1]}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         {socialsOpen && (
           <>
             <a href="mailto:hello@amulet.local" aria-label="Email Amulet"><Mail size={23} /></a>
@@ -239,7 +328,15 @@ export default function HomePage() {
             <a href="https://t.me/" target="_blank" rel="noreferrer" aria-label="Telegram"><Send size={23} /></a>
           </>
         )}
-        <button className="floating-question" type="button" onClick={scrollToFaq} aria-label={t('faq')}><HelpCircle size={28} /></button>
+        <button
+          className={faqChatOpen ? 'floating-question is-active' : 'floating-question'}
+          type="button"
+          onClick={() => setFaqChatOpen((value) => !value)}
+          aria-label={t('faq')}
+          aria-expanded={faqChatOpen}
+        >
+          <HelpCircle size={28} />
+        </button>
         <button className="floating-chat" type="button" onClick={() => setSocialsOpen((value) => !value)} aria-label="Open social links">
           {socialsOpen ? <X size={24} /> : <MessageCircle size={25} />}
         </button>

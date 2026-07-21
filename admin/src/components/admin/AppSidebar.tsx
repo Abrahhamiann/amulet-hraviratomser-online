@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, FileText, LayoutTemplate, ShoppingBag, Users, CreditCard,
   Star, MessageSquare, FolderTree, Languages, Bell, ShieldCheck,
-  LogOut, Sparkles,
+  LogOut, MessageCircleQuestion, Sparkles,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
@@ -24,6 +24,7 @@ const mainNav = [
 ];
 
 const configNav = [
+  { title: "FAQ", url: "/admin/faq", icon: MessageCircleQuestion },
   { title: "categories", url: "/admin/categories", icon: FolderTree },
   { title: "languages", url: "/admin/languages", icon: Languages },
   { title: "notifications", url: "/admin/notifications", icon: Bell },
