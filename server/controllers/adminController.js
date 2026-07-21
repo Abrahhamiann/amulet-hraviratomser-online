@@ -139,6 +139,8 @@ const mapTemplate = (template, usage = 0) => ({
   price: template.price,
   designKey: template.designKey || DEFAULT_DESIGN_KEY,
   cover: template.mainImage || template.gallery?.[0] || '',
+  desktopPreviewImage: template.desktopPreviewImage || '',
+  mobilePreviewImage: template.mobilePreviewImage || '',
   imagePosition: normalizeImagePosition(template.imagePosition),
   gallery: template.gallery || [],
   galleryConfigured: Boolean(template.galleryConfigured),

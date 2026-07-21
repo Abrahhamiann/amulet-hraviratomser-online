@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  AlertTriangle,
   CalendarDays,
   CheckCircle2,
   ChevronDown,
@@ -9,6 +10,7 @@ import {
   MapPin,
   MessageSquare,
   Ticket,
+  Trash2,
   Users,
   XCircle
 } from 'lucide-react';
@@ -42,6 +44,9 @@ export default function AccountPage() {
   const [expandedRsvps, setExpandedRsvps] = useState({});
   const [state, setState] = useState('loading');
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteState, setDeleteState] = useState('idle');
+  const [deleteError, setDeleteError] = useState('');
   const token = localStorage.getItem('userToken');
   const user = JSON.parse(localStorage.getItem('user') || 'null');
 
@@ -114,6 +119,43 @@ export default function AccountPage() {
   const toggleRsvps = (orderId) => {
     setExpandedRsvps((current) => ({ ...current, [orderId]: !current[orderId] }));
   };
+  const openDeleteModal = (order) => {
+    setDeleteTarget(order);
+    setDeleteState('idle');
+    setDeleteError('');
+  };
+  const closeDeleteModal = () => {
+    if (deleteState === 'loading') return;
+    setDeleteTarget(null);
+    setDeleteError('');
+  };
+  const deleteInvitationOrder = async () => {
+    if (!deleteTarget?._id) return;
+    setDeleteState('loading');
+    setDeleteError('');
+    try {
+      const invitationId = deleteTarget.invitationId?._id;
+      await api.delete(`/orders/my/${deleteTarget._id}`);
+      setOrders((current) => current.filter((order) => order._id !== deleteTarget._id));
+      if (invitationId) {
+        setRsvpsByInvitation((current) => {
+          const next = { ...current };
+          delete next[invitationId];
+          return next;
+        });
+      }
+      setExpandedRsvps((current) => {
+        const next = { ...current };
+        delete next[deleteTarget._id];
+        return next;
+      });
+      setDeleteTarget(null);
+      setDeleteState('idle');
+    } catch {
+      setDeleteState('error');
+      setDeleteError(t('accountDeleteError'));
+    }
+  };
 
   return (
     <section className="account-page">
@@ -171,6 +213,14 @@ export default function AccountPage() {
 
               return (
                 <article className="account-invitation-row" key={order._id}>
+                  <button
+                    className="account-delete-invitation"
+                    type="button"
+                    onClick={() => openDeleteModal(order)}
+                    aria-label={`${t('accountDeleteInvitation')}: ${order.mainNames}`}
+                  >
+                    <Trash2 size={18} />
+                  </button>
                   {invitation?.slug ? (
                     <Link className="account-invitation-link" to={`/invite/${invitation.slug}`} aria-label={`${t('accountViewInvitation')}: ${order.mainNames}`}>
                       {invitationCard}
@@ -261,6 +311,24 @@ export default function AccountPage() {
             <div className="account-modal-actions">
               <button type="button" className="account-modal-secondary" onClick={() => setLogoutOpen(false)}>{t('accountStay')}</button>
               <button type="button" className="account-modal-primary" onClick={logout}>{t('accountLogoutConfirm')}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div className="account-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="delete-invitation-title">
+          <div className="account-modal account-delete-modal">
+            <AlertTriangle size={26} />
+            <h2 id="delete-invitation-title">{t('accountDeleteTitle')}</h2>
+            <p>{t('accountDeleteText')}</p>
+            <strong>{deleteTarget.mainNames}</strong>
+            {deleteError && <span className="account-delete-error">{deleteError}</span>}
+            <div className="account-modal-actions">
+              <button type="button" className="account-modal-secondary" onClick={closeDeleteModal} disabled={deleteState === 'loading'}>{t('accountDeleteCancel')}</button>
+              <button type="button" className="account-modal-primary account-modal-danger" onClick={deleteInvitationOrder} disabled={deleteState === 'loading'}>
+                {deleteState === 'loading' ? t('loading') : t('accountDeleteConfirm')}
+              </button>
             </div>
           </div>
         </div>

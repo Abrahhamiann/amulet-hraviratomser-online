@@ -1225,4 +1225,228 @@ Object.assign(it, {
   accountLogoutConfirm: 'Sì, esci'
 });
 
+Object.assign(hy, {
+  newHeroTitle: 'Քո հրավերը՝ նոր ձևաչափով',
+  newHeroText: 'Ստեղծիր գեղեցիկ և ժամանակակից օնլայն հրավեր՝ նախատեսված հենց քո հիշարժան օրվա համար։ Ընտրիր դիզայնը, ավելացրու անհրաժեշտ տվյալները և ընդամենը մեկ հղումով ուղարկիր այն բոլոր հյուրերին։ Հեշտ, արագ և տպավորիչ։',
+  creationFlowTitle: 'Ստեղծիր օնլայն հրավեր ընդամենը 10 րոպեում',
+  creationFlowSubtitle: 'Պահպանիր ավանդույթը և վայելիր հարմարավետությունը',
+  creationSteps: [
+    { title: 'Ընտրիր դիզայնը', text: 'Գտիր քո միջոցառմանը համապատասխան ոճը և բացիր այն հեռախոսի տեսքով։' },
+    { title: 'Լրացրու տվյալները', text: 'Ավելացրու անունները, օրը, ժամը, հասցեն, նկարները և հյուրերի համար կարևոր տեքստերը։' },
+    { title: 'Ուղարկիր հրավերը', text: 'Կիսվիր պատրաստի հղումով WhatsApp-ով, Viber-ով, Telegram-ով կամ ցանկացած հարթակով։' }
+  ],
+  step: 'Քայլ',
+  startCreating: 'Սկսել ստեղծել',
+  new: 'Նոր',
+  close: 'Փակել',
+  scanQr: 'Scan QR կոդը',
+  scanQrText: 'Scan արեք QR կոդը՝ հրավերը հեռախոսով բացելու համար։',
+  chooseTemplate: 'Ընտրել այս ձևանմուշը',
+  templateDefaultDescription: 'Ժամանակակից օնլայն հրավեր՝ նկարներով, քարտեզով, RSVP-ով և մեկ հղումով արագ ուղարկելու հնարավորությամբ։',
+  templateTrialNote: 'Անվճար փորձարկում · վճարիր միայն եթե հավանես',
+  templateSwitchNote: 'Խմբագրման ընթացքում կարող ես փոխել ձևանմուշը։',
+  templateModalFeatures: ['Փոփոխվող բովանդակություն', 'Google Maps', 'Հյուրի անվան ցուցադրում', 'RSVP', 'Անսահմանափակ նկարներ', 'Բազմալեզու տարբերակ', 'Հղումով կիսվել', 'Հյուրերի գիրք']
+});
+
+Object.assign(en, {
+  newHeroTitle: 'Your invitation in a new format',
+  newHeroText: 'Create a beautiful modern online invitation made for your memorable day. Choose a design, add the details, and send it to every guest with one link. Easy, fast, and impressive.',
+  creationFlowTitle: 'Create your online invitation in just 10 minutes',
+  creationFlowSubtitle: 'Keep the tradition and enjoy the convenience',
+  creationSteps: [
+    { title: 'Choose a template', text: 'Find the style that fits your event and preview it as a phone invitation.' },
+    { title: 'Fill in your details', text: 'Add names, date, time, address, photos, and the text your guests need.' },
+    { title: 'Send your invitation', text: 'Share the finished link through WhatsApp, Viber, Telegram, or any platform.' }
+  ],
+  step: 'Step',
+  startCreating: 'Start creating',
+  new: 'New',
+  close: 'Close',
+  scanQr: 'Scan QR code',
+  scanQrText: 'Scan the QR code to open the invitation on your phone.',
+  chooseTemplate: 'Choose this template',
+  templateDefaultDescription: 'A modern online invitation with photos, map, RSVP, and one-link sharing.',
+  templateTrialNote: 'Free to try · pay only if you love it',
+  templateSwitchNote: 'You can switch templates anytime while editing.',
+  templateModalFeatures: ['Customizable content', 'Google Maps', 'Guest name display', 'RSVP', 'Unlimited photos', 'Multiple languages', 'Link sharing', 'Guest book']
+});
+
+Object.assign(ru, {
+  newHeroTitle: 'Ваше приглашение в новом формате',
+  newHeroText: 'Создайте красивое и современное онлайн-приглашение для вашего памятного дня. Выберите дизайн, добавьте данные и отправьте всем гостям одной ссылкой. Легко, быстро и впечатляюще.',
+  creationFlowTitle: 'Создайте онлайн-приглашение всего за 10 минут',
+  creationFlowSubtitle: 'Сохраняйте традиции и наслаждайтесь удобством',
+  creationSteps: [
+    { title: 'Выберите шаблон', text: 'Найдите стиль для вашего события и посмотрите, как приглашение выглядит на телефоне.' },
+    { title: 'Заполните данные', text: 'Добавьте имена, дату, время, адрес, фотографии и важный текст для гостей.' },
+    { title: 'Отправьте приглашение', text: 'Поделитесь готовой ссылкой через WhatsApp, Viber, Telegram или любую платформу.' }
+  ],
+  step: 'Шаг',
+  startCreating: 'Начать создание',
+  new: 'Новое',
+  close: 'Закрыть',
+  scanQr: 'Сканировать QR-код',
+  scanQrText: 'Сканируйте QR-код, чтобы открыть приглашение на телефоне.',
+  chooseTemplate: 'Выбрать этот шаблон',
+  templateDefaultDescription: 'Современное онлайн-приглашение с фото, картой, RSVP и быстрой отправкой одной ссылкой.',
+  templateTrialNote: 'Бесплатно попробовать · платите только если понравится',
+  templateSwitchNote: 'Шаблон можно сменить в процессе редактирования.',
+  templateModalFeatures: ['Редактируемый контент', 'Google Maps', 'Имя гостя', 'RSVP', 'Неограниченные фото', 'Несколько языков', 'Отправка ссылкой', 'Гостевая книга']
+});
+
+Object.assign(es, {
+  newHeroTitle: 'Tu invitación en un nuevo formato',
+  newHeroText: 'Crea una invitación online hermosa y moderna para tu día especial. Elige un diseño, añade los datos y envíala a todos tus invitados con un solo enlace. Fácil, rápido e impactante.',
+  creationFlowTitle: 'Crea tu invitación online en solo 10 minutos',
+  creationFlowSubtitle: 'Mantén la tradición y disfruta la comodidad',
+  creationSteps: [
+    { title: 'Elige una plantilla', text: 'Encuentra el estilo ideal para tu evento y míralo como invitación móvil.' },
+    { title: 'Completa tus datos', text: 'Añade nombres, fecha, hora, dirección, fotos y el texto para tus invitados.' },
+    { title: 'Envía tu invitación', text: 'Comparte el enlace final por WhatsApp, Viber, Telegram o cualquier plataforma.' }
+  ],
+  step: 'Paso',
+  startCreating: 'Empezar',
+  new: 'Nuevo',
+  close: 'Cerrar',
+  scanQr: 'Escanear QR',
+  scanQrText: 'Escanea el código QR para abrir la invitación en tu teléfono.',
+  chooseTemplate: 'Elegir esta plantilla',
+  templateDefaultDescription: 'Una invitación online moderna con fotos, mapa, RSVP y envío con un solo enlace.',
+  templateTrialNote: 'Prueba gratis · paga solo si te encanta',
+  templateSwitchNote: 'Puedes cambiar de plantilla durante la edición.',
+  templateModalFeatures: ['Contenido editable', 'Google Maps', 'Nombre del invitado', 'RSVP', 'Fotos ilimitadas', 'Varios idiomas', 'Compartir enlace', 'Libro de invitados']
+});
+
+Object.assign(fr, {
+  newHeroTitle: 'Votre invitation dans un nouveau format',
+  newHeroText: 'Créez une belle invitation en ligne moderne pour votre journée mémorable. Choisissez un design, ajoutez les informations et envoyez-la à tous vos invités avec un seul lien. Simple, rapide et marquant.',
+  creationFlowTitle: 'Créez votre invitation en ligne en 10 minutes',
+  creationFlowSubtitle: 'Gardez la tradition et profitez du confort',
+  creationSteps: [
+    { title: 'Choisissez un modèle', text: 'Trouvez le style adapté à votre événement et prévisualisez-le sur mobile.' },
+    { title: 'Ajoutez vos détails', text: 'Ajoutez les noms, la date, l’heure, l’adresse, les photos et le texte pour vos invités.' },
+    { title: 'Envoyez l’invitation', text: 'Partagez le lien final via WhatsApp, Viber, Telegram ou toute autre plateforme.' }
+  ],
+  step: 'Étape',
+  startCreating: 'Commencer',
+  new: 'Nouveau',
+  close: 'Fermer',
+  scanQr: 'Scanner le QR code',
+  scanQrText: 'Scannez le QR code pour ouvrir l’invitation sur votre téléphone.',
+  chooseTemplate: 'Choisir ce modèle',
+  templateDefaultDescription: 'Une invitation en ligne moderne avec photos, carte, RSVP et partage par lien unique.',
+  templateTrialNote: 'Essai gratuit · payez seulement si vous aimez',
+  templateSwitchNote: 'Vous pouvez changer de modèle pendant l’édition.',
+  templateModalFeatures: ['Contenu modifiable', 'Google Maps', 'Nom de l’invité', 'RSVP', 'Photos illimitées', 'Plusieurs langues', 'Partage par lien', 'Livre d’or']
+});
+
+Object.assign(de, {
+  newHeroTitle: 'Ihre Einladung in einem neuen Format',
+  newHeroText: 'Erstellen Sie eine schöne, moderne Online-Einladung für Ihren besonderen Tag. Wählen Sie ein Design, ergänzen Sie die Details und senden Sie sie mit einem einzigen Link an alle Gäste. Einfach, schnell und eindrucksvoll.',
+  creationFlowTitle: 'Erstellen Sie Ihre Online-Einladung in nur 10 Minuten',
+  creationFlowSubtitle: 'Bewahren Sie die Tradition und genießen Sie den Komfort',
+  creationSteps: [
+    { title: 'Vorlage wählen', text: 'Finden Sie den passenden Stil für Ihr Event und sehen Sie ihn als mobile Einladung.' },
+    { title: 'Details ausfüllen', text: 'Ergänzen Sie Namen, Datum, Uhrzeit, Adresse, Fotos und wichtige Texte für Gäste.' },
+    { title: 'Einladung senden', text: 'Teilen Sie den fertigen Link über WhatsApp, Viber, Telegram oder jede andere Plattform.' }
+  ],
+  step: 'Schritt',
+  startCreating: 'Loslegen',
+  new: 'Neu',
+  close: 'Schließen',
+  scanQr: 'QR-Code scannen',
+  scanQrText: 'Scannen Sie den QR-Code, um die Einladung auf dem Handy zu öffnen.',
+  chooseTemplate: 'Diese Vorlage wählen',
+  templateDefaultDescription: 'Eine moderne Online-Einladung mit Fotos, Karte, RSVP und Teilen per Einzellink.',
+  templateTrialNote: 'Kostenlos testen · zahlen Sie nur, wenn es gefällt',
+  templateSwitchNote: 'Sie können die Vorlage beim Bearbeiten jederzeit wechseln.',
+  templateModalFeatures: ['Anpassbare Inhalte', 'Google Maps', 'Gastname', 'RSVP', 'Unbegrenzte Fotos', 'Mehrere Sprachen', 'Link teilen', 'Gästebuch']
+});
+
+Object.assign(it, {
+  newHeroTitle: 'Il tuo invito in un nuovo formato',
+  newHeroText: 'Crea un invito online bello e moderno per il tuo giorno speciale. Scegli un design, aggiungi i dettagli e invialo a tutti gli ospiti con un solo link. Facile, veloce e d’effetto.',
+  creationFlowTitle: 'Crea il tuo invito online in soli 10 minuti',
+  creationFlowSubtitle: 'Mantieni la tradizione e goditi la comodità',
+  creationSteps: [
+    { title: 'Scegli un modello', text: 'Trova lo stile adatto al tuo evento e visualizzalo come invito mobile.' },
+    { title: 'Inserisci i dettagli', text: 'Aggiungi nomi, data, ora, indirizzo, foto e testo per gli ospiti.' },
+    { title: 'Invia l’invito', text: 'Condividi il link finale tramite WhatsApp, Viber, Telegram o qualsiasi piattaforma.' }
+  ],
+  step: 'Passo',
+  startCreating: 'Inizia',
+  new: 'Nuovo',
+  close: 'Chiudi',
+  scanQr: 'Scansiona QR',
+  scanQrText: 'Scansiona il codice QR per aprire l’invito sul telefono.',
+  chooseTemplate: 'Scegli questo modello',
+  templateDefaultDescription: 'Un invito online moderno con foto, mappa, RSVP e condivisione con un solo link.',
+  templateTrialNote: 'Prova gratis · paga solo se ti piace',
+  templateSwitchNote: 'Puoi cambiare modello durante la modifica.',
+  templateModalFeatures: ['Contenuto modificabile', 'Google Maps', 'Nome ospite', 'RSVP', 'Foto illimitate', 'Più lingue', 'Condivisione link', 'Libro ospiti']
+});
+
+Object.assign(hy, {
+  accountDeleteInvitation: 'Ջնջել հրավիրատոմսը',
+  accountDeleteTitle: 'Ջնջե՞լ այս հրավիրատոմսը',
+  accountDeleteText: 'Եթե ջնջեք հրավիրատոմսը, այն այլևս հասանելի չի լինի ձեր էջում, իսկ հյուրերի պատասխանները նույնպես կհեռացվեն։ Ջնջված հրավիրատոմսը հետ վերադարձնել հնարավոր չէ։',
+  accountDeleteCancel: 'Չջնջել',
+  accountDeleteConfirm: 'Այո, ջնջել',
+  accountDeleteError: 'Չհաջողվեց ջնջել հրավիրատոմսը։ Խնդրում ենք փորձել կրկին։'
+});
+
+Object.assign(en, {
+  accountDeleteInvitation: 'Delete invitation',
+  accountDeleteTitle: 'Delete this invitation?',
+  accountDeleteText: 'If you delete this invitation, it will no longer be available in your profile and guest replies will be removed as well. A deleted invitation cannot be restored.',
+  accountDeleteCancel: 'Keep it',
+  accountDeleteConfirm: 'Yes, delete',
+  accountDeleteError: 'Could not delete the invitation. Please try again.'
+});
+
+Object.assign(ru, {
+  accountDeleteInvitation: 'Удалить приглашение',
+  accountDeleteTitle: 'Удалить это приглашение?',
+  accountDeleteText: 'Если удалить приглашение, оно больше не будет доступно в вашем профиле, а ответы гостей также будут удалены. Удаленное приглашение восстановить невозможно.',
+  accountDeleteCancel: 'Не удалять',
+  accountDeleteConfirm: 'Да, удалить',
+  accountDeleteError: 'Не удалось удалить приглашение. Попробуйте еще раз.'
+});
+
+Object.assign(es, {
+  accountDeleteInvitation: 'Eliminar invitación',
+  accountDeleteTitle: '¿Eliminar esta invitación?',
+  accountDeleteText: 'Si eliminas esta invitación, ya no estará disponible en tu perfil y también se eliminarán las respuestas de los invitados. Una invitación eliminada no se puede restaurar.',
+  accountDeleteCancel: 'Conservar',
+  accountDeleteConfirm: 'Sí, eliminar',
+  accountDeleteError: 'No se pudo eliminar la invitación. Inténtalo de nuevo.'
+});
+
+Object.assign(fr, {
+  accountDeleteInvitation: 'Supprimer l’invitation',
+  accountDeleteTitle: 'Supprimer cette invitation ?',
+  accountDeleteText: 'Si vous supprimez cette invitation, elle ne sera plus disponible dans votre profil et les réponses des invités seront également supprimées. Une invitation supprimée ne peut pas être restaurée.',
+  accountDeleteCancel: 'Conserver',
+  accountDeleteConfirm: 'Oui, supprimer',
+  accountDeleteError: 'Impossible de supprimer l’invitation. Veuillez réessayer.'
+});
+
+Object.assign(de, {
+  accountDeleteInvitation: 'Einladung löschen',
+  accountDeleteTitle: 'Diese Einladung löschen?',
+  accountDeleteText: 'Wenn Sie diese Einladung löschen, ist sie in Ihrem Profil nicht mehr verfügbar und die Antworten der Gäste werden ebenfalls entfernt. Eine gelöschte Einladung kann nicht wiederhergestellt werden.',
+  accountDeleteCancel: 'Behalten',
+  accountDeleteConfirm: 'Ja, löschen',
+  accountDeleteError: 'Die Einladung konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.'
+});
+
+Object.assign(it, {
+  accountDeleteInvitation: 'Elimina invito',
+  accountDeleteTitle: 'Eliminare questo invito?',
+  accountDeleteText: 'Se elimini questo invito, non sarà più disponibile nel tuo profilo e verranno eliminate anche le risposte degli ospiti. Un invito eliminato non può essere ripristinato.',
+  accountDeleteCancel: 'Conserva',
+  accountDeleteConfirm: 'Sì, elimina',
+  accountDeleteError: 'Impossibile eliminare l’invito. Riprova.'
+});
+
 export const translations = { hy, en, ru, es, fr, de, it };

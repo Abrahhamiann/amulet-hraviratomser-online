@@ -8,6 +8,7 @@ import corporateEvent from '../assets/morph/corporate-event.jpg';
 import engagementSmile from '../assets/morph/engagement-smile.jpg';
 import weddingForest from '../assets/morph/wedding-forest-optimized.jpg';
 import weddingTemple from '../assets/morph/wedding-temple.jpg';
+import homePhones from '../assets/home/amulet-iphones-transparent.png';
 import api from '../api/axios.js';
 import Button from '../components/Button.jsx';
 import FAQItem from '../components/FAQItem.jsx';
@@ -66,6 +67,7 @@ function GalleryPhoto({ photo, index, label }) {
 export default function HomePage() {
   const { t } = useLanguage();
   const roadmapRef = useRef(null);
+  const creationFlowRef = useRef(null);
   const [socialsOpen, setSocialsOpen] = useState(false);
   const [faqChatOpen, setFaqChatOpen] = useState(false);
   const [chatFaqIndex, setChatFaqIndex] = useState(0);
@@ -116,6 +118,37 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    const section = creationFlowRef.current;
+    if (!section) return undefined;
+
+    const items = Array.from(section.querySelectorAll('.flow-reveal'));
+    const revealItems = () => {
+      section.classList.add('is-visible');
+      items.forEach((item, index) => {
+        window.setTimeout(() => item.classList.add('is-visible'), index * 140);
+      });
+    };
+
+    if (!('IntersectionObserver' in window)) {
+      revealItems();
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          revealItems();
+          observer.disconnect();
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -18% 0px' });
+
+    observer.observe(section);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
     let isMounted = true;
 
     api.get('/faq')
@@ -139,6 +172,7 @@ export default function HomePage() {
   const fallbackFaqItems = t('faqItems');
   const faqItems = serverFaqItems.length ? serverFaqItems : fallbackFaqItems;
   const roadmapSteps = t('roadmapSteps');
+  const creationSteps = t('creationSteps');
   const eventTestimonials = t('eventTestimonials').map((item) => ({
     ...item,
     category: {
@@ -186,18 +220,20 @@ export default function HomePage() {
   return (
     <>
       <section className="photo-gallery-hero" aria-labelledby="gallery-title">
-        <div className="gallery-grid-backdrop" aria-hidden="true" />
-        <p className="gallery-kicker">{t('storiesKicker')}</p>
-        <h1 id="gallery-title">
-          {t('storiesTitle')}{t() ? <span>{t()}</span> : null}
-        </h1>
-        <div className="gallery-stage" aria-label={t('gallery')}>
-          {galleryPhotos.map((photo, index) => (
-            <GalleryPhoto key={photo.id} photo={photo} index={index} label={t(photo.altKey)} />
-          ))}
+        <div className="home-intro-media" aria-hidden="true">
+          <img src={homePhones} alt="" draggable="false" />
+        </div>
+        <div className="home-intro-copy">
+          <h1 id="gallery-title">{t('newHeroTitle')}</h1>
+          <p>{t('newHeroText')}</p>
+          <div className="home-intro-actions">
+            <Button to="/templates" className="red-pill">{t('viewTemplates')}</Button>
+            <Button to="/about" variant="ghost" className="home-about-btn">{t('about')}</Button>
+          </div>
         </div>
       </section>
 
+      {/* Previous roadmap section, temporarily hidden.
       <section className="roadmap-section" aria-labelledby="roadmap-title" ref={roadmapRef} data-steps={roadmapSteps.length} style={{ '--roadmap-progress': 0 }}>
         <div className="roadmap-heading">
           <h2 id="roadmap-title">{t('roadmapTitle')}</h2>
@@ -234,6 +270,37 @@ export default function HomePage() {
             })}
           </div>
         </div>
+      </section>
+      */}
+
+      <section className="creation-flow-section" aria-labelledby="creation-flow-title" ref={creationFlowRef}>
+        <div className="creation-flow-heading">
+          <h2 id="creation-flow-title">{t('creationFlowTitle')}</h2>
+          <p>{t('creationFlowSubtitle')}</p>
+        </div>
+        <div className="creation-flow-layout">
+          <div className="creation-flow-steps">
+            {creationSteps.map((step, index) => {
+              const Icon = [Search, Pencil, Share2][index] || Sparkles;
+              return (
+                <article className="creation-flow-step flow-reveal" key={step.title} style={{ '--flow-index': index }}>
+                  <span className="creation-step-icon"><Icon size={24} /></span>
+                  <div>
+                    <small>{t('step')} {index + 1}</small>
+                    <h3>{step.title}</h3>
+                    <p>{step.text}</p>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+          <div className="creation-flow-video flow-reveal" style={{ '--flow-index': creationSteps.length }}>
+            <div className="creation-video-card">
+              <img src={homePhones} alt={t('invitationGallery')} loading="lazy" />
+            </div>
+          </div>
+        </div>
+        <Button to="/templates" className="red-pill creation-flow-cta">{t('startCreating')}</Button>
       </section>
 
       {/* Temporarily hidden. Uncomment this line when the invitation morph gallery is needed again. */}

@@ -1,6 +1,8 @@
 import asyncHandler from 'express-async-handler';
 import mongoose from 'mongoose';
+import Invitation from '../models/Invitation.js';
 import Order from '../models/Order.js';
+import RSVP from '../models/RSVP.js';
 
 const normalizeDateValue = (value) => {
   if (!value) return value;
@@ -58,4 +60,25 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   order.status = req.body.status;
   await order.save();
   res.json(order);
+});
+
+export const deleteMyOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findOne({ _id: req.params.id, email: req.user.email });
+  if (!order) {
+    res.status(404);
+    throw new Error('Invitation not found');
+  }
+
+  const invitationIds = [
+    order.invitationId,
+    ...(await Invitation.find({ orderId: order._id }).select('_id')).map((invitation) => invitation._id)
+  ].filter(Boolean);
+
+  if (invitationIds.length) {
+    await RSVP.deleteMany({ invitationId: { $in: invitationIds } });
+    await Invitation.deleteMany({ _id: { $in: invitationIds } });
+  }
+
+  await order.deleteOne();
+  res.json({ message: 'Invitation deleted' });
 });
