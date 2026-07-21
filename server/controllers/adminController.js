@@ -568,8 +568,10 @@ export const createAdminInvitation = asyncHandler(async (req, res) => {
       time: order.eventTime,
       location: order.eventLocation,
       mapLink: order.mapLink,
+      mapLinks: order.mapLinks || [],
       message: order.eventMessage,
       gallery: order.templateId?.gallery || [],
+      colors: order.colors,
       language: order.preferredLanguage,
       isPublished: false,
       ...req.body

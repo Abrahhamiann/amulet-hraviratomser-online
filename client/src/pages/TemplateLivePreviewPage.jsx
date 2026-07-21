@@ -48,6 +48,18 @@ const createDefaultVenue = (draft = {}, index = 0) => ({
   url: index === 0 ? draft.mapLink || '' : ''
 });
 
+const getDraftVenueLinks = (draft = {}) => {
+  const links = Array.isArray(draft?.mapLinks) && draft.mapLinks.length
+    ? draft.mapLinks
+    : [createDefaultVenue(draft, 0)];
+
+  return links.map((item, index) => ({
+    ...createDefaultVenue(draft, index),
+    ...(item || {}),
+    label: String(item?.label || `Վայր ${index + 1}`).trim() || `Վայր ${index + 1}`
+  }));
+};
+
 const createInitialDraft = (template) => {
   const occasionTemplate = getOccasionTemplate(template);
   if (occasionTemplate?.getInitialDraft) {
@@ -138,7 +150,7 @@ export default function TemplateLivePreviewPage() {
     setDraft((current) => {
       if (name !== 'eventTime' && name !== 'eventLocation') return { ...current, [name]: value };
 
-      const mapLinks = current.mapLinks?.length ? [...current.mapLinks] : [createDefaultVenue(current, 0)];
+      const mapLinks = [...getDraftVenueLinks(current)];
       mapLinks[0] = {
         ...createDefaultVenue(current, 0),
         ...(mapLinks[0] || {}),
@@ -155,7 +167,7 @@ export default function TemplateLivePreviewPage() {
 
   const updateMapLink = (index, field, value) => {
     setDraft((current) => {
-      const mapLinks = [...(current.mapLinks?.length ? current.mapLinks : [{ label: 'Քարտեզ 1', url: current.mapLink || '' }])];
+      const mapLinks = [...getDraftVenueLinks(current)];
       mapLinks[index] = { ...createDefaultVenue(current, index), ...(mapLinks[index] || {}), [field]: value };
       return {
         ...current,
@@ -186,7 +198,7 @@ export default function TemplateLivePreviewPage() {
 
   const addVenue = () => {
     setDraft((current) => {
-      const currentLinks = current.mapLinks?.length ? current.mapLinks : [createDefaultVenue(current, 0)];
+      const currentLinks = getDraftVenueLinks(current);
       return {
         ...current,
         mapLinks: [...currentLinks, createDefaultVenue(current, currentLinks.length)]
@@ -196,7 +208,7 @@ export default function TemplateLivePreviewPage() {
 
   const removeVenue = (index) => {
     setDraft((current) => {
-      const mapLinks = (current.mapLinks?.length ? current.mapLinks : [createDefaultVenue(current, 0)])
+      const mapLinks = getDraftVenueLinks(current)
         .filter((_, itemIndex) => itemIndex !== index);
       const nextLinks = mapLinks.length ? mapLinks : [createDefaultVenue(current, 0)];
       return {
@@ -298,7 +310,7 @@ export default function TemplateLivePreviewPage() {
   const isSingleImageTemplate = occasionTemplate?.key === 'midnight-vows';
   const image = resolveTemplateImage(draft?.image || template.mainImage || template.gallery?.[0]);
   const formattedDate = draft?.eventDate ? new Date(draft.eventDate).toLocaleDateString() : previewDate.toLocaleDateString();
-  const editorMapLinks = draft?.mapLinks?.length ? draft.mapLinks : [createDefaultVenue(draft, 0)];
+  const editorMapLinks = getDraftVenueLinks(draft);
   const editorColors = { ...defaultColors, ...pendingColors };
 
   return (

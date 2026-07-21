@@ -100,9 +100,11 @@ const normalizeMapLinks = (draft) => {
   const normalized = links
     .map((item, index) => ({
       label: String(item?.label || `Քարտեզ ${index + 1}`).trim(),
+      time: String(item?.time || '').trim(),
+      address: String(item?.address || '').trim(),
       url: String(item?.url || '').trim()
     }))
-    .filter((item) => item.url);
+    .filter((item) => item.label || item.time || item.address || item.url);
 
   if (draft?.mapLink && !normalized.some((item) => item.url === draft.mapLink)) {
     normalized.unshift({ label: 'Քարտեզ', url: draft.mapLink });
@@ -377,7 +379,11 @@ function EngagementLayout({ draft, price, onEdit, onOrder, loading, actions, rsv
         </motion.div>
       </section>
 
-      <motion.section className="engagement-details engagement-photo-screen" {...revealProps}>
+      <motion.section
+        className={`engagement-details engagement-photo-screen${eventPlaces.length > 2 ? ' has-many-places' : ''}`}
+        style={{ '--engagement-place-count': eventPlaces.length }}
+        {...revealProps}
+      >
         <motion.div className="engagement-message-copy" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.45 }} variants={textRevealContainer}>
           <motion.h2 variants={textRevealItem}>Հարգելի բարեկամներ<br />և ընկերներ,</motion.h2>
           <motion.p variants={textRevealItem}>{draft?.eventMessage}</motion.p>
@@ -400,9 +406,20 @@ function EngagementLayout({ draft, price, onEdit, onOrder, loading, actions, rsv
         </div>
         <motion.div className="engagement-location" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.45 }} variants={textRevealContainer}>
           <motion.i variants={textRevealItem} />
-          <motion.div className="engagement-place-list" variants={textRevealContainer}>
+          <motion.div
+            className="engagement-place-list"
+            initial={false}
+            animate="visible"
+            variants={textRevealContainer}
+          >
             {eventPlaces.map((place, index) => (
-              <motion.div className="engagement-place-card" variants={textRevealItem} key={`${place.label}-${index}`}>
+              <motion.div
+                className="engagement-place-card"
+                initial={false}
+                animate="visible"
+                variants={textRevealItem}
+                key={`${place.label}-${place.time}-${place.address}-${place.url}-${index}`}
+              >
                 {place.time && <strong>{place.time}</strong>}
                 <b>{place.label}</b>
                 {place.address && <span>{place.address}</span>}
