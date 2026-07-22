@@ -103,7 +103,7 @@ export default function TemplateCard({ template }) {
                 <span>{t('templateSwitchNote')}</span>
               </div>
               <div className="template-qr-actions">
-                <Link className="btn btn-primary" to={`/order?template=${template._id}`} onClick={closeQr}>
+                <Link className="btn btn-primary" to={`/templates/${template._id}/live?edit=1`} onClick={closeQr}>
                   <ShoppingBag size={17} />
                   {t('chooseTemplate')}
                 </Link>

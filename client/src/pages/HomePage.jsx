@@ -9,6 +9,7 @@ import engagementSmile from '../assets/morph/engagement-smile.jpg';
 import weddingForest from '../assets/morph/wedding-forest-optimized.jpg';
 import weddingTemple from '../assets/morph/wedding-temple.jpg';
 import homePhones from '../assets/home/amulet-iphones-transparent.png';
+import homeDeviceSuite from '../assets/home/amulet-device-suite.png';
 import api from '../api/axios.js';
 import Button from '../components/Button.jsx';
 import FAQItem from '../components/FAQItem.jsx';
@@ -51,6 +52,55 @@ const galleryPhotos = [
     className: 'gallery-card-five'
   }
 ];
+
+const creationVideoUrl = 'https://youtu.be/WUPRFyeUwCU?si=sAyLMnUu_QknEBLF';
+
+function getYouTubeStartSeconds(value) {
+  if (!value) return '';
+  if (/^\d+$/.test(value)) return value;
+
+  const hours = Number(value.match(/(\d+)h/)?.[1] || 0);
+  const minutes = Number(value.match(/(\d+)m/)?.[1] || 0);
+  const seconds = Number(value.match(/(\d+)s/)?.[1] || 0);
+  const total = (hours * 3600) + (minutes * 60) + seconds;
+  return total ? String(total) : '';
+}
+
+function getYouTubeEmbedUrl(rawUrl) {
+  try {
+    const url = new URL(rawUrl);
+    const host = url.hostname.replace(/^www\./, '');
+    let videoId = '';
+    let embedPath = '';
+
+    if (host === 'youtu.be') {
+      videoId = url.pathname.split('/').filter(Boolean)[0] || '';
+    } else if (host.endsWith('youtube.com') || host.endsWith('youtube-nocookie.com')) {
+      const pathParts = url.pathname.split('/').filter(Boolean);
+      if (url.pathname === '/watch') videoId = url.searchParams.get('v') || '';
+      if (['embed', 'shorts', 'live'].includes(pathParts[0])) videoId = pathParts[1] || '';
+    }
+
+    const listId = url.searchParams.get('list');
+    const start = getYouTubeStartSeconds(url.searchParams.get('start') || url.searchParams.get('t'));
+    const params = new URLSearchParams();
+    if (listId && videoId) params.set('list', listId);
+    if (start) params.set('start', start);
+
+    if (videoId) {
+      embedPath = `/embed/${videoId}`;
+    } else if (listId) {
+      embedPath = '/embed/videoseries';
+      params.set('list', listId);
+    }
+
+    return embedPath
+      ? `https://www.youtube-nocookie.com${embedPath}${params.toString() ? `?${params}` : ''}`
+      : rawUrl;
+  } catch {
+    return rawUrl;
+  }
+}
 
 function GalleryPhoto({ photo, index, label }) {
   return (
@@ -221,7 +271,9 @@ export default function HomePage() {
     <>
       <section className="photo-gallery-hero" aria-labelledby="gallery-title">
         <div className="home-intro-media" aria-hidden="true">
-          <img src={homePhones} alt="" draggable="false" />
+          {/* Previous iPhone-only hero image. Kept for quick rollback if needed. */}
+          {/* <img src={homePhones} alt="" draggable="false" /> */}
+          <img className="home-device-suite" src={homeDeviceSuite} alt="" draggable="false" />
         </div>
         <div className="home-intro-copy">
           <h1 id="gallery-title">{t('newHeroTitle')}</h1>
@@ -295,8 +347,14 @@ export default function HomePage() {
             })}
           </div>
           <div className="creation-flow-video flow-reveal" style={{ '--flow-index': creationSteps.length }}>
-            <div className="creation-video-card">
-              <img src={homePhones} alt={t('invitationGallery')} loading="lazy" />
+            <div className="creation-video-card creation-video-embed">
+              <iframe
+                src={getYouTubeEmbedUrl(creationVideoUrl)}
+                title={t('creationFlowTitle')}
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
             </div>
           </div>
         </div>

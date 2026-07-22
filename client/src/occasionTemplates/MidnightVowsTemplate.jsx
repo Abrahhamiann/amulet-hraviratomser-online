@@ -144,6 +144,7 @@ function MidnightVowsLayout({ draft, price, onEdit, onOrder, loading, actions, r
   const [firstName, secondName] = splitNames(draft?.mainNames);
   const mapLinks = normalizeMapLinks(draft);
   const colors = { ...defaultColors, ...(draft?.colors || {}) };
+  const familyItems = [draft?.groomFamilyTitle, draft?.brideFamilyTitle].filter(Boolean);
   const particles = useMemo(() => Array.from({ length: 18 }, (_, index) => ({
     id: index,
     left: `${(index * 13) % 96}%`,
@@ -247,12 +248,17 @@ function MidnightVowsLayout({ draft, price, onEdit, onOrder, loading, actions, r
           transition={{ duration: 0.65 }}
         >
           <span>Սիրով հրավիրում ենք Ձեզ</span>
-          <p>{draft?.eventMessage}</p>
+          {draft?.openingVisible !== false && <p>{draft?.eventMessage}</p>}
+          {draft?.familyVisible !== false && familyItems.length > 0 && (
+            <div className="midnight-family-note">
+              {familyItems.map((item) => <span key={item}>{item}</span>)}
+            </div>
+          )}
           <strong>{formatDate(draft?.eventDate)}</strong>
         </motion.div>
       </section>
 
-      <section className="midnight-schedule">
+      {draft?.receptionVisible !== false && <section className="midnight-schedule">
         <div className="midnight-section-overlay">
           <EventBlock
             title="Պսակադրություն"
@@ -268,9 +274,9 @@ function MidnightVowsLayout({ draft, price, onEdit, onOrder, loading, actions, r
             delay={0.12}
           />
         </div>
-      </section>
+      </section>}
 
-      <section className="midnight-rsvp-section" id="midnight-rsvp">
+      {draft?.questionsVisible !== false && <section className="midnight-rsvp-section" id="midnight-rsvp">
         <div className="midnight-rsvp-shell">
           <motion.h2
             initial={{ opacity: 0, y: 24 }}
@@ -280,6 +286,7 @@ function MidnightVowsLayout({ draft, price, onEdit, onOrder, loading, actions, r
           >
             Խնդրում ենք հաստատել Ձեր ներկայությունը
           </motion.h2>
+          {draft?.rsvpQuestion && <p className="midnight-form-note">{draft.rsvpQuestion}</p>}
           {rsvpForm || <PreviewRsvpForm />}
           <motion.div
             className="midnight-signature"
@@ -289,10 +296,10 @@ function MidnightVowsLayout({ draft, price, onEdit, onOrder, loading, actions, r
             transition={{ duration: 0.6, delay: 0.15 }}
           >
             <Heart size={58} />
-            <p>Սիրով կսպասենք Ձեզ</p>
+            <p>{draft?.finalMessageVisible !== false && draft?.closingMessage ? draft.closingMessage : 'Սիրով կսպասենք Ձեզ'}</p>
           </motion.div>
         </div>
-      </section>
+      </section>}
 
       {mode === 'public' && (
         <section className="midnight-public-actions">

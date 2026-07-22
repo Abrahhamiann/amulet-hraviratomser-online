@@ -5,7 +5,6 @@ import { createPortal } from 'react-dom';
 import { NavLink } from 'react-router-dom';
 import logoImage from '../assets/logo.png';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import Button from './Button.jsx';
 import LanguageSelector from './LanguageSelector.jsx';
 
 const getStoredUser = () => {
@@ -34,7 +33,7 @@ export default function Header() {
     ['/about', t('about')],
     ['/contact', t('contact')]
   ];
-  const overlayLinks = [
+  const desktopOverlayLinks = [
     ['/templates?category=wedding', t('weddingTitle')],
     ['/templates?category=baptism', t('baptismTitle')],
     ['/templates?category=birth', t('birthTitle')],
@@ -43,6 +42,7 @@ export default function Header() {
     ['/contact', t('menuPartners')],
     ['/privacy', t('menuPrivacy')]
   ];
+  const mobileOverlayLinks = links;
 
   useEffect(() => {
     let frame = 0;
@@ -117,8 +117,8 @@ export default function Header() {
       <div className="nav-overlay-panel">
         <NavLink to="/" className="logo overlay-logo" onClick={() => setOpen(false)}>{brandLogo}</NavLink>
         <p className="nav-overlay-tagline">{t('menuTagline')}</p>
-        <div className="nav-overlay-links">
-          {overlayLinks.map(([to, label], index) => (
+        <div className="nav-overlay-links nav-overlay-links-desktop">
+          {desktopOverlayLinks.map(([to, label], index) => (
             <NavLink
               key={to}
               to={to}
@@ -129,8 +129,23 @@ export default function Header() {
             </NavLink>
           ))}
         </div>
+        <div className="nav-overlay-links nav-overlay-links-mobile">
+          {mobileOverlayLinks.map(([to, label], index) => (
+            <NavLink
+              key={to}
+              to={to}
+              onClick={() => setOpen(false)}
+              style={{ '--menu-index': index }}
+            >
+              {label}
+            </NavLink>
+          ))}
+        </div>
+        <a className="nav-overlay-phone" href="tel:+37455710208" onClick={() => setOpen(false)}>
+          <Phone size={18} />
+          <span>+374 55 710 208</span>
+        </a>
         <div className="nav-overlay-secondary">
-          <NavLink to="/about" onClick={() => setOpen(false)}>{t('about')}</NavLink>
           {user && <NavLink to="/account" onClick={() => setOpen(false)}>{t('accountTitle')}</NavLink>}
           {!user && <NavLink to="/login" onClick={() => setOpen(false)}>{t('menuLogin')}</NavLink>}
         </div>
@@ -146,7 +161,6 @@ export default function Header() {
           {links.map(([to, label]) => <NavLink key={to} to={to} onClick={() => setOpen(false)}>{label}</NavLink>)}
           <a className="header-phone" href="tel:+37455710208"><Phone size={16} /> +374 55 710 208</a>
           <LanguageSelector />
-          <Button to="/order" className="nav-cta">{t('orderNow')}</Button>
         </nav>
         <div className="mobile-header-actions">
           {user && (
@@ -155,19 +169,12 @@ export default function Header() {
             </NavLink>
           )}
           <div className="mobile-header-language">
-            <LanguageSelector compact />
+            <LanguageSelector />
           </div>
           <button className="icon-btn menu-btn" onClick={() => setOpen((value) => !value)} aria-label="Menu">
             {open ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
-        <div className="mobile-language-row">
-          <LanguageSelector />
-        </div>
-        <nav className="mobile-scroll-links" aria-label="Mobile quick navigation">
-          {links.map(([to, label]) => <NavLink key={to} to={to} onClick={() => setOpen(false)}>{label}</NavLink>)}
-          <a className="mobile-scroll-phone" href="tel:+37455710208"><Phone size={14} /> +374 55 710 208</a>
-        </nav>
       </div>
       {open && typeof document !== 'undefined' && createPortal(overlay, document.body)}
     </header>

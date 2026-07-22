@@ -254,6 +254,7 @@ function BaptismLayout({ draft, price, onEdit, onOrder, loading, actions, rsvpFo
   const name = splitNames(draft?.mainNames);
   const mapLinks = normalizeMapLinks(draft);
   const colors = { ...defaultColors, ...(draft?.colors || {}) };
+  const familyItems = [draft?.groomFamilyTitle, draft?.brideFamilyTitle].filter(Boolean);
 
   useEffect(() => {
     const timer = window.setInterval(() => setCountdown(getCountdown(draft?.eventDate)), 1000);
@@ -381,13 +382,18 @@ function BaptismLayout({ draft, price, onEdit, onOrder, loading, actions, rsvpFo
           </div>
           <div className="baptism-message-copy baptism-overlay-copy">
             <h2>Հարգելի հյուրեր</h2>
-            <p>{draft?.eventMessage}</p>
+            {draft?.openingVisible !== false && <p>{draft?.eventMessage}</p>}
+            {draft?.familyVisible !== false && familyItems.length > 0 && (
+              <div className="baptism-family-note">
+                {familyItems.map((item) => <span key={item}>{item}</span>)}
+              </div>
+            )}
             <span>Սպասում ենք Ձեզ</span>
             <strong>{formatLongDate(draft?.eventDate)}</strong>
           </div>
         </motion.section>
 
-        <motion.section className="baptism-event-section baptism-photo-screen" {...scrollRevealProps}>
+        {draft?.receptionVisible !== false && <motion.section className="baptism-event-section baptism-photo-screen" {...scrollRevealProps}>
           <div className="baptism-event-row">
             <img className="baptism-location-photo" src={ceremonyPhoto} alt="" loading="lazy" decoding="async" />
             <span>Մկրտություն</span>
@@ -395,9 +401,9 @@ function BaptismLayout({ draft, price, onEdit, onOrder, loading, actions, rsvpFo
             <b>{draft?.eventLocation}</b>
             <MapButton url={mapLinks[0]?.url} />
           </div>
-        </motion.section>
+        </motion.section>}
 
-        <motion.section className="baptism-party-section baptism-photo-screen" {...scrollRevealProps}>
+        {draft?.receptionVisible !== false && <motion.section className="baptism-party-section baptism-photo-screen" {...scrollRevealProps}>
           <div className="baptism-party-content">
             <img className="baptism-location-photo" src={partyPhoto} alt="" loading="lazy" decoding="async" />
             <span>Խնջույք</span>
@@ -405,15 +411,16 @@ function BaptismLayout({ draft, price, onEdit, onOrder, loading, actions, rsvpFo
             <b>{mapLinks[1]?.label || 'Տոնական հանդիպում'}</b>
             <MapButton url={mapLinks[1]?.url} />
           </div>
-        </motion.section>
+        </motion.section>}
 
-        <motion.section className="baptism-rsvp-section baptism-photo-screen" {...scrollRevealProps}>
+        {draft?.questionsVisible !== false && <motion.section className="baptism-rsvp-section baptism-photo-screen" {...scrollRevealProps}>
           <div className="baptism-rsvp-shell">
             <h2>Խնդրում ենք հաստատել Ձեր ներկայությունը մինչև {formatDate(draft?.eventDate)}</h2>
+            {draft?.rsvpQuestion && <p className="baptism-form-note">{draft.rsvpQuestion}</p>}
             {rsvpForm || <PreviewBaptismRsvpForm />}
-            <div className="baptism-signature" aria-hidden="true">Սիրով սպասում ենք Ձեզ</div>
+            <div className="baptism-signature">{draft?.finalMessageVisible !== false && draft?.closingMessage ? draft.closingMessage : 'Սիրով սպասում ենք Ձեզ'}</div>
           </div>
-        </motion.section>
+        </motion.section>}
 
         {mode === 'public' && (
           <motion.section className="baptism-public-actions" variants={revealVariants}>

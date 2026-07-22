@@ -8,12 +8,12 @@ export default function PublicLayout() {
   const hideFooter = pathname === '/account';
 
   return (
-    <>
+    <div className="public-layout">
       <Header />
       <main>
         <Outlet />
       </main>
       {!hideFooter && <Footer />}
-    </>
+    </div>
   );
 }

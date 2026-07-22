@@ -1,5 +1,6 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
 import api from '../api/axios.js';
 import Button from '../components/Button.jsx';
@@ -31,6 +32,7 @@ const cleanOrderPayload = (data) => {
 export default function OrderPage() {
   const { t, language } = useLanguage();
   const [params] = useSearchParams();
+  const navigate = useNavigate();
   const [templates, setTemplates] = useState([]);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState('');
@@ -41,6 +43,12 @@ export default function OrderPage() {
       .then(({ data }) => setTemplates(data.filter((template) => getOccasionTemplate(template))))
       .catch(() => setTemplates([]));
   }, []);
+
+  useEffect(() => {
+    const templateId = params.get('template');
+    if (!templateId) return;
+    navigate(`/templates/${templateId}/live?edit=1`, { replace: true });
+  }, [navigate, params]);
 
   const submit = async (event) => {
     event.preventDefault();

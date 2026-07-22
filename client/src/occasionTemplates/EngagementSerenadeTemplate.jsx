@@ -268,6 +268,7 @@ function EngagementLayout({ draft, price, onEdit, onOrder, loading, actions, rsv
   const weekDays = getWeekDays(draft?.eventDate);
   const monthName = getMonthName(draft?.eventDate);
   const colors = { ...defaultColors, ...(draft?.colors || {}) };
+  const familyItems = [draft?.groomFamilyTitle, draft?.brideFamilyTitle].filter(Boolean);
 
   useEffect(() => {
     const timer = window.setInterval(() => setCountdown(getCountdown(draft?.eventDate)), 1000);
@@ -386,7 +387,12 @@ function EngagementLayout({ draft, price, onEdit, onOrder, loading, actions, rsv
       >
         <motion.div className="engagement-message-copy" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.45 }} variants={textRevealContainer}>
           <motion.h2 variants={textRevealItem}>Հարգելի բարեկամներ<br />և ընկերներ,</motion.h2>
-          <motion.p variants={textRevealItem}>{draft?.eventMessage}</motion.p>
+          {draft?.openingVisible !== false && <motion.p variants={textRevealItem}>{draft?.eventMessage}</motion.p>}
+          {draft?.familyVisible !== false && familyItems.length > 0 && (
+            <motion.div className="engagement-family-note" variants={textRevealItem}>
+              {familyItems.map((item) => <span key={item}>{item}</span>)}
+            </motion.div>
+          )}
           <motion.span variants={textRevealItem}>{monthName}</motion.span>
         </motion.div>
         <div className="engagement-week">
@@ -404,7 +410,7 @@ function EngagementLayout({ draft, price, onEdit, onOrder, loading, actions, rsv
             </div>
           ))}
         </div>
-        <motion.div className="engagement-location" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.45 }} variants={textRevealContainer}>
+        {draft?.receptionVisible !== false && <motion.div className="engagement-location" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.45 }} variants={textRevealContainer}>
           <motion.i variants={textRevealItem} />
           <motion.div
             className="engagement-place-list"
@@ -427,22 +433,24 @@ function EngagementLayout({ draft, price, onEdit, onOrder, loading, actions, rsv
               </motion.div>
             ))}
           </motion.div>
-        </motion.div>
+        </motion.div>}
       </motion.section>
 
-      <motion.section className="engagement-rsvp-section engagement-photo-screen" {...revealProps}>
+      {draft?.questionsVisible !== false && <motion.section className="engagement-rsvp-section engagement-photo-screen" {...revealProps}>
         <motion.div className="engagement-rsvp-shell" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} variants={textRevealContainer}>
           <motion.h2 variants={textRevealItem}>Շնորհակալ կլինենք, եթե նախապես հաստատեք Ձեր ներկայությունը</motion.h2>
+          {draft?.rsvpQuestion && <motion.p className="engagement-form-note" variants={textRevealItem}>{draft.rsvpQuestion}</motion.p>}
           {rsvpForm || <PreviewEngagementRsvpForm />}
           <motion.img className="engagement-love-mark" src={loveMark} alt="" aria-hidden="true" loading="lazy" variants={textRevealItem} />
           <motion.p variants={textRevealItem}>Սիրով սպասում ենք Ձեզ</motion.p>
         </motion.div>
-      </motion.section>
+      </motion.section>}
 
       <motion.section className="engagement-final engagement-photo-screen" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.35 }} variants={textRevealContainer}>
         <motion.div variants={textRevealItem}><CalendarDays size={28} /></motion.div>
         <motion.span variants={textRevealItem}>{countdown.days} օր · {countdown.hours} ժամ · {countdown.minutes} րոպե</motion.span>
         <motion.strong variants={textRevealItem}>{firstName}{secondName ? ` & ${secondName}` : ''}</motion.strong>
+        {draft?.finalMessageVisible !== false && draft?.closingMessage && <motion.p variants={textRevealItem}>{draft.closingMessage}</motion.p>}
         <motion.p variants={textRevealItem}>{draft?.eventLocation}</motion.p>
         {mode === 'public' && (
           <div className="engagement-public-actions">
