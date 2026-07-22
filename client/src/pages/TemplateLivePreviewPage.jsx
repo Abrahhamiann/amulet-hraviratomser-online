@@ -269,11 +269,11 @@ function SmartInvitationEditor({
           <div className="smart-editor-grid two">
             <label>
               {nameLabels[0]}
-              <input value={firstName} onChange={(event) => updateNamePart(0, event.target.value)} placeholder="օրինակ՝ Զոր Մելիք" />
+              <input value={firstName} onChange={(event) => updateNamePart(0, event.target.value)} />
             </label>
             <label>
               {nameLabels[1]}
-              <input value={secondName} onChange={(event) => updateNamePart(1, event.target.value)} placeholder="օրինակ՝ Ջուլի Դոու" />
+              <input value={secondName} onChange={(event) => updateNamePart(1, event.target.value)} />
             </label>
           </div>
         </EditorSection>
@@ -328,7 +328,7 @@ function SmartInvitationEditor({
             </label>
             <label className="wide">
               Հասցե
-              <textarea name="eventLocation" rows="3" value={draft.eventLocation || ''} onChange={onUpdateDraft} placeholder="Հարսանյաց վայրի հասցեն" />
+              <textarea name="eventLocation" rows="3" value={draft.eventLocation || ''} onChange={onUpdateDraft}/>
             </label>
           </div>
           <div className="smart-editor-map-list">

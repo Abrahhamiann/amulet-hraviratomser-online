@@ -169,7 +169,7 @@ export default function Header() {
             </NavLink>
           )}
           <div className="mobile-header-language">
-            <LanguageSelector />
+            <LanguageSelector compact />
           </div>
           <button className="icon-btn menu-btn" onClick={() => setOpen((value) => !value)} aria-label="Menu">
             {open ? <X size={22} /> : <Menu size={22} />}

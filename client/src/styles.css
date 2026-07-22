@@ -1280,6 +1280,54 @@ html[lang="hy"] .test-wedding-card-preview em {
 .contact-list span { display: flex; gap: 10px; align-items: center; color: var(--muted); }
 .content-panel { padding: 32px; display: grid; gap: 18px; }
 
+.about-page .content-panel {
+  max-width: 920px;
+  margin-inline: auto;
+  line-height: 1.85;
+}
+
+.about-signature {
+  font-weight: 700;
+  color: #d8b98e;
+}
+
+.about-benefits {
+  display: grid;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.about-benefits h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+}
+
+.about-benefits ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.about-benefits li {
+  position: relative;
+  padding-left: 22px;
+}
+
+.about-benefits li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: .78em;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #d8b98e;
+  transform: translateY(-50%);
+}
+
 .invite-page { min-height: 100dvh; padding: 34px 18px 70px; background: radial-gradient(circle at top, #fff1d9, #fffaf2 48%, white); display: grid; gap: 24px; justify-items: center; }
 .invite-template-card {
   width: min(920px, 100%);
@@ -12002,5 +12050,132 @@ body,
 
   .faq-stack .faq-item button {
     --faq-arrow-y: 8px;
+  }
+}
+
+/* Compact event CTA buttons */
+.events-testimonials-actions {
+  align-items: center;
+  gap: clamp(8px, 1.4vw, 12px);
+}
+
+.events-testimonials-actions .btn,
+.events-testimonials-actions .btn.red-pill,
+.events-testimonials-actions .btn.events-contact-link {
+  min-width: 0;
+  width: auto;
+  min-height: 46px;
+  max-width: 210px;
+  padding: 10px clamp(18px, 2.2vw, 26px);
+  border-radius: 999px;
+  font-size: clamp(.88rem, 1.15vw, .98rem);
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
+}
+
+.events-testimonials-actions .btn.red-pill {
+  min-width: 172px;
+}
+
+.events-testimonials-actions .btn.events-contact-link {
+  min-width: 168px;
+  max-width: 190px;
+}
+
+@media (max-width: 640px) {
+  .events-testimonials-actions {
+    width: min(100%, 390px);
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .events-testimonials-actions .btn,
+  .events-testimonials-actions .btn.red-pill,
+  .events-testimonials-actions .btn.events-contact-link {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    min-height: 42px;
+    padding: 9px 12px;
+    font-size: clamp(.78rem, 3.2vw, .9rem);
+  }
+}
+
+@media (max-width: 380px) {
+  .events-testimonials-actions {
+    grid-template-columns: 1fr;
+    width: min(100%, 250px);
+  }
+}
+
+/* Keep the mobile language picker as an icon-only control. */
+@media (max-width: 880px) {
+  .mobile-header-language .language-icon {
+    display: block !important;
+    width: 21px;
+    height: 21px;
+    color: #d8b98e;
+    stroke: currentColor;
+    opacity: 1;
+    transform: none !important;
+  }
+
+  .mobile-header-language .language-select span,
+  .mobile-header-language .language-chevron {
+    display: none !important;
+  }
+}
+
+/* Cleaner delete control on account invitation cards. */
+.account-invitation-row {
+  padding-right: 58px;
+}
+
+.account-delete-invitation {
+  top: 16px;
+  right: 16px;
+  width: 34px;
+  height: 34px;
+  border-color: rgba(216, 185, 142, .34);
+  background: rgba(255, 255, 255, .96);
+  color: #c95f5f;
+  box-shadow: 0 10px 24px rgba(23, 32, 43, .08);
+}
+
+.account-delete-invitation svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+}
+
+.account-delete-invitation:hover {
+  border-color: rgba(201, 95, 95, .36);
+  background: #fff7f7;
+  box-shadow: 0 14px 28px rgba(201, 95, 95, .12);
+}
+
+@media (max-width: 980px) {
+  .account-invitation-row {
+    padding: 12px;
+    padding-right: 12px;
+    padding-top: 52px;
+  }
+
+  .account-delete-invitation {
+    top: 12px;
+    right: 12px;
+  }
+}
+
+@media (max-width: 560px) {
+  .account-invitation-row {
+    padding-top: 50px;
+  }
+
+  .account-delete-invitation {
+    width: 32px;
+    height: 32px;
   }
 }
