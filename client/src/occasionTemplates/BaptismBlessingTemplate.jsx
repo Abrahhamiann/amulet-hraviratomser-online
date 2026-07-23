@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Pause, Pencil, Play, ShoppingBag } from 'lucide-react';
+import { Home, Pause, Pencil, Play, ShoppingBag } from 'lucide-react';
 import baptismSong from '../assets/audio/yiruma-river-flows-in-you.mp3';
 import babyChurchImage from '../assets/baptism/baptism-baby-church.png';
 import envelopeImage from '../assets/baptism/baptism-envelope.png';
@@ -225,7 +225,7 @@ function PreviewBaptismRsvpForm() {
   );
 }
 
-function BaptismLayout({ draft, price, onEdit, onOrder, loading, actions, rsvpForm, daysLeftText, mode = 'preview' }) {
+function BaptismLayout({ draft, price, onHome, onEdit, onOrder, loading, actions, rsvpForm, daysLeftText, mode = 'preview' }) {
   const audioRef = useRef(null);
   const contentRef = useRef(null);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
@@ -310,6 +310,9 @@ function BaptismLayout({ draft, price, onEdit, onOrder, loading, actions, rsvpFo
           transition={{ duration: 0.35 }}
         >
           <span>{Number(price || 29000).toLocaleString()} AMD</span>
+          <button className="btn btn-ghost template-home-action" type="button" onClick={onHome} aria-label="Գլխավոր էջ" title="Գլխավոր էջ">
+            <Home size={19} />
+          </button>
           <button className="btn btn-ghost" type="button" onClick={onEdit}>
             <Pencil size={18} />
             Խմբագրել

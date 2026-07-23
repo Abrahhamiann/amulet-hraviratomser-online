@@ -13,7 +13,7 @@ const common = {
   contactPhoneValue: '+374 77 805 607',
   contactEmailValue: 'hello@amulet.local',
   contactAddressValue: 'Yerevan, Armenia',
-  contactInstagramValue: 'Instagram: @amulet.placeholder',
+  contactInstagramValue: '@amulet.placeholder',
   phoneWeddingDate: '26.08.26',
   phoneCorporate: 'AMULET'
 };

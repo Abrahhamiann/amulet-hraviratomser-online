@@ -6,6 +6,7 @@ import {
   ClipboardList,
   Clock,
   Heart,
+  Home,
   Image as ImageIcon,
   ImagePlus,
   MapPin,
@@ -21,8 +22,7 @@ import {
   X
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import api from '../api/axios.js';
 import ErrorState from '../components/ErrorState.jsx';
 import Loading from '../components/Loading.jsx';
@@ -435,6 +435,7 @@ function SmartInvitationEditor({
 }
 
 export default function TemplateLivePreviewPage() {
+  const navigate = useNavigate();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const { t } = useLanguage();
@@ -645,6 +646,7 @@ export default function TemplateLivePreviewPage() {
             draft={draft}
             price={template.price}
             loading={checkoutState === 'loading'}
+            onHome={() => navigate('/')}
             onEdit={openEditor}
             onOrder={orderTemplate}
           />
@@ -716,6 +718,9 @@ export default function TemplateLivePreviewPage() {
             <strong>{Number(template.price).toLocaleString()} AMD</strong>
           </div>
           <div className="template-live-actions">
+            <button className="btn btn-ghost template-home-action" type="button" onClick={() => navigate('/')} aria-label="Գլխավոր էջ" title="Գլխավոր էջ">
+              <Home size={19} />
+            </button>
             <button className="btn btn-ghost template-live-edit" type="button" onClick={openEditor}>
               <Pencil size={18} />
               Խմբագրել

@@ -5,6 +5,7 @@ import PublicLayout from './layouts/PublicLayout.jsx';
 import AboutPage from './pages/AboutPage.jsx';
 import AuthPage from './pages/AuthPage.jsx';
 import ContactPage from './pages/ContactPage.jsx';
+import GuestResponsesPage from './pages/GuestResponsesPage.jsx';
 import HomePage from './pages/HomePage.jsx';
 import InvitationPage from './pages/InvitationPage.jsx';
 import OrderPage from './pages/OrderPage.jsx';
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="/login" element={<AuthPage />} />
         <Route path="/verify-email" element={<AuthPage />} />
         <Route path="/account" element={<AccountPage />} />
+        <Route path="/account/invitations/:invitationId/responses" element={<GuestResponsesPage />} />
         <Route path="/payment/success" element={<PaymentSuccessPage />} />
       </Route>
       <Route path="/templates/:id/live" element={<TemplateLivePreviewPage />} />

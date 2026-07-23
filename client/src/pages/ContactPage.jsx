@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, Mail, MapPin, Phone } from 'lucide-react';
+import { CheckCircle2, Instagram, Mail, MapPin, Phone } from 'lucide-react';
 import { useState } from 'react';
 import api from '../api/axios.js';
 import Button from '../components/Button.jsx';
@@ -38,7 +38,7 @@ export default function ContactPage() {
           <span><Phone size={18} /> {t('contactPhoneValue')}</span>
           <span><Mail size={18} /> {t('contactEmailValue')}</span>
           <span><MapPin size={18} /> {t('contactAddressValue')}</span>
-          <span>{t('contactInstagramValue')}</span>
+          <span><Instagram size={18} /> {t('contactInstagramValue')}</span>
         </div>
       </div>
       <form className="panel-form" onSubmit={submit}>

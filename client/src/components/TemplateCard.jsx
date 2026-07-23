@@ -98,7 +98,7 @@ export default function TemplateCard({ template }) {
             </div>
             <div className="template-qr-content">
               <h2 id={`template-qr-${template._id}`}>{template.title}</h2>
-              <p>{template.description || t('templateDefaultDescription')}</p>
+              <p className="template-qr-info">{template.description || t('templateDefaultDescription')}</p>
               <div className="template-qr-tags">
                 <span>{t(template.category)}</span>
                 <span>{t('customDesign')}</span>

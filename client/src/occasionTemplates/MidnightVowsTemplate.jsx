@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Pause, Pencil, Play, ShoppingBag } from 'lucide-react';
+import { Heart, Home, Pause, Pencil, Play, ShoppingBag } from 'lucide-react';
 import weddingSong from '../assets/audio/ed-sheeran-perfect.mp3';
 import midnightVowsDefault from '../assets/occasion/midnight-vows-default.jpg';
 import weddingForest from '../assets/morph/wedding-forest-optimized.jpg';
@@ -135,7 +135,7 @@ function EventBlock({ title, time, location, address, mapLink, delay = 0 }) {
   );
 }
 
-function MidnightVowsLayout({ draft, price, onEdit, onOrder, loading, actions, rsvpForm, daysLeftText, mode = 'preview' }) {
+function MidnightVowsLayout({ draft, price, onHome, onEdit, onOrder, loading, actions, rsvpForm, daysLeftText, mode = 'preview' }) {
   const audioRef = useRef(null);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const draftImages = resolveTemplateImages([draft?.image, ...(draft?.gallery || [])]);
@@ -204,6 +204,9 @@ function MidnightVowsLayout({ draft, price, onEdit, onOrder, loading, actions, r
             transition={{ duration: 0.45, delay: 0.3 }}
           >
             <span>{Number(price || 29000).toLocaleString()} AMD</span>
+            <button className="btn btn-ghost template-home-action" type="button" onClick={onHome} aria-label="Գլխավոր էջ" title="Գլխավոր էջ">
+              <Home size={19} />
+            </button>
             <button className="btn btn-ghost" type="button" onClick={onEdit}>
               <Pencil size={18} />
               Խմբագրել

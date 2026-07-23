@@ -280,10 +280,17 @@ export default function HomePage() {
     const nextOpen = !faqChatOpen;
     setFaqChatOpen(nextOpen);
     if (nextOpen) {
+      setSocialsOpen(false);
       setChatFaqIndex(null);
       setDisplayedChatFaqIndex(null);
       setChatTyping(false);
     }
+  };
+
+  const toggleSocials = () => {
+    const nextOpen = !socialsOpen;
+    setSocialsOpen(nextOpen);
+    if (nextOpen) setFaqChatOpen(false);
   };
 
   return (
@@ -411,7 +418,6 @@ export default function HomePage() {
 
       <section className="faq-amulet" id="faq">
         <h2 className="home-section-heading">{t('faqTitle')}</h2>
-        <strong>{t('faq')}</strong>
         <div className="faq-stack">
           {staticFaqItems.map(([question, answer], index) => (
             <FAQItem
@@ -483,7 +489,7 @@ export default function HomePage() {
         >
           <HelpCircle size={28} />
         </button>
-        <button className="floating-chat" type="button" onClick={() => setSocialsOpen((value) => !value)} aria-label="Open social links">
+        <button className="floating-chat" type="button" onClick={toggleSocials} aria-label="Open social links" aria-expanded={socialsOpen}>
           {socialsOpen ? <X size={24} /> : <MessageCircle size={25} />}
         </button>
       </div>

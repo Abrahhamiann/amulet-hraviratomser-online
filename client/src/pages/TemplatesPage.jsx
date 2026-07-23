@@ -15,6 +15,7 @@ export default function TemplatesPage() {
   const [params, setParams] = useSearchParams();
   const [templates, setTemplates] = useState([]);
   const [state, setState] = useState('loading');
+  const [categoryOpen, setCategoryOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const category = params.get('category') || '';
   const search = params.get('search') || '';
@@ -24,6 +25,11 @@ export default function TemplatesPage() {
     ['price_asc', t('priceAsc')],
     ['price_desc', t('priceDesc')]
   ];
+  const categoryOptions = [
+    ['', t('allInvitations')],
+    ...categories.map((item) => [item.key, t(item.key)])
+  ];
+  const activeCategory = categoryOptions.find(([value]) => value === category) || categoryOptions[0];
   const activeSort = sortOptions.find(([value]) => value === sort) || sortOptions[0];
 
   useEffect(() => {
@@ -53,7 +59,10 @@ export default function TemplatesPage() {
     setParams(next);
   };
 
-  const chooseCategory = (value) => update('category', value);
+  const chooseCategory = (value) => {
+    update('category', value);
+    setCategoryOpen(false);
+  };
   const chooseSort = (value) => {
     update('sort', value);
     setSortOpen(false);
@@ -83,9 +92,47 @@ export default function TemplatesPage() {
         ))}
       </div>
 
+      <div className="catalog-category-picker">
+        <button
+          type="button"
+          onClick={() => {
+            setCategoryOpen((value) => !value);
+            setSortOpen(false);
+          }}
+          aria-expanded={categoryOpen}
+          aria-controls="catalog-category-menu"
+        >
+          <span>{activeCategory[1]}</span>
+          <ChevronDown size={16} />
+        </button>
+        {categoryOpen && (
+          <div className="catalog-category-menu" id="catalog-category-menu" role="listbox" aria-label={t('templateChooserHint')}>
+            {categoryOptions.map(([value, label]) => (
+              <button
+                key={value || 'all'}
+                type="button"
+                className={value === category ? 'is-active' : ''}
+                onClick={() => chooseCategory(value)}
+                role="option"
+                aria-selected={value === category}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="catalog-sort-row">
         <div className="catalog-sort-picker">
-          <button type="button" onClick={() => setSortOpen((value) => !value)} aria-expanded={sortOpen}>
+          <button
+            type="button"
+            onClick={() => {
+              setSortOpen((value) => !value);
+              setCategoryOpen(false);
+            }}
+            aria-expanded={sortOpen}
+          >
             <span>{activeSort[1]}</span>
             <ChevronDown size={16} />
           </button>

@@ -97,8 +97,6 @@ const emptyForm = {
   designKey: "midnight-vows",
   description: "",
   mainImage: "asset:occasion/midnight-vows-default.jpg",
-  desktopPreviewImage: "",
-  mobilePreviewImage: "",
   gallery: "asset:occasion/midnight-vows-default.jpg",
   features: "",
   isFeatured: false,
@@ -175,8 +173,6 @@ function toForm(template?: any) {
     designKey,
     description: template.description || "",
     mainImage: template.cover || "",
-    desktopPreviewImage: template.desktopPreviewImage || "",
-    mobilePreviewImage: template.mobilePreviewImage || "",
     gallery: gallery.join("\n"),
     features: (template.features || []).join("\n"),
     isFeatured: Boolean(template.featured),
@@ -222,8 +218,6 @@ function TemplatesPage() {
     designKey: isKnownDesignKey(form.designKey) ? form.designKey : "midnight-vows",
     description: form.description,
     mainImage: form.mainImage,
-    desktopPreviewImage: form.desktopPreviewImage,
-    mobilePreviewImage: form.mobilePreviewImage,
     gallery: form.gallery,
     galleryConfigured: true,
     features: form.features,
@@ -456,10 +450,6 @@ function TemplateForm({ form, setForm }: any) {
     };
     reader.readAsDataURL(file);
   };
-  const choosePreviewImage = async (key: "desktopPreviewImage" | "mobilePreviewImage", file?: File) => {
-    if (!file) return;
-    set(key, await readImageFile(file));
-  };
   const addGalleryImages = async (files?: FileList | null) => {
     const selectedFiles = Array.from(files || []);
     if (!selectedFiles.length) return;
@@ -503,7 +493,6 @@ function TemplateForm({ form, setForm }: any) {
         </select>
         <p className="text-xs text-muted-foreground">This links the database card to the static template files in client/src/occasionTemplates.</p>
       </div>
-      <div className="space-y-2 sm:col-span-2"><Label>{t("description")}</Label><Textarea value={form.description} onChange={(event) => set("description", event.target.value)} /></div>
       <div className="space-y-2 sm:col-span-2">
         <Label>{t("mainImage")}</Label>
         <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
@@ -544,34 +533,17 @@ function TemplateForm({ form, setForm }: any) {
           </div>
         ) : null}
       </div>
-      <div className="space-y-3 sm:col-span-2">
-        <Label>MacBook / phone preview images</Label>
-        <div className="grid gap-3 md:grid-cols-2">
-          <div className="space-y-2 rounded-2xl border border-border/60 bg-secondary/20 p-3">
-            <Label className="text-xs uppercase tracking-wide text-muted-foreground">MacBook image</Label>
-            <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-              <Input value={form.desktopPreviewImage} onChange={(event) => set("desktopPreviewImage", event.target.value)} placeholder="https://... կամ asset:..." />
-              <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border/70 bg-background px-4 text-sm font-medium shadow-sm transition hover:border-[color:var(--gold)]">
-                <Upload className="h-4 w-4" />
-                Upload
-                <input className="sr-only" type="file" accept="image/*" onChange={(event) => choosePreviewImage("desktopPreviewImage", event.target.files?.[0])} />
-              </label>
-            </div>
-          </div>
-          <div className="space-y-2 rounded-2xl border border-border/60 bg-secondary/20 p-3">
-            <Label className="text-xs uppercase tracking-wide text-muted-foreground">Phone image</Label>
-            <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-              <Input value={form.mobilePreviewImage} onChange={(event) => set("mobilePreviewImage", event.target.value)} placeholder="https://... կամ asset:..." />
-              <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border/70 bg-background px-4 text-sm font-medium shadow-sm transition hover:border-[color:var(--gold)]">
-                <Upload className="h-4 w-4" />
-                Upload
-                <input className="sr-only" type="file" accept="image/*" onChange={(event) => choosePreviewImage("mobilePreviewImage", event.target.files?.[0])} />
-              </label>
-            </div>
-          </div>
+      <div className="space-y-3 rounded-2xl border border-border/60 bg-secondary/20 p-4 sm:col-span-2">
+        <div className="space-y-2">
+          <Label>{t("description")} / Info</Label>
+          <Textarea
+            value={form.description}
+            onChange={(event) => set("description", event.target.value)}
+            rows={6}
+            placeholder="Write the information shown inside the invitation card."
+          />
         </div>
-        <p className="text-xs text-muted-foreground">Եթե դատարկ թողնես, կայքի card-ը կօգտագործի գլխավոր նկարը և gallery-ի երկրորդ նկարը։</p>
-        <TemplateDevicePreview form={form} />
+        <p className="text-xs text-muted-foreground">This text is shown in the information area of the invitation card.</p>
       </div>
       <div className="space-y-3 sm:col-span-2">
         <Label>{t("gallery")}</Label>
@@ -642,31 +614,6 @@ function TemplateCardPreview({ form }: any) {
           <div className="font-display text-lg text-[color:var(--gold)]">{currency(Number(form.price || 0))}</div>
         </div>
         <div className="mt-3 border-t border-border/60 pt-3 text-xs text-muted-foreground">0 uses</div>
-      </div>
-    </div>
-  );
-}
-
-function TemplateDevicePreview({ form }: any) {
-  const desktopImage = getPreviewImage(form.desktopPreviewImage || form.mainImage);
-  const mobileImage = getPreviewImage(form.mobilePreviewImage || galleryFromText(form.gallery)[1] || form.mainImage);
-
-  return (
-    <div className="relative min-h-[210px] overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-br from-zinc-900 via-zinc-700 to-zinc-950 p-5 shadow-[var(--shadow-soft)]">
-      <div className="mx-auto flex max-w-xl items-end justify-center gap-3">
-        <div className="relative w-[72%]">
-          <div className="rounded-t-xl border-[10px] border-black bg-black shadow-2xl">
-            <div className="aspect-[16/10] overflow-hidden bg-zinc-800">
-              {desktopImage ? <img src={desktopImage} alt="" className="h-full w-full object-cover" style={getImageStyle(form.imagePosition)} /> : null}
-            </div>
-          </div>
-          <div className="h-3 rounded-b-[50%] bg-gradient-to-b from-zinc-300 to-zinc-700" />
-        </div>
-        <div className="w-[21%] rounded-[1.6rem] border-[7px] border-zinc-950 bg-zinc-950 p-1 shadow-2xl">
-          <div className="aspect-[9/18] overflow-hidden rounded-[1rem] bg-zinc-800">
-            {mobileImage ? <img src={mobileImage} alt="" className="h-full w-full object-cover" /> : null}
-          </div>
-        </div>
       </div>
     </div>
   );

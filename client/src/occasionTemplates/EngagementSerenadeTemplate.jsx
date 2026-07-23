@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { CalendarDays, Pause, Pencil, Play, ShoppingBag } from 'lucide-react';
+import { CalendarDays, Home, Pause, Pencil, Play, ShoppingBag } from 'lucide-react';
 import engagementSong from '../assets/audio/john-legend-all-of-you.mp3';
 import calendarRing from '../assets/engagement/decor/calendar-diamond-ring.png';
 import loveMark from '../assets/engagement/decor/love-mark.png';
@@ -254,7 +254,7 @@ function MapButton({ url }) {
   );
 }
 
-function EngagementLayout({ draft, price, onEdit, onOrder, loading, actions, rsvpForm, daysLeftText, mode = 'preview' }) {
+function EngagementLayout({ draft, price, onHome, onEdit, onOrder, loading, actions, rsvpForm, daysLeftText, mode = 'preview' }) {
   const audioRef = useRef(null);
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
@@ -338,6 +338,9 @@ function EngagementLayout({ draft, price, onEdit, onOrder, loading, actions, rsv
           transition={{ duration: 0.35 }}
         >
           <span>{Number(price || 29000).toLocaleString()} AMD</span>
+          <button className="btn btn-ghost template-home-action" type="button" onClick={onHome} aria-label="Գլխավոր էջ" title="Գլխավոր էջ">
+            <Home size={19} />
+          </button>
           <button className="btn btn-ghost" type="button" onClick={onEdit}>
             <Pencil size={18} />
             Խմբագրել

@@ -28,6 +28,28 @@ export const getMyInvitationRSVPs = asyncHandler(async (req, res) => {
   res.json(rsvps);
 });
 
+export const getMyInvitationRSVPDetails = asyncHandler(async (req, res) => {
+  const invitation = await Invitation.findById(req.params.invitationId)
+    .populate('templateId')
+    .populate({
+      path: 'orderId',
+      populate: { path: 'templateId' }
+    });
+
+  if (!invitation) {
+    res.status(404);
+    throw new Error('Invitation not found');
+  }
+
+  if (invitation.orderId?.email !== req.user.email) {
+    res.status(403);
+    throw new Error('This invitation does not belong to the current user');
+  }
+
+  const rsvps = await RSVP.find({ invitationId: invitation._id }).sort({ createdAt: -1 });
+  res.json({ invitation, rsvps });
+});
+
 export const getAllRSVPs = asyncHandler(async (req, res) => {
   const rsvps = await RSVP.find().populate('invitationId').sort({ createdAt: -1 });
   res.json(rsvps);

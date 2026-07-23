@@ -14,8 +14,6 @@ const templateSchema = new mongoose.Schema(
     features: [{ type: String }],
     designKey: { type: String, default: 'midnight-vows', trim: true },
     mainImage: { type: String, default: '' },
-    desktopPreviewImage: { type: String, default: '' },
-    mobilePreviewImage: { type: String, default: '' },
     imagePosition: {
       x: { type: Number, default: 50, min: 0, max: 100 },
       y: { type: Number, default: 50, min: 0, max: 100 },

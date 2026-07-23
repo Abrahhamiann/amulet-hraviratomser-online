@@ -1,5 +1,5 @@
 import React from 'react';
-import { Quote, Sparkles } from 'lucide-react';
+import { Quote } from 'lucide-react';
 import { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 
@@ -524,7 +524,7 @@ export default function TestimonialV2() {
       onPointerCancel={resumeForPointer}
     >
       <div className="customer-testimonials-heading">
-        <span><Sparkles size={16} /> {t('customerTestimonialsKicker')}</span>
+        <span>{t('customerTestimonialsKicker')}</span>
         <h2 id="customer-testimonials-title" className="home-section-heading">{t('customerTestimonialsTitle')}</h2>
         <p>{t('customerTestimonialsSubtitle')}</p>
       </div>
