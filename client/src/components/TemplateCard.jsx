@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Check, Eye, ShoppingBag, X } from 'lucide-react';
+import { Eye, ShoppingBag, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -23,8 +23,6 @@ export default function TemplateCard({ template }) {
     return new URL(previewPath, window.location.origin).toString();
   }, [previewPath]);
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=12&data=${encodeURIComponent(previewUrl)}`;
-  const features = t('templateModalFeatures');
-
   const openQr = () => setQrOpen(true);
   const closeQr = () => setQrOpen(false);
 
@@ -101,17 +99,11 @@ export default function TemplateCard({ template }) {
             <div className="template-qr-content">
               <h2 id={`template-qr-${template._id}`}>{template.title}</h2>
               <p>{template.description || t('templateDefaultDescription')}</p>
-              <div className="template-qr-tags" aria-label={t('features')}>
+              <div className="template-qr-tags">
                 <span>{t(template.category)}</span>
                 <span>{t('customDesign')}</span>
                 <span>{Number(template.price).toLocaleString()} AMD</span>
               </div>
-              <h3>{t('features')}</h3>
-              <ul className="template-qr-features">
-                {features.map((feature) => (
-                  <li key={feature}><Check size={16} /> {feature}</li>
-                ))}
-              </ul>
               <div className="template-qr-scan">
                 <img src={qrUrl} alt={t('scanQr')} />
                 <p>{t('scanQrText')}</p>
