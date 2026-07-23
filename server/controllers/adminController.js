@@ -33,6 +33,32 @@ const userRoles = ['user', ...adminRoles];
 const DEFAULT_DESIGN_KEY = 'midnight-vows';
 const PUBLIC_DESIGN_KEYS = ['midnight-vows', 'baptism-blessing', 'engagement-serenade'];
 const FAQ_SETTING_KEY = 'faqItems';
+const DEFAULT_FAQ_ITEMS = [
+  {
+    id: 'faq-price-includes',
+    question: 'Ինչ է ներառված արժեքի մեջ',
+    answer: 'Լուսանկարներ, միջոցառման ծրագիր, հասցեներ, քարտեզ, RSVP ձև, հետհաշվարկ և բոլոր անհրաժեշտ տեքստերը։',
+    active: true
+  },
+  {
+    id: 'faq-production-time',
+    question: 'Քանի օր է տևում պատրաստումը',
+    answer: 'Սովորաբար 3-4 օր։ Անհատական դիզայնի դեպքում ժամկետը կախված է բարդությունից։',
+    active: true
+  },
+  {
+    id: 'faq-sharing',
+    question: 'Ինչպես կարող եմ ուղարկել վեբ հրավերը',
+    answer: 'Կարող եք կիսվել WhatsApp-ով, Instagram-ով, Viber-ով, Telegram-ով, Email-ով, SMS-ով կամ ցանկացած այլ հարթակով։',
+    active: true
+  },
+  {
+    id: 'faq-languages',
+    question: 'Ինչ լեզուներ են հասանելի',
+    answer: 'Հրավերները կարող են պատրաստվել հայերեն, անգլերեն, ռուսերեն և այլ լեզուներով։',
+    active: true
+  }
+];
 
 const isSuperAdmin = (user) => user?.role === 'super_admin';
 
@@ -211,9 +237,16 @@ const normalizeFaqItems = (items) => {
     .filter((item) => item.question && item.answer);
 };
 
+const resolveFaqItems = (saved) => {
+  const savedItems = normalizeFaqItems(saved?.value?.items);
+  const isManaged = saved?.value?.initialized === true || savedItems.length > 0;
+  return isManaged ? savedItems : DEFAULT_FAQ_ITEMS;
+};
+
 export const getPublicFaq = asyncHandler(async (req, res) => {
   const saved = await Setting.findOne({ key: FAQ_SETTING_KEY });
-  res.json({ items: normalizeFaqItems(saved?.value?.items).filter((item) => item.active) });
+  const items = resolveFaqItems(saved);
+  res.json({ items: items.filter((item) => item.active) });
 });
 
 export const getAdminDashboard = asyncHandler(async (req, res) => {
@@ -461,14 +494,14 @@ export const getAdminSettings = asyncHandler(async (req, res) => {
 
 export const getAdminFaq = asyncHandler(async (req, res) => {
   const saved = await Setting.findOne({ key: FAQ_SETTING_KEY });
-  res.json({ items: normalizeFaqItems(saved?.value?.items) });
+  res.json({ items: resolveFaqItems(saved) });
 });
 
 export const updateAdminFaq = asyncHandler(async (req, res) => {
   const items = normalizeFaqItems(req.body?.items);
   const setting = await Setting.findOneAndUpdate(
     { key: FAQ_SETTING_KEY },
-    { value: { items } },
+    { value: { items, initialized: true } },
     { new: true, upsert: true, setDefaultsOnInsert: true }
   );
   res.json({ items: normalizeFaqItems(setting.value?.items) });

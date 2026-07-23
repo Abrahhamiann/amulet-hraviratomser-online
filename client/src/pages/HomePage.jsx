@@ -120,10 +120,11 @@ export default function HomePage() {
   const creationFlowRef = useRef(null);
   const [socialsOpen, setSocialsOpen] = useState(false);
   const [faqChatOpen, setFaqChatOpen] = useState(false);
-  const [chatFaqIndex, setChatFaqIndex] = useState(0);
-  const [displayedChatFaqIndex, setDisplayedChatFaqIndex] = useState(0);
+  const [chatFaqIndex, setChatFaqIndex] = useState(null);
+  const [displayedChatFaqIndex, setDisplayedChatFaqIndex] = useState(null);
   const [chatTyping, setChatTyping] = useState(false);
   const [serverFaqItems, setServerFaqItems] = useState([]);
+  const [serverFaqLoaded, setServerFaqLoaded] = useState(false);
   const [activeRoadmapIndex, setActiveRoadmapIndex] = useState(0);
   const [activeFaqIndex, setActiveFaqIndex] = useState(null);
   const [activeEventIndex, setActiveEventIndex] = useState(0);
@@ -208,10 +209,16 @@ export default function HomePage() {
             .filter((item) => item?.question && item?.answer && item.active !== false)
             .map((item) => [item.question, item.answer])
           : [];
-        if (isMounted) setServerFaqItems(items);
+        if (isMounted) {
+          setServerFaqItems(items);
+          setServerFaqLoaded(true);
+        }
       })
       .catch(() => {
-        if (isMounted) setServerFaqItems([]);
+        if (isMounted) {
+          setServerFaqItems([]);
+          setServerFaqLoaded(false);
+        }
       });
 
     return () => {
@@ -219,8 +226,8 @@ export default function HomePage() {
     };
   }, []);
 
-  const fallbackFaqItems = t('faqItems');
-  const faqItems = serverFaqItems.length ? serverFaqItems : fallbackFaqItems;
+  const staticFaqItems = t('faqItems');
+  const chatFaqItems = serverFaqLoaded ? serverFaqItems : staticFaqItems;
   const roadmapSteps = t('roadmapSteps');
   const creationSteps = t('creationSteps');
   const eventTestimonials = t('eventTestimonials').map((item) => ({
@@ -244,8 +251,7 @@ export default function HomePage() {
   const activeInvitationPath = activeEventCategory ? `/templates?category=${activeEventCategory}` : '/templates';
 
   useEffect(() => {
-    if (!faqItems.length) return undefined;
-    if (!faqChatOpen) {
+    if (!chatFaqItems.length || !faqChatOpen || chatFaqIndex === null) {
       setChatTyping(false);
       return undefined;
     }
@@ -257,15 +263,24 @@ export default function HomePage() {
     }, 920);
 
     return () => window.clearTimeout(timeout);
-  }, [chatFaqIndex, faqChatOpen, faqItems.length]);
+  }, [chatFaqIndex, faqChatOpen, chatFaqItems.length]);
 
   useEffect(() => {
-    if (!faqItems.length) return;
-    if (chatFaqIndex > faqItems.length - 1) {
-      setChatFaqIndex(0);
-      setDisplayedChatFaqIndex(0);
+    if (chatFaqIndex !== null && chatFaqIndex > chatFaqItems.length - 1) {
+      setChatFaqIndex(null);
+      setDisplayedChatFaqIndex(null);
     }
-  }, [chatFaqIndex, faqItems.length]);
+  }, [chatFaqIndex, chatFaqItems.length]);
+
+  const toggleFaqChat = () => {
+    const nextOpen = !faqChatOpen;
+    setFaqChatOpen(nextOpen);
+    if (nextOpen) {
+      setChatFaqIndex(null);
+      setDisplayedChatFaqIndex(null);
+      setChatTyping(false);
+    }
+  };
 
   return (
     <>
@@ -394,7 +409,7 @@ export default function HomePage() {
         <h2 className="home-section-heading">{t('faqTitle')}</h2>
         <strong>{t('faq')}</strong>
         <div className="faq-stack">
-          {faqItems.map(([question, answer], index) => (
+          {staticFaqItems.map(([question, answer], index) => (
             <FAQItem
               key={question}
               question={question}
@@ -419,7 +434,7 @@ export default function HomePage() {
                 <p>{t('faqTitle')}</p>
               </div>
               <div className="faq-chatbot-questions" aria-label={t('faqTitle')}>
-                {faqItems.map(([question], index) => (
+                {chatFaqItems.map(([question], index) => (
                   <button
                     key={question}
                     type="button"
@@ -431,16 +446,18 @@ export default function HomePage() {
                   </button>
                 ))}
               </div>
-              {chatTyping ? (
-                <div className="faq-chatbot-answer is-typing" aria-live="polite">
-                  <span><Bot size={16} /></span>
-                  <p><i /> <i /> <i /></p>
-                </div>
-              ) : (
-                <div className="faq-chatbot-answer" key={displayedChatFaqIndex} aria-live="polite">
-                  <span><Bot size={16} /></span>
-                  <p>{faqItems[displayedChatFaqIndex]?.[1]}</p>
-                </div>
+              {chatFaqIndex !== null && (
+                chatTyping ? (
+                  <div className="faq-chatbot-answer is-typing" aria-live="polite">
+                    <span><Bot size={16} /></span>
+                    <p><i /> <i /> <i /></p>
+                  </div>
+                ) : displayedChatFaqIndex !== null ? (
+                  <div className="faq-chatbot-answer" key={displayedChatFaqIndex} aria-live="polite">
+                    <span><Bot size={16} /></span>
+                    <p>{chatFaqItems[displayedChatFaqIndex]?.[1]}</p>
+                  </div>
+                ) : null
               )}
             </div>
           </div>
@@ -456,7 +473,7 @@ export default function HomePage() {
         <button
           className={faqChatOpen ? 'floating-question is-active' : 'floating-question'}
           type="button"
-          onClick={() => setFaqChatOpen((value) => !value)}
+          onClick={toggleFaqChat}
           aria-label={t('faq')}
           aria-expanded={faqChatOpen}
         >

@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Marcellus&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Marcellus&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap");
 
 :root {
   --bg: #fffaf2;
@@ -1284,6 +1284,12 @@ html[lang="hy"] .test-wedding-card-preview em {
   max-width: 920px;
   margin-inline: auto;
   line-height: 1.85;
+}
+
+.about-page .section-title {
+  width: min(920px, 100%);
+  max-width: none;
+  margin-inline: auto;
 }
 
 .about-signature {
@@ -5706,17 +5712,9 @@ body.templates-route .catalog-sort-picker > button {
 }
 
 @font-face {
-  font-family: "Arm HMKS Light";
-  src: url("./assets/fonts/arm-hmks-light/ARM HMK'S LIGHT BOLD.TTF") format("truetype");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Arm HMKS Light";
-  src: url("./assets/fonts/arm-hmks-light/ARM HMK'S LIGHT EXTRABOLD.TTF") format("truetype");
-  font-weight: 800 900;
+  font-family: "Amulet Arial Armenian";
+  src: url("./assets/fonts/arial-armenian.ttf") format("truetype");
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
@@ -5743,42 +5741,7 @@ html[lang="hy"] .circular-quote,
 html[lang="hy"] .events-testimonials-heading h2,
 html[lang="hy"] .templates-catalog-hero h1,
 html[lang="hy"] .privacy-hero h1 {
-  font-family: "Arm HMKS Light", "Davel Aghvor", Inter, ui-sans-serif, system-ui, sans-serif;
-}
-
-html[lang="hy"] body {
-  font-size: 1.04rem;
-}
-
-html[lang="hy"] p,
-html[lang="hy"] li,
-html[lang="hy"] label,
-html[lang="hy"] input,
-html[lang="hy"] select,
-html[lang="hy"] textarea {
-  font-size: 1.06em;
-}
-
-html[lang="hy"] .btn,
-html[lang="hy"] button,
-html[lang="hy"] .nav-links > a:not(.btn),
-html[lang="hy"] .header-phone,
-html[lang="hy"] .language-select,
-html[lang="hy"] .template-type-dock button,
-html[lang="hy"] .card-meta,
-html[lang="hy"] .nav-overlay-panel a:not(.logo) {
-  font-size: 1.08em;
-}
-
-html[lang="hy"] h1,
-html[lang="hy"] h2,
-html[lang="hy"] h3,
-html[lang="hy"] .circular-name,
-html[lang="hy"] .customer-testimonials-heading h2,
-html[lang="hy"] .events-testimonials-heading h2,
-html[lang="hy"] .templates-catalog-hero h1,
-html[lang="hy"] .privacy-hero h1 {
-  font-size-adjust: .62;
+  font-family: "Amulet Arial Armenian", Arial, Helvetica, sans-serif;
 }
 
 html[lang="hy"] .events-testimonials-heading p,
@@ -5879,7 +5842,7 @@ html[lang="ru"] strong,
 html[lang="ru"] span,
 html[lang="ru"] label,
 html[lang="ru"] li {
-  font-family: "Cormorant Garamond", serif;
+  font-family: "Roboto Mono", "Courier New", monospace;
 }
 
 .events-testimonials-heading {
@@ -12741,9 +12704,13 @@ h2.home-section-heading {
   transform: translateY(var(--faq-content-y));
 }
 
+.faq-stack .faq-item.is-open .faq-answer {
+  padding-top: 10px;
+}
+
 .faq-stack .faq-item p {
-  padding-bottom: 28px;
-  transform: translateY(6px);
+  padding: 0 22px 28px;
+  transform: none;
 }
 
 body.templates-route .template-type-dock button:hover,
@@ -12963,9 +12930,26 @@ body.templates-route .template-type-dock button:focus-visible {
   }
 }
 
+@media (max-width: 880px) {
+  html[lang="ru"] .home-intro-copy h1,
+  html[lang="ru"] .creation-flow-heading h2 {
+    line-height: 1.14;
+    padding-bottom: 4px;
+  }
+}
+
 @media (max-width: 560px) {
   :root {
     --site-gutter: 14px;
+  }
+
+  html[lang="ru"] .home-intro-actions {
+    width: min(100%, 347px);
+    grid-template-columns: 1fr;
+  }
+
+  html[lang="ru"] .home-intro-actions .btn {
+    white-space: normal;
   }
 
   .faq-amulet {
@@ -12983,7 +12967,11 @@ body.templates-route .template-type-dock button:focus-visible {
   }
 
   .faq-stack .faq-item p {
-    padding-bottom: 26px;
+    padding: 0 16px 26px;
+  }
+
+  .faq-stack .faq-item.is-open .faq-answer {
+    padding-top: 8px;
   }
 
   .creation-flow-section {
