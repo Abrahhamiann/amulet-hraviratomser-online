@@ -324,7 +324,7 @@ function EngagementLayout({ draft, price, onEdit, onOrder, loading, actions, rsv
             alt=""
             loading="eager"
             decoding="async"
-            fetchPriority={index < 2 ? 'high' : 'auto'}
+            fetchpriority={index < 2 ? 'high' : 'auto'}
           />
         ))}
       </div>

@@ -185,7 +185,7 @@ function MidnightVowsLayout({ draft, price, onEdit, onOrder, loading, actions, r
     >
       <audio ref={audioRef} src={weddingSong} preload="auto" loop />
       <div className="midnight-fixed-photo" aria-hidden="true">
-        <img src={heroImage} alt="" loading="eager" decoding="async" fetchPriority="high" />
+        <img src={heroImage} alt="" loading="eager" decoding="async" fetchpriority="high" />
       </div>
       <div className="midnight-global-scrim" aria-hidden="true" />
 

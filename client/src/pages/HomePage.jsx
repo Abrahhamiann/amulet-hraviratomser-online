@@ -288,7 +288,7 @@ export default function HomePage() {
       {/* Previous roadmap section, temporarily hidden.
       <section className="roadmap-section" aria-labelledby="roadmap-title" ref={roadmapRef} data-steps={roadmapSteps.length} style={{ '--roadmap-progress': 0 }}>
         <div className="roadmap-heading">
-          <h2 id="roadmap-title">{t('roadmapTitle')}</h2>
+          <h2 id="roadmap-title" className="home-section-heading">{t('roadmapTitle')}</h2>
           <span />
         </div>
         <div className="roadmap-stage">
@@ -327,7 +327,7 @@ export default function HomePage() {
 
       <section className="creation-flow-section" aria-labelledby="creation-flow-title" ref={creationFlowRef}>
         <div className="creation-flow-heading">
-          <h2 id="creation-flow-title">{t('creationFlowTitle')}</h2>
+          <h2 id="creation-flow-title" className="home-section-heading">{t('creationFlowTitle')}</h2>
           <p>{t('creationFlowSubtitle')}</p>
         </div>
         <div className="creation-flow-layout">
@@ -367,7 +367,7 @@ export default function HomePage() {
       <section className="events-testimonials-section" aria-labelledby="events-testimonials-title">
         <div className="events-testimonials-heading">
           <p>{t('eventsKicker')}</p>
-          <h2 id="events-testimonials-title">{t('eventsTitle')}</h2>
+          <h2 id="events-testimonials-title" className="home-section-heading">{t('eventsTitle')}</h2>
         </div>
         <CircularTestimonials
           testimonials={eventTestimonials}
@@ -391,7 +391,7 @@ export default function HomePage() {
       <TestimonialV2 />
 
       <section className="faq-amulet" id="faq">
-        <h2>{t('faqTitle')}</h2>
+        <h2 className="home-section-heading">{t('faqTitle')}</h2>
         <strong>{t('faq')}</strong>
         <div className="faq-stack">
           {faqItems.map(([question, answer], index) => (

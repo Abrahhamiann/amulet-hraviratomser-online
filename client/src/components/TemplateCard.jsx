@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Check, Eye, ShoppingBag, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
@@ -27,6 +27,24 @@ export default function TemplateCard({ template }) {
 
   const openQr = () => setQrOpen(true);
   const closeQr = () => setQrOpen(false);
+
+  useEffect(() => {
+    if (!qrOpen) return undefined;
+
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setQrOpen(false);
+    };
+
+    document.documentElement.classList.add('template-modal-lock');
+    document.body.classList.add('template-modal-lock');
+    window.addEventListener('keydown', closeOnEscape);
+
+    return () => {
+      document.documentElement.classList.remove('template-modal-lock');
+      document.body.classList.remove('template-modal-lock');
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [qrOpen]);
 
   return (
     <article
