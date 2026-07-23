@@ -13082,3 +13082,251 @@ body.templates-route .template-type-dock button:focus-visible {
     min-height: 42px;
   }
 }
+
+/* Final typography and responsive integrity pass. */
+html {
+  font-size: 15px;
+}
+
+body.templates-route .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  background: rgba(255, 255, 255, .94);
+  -webkit-backdrop-filter: blur(14px) saturate(1.06);
+  backdrop-filter: blur(14px) saturate(1.06);
+}
+
+body.templates-route .templates-catalog-hero h1 {
+  color: #111;
+}
+
+.home-intro-actions .btn {
+  min-height: 46px;
+  padding: 0 22px;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.faq-amulet > strong {
+  font-size: 1.35rem;
+}
+
+.faq-stack .faq-item button {
+  font-size: clamp(.98rem, 1.35vw, 1.1rem);
+}
+
+.faq-stack .faq-item p {
+  font-size: .92rem;
+  line-height: 1.55;
+}
+
+@media (min-width: 881px) {
+  .photo-gallery-hero {
+    min-height: clamp(520px, calc(100dvh - 96px), 680px);
+    align-content: start;
+    padding-top: clamp(16px, 2.2vw, 34px);
+    padding-bottom: 40px;
+  }
+
+  .template-qr-content {
+    display: flex;
+    flex-direction: column;
+    align-content: initial;
+    justify-content: flex-start;
+    gap: clamp(10px, 1.5vh, 16px);
+  }
+
+  .template-qr-content h2 {
+    margin-top: 0;
+  }
+
+  .template-qr-scan {
+    margin-top: auto;
+  }
+}
+
+@media (max-width: 880px) {
+  body.templates-route .site-header {
+    position: fixed;
+    inset: 0 0 auto 0;
+  }
+
+  .section.page-top,
+  .templates-catalog-page {
+    padding-top: 96px;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  .template-qr-modal {
+    grid-template-rows: auto auto auto;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .template-qr-close {
+    position: sticky;
+    top: max(0px, env(safe-area-inset-top));
+    right: auto;
+    z-index: 4;
+    justify-self: end;
+    margin: 0;
+    background: rgba(55, 54, 49, .98);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .24);
+  }
+
+  .template-qr-content {
+    display: grid;
+    height: auto;
+    gap: 12px;
+  }
+
+  .template-qr-content h2 {
+    padding-right: 0;
+  }
+
+  .template-qr-scan {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .home-intro-actions .btn {
+    padding: 0 14px;
+  }
+
+  .faq-amulet > strong {
+    margin-bottom: 24px;
+    font-size: 1.14rem;
+  }
+
+  .faq-stack .faq-item button {
+    padding-right: 44px;
+    font-size: .9rem;
+  }
+
+  .faq-stack .faq-item p {
+    font-size: .87rem;
+    line-height: 1.5;
+  }
+
+  .template-qr-content h2 {
+    font-size: clamp(1.35rem, 6.8vw, 1.8rem);
+  }
+}
+
+@media (max-width: 420px) {
+  .template-qr-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Mobile template cards keep a portrait preview instead of a short crop. */
+@media (max-width: 560px) {
+  .template-qr-preview {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    aspect-ratio: 4 / 5;
+  }
+
+  .template-qr-preview > img {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    object-fit: cover;
+    object-position: center;
+  }
+}
+
+/* Keep the account action optically centered inside the menu button. */
+.nav-overlay-secondary a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding-block: 0;
+  line-height: 1.2;
+  text-align: center;
+}
+
+/* Calm, staggered first-load entrance for the home hero. */
+.photo-gallery-hero .home-intro-media {
+  animation: homeHeroMediaIn 1.15s cubic-bezier(.2, .78, .2, 1) both;
+}
+
+.photo-gallery-hero .home-intro-copy {
+  animation: homeHeroCopyIn 1.05s cubic-bezier(.2, .78, .2, 1) .18s both;
+}
+
+@keyframes homeHeroMediaIn {
+  from {
+    opacity: 0;
+    transform: translate3d(-24px, 22px, 0) scale(.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes homeHeroCopyIn {
+  from {
+    opacity: 0;
+    transform: translate3d(24px, 24px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (max-width: 880px) {
+  .photo-gallery-hero .home-intro-media {
+    animation-name: homeHeroMediaInMobile;
+  }
+
+  .photo-gallery-hero .home-intro-copy {
+    animation-name: homeHeroCopyInMobile;
+  }
+}
+
+@keyframes homeHeroMediaInMobile {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0) scale(.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes homeHeroCopyInMobile {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-gallery-hero .home-intro-media,
+  .photo-gallery-hero .home-intro-copy {
+    animation: none;
+  }
+}

@@ -115,7 +115,7 @@ function GalleryPhoto({ photo, index, label }) {
 }
 
 export default function HomePage() {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const roadmapRef = useRef(null);
   const creationFlowRef = useRef(null);
   const [socialsOpen, setSocialsOpen] = useState(false);
@@ -173,16 +173,17 @@ export default function HomePage() {
     if (!section) return undefined;
 
     const items = Array.from(section.querySelectorAll('.flow-reveal'));
+    const timers = [];
     const revealItems = () => {
       section.classList.add('is-visible');
       items.forEach((item, index) => {
-        window.setTimeout(() => item.classList.add('is-visible'), index * 140);
+        timers.push(window.setTimeout(() => item.classList.add('is-visible'), index * 140));
       });
     };
 
     if (!('IntersectionObserver' in window)) {
       revealItems();
-      return undefined;
+      return () => timers.forEach((timer) => window.clearTimeout(timer));
     }
 
     const observer = new IntersectionObserver((entries) => {
@@ -196,8 +197,11 @@ export default function HomePage() {
 
     observer.observe(section);
 
-    return () => observer.disconnect();
-  }, []);
+    return () => {
+      observer.disconnect();
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, [language]);
 
   useEffect(() => {
     let isMounted = true;
@@ -350,7 +354,7 @@ export default function HomePage() {
             {creationSteps.map((step, index) => {
               const Icon = [Search, Pencil, Share2][index] || Sparkles;
               return (
-                <article className="creation-flow-step flow-reveal" key={step.title} style={{ '--flow-index': index }}>
+                <article className="creation-flow-step flow-reveal" key={`creation-step-${index}`} style={{ '--flow-index': index }}>
                   <span className="creation-step-icon"><Icon size={24} /></span>
                   <div>
                     <small>{t('step')} {index + 1}</small>
