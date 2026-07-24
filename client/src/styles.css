@@ -14127,6 +14127,48 @@ body.templates-route .templates-catalog-hero h1 {
   }
 }
 
+/* Homepage and catalog alignment fixes. */
+.events-testimonials-section .circular-testimonial-content,
+.events-testimonials-section .circular-testimonial-content > div,
+.events-testimonials-section .circular-name,
+.events-testimonials-section .circular-designation,
+.events-testimonials-section .circular-quote {
+  text-align: center;
+}
+
+.events-testimonials-section .circular-quote {
+  width: 100%;
+  margin-inline: auto;
+}
+
+.faq-amulet {
+  width: min(100%, 1060px);
+  max-width: none;
+}
+
+@media (max-width: 880px) {
+  .catalog-category-picker,
+  .catalog-sort-row,
+  .catalog-sort-picker {
+    width: 100%;
+  }
+
+  .catalog-sort-row {
+    align-items: stretch;
+  }
+
+  .catalog-category-picker > button,
+  .catalog-sort-picker > button {
+    min-height: 56px;
+  }
+}
+
+@media (max-width: 560px) {
+  .faq-amulet {
+    padding-inline: 14px;
+  }
+}
+
 @media (max-width: 560px) {
   .template-live-actions,
   .baptism-floating-actions,
@@ -14150,11 +14192,11 @@ body.templates-route .templates-catalog-hero h1 {
 
   .events-testimonials-section .circular-testimonial-content {
     align-self: stretch;
-    align-items: flex-end;
+    align-items: center;
     justify-content: flex-start;
     gap: 0;
     padding-top: 0;
-    text-align: right;
+    text-align: center;
   }
 
   .events-testimonials-section .circular-testimonial-content > div {
@@ -14174,7 +14216,7 @@ body.templates-route .templates-catalog-hero h1 {
   }
 
   .events-testimonials-section .circular-quote {
-    text-align: right;
+    text-align: center;
   }
 
   .events-testimonials-section .circular-arrow-buttons {
