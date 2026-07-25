@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bot, CreditCard, HelpCircle, Mail, MessageCircle, MonitorCheck, Pencil, Phone, Search, Send, Share2, Sparkles, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import baptismChurch from '../assets/morph/baptism-church.webp';
 import baptismLift from '../assets/morph/baptism-lift.jpg';
 import birthdayCakeLights from '../assets/morph/birthday-cake-lights.jpg';
@@ -51,6 +52,14 @@ const galleryPhotos = [
     altKey: 'corporate',
     className: 'gallery-card-five'
   }
+];
+
+const occasionLinks = [
+  { category: 'wedding', image: weddingTemple },
+  { category: 'baptism', image: baptismLift },
+  { category: 'birth', image: birthdayCakeLights },
+  { category: 'corporate', image: corporateEvent },
+  { category: 'engagement', image: engagementSmile }
 ];
 
 const creationVideoUrl = 'https://youtu.be/WUPRFyeUwCU?si=sAyLMnUu_QknEBLF';
@@ -310,6 +319,28 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <nav className="occasion-browser-section" aria-labelledby="occasion-browser-title">
+        <div className="occasion-browser-heading">
+          <span>{t('occasionBrowserKicker')}</span>
+          <h2 id="occasion-browser-title" className="home-section-heading">{t('occasionBrowserTitle')}</h2>
+        </div>
+        <div className="occasion-browser-list">
+          {occasionLinks.map((occasion) => (
+            <Link
+              key={occasion.category}
+              className="occasion-browser-link"
+              to={`/templates?category=${occasion.category}`}
+              aria-label={`${t('viewTemplates')}: ${t(occasion.category)}`}
+            >
+              <span className="occasion-browser-image">
+                <img src={occasion.image} alt="" loading="lazy" />
+              </span>
+              <strong>{t(occasion.category)}</strong>
+            </Link>
+          ))}
+        </div>
+      </nav>
 
       {/* Previous roadmap section, temporarily hidden.
       <section className="roadmap-section" aria-labelledby="roadmap-title" ref={roadmapRef} data-steps={roadmapSteps.length} style={{ '--roadmap-progress': 0 }}>

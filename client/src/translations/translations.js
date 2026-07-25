@@ -1575,4 +1575,39 @@ Object.assign(it, {
   accountDeleteError: 'Impossibile eliminare l’invito. Riprova.'
 });
 
+Object.assign(hy, {
+  occasionBrowserKicker: 'Առիթներ',
+  occasionBrowserTitle: 'Կատալոգ ըստ առիթի'
+});
+
+Object.assign(en, {
+  occasionBrowserKicker: 'Occasions',
+  occasionBrowserTitle: 'Browse by occasion'
+});
+
+Object.assign(ru, {
+  occasionBrowserKicker: 'События',
+  occasionBrowserTitle: 'Выберите приглашение по случаю'
+});
+
+Object.assign(es, {
+  occasionBrowserKicker: 'Ocasiones',
+  occasionBrowserTitle: 'Elige según la ocasión'
+});
+
+Object.assign(fr, {
+  occasionBrowserKicker: 'Occasions',
+  occasionBrowserTitle: 'Choisissez selon l’occasion'
+});
+
+Object.assign(de, {
+  occasionBrowserKicker: 'Anlässe',
+  occasionBrowserTitle: 'Nach Anlass auswählen'
+});
+
+Object.assign(it, {
+  occasionBrowserKicker: 'Occasioni',
+  occasionBrowserTitle: 'Scegli per occasione'
+});
+
 export const translations = { hy, en, ru, es, fr, de, it };
