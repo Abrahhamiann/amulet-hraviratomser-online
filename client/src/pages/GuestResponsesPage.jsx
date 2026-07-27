@@ -149,7 +149,13 @@ export default function GuestResponsesPage() {
             <article className="guest-responses-hero">
               <div className="guest-responses-cover">
                 {imageSrc ? (
-                  <img src={imageSrc} alt={`${invitation.names} հրավիրատոմս`} />
+                  <img
+                    src={imageSrc}
+                    alt={`${invitation.names} հրավիրատոմս`}
+                    width="104"
+                    height="104"
+                    decoding="async"
+                  />
                 ) : (
                   <span>{String(invitation.names || 'A').charAt(0)}</span>
                 )}

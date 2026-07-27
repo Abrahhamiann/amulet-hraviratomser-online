@@ -240,7 +240,9 @@ export default function HomePage() {
   }, []);
 
   const staticFaqItems = t('faqItems');
-  const chatFaqItems = serverFaqLoaded ? serverFaqItems : staticFaqItems;
+  // Admin-managed FAQ content is currently stored in Armenian. Keep using it
+  // for Armenian, while every other locale uses its translated FAQ entries.
+  const chatFaqItems = language === 'hy' && serverFaqLoaded ? serverFaqItems : staticFaqItems;
   const roadmapSteps = t('roadmapSteps');
   const creationSteps = t('creationSteps');
   const eventTestimonials = t('eventTestimonials').map((item) => ({
@@ -284,6 +286,12 @@ export default function HomePage() {
       setDisplayedChatFaqIndex(null);
     }
   }, [chatFaqIndex, chatFaqItems.length]);
+
+  useEffect(() => {
+    setChatFaqIndex(null);
+    setDisplayedChatFaqIndex(null);
+    setChatTyping(false);
+  }, [language]);
 
   const toggleFaqChat = () => {
     const nextOpen = !faqChatOpen;
@@ -467,7 +475,7 @@ export default function HomePage() {
           <div className="faq-chatbot is-open" role="dialog" aria-label={`${t('brand')} ${t('faq')}`}>
             <div className="faq-chatbot-header">
               <span><Bot size={18} /> {t('faq')}</span>
-              <button type="button" onClick={() => setFaqChatOpen(false)} aria-label="Close FAQ chat"><X size={18} /></button>
+              <button type="button" onClick={() => setFaqChatOpen(false)} aria-label={`${t('close')} ${t('faq')}`}><X size={18} /></button>
             </div>
             <div className="faq-chatbot-body">
               <div className="faq-chatbot-greeting">
