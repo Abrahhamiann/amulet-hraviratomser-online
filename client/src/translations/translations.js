@@ -1577,37 +1577,65 @@ Object.assign(it, {
 
 Object.assign(hy, {
   occasionBrowserKicker: 'Առիթներ',
-  occasionBrowserTitle: 'Կատալոգ ըստ առիթի'
+  occasionBrowserTitle: 'Կատալոգ ըստ առիթի',
+  editRequiredTitle: 'Նախ խմբագրեք հրավերը',
+  editRequiredText: 'Պատվիրելուց առաջ լրացրեք անունները, օրը, ժամը և միջոցառման մյուս անհրաժեշտ մանրամասները։',
+  editRequiredAction: 'Խմբագրել հիմա',
+  editRequiredLater: 'Ավելի ուշ'
 });
 
 Object.assign(en, {
   occasionBrowserKicker: 'Occasions',
-  occasionBrowserTitle: 'Browse by occasion'
+  occasionBrowserTitle: 'Browse by occasion',
+  editRequiredTitle: 'Edit your invitation first',
+  editRequiredText: 'Before ordering, add the names, date, time, and the other details for your event.',
+  editRequiredAction: 'Edit now',
+  editRequiredLater: 'Maybe later'
 });
 
 Object.assign(ru, {
   occasionBrowserKicker: 'События',
-  occasionBrowserTitle: 'Выберите приглашение по случаю'
+  occasionBrowserTitle: 'Выберите приглашение по случаю',
+  editRequiredTitle: 'Сначала отредактируйте приглашение',
+  editRequiredText: 'Перед заказом укажите имена, дату, время и другие необходимые данные мероприятия.',
+  editRequiredAction: 'Редактировать',
+  editRequiredLater: 'Позже'
 });
 
 Object.assign(es, {
   occasionBrowserKicker: 'Ocasiones',
-  occasionBrowserTitle: 'Elige según la ocasión'
+  occasionBrowserTitle: 'Elige según la ocasión',
+  editRequiredTitle: 'Edita primero tu invitación',
+  editRequiredText: 'Antes de pedir, añade los nombres, la fecha, la hora y los demás datos del evento.',
+  editRequiredAction: 'Editar ahora',
+  editRequiredLater: 'Más tarde'
 });
 
 Object.assign(fr, {
   occasionBrowserKicker: 'Occasions',
-  occasionBrowserTitle: 'Choisissez selon l’occasion'
+  occasionBrowserTitle: 'Choisissez selon l’occasion',
+  editRequiredTitle: 'Modifiez d’abord votre invitation',
+  editRequiredText: 'Avant de commander, ajoutez les noms, la date, l’heure et les autres informations de l’événement.',
+  editRequiredAction: 'Modifier maintenant',
+  editRequiredLater: 'Plus tard'
 });
 
 Object.assign(de, {
   occasionBrowserKicker: 'Anlässe',
-  occasionBrowserTitle: 'Nach Anlass auswählen'
+  occasionBrowserTitle: 'Nach Anlass auswählen',
+  editRequiredTitle: 'Einladung zuerst bearbeiten',
+  editRequiredText: 'Ergänzen Sie vor der Bestellung Namen, Datum, Uhrzeit und die weiteren Veranstaltungsdetails.',
+  editRequiredAction: 'Jetzt bearbeiten',
+  editRequiredLater: 'Später'
 });
 
 Object.assign(it, {
   occasionBrowserKicker: 'Occasioni',
-  occasionBrowserTitle: 'Scegli per occasione'
+  occasionBrowserTitle: 'Scegli per occasione',
+  editRequiredTitle: 'Prima modifica il tuo invito',
+  editRequiredText: 'Prima di ordinare, aggiungi i nomi, la data, l’ora e gli altri dettagli dell’evento.',
+  editRequiredAction: 'Modifica ora',
+  editRequiredLater: 'Più tardi'
 });
 
 export const translations = { hy, en, ru, es, fr, de, it };

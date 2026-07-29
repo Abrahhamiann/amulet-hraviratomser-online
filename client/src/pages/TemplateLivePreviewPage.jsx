@@ -434,6 +434,76 @@ function SmartInvitationEditor({
   );
 }
 
+function EditRequiredModal({ onClose, onEdit, t }) {
+  const closeButtonRef = useRef(null);
+
+  useEffect(() => {
+    const previouslyFocused = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus?.();
+    };
+  }, [onClose]);
+
+  const startEditing = () => {
+    onClose();
+    onEdit();
+  };
+
+  return (
+    <div
+      className="edit-required-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <section
+        className="edit-required-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-required-title"
+        aria-describedby="edit-required-description"
+      >
+        <button
+          ref={closeButtonRef}
+          className="edit-required-close"
+          type="button"
+          onClick={onClose}
+          aria-label={t('close')}
+        >
+          <X size={20} />
+        </button>
+
+        <div className="edit-required-icon" aria-hidden="true">
+          <Pencil size={25} />
+        </div>
+        <h2 id="edit-required-title">{t('editRequiredTitle')}</h2>
+        <p id="edit-required-description">{t('editRequiredText')}</p>
+
+        <div className="edit-required-actions">
+          <button className="edit-required-primary" type="button" onClick={startEditing}>
+            <Pencil size={18} />
+            {t('editRequiredAction')}
+          </button>
+          <button className="edit-required-secondary" type="button" onClick={onClose}>
+            {t('editRequiredLater')}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 export default function TemplateLivePreviewPage() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -443,7 +513,7 @@ export default function TemplateLivePreviewPage() {
   const [draft, setDraft] = useState(null);
   const [isEdited, setIsEdited] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [warning, setWarning] = useState('');
+  const [editRequiredOpen, setEditRequiredOpen] = useState(false);
   const [state, setState] = useState('loading');
   const [checkoutState, setCheckoutState] = useState('idle');
   const [pendingColors, setPendingColors] = useState(defaultColors);
@@ -592,7 +662,6 @@ export default function TemplateLivePreviewPage() {
     event.preventDefault();
     commitColors();
     setIsEdited(true);
-    setWarning('');
     setEditing(false);
   };
 
@@ -605,11 +674,10 @@ export default function TemplateLivePreviewPage() {
 
   const orderTemplate = async () => {
     if (!isEdited) {
-      setWarning('Պատվիրելուց առաջ պարտադիր խմբագրեք հրավերի տվյալները։');
+      setEditRequiredOpen(true);
       return;
     }
 
-    setWarning('');
     setCheckoutState('loading');
     try {
       const cleanGallery = uniqueImages([draft.image, ...(draft.gallery || [])])
@@ -650,12 +718,6 @@ export default function TemplateLivePreviewPage() {
             onEdit={openEditor}
             onOrder={orderTemplate}
           />
-          {warning && (
-            <p className="template-live-warning" role="alert">
-              <AlertCircle size={18} />
-              {warning}
-            </p>
-          )}
           {checkoutState === 'error' && <p className="template-live-error">{t('checkoutError')}</p>}
         </>
       ) : (
@@ -731,14 +793,16 @@ export default function TemplateLivePreviewPage() {
             </button>
           </div>
         </section>
-        {warning && (
-          <p className="template-live-warning" role="alert">
-            <AlertCircle size={18} />
-            {warning}
-          </p>
-        )}
         {checkoutState === 'error' && <p className="template-live-error">{t('checkoutError')}</p>}
       </article>
+      )}
+
+      {editRequiredOpen && (
+        <EditRequiredModal
+          t={t}
+          onClose={() => setEditRequiredOpen(false)}
+          onEdit={openEditor}
+        />
       )}
 
       {editing && draft && (
