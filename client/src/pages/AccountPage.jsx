@@ -3,26 +3,76 @@ import {
   AlertTriangle,
   ArrowRight,
   CalendarDays,
+  CheckCircle2,
   Clock,
   LogOut,
   MapPin,
+  RefreshCw,
+  Send,
   Trash2,
-  Users
+  Unlink,
+  Users,
+  Wrench
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
+import telegramLogo from '../assets/telegram-logo.png';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
+
+const localeByLanguage = {
+  hy: 'hy-AM',
+  en: 'en-US',
+  ru: 'ru-RU',
+  es: 'es-ES',
+  fr: 'fr-FR',
+  de: 'de-DE',
+  it: 'it-IT'
+};
+
+const getInvitationImages = (order) => [...new Set([
+  ...(order?.invitationId?.gallery || []),
+  order?.templateId?.mainImage,
+  ...(order?.templateId?.gallery || [])
+]
+  .map(resolveTemplateImage)
+  .filter((image) => typeof image === 'string' && image.trim()))];
+
+function AccountInvitationPreview({ order, fallbackText }) {
+  const [imageIndex, setImageIndex] = useState(0);
+  const images = getInvitationImages(order);
+  const imageSrc = images[imageIndex] || '';
+
+  return (
+    <div className="account-invitation-preview" aria-hidden="true">
+      {imageSrc ? (
+        <img
+          key={imageSrc}
+          src={imageSrc}
+          alt=""
+          loading="lazy"
+          onError={() => setImageIndex((current) => current + 1)}
+        />
+      ) : (
+        <span>{String(fallbackText || 'A').charAt(0)}</span>
+      )}
+    </div>
+  );
+}
 
 export default function AccountPage() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [orders, setOrders] = useState([]);
   const [state, setState] = useState('loading');
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteState, setDeleteState] = useState('idle');
   const [deleteError, setDeleteError] = useState('');
+  const [telegramStatus, setTelegramStatus] = useState(null);
+  const [telegramState, setTelegramState] = useState('loading');
+  const [telegramError, setTelegramError] = useState('');
   const token = localStorage.getItem('userToken');
   const user = JSON.parse(localStorage.getItem('user') || 'null');
 
@@ -36,6 +86,51 @@ export default function AccountPage() {
       .catch(() => setState('error'));
   }, [token]);
 
+  const loadTelegramStatus = async ({ quiet = false } = {}) => {
+    if (!token) return;
+    if (!quiet) setTelegramState('loading');
+    try {
+      const { data } = await api.get('/telegram/status');
+      setTelegramStatus(data);
+      setTelegramState((current) => (current === 'linking' && !data.connected ? 'linking' : 'ready'));
+      setTelegramError('');
+    } catch {
+      setTelegramState('error');
+      setTelegramError(t('telegramStatusError'));
+    }
+  };
+
+  useEffect(() => {
+    loadTelegramStatus();
+    const handleFocus = () => loadTelegramStatus({ quiet: true });
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [token, language]);
+
+  useEffect(() => {
+    if (telegramState !== 'linking') return undefined;
+    const interval = window.setInterval(async () => {
+      try {
+        const { data } = await api.get('/telegram/status');
+        setTelegramStatus(data);
+        if (data.connected) {
+          setTelegramState('ready');
+          setTelegramError('');
+        }
+      } catch {
+        // Keep the current linking state; focus refresh offers another recovery path.
+      }
+    }, 3000);
+    const timeout = window.setTimeout(() => {
+      setTelegramState('ready');
+      setTelegramError(t('telegramLinkExpired'));
+    }, 10 * 60 * 1000);
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(timeout);
+    };
+  }, [telegramState, language]);
+
   if (!token) return <Navigate to="/login" replace />;
 
   const logout = () => {
@@ -47,14 +142,12 @@ export default function AccountPage() {
 
   const formatEventDate = (date) => {
     if (!date) return '';
-    return new Date(date).toLocaleDateString('hy-AM', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return new Date(date).toLocaleDateString(localeByLanguage[language] || localeByLanguage.en, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
-  const getInvitationImage = (order) => (
-    order?.templateId?.mainImage
-    || order?.templateId?.gallery?.[0]
-    || order?.invitationId?.gallery?.[0]
-    || ''
-  );
   const openDeleteModal = (order) => {
     setDeleteTarget(order);
     setDeleteState('idle');
@@ -79,6 +172,46 @@ export default function AccountPage() {
       setDeleteError(t('accountDeleteError'));
     }
   };
+  const connectTelegram = async () => {
+    setTelegramState('linking');
+    setTelegramError('');
+    const telegramWindow = window.open('about:blank', 'amulet-telegram-connect');
+    try {
+      const { data } = await api.post('/telegram/link', { language });
+      if (telegramWindow) {
+        telegramWindow.opener = null;
+        telegramWindow.location.replace(data.botUrl);
+      } else {
+        window.location.assign(data.botUrl);
+      }
+    } catch {
+      if (telegramWindow) telegramWindow.close();
+      setTelegramState('error');
+      setTelegramError(t('telegramConnectError'));
+    }
+  };
+  const openTelegramBot = () => {
+    if (telegramStatus?.botUrl) {
+      window.open(telegramStatus.botUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+  const disconnectTelegram = async () => {
+    if (!window.confirm(t('telegramDisconnectConfirm'))) return;
+    setTelegramState('disconnecting');
+    setTelegramError('');
+    try {
+      await api.delete('/telegram/disconnect');
+      await loadTelegramStatus({ quiet: true });
+    } catch {
+      setTelegramState('error');
+      setTelegramError(t('telegramDisconnectError'));
+    }
+  };
+  const telegramUnavailable = (
+    telegramStatus?.configured === false
+    || telegramStatus?.available === false
+    || telegramState === 'error'
+  );
 
   return (
     <section className="account-page">
@@ -91,11 +224,92 @@ export default function AccountPage() {
         </button>
       </div>
 
+      <section className={`account-telegram-connect${telegramStatus?.connected ? ' is-connected' : ''}${telegramUnavailable ? ' is-unavailable' : ''}`} aria-labelledby="telegram-connect-title">
+        <img className="account-telegram-logo" src={telegramLogo} alt="Telegram" />
+        <div className="account-telegram-copy">
+          <span className="account-telegram-kicker">Telegram</span>
+          <h2 id="telegram-connect-title">{t('telegramCardTitle')}</h2>
+          <p>
+            {telegramUnavailable
+              ? t('telegramMaintenanceDescription')
+              : telegramStatus?.connected
+                ? t('telegramConnectedDescription')
+                : t('telegramCardDescription')}
+          </p>
+          <span className={`account-telegram-status${telegramStatus?.connected ? ' is-connected' : ''}${telegramUnavailable ? ' is-unavailable' : ''}`} role="status">
+            {telegramUnavailable ? (
+              <>
+                <Wrench size={16} />
+                {t('telegramMaintenance')}
+              </>
+            ) : telegramState === 'loading' ? (
+              <>
+                <RefreshCw size={16} className="is-spinning" />
+                {t('telegramChecking')}
+              </>
+            ) : telegramStatus?.connected ? (
+              <>
+                <CheckCircle2 size={16} />
+                {t('telegramConnected')}
+                {telegramStatus.displayName ? ` · ${telegramStatus.displayName}` : ''}
+              </>
+            ) : (
+              <>
+                <span className="account-telegram-status-dot" aria-hidden="true" />
+                {t('telegramNotConnected')}
+              </>
+            )}
+          </span>
+          {telegramError && !telegramUnavailable && (
+            <span className="account-telegram-error" role="alert">{telegramError}</span>
+          )}
+        </div>
+        <div className="account-telegram-actions">
+          {telegramUnavailable ? (
+            <button className="account-telegram-secondary account-telegram-maintenance-btn" type="button" disabled>
+              <Wrench size={17} />
+              {t('telegramComingSoon')}
+            </button>
+          ) : telegramStatus?.connected ? (
+            <>
+              <button
+                className="account-telegram-primary"
+                type="button"
+                onClick={openTelegramBot}
+                disabled={!telegramStatus.botUrl || telegramState === 'disconnecting'}
+              >
+                <Send size={18} />
+                {t('telegramOpenBot')}
+              </button>
+              <button
+                className="account-telegram-secondary"
+                type="button"
+                onClick={disconnectTelegram}
+                disabled={telegramState === 'disconnecting'}
+              >
+                {telegramState === 'disconnecting' ? <RefreshCw size={17} className="is-spinning" /> : <Unlink size={17} />}
+                {telegramState === 'disconnecting' ? t('telegramDisconnecting') : t('telegramDisconnect')}
+              </button>
+            </>
+          ) : (
+            <button
+              className="account-telegram-primary"
+              type="button"
+              onClick={connectTelegram}
+              disabled={telegramState === 'loading' || telegramState === 'linking' || telegramStatus?.configured === false}
+            >
+              {telegramState === 'linking' ? <RefreshCw size={18} className="is-spinning" /> : <Send size={18} />}
+              {telegramState === 'linking' ? t('telegramWaitingForStart') : t('telegramConnect')}
+            </button>
+          )}
+        </div>
+      </section>
+
       <div className="account-panel">
         <div className="account-panel-head">
           <div>
             <h2>{t('accountInvitations')}</h2>
-            <p>Ձեր գնված հրավիրատոմսերը և հյուրերի պատասխանները</p>
+            <p>{t('accountSubtitle')}</p>
           </div>
           {state === 'ready' && orders.length > 0 && <span>{orders.length}</span>}
         </div>
@@ -107,16 +321,14 @@ export default function AccountPage() {
           <div className="account-invitation-list">
             {orders.map((order) => {
               const invitation = order.invitationId;
-              const imageSrc = getInvitationImage(order);
+              const invitationIdentifier = invitation?.slug || invitation?._id;
+              const invitationHref = invitationIdentifier ? `/invite/${invitationIdentifier}` : '';
               const invitationCard = (
-                <div className={invitation?.slug ? 'account-invitation-card' : 'account-invitation-card is-disabled'}>
-                  <div className="account-invitation-preview" aria-hidden="true">
-                    {imageSrc ? (
-                      <img src={imageSrc} alt="" loading="lazy" />
-                    ) : (
-                      <span>{String(order.mainNames || t('accountInvitations')).charAt(0)}</span>
-                    )}
-                  </div>
+                <div className={invitationHref ? 'account-invitation-card' : 'account-invitation-card is-disabled'}>
+                  <AccountInvitationPreview
+                    order={order}
+                    fallbackText={order.mainNames || t('accountInvitations')}
+                  />
                   <div className="account-invitation-copy">
                     <span>{t(order.eventType) || order.eventType}</span>
                     <strong>{order.mainNames}</strong>
@@ -125,7 +337,9 @@ export default function AccountPage() {
                       <em><Clock size={15} /> {order.eventTime}</em>
                     </div>
                     {order.eventLocation && <p><MapPin size={15} /> {order.eventLocation}</p>}
-                    {invitation?.slug ? <small>{t('accountViewInvitation')}</small> : <small>Հրավերը դեռ պատրաստ չէ</small>}
+                    {invitationHref
+                      ? <small>{t('accountViewInvitation')}</small>
+                      : <small>{t('accountInvitationPending')}</small>}
                   </div>
                 </div>
               );
@@ -141,8 +355,8 @@ export default function AccountPage() {
                     <Trash2 size={18} />
                   </button>
                   <div className="account-invitation-main">
-                    {invitation?.slug ? (
-                      <Link className="account-invitation-link" to={`/invite/${invitation.slug}`} aria-label={`${t('accountViewInvitation')}: ${order.mainNames}`}>
+                    {invitationHref ? (
+                      <Link className="account-invitation-link" to={invitationHref} aria-label={`${t('accountViewInvitation')}: ${order.mainNames}`}>
                         {invitationCard}
                       </Link>
                     ) : (
@@ -153,13 +367,13 @@ export default function AccountPage() {
                       <Link
                         className="account-guest-responses-link"
                         to={`/account/invitations/${invitation._id}/responses`}
-                        aria-label={`Հյուրերի պատասխանները՝ ${order.mainNames}`}
+                        aria-label={`${t('accountGuestResponses')}: ${order.mainNames}`}
                       >
                         <span>
                           <Users size={20} />
                           <span>
-                            <strong>Հյուրերի պատասխանները</strong>
-                            <small>Դիտել անունները, մասնակցությունը և բոլոր տվյալները</small>
+                            <strong>{t('accountGuestResponses')}</strong>
+                            <small>{t('accountGuestResponsesDescription')}</small>
                           </span>
                         </span>
                         <ArrowRight size={20} />

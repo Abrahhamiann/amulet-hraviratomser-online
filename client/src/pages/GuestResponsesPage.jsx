@@ -14,29 +14,40 @@ import {
 } from 'lucide-react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import api from '../api/axios.js';
+import { useLanguage } from '../context/LanguageContext.jsx';
 import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
 
 const statusMeta = {
   attending: {
-    label: 'Գալու է',
+    translationKey: 'attending',
     icon: CheckCircle2
   },
   declined: {
-    label: 'Չի գալու',
+    translationKey: 'declined',
     icon: XCircle
   },
   unsure: {
-    label: 'Դեռ վստահ չէ',
+    translationKey: 'unsure',
     icon: HelpCircle
   }
 };
 
-const formatDate = (value, withTime = false) => {
+const localeByLanguage = {
+  hy: 'hy-AM',
+  en: 'en-US',
+  ru: 'ru-RU',
+  es: 'es-ES',
+  fr: 'fr-FR',
+  de: 'de-DE',
+  it: 'it-IT'
+};
+
+const formatDate = (value, language, withTime = false) => {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
 
-  return date.toLocaleDateString('hy-AM', {
+  return date.toLocaleDateString(localeByLanguage[language] || localeByLanguage.en, {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
@@ -58,16 +69,17 @@ const isBaptismInvitation = (invitation) => [
   invitation?.orderId?.templateId?.slug
 ].map(normalizeKey).some((value) => value.includes('baptism'));
 
-const getGuestSideLabel = (side, isBaptism) => {
+const getGuestSideLabel = (side, isBaptism, t) => {
   const labels = isBaptism
-    ? { bride: 'Ընտանիքի հյուր', groom: 'Կնքահոր / կնքամոր հյուր', other: '' }
-    : { bride: 'Հարսի կողմ', groom: 'Փեսայի կողմ', other: '' };
+    ? { bride: t('guestResponsesFamilyGuest'), groom: t('guestResponsesGodparentGuest'), other: '' }
+    : { bride: t('guestResponsesBrideSide'), groom: t('guestResponsesGroomSide'), other: '' };
 
   return labels[side] || '';
 };
 
 export default function GuestResponsesPage() {
   const { invitationId } = useParams();
+  const { language, t } = useLanguage();
   const [state, setState] = useState('loading');
   const [details, setDetails] = useState(null);
   const [activeFilter, setActiveFilter] = useState('all');
@@ -125,22 +137,22 @@ export default function GuestResponsesPage() {
       <div className="guest-responses-shell">
         <Link className="guest-responses-back" to="/account">
           <ArrowLeft size={19} />
-          Վերադառնալ իմ հրավիրատոմսերին
+          {t('guestResponsesBack')}
         </Link>
 
         {state === 'loading' && (
           <div className="guest-responses-state" role="status">
             <span className="guest-responses-loader" />
-            <p>Բեռնվում են հյուրերի պատասխանները...</p>
+            <p>{t('guestResponsesLoading')}</p>
           </div>
         )}
 
         {state === 'error' && (
           <div className="guest-responses-state is-error" role="alert">
             <XCircle size={34} />
-            <h1>Չհաջողվեց բացել տվյալները</h1>
-            <p>Խնդրում ենք թարմացնել էջը կամ վերադառնալ Profile։</p>
-            <Link to="/account">Վերադառնալ Profile</Link>
+            <h1>{t('guestResponsesErrorTitle')}</h1>
+            <p>{t('guestResponsesErrorText')}</p>
+            <Link to="/account">{t('guestResponsesErrorBack')}</Link>
           </div>
         )}
 
@@ -151,7 +163,7 @@ export default function GuestResponsesPage() {
                 {imageSrc ? (
                   <img
                     src={imageSrc}
-                    alt={`${invitation.names} հրավիրատոմս`}
+                    alt={t('guestResponsesInvitationAlt').replace('{name}', invitation.names || '')}
                     width="104"
                     height="104"
                     decoding="async"
@@ -161,17 +173,17 @@ export default function GuestResponsesPage() {
                 )}
               </div>
               <div className="guest-responses-event">
-                <span className="guest-responses-eyebrow">{template?.title || 'Հրավիրատոմս'}</span>
+                <span className="guest-responses-eyebrow">{template?.title || t('guestResponsesInvitation')}</span>
                 <h1>{invitation.names}</h1>
                 {invitation.message && <p>{invitation.message}</p>}
                 <div className="guest-responses-event-meta">
-                  <span><CalendarDays size={18} /> {formatDate(invitation.date)}</span>
+                  <span><CalendarDays size={18} /> {formatDate(invitation.date, language)}</span>
                   <span><Clock size={18} /> {invitation.time}</span>
                   <span><MapPin size={18} /> {invitation.location}</span>
                 </div>
                 {invitation.slug && (
                   <Link className="guest-responses-invitation-link" to={`/invite/${invitation.slug}`}>
-                    Դիտել հրավիրատոմսը
+                    {t('accountViewInvitation')}
                     <ExternalLink size={17} />
                   </Link>
                 )}
@@ -181,45 +193,45 @@ export default function GuestResponsesPage() {
             <div className="guest-responses-heading">
               <div>
                 <span>RSVP</span>
-                <h2>Հյուրերի պատասխանները</h2>
-                <p>Այստեղ հավաքված են հյուրերի մասնակցության բոլոր տվյալները։</p>
+                <h2>{t('accountGuestResponses')}</h2>
+                <p>{t('guestResponsesDescription')}</p>
               </div>
               <strong>{summary.responses}</strong>
             </div>
 
-            <div className="guest-responses-summary" aria-label="Հյուրերի պատասխանների ամփոփում">
+            <div className="guest-responses-summary" aria-label={t('guestResponsesSummaryLabel')}>
               <article className="is-attending">
                 <Users size={22} />
-                <span>Գալիս են</span>
+                <span>{t('guestResponsesAttending')}</span>
                 <strong>{summary.attending}</strong>
-                <small>ընդհանուր հյուր</small>
+                <small>{t('guestResponsesGuests')}</small>
               </article>
               <article className="is-declined">
                 <XCircle size={22} />
-                <span>Չեն գալիս</span>
+                <span>{t('guestResponsesDeclined')}</span>
                 <strong>{summary.declined}</strong>
-                <small>պատասխան</small>
+                <small>{t('guestResponsesReplies')}</small>
               </article>
               <article className="is-unsure">
                 <HelpCircle size={22} />
-                <span>Վստահ չեն</span>
+                <span>{t('guestResponsesUnsure')}</span>
                 <strong>{summary.unsure}</strong>
-                <small>պատասխան</small>
+                <small>{t('guestResponsesReplies')}</small>
               </article>
               <article className="is-total">
                 <MessageSquare size={22} />
-                <span>Ընդհանուր</span>
+                <span>{t('guestResponsesTotal')}</span>
                 <strong>{summary.responses}</strong>
-                <small>պատասխան</small>
+                <small>{t('guestResponsesReplies')}</small>
               </article>
             </div>
 
-            <div className="guest-responses-filters" role="group" aria-label="Ֆիլտրել պատասխանները">
+            <div className="guest-responses-filters" role="group" aria-label={t('guestResponsesFilterLabel')}>
               {[
-                ['all', 'Բոլորը', summary.responses],
-                ['attending', 'Գալու են', rsvps.filter((item) => item.status === 'attending').length],
-                ['declined', 'Չեն գալու', summary.declined],
-                ['unsure', 'Վստահ չեն', summary.unsure]
+                ['all', t('guestResponsesAll'), summary.responses],
+                ['attending', t('guestResponsesAttending'), rsvps.filter((item) => item.status === 'attending').length],
+                ['declined', t('guestResponsesDeclined'), summary.declined],
+                ['unsure', t('guestResponsesUnsure'), summary.unsure]
               ].map(([value, label, count]) => (
                 <button
                   className={activeFilter === value ? 'is-active' : ''}
@@ -237,20 +249,20 @@ export default function GuestResponsesPage() {
             {rsvps.length === 0 ? (
               <div className="guest-responses-empty">
                 <Users size={34} />
-                <h3>Դեռ պատասխաններ չկան</h3>
-                <p>Հյուրերի պատասխանները կհայտնվեն այստեղ՝ լրացնելուց անմիջապես հետո։</p>
+                <h3>{t('guestResponsesEmptyTitle')}</h3>
+                <p>{t('guestResponsesEmptyText')}</p>
               </div>
             ) : visibleRsvps.length === 0 ? (
               <div className="guest-responses-empty">
-                <h3>Այս խմբում պատասխաններ չկան</h3>
-                <button type="button" onClick={() => setActiveFilter('all')}>Ցույց տալ բոլորը</button>
+                <h3>{t('guestResponsesFilterEmptyTitle')}</h3>
+                <button type="button" onClick={() => setActiveFilter('all')}>{t('guestResponsesShowAll')}</button>
               </div>
             ) : (
               <div className="guest-response-grid">
                 {visibleRsvps.map((rsvp) => {
                   const info = statusMeta[rsvp.status] || statusMeta.unsure;
                   const StatusIcon = info.icon;
-                  const guestSide = getGuestSideLabel(rsvp.guestSide, isBaptism);
+                  const guestSide = getGuestSideLabel(rsvp.guestSide, isBaptism, t);
 
                   return (
                     <article className={`guest-response-card is-${rsvp.status || 'unsure'}`} key={rsvp._id}>
@@ -260,16 +272,19 @@ export default function GuestResponsesPage() {
                         </span>
                         <div>
                           <h3>{rsvp.guestName}</h3>
-                          <span>{formatDate(rsvp.createdAt, true)}</span>
+                          <span>{formatDate(rsvp.createdAt, language, true)}</span>
                         </div>
                         <strong>
                           <StatusIcon size={16} />
-                          {info.label}
+                          {t(info.translationKey)}
                         </strong>
                       </div>
 
                       <div className="guest-response-details">
-                        <span><Users size={17} /> {Number(rsvp.guestCount || 1)} հյուր</span>
+                        <span>
+                          <Users size={17} />
+                          {t('guestResponsesGuestCount').replace('{count}', Number(rsvp.guestCount || 1))}
+                        </span>
                         {guestSide && <span><CheckCircle2 size={17} /> {guestSide}</span>}
                         <a href={`tel:${rsvp.phone}`}><Phone size={17} /> {rsvp.phone}</a>
                       </div>

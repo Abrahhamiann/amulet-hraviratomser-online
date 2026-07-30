@@ -54,7 +54,12 @@ const PUBLIC_DESIGN_KEYS = ['midnight-vows', 'baptism-blessing', 'engagement-ser
 const normalizeDraft = (draft, template) => {
   const source = draft && typeof draft === 'object' ? draft : {};
   const sourceGallery = Array.isArray(source.gallery) ? source.gallery : [];
-  const gallery = uniqueImages([source.image, ...sourceGallery])
+  const templateImage = template.mainImage || template.gallery?.[0] || '';
+  const requestedImage = String(source.image || '').trim();
+  const image = isAllowedImage(requestedImage)
+    ? requestedImage
+    : (isAllowedImage(templateImage) ? templateImage : '');
+  const gallery = uniqueImages([image, ...sourceGallery, templateImage])
     .filter(isAllowedImage)
     .slice(0, 8);
   const mapLinks = normalizeMapLinks(source);
@@ -67,7 +72,7 @@ const normalizeDraft = (draft, template) => {
     mapLink: mapLinks[0]?.url || '',
     mapLinks,
     eventMessage: metadataText(source.eventMessage, template.description, 420),
-    image: metadataText(source.image, template.mainImage || template.gallery?.[0] || '', 2500000),
+    image,
     gallery,
     colors: normalizeColors(source.colors)
   };
@@ -211,8 +216,10 @@ export const confirmCheckoutSession = asyncHandler(async (req, res) => {
   const draftGallery = Array.isArray(draftData.gallery) ? draftData.gallery : [];
   const gallery = uniqueImages([
     draftData.image,
-    ...draftGallery
-  ]).filter(isAllowedImage);
+    ...draftGallery,
+    template.mainImage,
+    ...(template.gallery || [])
+  ]).filter(isAllowedImage).slice(0, 8);
 
   const order = await Order.create({
     fullName: req.user.name || req.user.email,

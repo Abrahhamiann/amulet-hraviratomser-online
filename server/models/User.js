@@ -11,10 +11,28 @@ const userSchema = new mongoose.Schema(
     googleId: { type: String },
     isEmailVerified: { type: Boolean, default: false },
     emailVerificationToken: { type: String, select: false },
-    emailVerificationExpires: { type: Date, select: false }
+    emailVerificationExpires: { type: Date, select: false },
+    telegram: {
+      chatId: { type: String, default: '' },
+      userId: { type: String, default: '' },
+      username: { type: String, default: '' },
+      firstName: { type: String, default: '' },
+      language: {
+        type: String,
+        enum: ['hy', 'en', 'ru', 'es', 'fr', 'de', 'it'],
+        default: 'hy'
+      },
+      notificationsEnabled: { type: Boolean, default: true },
+      connectedAt: { type: Date, default: null }
+    },
+    telegramLinkTokenHash: { type: String, select: false, default: '' },
+    telegramLinkExpires: { type: Date, select: false, default: null },
+    telegramLinkLanguage: { type: String, select: false, default: 'hy' }
   },
   { timestamps: true }
 );
+
+userSchema.index({ 'telegram.chatId': 1 }, { sparse: true });
 
 userSchema.pre('save', async function hashPassword(next) {
   if (!this.isModified('password') || !this.password) return next();

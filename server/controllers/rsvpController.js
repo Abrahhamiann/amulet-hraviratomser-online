@@ -1,10 +1,25 @@
 import asyncHandler from 'express-async-handler';
 import Invitation from '../models/Invitation.js';
 import RSVP from '../models/RSVP.js';
+import { notifyInvitationOwnerOfRsvp } from '../utils/telegram.js';
 
 export const createRSVP = asyncHandler(async (req, res) => {
+  const invitation = await Invitation.findById(req.params.invitationId);
+  if (!invitation) {
+    res.status(404);
+    throw new Error('Invitation not found');
+  }
   const rsvp = await RSVP.create({ ...req.body, invitationId: req.params.invitationId });
   res.status(201).json(rsvp);
+
+  try {
+    const delivered = await notifyInvitationOwnerOfRsvp(invitation, rsvp);
+    if (!delivered) {
+      console.warn(`Telegram RSVP notification was not delivered for invitation ${invitation._id}`);
+    }
+  } catch (error) {
+    console.error('Telegram RSVP notification failed:', error.message);
+  }
 });
 
 export const getRSVPs = asyncHandler(async (req, res) => {

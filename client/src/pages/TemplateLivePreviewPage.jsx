@@ -136,27 +136,50 @@ const createInitialDraft = (template) => {
   };
 };
 
+const MAX_STORED_IMAGE_LENGTH = 1400000;
+
 const fileToGalleryImage = (file) => new Promise((resolve, reject) => {
   const reader = new FileReader();
   reader.onerror = reject;
   reader.onload = () => {
-    if (file.size <= 2300000) {
-      resolve(String(reader.result || ''));
+    const originalDataUrl = String(reader.result || '');
+    if (originalDataUrl.length <= MAX_STORED_IMAGE_LENGTH) {
+      resolve(originalDataUrl);
       return;
     }
 
     const img = new Image();
     img.onerror = reject;
     img.onload = () => {
-      const maxSize = 2400;
-      const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
       const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, Math.round(img.width * scale));
-      canvas.height = Math.max(1, Math.round(img.height * scale));
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL('image/jpeg', 0.96));
+      const context = canvas.getContext('2d');
+      let maxSize = 2200;
+      let quality = .9;
+
+      for (let attempt = 0; attempt < 10; attempt += 1) {
+        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const compressed = canvas.toDataURL('image/jpeg', quality);
+        if (compressed.length <= MAX_STORED_IMAGE_LENGTH) {
+          resolve(compressed);
+          return;
+        }
+
+        if (quality > .58) quality -= .1;
+        else {
+          maxSize = Math.round(maxSize * .82);
+          quality = .78;
+        }
+      }
+
+      reject(new Error('Image could not be compressed enough to save'));
     };
-    img.src = reader.result;
+    img.src = originalDataUrl;
   };
   reader.readAsDataURL(file);
 });
@@ -633,14 +656,14 @@ export default function TemplateLivePreviewPage() {
   const updateImages = async (event) => {
     const occasionTemplateKey = getOccasionTemplate(template)?.key;
     const isSingleImageTemplate = occasionTemplateKey === 'midnight-vows';
-    const files = Array.from(event.target.files || []).slice(0, isSingleImageTemplate ? 1 : 10);
+    const files = Array.from(event.target.files || []).slice(0, isSingleImageTemplate ? 1 : 8);
     if (!files.length) return;
 
     const images = await Promise.all(files.map(fileToGalleryImage));
     setDraft((current) => {
       if (isSingleImageTemplate) return { ...current, image: images[0], gallery: [images[0]] };
 
-      const gallery = withoutEnvelopeImages(uniqueImages([...images, ...(current.gallery || [])])).slice(0, 12);
+      const gallery = withoutEnvelopeImages(uniqueImages([...images, ...(current.gallery || [])])).slice(0, 8);
       return { ...current, image: images[0], gallery };
     });
   };
