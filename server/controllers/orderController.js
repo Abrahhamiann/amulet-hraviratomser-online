@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import Invitation from '../models/Invitation.js';
 import Order from '../models/Order.js';
 import RSVP from '../models/RSVP.js';
+import { notifyAdminsOfOrder } from '../utils/adminTelegram.js';
 
 const normalizeDateValue = (value) => {
   if (!value) return value;
@@ -29,6 +30,11 @@ export const createOrder = asyncHandler(async (req, res) => {
   }
 
   const order = await Order.create(payload);
+  await order.populate('templateId invitationId');
+  const notification = await notifyAdminsOfOrder(order);
+  if (notification.configured && notification.failed) {
+    console.error(`Order ${order._id}: ${notification.failed} Telegram admin notification(s) failed`);
+  }
   res.status(201).json(order);
 });
 
@@ -48,17 +54,6 @@ export const getOrder = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Order not found');
   }
-  res.json(order);
-});
-
-export const updateOrderStatus = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id);
-  if (!order) {
-    res.status(404);
-    throw new Error('Order not found');
-  }
-  order.status = req.body.status;
-  await order.save();
   res.json(order);
 });
 

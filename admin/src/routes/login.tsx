@@ -38,7 +38,7 @@ function LoginPage() {
       await login(email, password);
       nav({ to: "/admin" });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sign in failed");
+      setError(err instanceof Error ? err.message : t("signInFailed"));
     } finally {
       setLoading(false);
     }
@@ -54,15 +54,15 @@ function LoginPage() {
           <div className="font-display text-2xl">Amulet</div>
         </div>
         <div className="relative z-10">
-          <div className="text-[10px] uppercase tracking-[0.28em] opacity-80">Admin Panel</div>
+          <div className="text-[10px] uppercase tracking-[0.28em] opacity-80">{t("adminPanel")}</div>
           <h1 className="font-display text-5xl leading-tight mt-4 max-w-md">
-            Craft unforgettable moments with elegant digital invitations.
+            {t("marketingHeadline")}
           </h1>
           <p className="mt-4 max-w-md text-white/85">
-            Manage weddings, engagements, baptisms, birthdays, and corporate events from one refined workspace.
+            {t("marketingBody")}
           </p>
         </div>
-        <div className="text-xs text-white/70">© {new Date().getFullYear()} Amulet. All rights reserved.</div>
+        <div className="text-xs text-white/70">© {new Date().getFullYear()} Amulet. {t("rightsReserved")}</div>
       </div>
 
       <div className="flex items-center justify-center p-6 md:p-12">
@@ -101,7 +101,7 @@ function LoginPage() {
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">{t("password")}</Label>
                 <Link to="/forgot-password" className="text-xs text-[color:var(--gold)] hover:underline">
-                  Forgot password?
+                  {t("forgotPassword")}
                 </Link>
               </div>
               <div className="relative">
@@ -116,6 +116,7 @@ function LoginPage() {
                   type="button"
                   onClick={() => setShow((value) => !value)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  aria-label={t("showPassword")}
                 >
                   {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -132,7 +133,7 @@ function LoginPage() {
             <Button type="submit" disabled={loading} className="w-full gold-gradient border-0 text-white h-11 rounded-xl">
               {loading ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Signing in...
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("signingIn")}
                 </>
               ) : (
                 t("signIn")
@@ -141,7 +142,7 @@ function LoginPage() {
           </form>
 
           <p className="text-xs text-center text-muted-foreground mt-6">
-            Protected by Amulet security. Sessions expire after 24h of inactivity.
+            {t("sessionSecurity")}
           </p>
         </Card>
       </div>

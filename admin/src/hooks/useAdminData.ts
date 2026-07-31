@@ -21,10 +21,6 @@ export const useInvitations = () => useAdminData("invitations", adminApi.invitat
 export const useCustomers = () => useAdminData("customers", adminApi.customers, []);
 export const usePayments = () => useAdminData("payments", adminApi.payments, []);
 export const useMessages = () => useAdminData("messages", adminApi.messages, []);
-export const useCategories = () => useAdminData("categories", adminApi.categories, []);
-export const useLanguages = () => useAdminData("languages", adminApi.languages, []);
 export const useAdministrators = () => useAdminData("administrators", adminApi.administrators, []);
 export const useNotifications = () => useAdminData("notifications", adminApi.notifications, []);
 export const useFaq = () => useAdminData("faq", adminApi.faq, { items: [] });
-export const useReviews = () => useAdminData("reviews", adminApi.reviews, []);
-export const useSettings = () => useAdminData("settings", adminApi.settings, null);

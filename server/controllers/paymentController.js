@@ -4,6 +4,7 @@ import Invitation from '../models/Invitation.js';
 import InvitationDraft from '../models/InvitationDraft.js';
 import Order from '../models/Order.js';
 import Template from '../models/Template.js';
+import { notifyAdminsOfOrder } from '../utils/adminTelegram.js';
 
 let stripeClient = null;
 
@@ -264,6 +265,11 @@ export const confirmCheckoutSession = asyncHandler(async (req, res) => {
   await order.save();
   if (checkoutDraft) await InvitationDraft.deleteOne({ _id: checkoutDraft._id });
   await order.populate('templateId invitationId');
+
+  const notification = await notifyAdminsOfOrder(order, { paidPurchase: true });
+  if (notification.configured && notification.failed) {
+    console.error(`Purchase ${order._id}: ${notification.failed} Telegram admin notification(s) failed`);
+  }
 
   res.status(201).json(order);
 });

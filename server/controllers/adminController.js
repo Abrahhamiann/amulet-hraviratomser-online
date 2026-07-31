@@ -3,11 +3,11 @@ import ContactMessage from '../models/ContactMessage.js';
 import Invitation from '../models/Invitation.js';
 import Order from '../models/Order.js';
 import RSVP from '../models/RSVP.js';
-import Review from '../models/Review.js';
 import Setting from '../models/Setting.js';
 import Template from '../models/Template.js';
 import User from '../models/User.js';
 import { emailShell, sendMail } from '../utils/mailer.js';
+import { deliverContactReply } from '../utils/contactReply.js';
 import { makeSlug } from '../utils/slug.js';
 
 const categoryLabels = {
@@ -17,16 +17,6 @@ const categoryLabels = {
   corporate: 'Corporate',
   engagement: 'Engagement'
 };
-
-const supportedLanguages = [
-  { code: 'hy', name: 'Armenian', nativeName: 'Հայերեն' },
-  { code: 'en', name: 'English', nativeName: 'English' },
-  { code: 'ru', name: 'Russian', nativeName: 'Русский' },
-  { code: 'es', name: 'Spanish', nativeName: 'Español' },
-  { code: 'fr', name: 'French', nativeName: 'Français' },
-  { code: 'de', name: 'German', nativeName: 'Deutsch' },
-  { code: 'it', name: 'Italian', nativeName: 'Italiano' }
-];
 
 const adminRoles = ['admin', 'super_admin'];
 const userRoles = ['user', ...adminRoles];
@@ -69,13 +59,15 @@ const assertSuperAdmin = (req, res) => {
   }
 };
 
-const orderAmount = (order) => Number(order.templateId?.price || 0);
+const orderAmount = (order) => Number(order.amount) || Number(order.templateId?.price) || 0;
 
 const paymentStatus = (status) => {
-  if (status === 'completed') return 'paid';
-  if (status === 'cancelled') return 'failed';
+  if (status === 'paid') return 'paid';
+  if (status === 'refunded') return 'refunded';
   return 'pending';
 };
+
+const paymentMethod = (order) => order.stripeSessionId ? 'Stripe' : 'Manual';
 
 const clampNumber = (value, min, max, fallback) => {
   const number = Number(value);
@@ -102,7 +94,7 @@ const buildMonthlyData = (orders) => {
   const now = new Date();
   const months = Array.from({ length: 12 }, (_, index) => {
     const date = new Date(now.getFullYear(), now.getMonth() - 11 + index, 1);
-    return { key: monthKey(date), month: shortMonth(date), revenue: 0, orders: 0 };
+    return { key: monthKey(date), month: shortMonth(date), monthIndex: date.getMonth(), revenue: 0, orders: 0 };
   });
   const lookup = new Map(months.map((item) => [item.key, item]));
 
@@ -117,8 +109,6 @@ const buildMonthlyData = (orders) => {
   return months.map(({ key, ...item }) => item);
 };
 
-const emptyMonthlyData = () => buildMonthlyData([]);
-
 const periodStart = (period) => {
   const now = new Date();
   if (period === 'today') return new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -128,7 +118,6 @@ const periodStart = (period) => {
 };
 
 const filterByPeriod = (items, period) => {
-  if (period === 'zero') return [];
   const start = periodStart(period);
   if (!start) return items;
   return items.filter((item) => new Date(item.createdAt) >= start);
@@ -144,9 +133,8 @@ const mapOrder = (order) => ({
   eventType: order.eventType,
   template: order.templateId?.title || '',
   amount: orderAmount(order),
-  method: 'Manual',
-  payment: paymentStatus(order.status),
-  status: order.status,
+  method: paymentMethod(order),
+  payment: paymentStatus(order.paymentStatus),
   date: order.createdAt,
   eventDate: order.eventDate,
   eventTime: order.eventTime,
@@ -187,7 +175,7 @@ const mapInvitation = (invitation) => ({
   template: invitation.templateId?.title || 'Custom',
   language: String(invitation.language || 'hy').toUpperCase(),
   eventDate: invitation.date,
-  payment: paymentStatus(invitation.orderId?.status),
+  payment: paymentStatus(invitation.orderId?.paymentStatus),
   status: invitation.isPublished ? 'published' : 'draft',
   slug: invitation.slug,
   createdAt: invitation.createdAt
@@ -196,24 +184,24 @@ const mapInvitation = (invitation) => ({
 const buildNotifications = ({ orders, messages, invitations }) => {
   const orderItems = orders.slice(0, 4).map((order) => ({
     id: `order-${order._id}`,
-    title: 'New order',
-    desc: `${order.fullName} ordered ${order.mainNames}`,
+    customer: order.fullName,
+    invitation: order.mainNames,
     time: order.createdAt,
-    read: order.status !== 'new',
+    read: order.paymentStatus === 'paid',
     type: 'order'
   }));
   const messageItems = messages.slice(0, 4).map((message) => ({
     id: `message-${message._id}`,
-    title: 'Contact message',
-    desc: `${message.name}: ${message.message}`,
+    customer: message.name,
+    message: message.message,
     time: message.createdAt,
-    read: false,
+    read: Boolean(message.repliedAt),
     type: 'message'
   }));
   const invitationItems = invitations.slice(0, 4).map((invitation) => ({
     id: `invitation-${invitation._id}`,
-    title: invitation.isPublished ? 'Invitation published' : 'Invitation draft',
-    desc: invitation.names,
+    invitation: invitation.names,
+    published: invitation.isPublished,
     time: invitation.createdAt,
     read: invitation.isPublished,
     type: 'invitation'
@@ -248,7 +236,7 @@ export const getPublicFaq = asyncHandler(async (req, res) => {
 });
 
 export const getAdminDashboard = asyncHandler(async (req, res) => {
-  const period = ['zero', 'today', 'week', 'year', 'all'].includes(req.query.period) ? req.query.period : 'all';
+  const period = ['today', 'week', 'year', 'all'].includes(req.query.period) ? req.query.period : 'all';
   const [templates, orders, invitations, rsvps, messages, users] = await Promise.all([
     Template.find({ designKey: { $in: PUBLIC_DESIGN_KEYS } }).sort({ createdAt: -1 }),
     Order.find().populate('templateId').sort({ createdAt: -1 }),
@@ -262,10 +250,11 @@ export const getAdminDashboard = asyncHandler(async (req, res) => {
   const periodMessages = filterByPeriod(messages, period);
   const periodRsvps = filterByPeriod(rsvps, period);
   const periodUsers = filterByPeriod(users, period);
-  const visibleTemplates = period === 'zero' ? [] : templates;
+  const visibleTemplates = templates;
 
-  const revenue = periodOrders.reduce((sum, order) => sum + orderAmount(order), 0);
-  const pendingOrders = periodOrders.filter((order) => ['new', 'in_progress'].includes(order.status)).length;
+  const paidPeriodOrders = periodOrders.filter((order) => order.paymentStatus === 'paid');
+  const revenue = paidPeriodOrders.reduce((sum, order) => sum + orderAmount(order), 0);
+  const pendingOrders = periodOrders.filter((order) => order.paymentStatus !== 'paid').length;
   const templateUsage = periodOrders.reduce((map, order) => {
     const id = order.templateId?._id ? String(order.templateId._id) : null;
     if (id) map.set(id, (map.get(id) || 0) + 1);
@@ -286,16 +275,19 @@ export const getAdminDashboard = asyncHandler(async (req, res) => {
       invitations: periodInvitations.length,
       customers: periodUsers.length,
       pendingOrders,
-      unreadMessages: periodMessages.length,
+      unreadMessages: periodMessages.filter((message) => !message.repliedAt).length,
       rsvps: periodRsvps.length
     },
     period,
-    revenueByMonth: period === 'zero' ? emptyMonthlyData() : buildMonthlyData(periodOrders),
+    revenueByMonth: buildMonthlyData(paidPeriodOrders),
     categoryDistribution: Array.from(categoryCounts, ([name, count]) => ({
       name,
       value: Math.round((count / categoryTotal) * 100)
     })),
-    paymentMethodStats: [{ name: 'Manual', value: periodOrders.length }],
+    paymentMethodStats: ['Stripe', 'Manual'].map((name) => ({
+      name,
+      value: periodOrders.filter((order) => paymentMethod(order) === name).length
+    })).filter((item) => item.value > 0),
     latestOrders: periodOrders.slice(0, 6).map(mapOrder),
     topTemplates: visibleTemplates
       .map((template) => mapTemplate(template, templateUsage.get(String(template._id)) || 0))
@@ -388,8 +380,8 @@ export const getAdminPayments = asyncHandler(async (req, res) => {
     customer: order.fullName,
     order: String(order._id),
     amount: orderAmount(order),
-    method: 'Manual',
-    status: paymentStatus(order.status),
+    method: paymentMethod(order),
+    status: paymentStatus(order.paymentStatus),
     date: order.createdAt
   })));
 });
@@ -401,35 +393,11 @@ export const getAdminMessages = asyncHandler(async (req, res) => {
     name: message.name,
     email: message.email,
     phone: message.phone,
-    subject: 'Contact request',
     message: message.message,
-    priority: 'normal',
     read: Boolean(message.repliedAt),
     date: message.createdAt,
     replies: message.replies || [],
     repliedAt: message.repliedAt
-  })));
-});
-
-export const getAdminCategories = asyncHandler(async (req, res) => {
-  const [templates, orders] = await Promise.all([Template.find({ designKey: { $in: PUBLIC_DESIGN_KEYS } }), Order.find()]);
-  res.json(Object.entries(categoryLabels).map(([key, name]) => ({
-    id: key,
-    name,
-    slug: key,
-    templates: templates.filter((template) => template.category === key).length,
-    orders: orders.filter((order) => order.eventType === key).length,
-    status: 'active'
-  })));
-});
-
-export const getAdminLanguages = asyncHandler(async (req, res) => {
-  const [templates, orders] = await Promise.all([Template.countDocuments({ designKey: { $in: PUBLIC_DESIGN_KEYS } }), Order.find()]);
-  res.json(supportedLanguages.map((language) => ({
-    ...language,
-    templates,
-    orders: orders.filter((order) => order.preferredLanguage === language.code).length,
-    status: 'active'
   })));
 });
 
@@ -442,10 +410,7 @@ export const getAdminAdministrators = asyncHandler(async (req, res) => {
     role: admin.role,
     status: admin.isEmailVerified ? 'active' : 'pending',
     joined: admin.createdAt,
-    lastActive: admin.updatedAt,
-    permissions: admin.role === 'super_admin'
-      ? ['View', 'Create', 'Edit', 'Delete', 'Publish', 'Manage payments', 'Manage admins']
-      : ['View', 'Create', 'Edit', 'Delete', 'Publish']
+    lastActive: admin.updatedAt
   })));
 });
 
@@ -456,38 +421,6 @@ export const getAdminNotifications = asyncHandler(async (req, res) => {
     Invitation.find().sort({ createdAt: -1 }).limit(10)
   ]);
   res.json(buildNotifications({ orders, messages, invitations }));
-});
-
-export const getAdminReviews = asyncHandler(async (req, res) => {
-  const reviews = await Review.find().sort({ createdAt: -1 });
-  res.json(reviews.map((review) => ({
-    id: String(review._id),
-    customer: review.customer,
-    rating: review.rating,
-    text: review.text,
-    target: review.target,
-    status: review.status,
-    date: review.createdAt
-  })));
-});
-
-export const getAdminSettings = asyncHandler(async (req, res) => {
-  const [templates, orders, invitations, messages, users] = await Promise.all([
-    Template.countDocuments(),
-    Order.countDocuments(),
-    Invitation.countDocuments(),
-    ContactMessage.countDocuments(),
-    User.countDocuments()
-  ]);
-  const saved = await Setting.findOne({ key: 'adminSettings' });
-  res.json({
-    brand: 'Amulet',
-    supportEmail: process.env.SMTP_USER || '',
-    supportPhone: '+374 55 710 208',
-    ...(saved?.value || {}),
-    totals: { templates, orders, invitations, messages, users },
-    clientUrl: process.env.CLIENT_URL || ''
-  });
 });
 
 export const getAdminFaq = asyncHandler(async (req, res) => {
@@ -547,22 +480,6 @@ export const deleteAdminTemplate = asyncHandler(async (req, res) => {
   }
   await template.deleteOne();
   res.json({ message: 'Template deleted' });
-});
-
-export const updateAdminOrderStatus = asyncHandler(async (req, res) => {
-  const allowed = ['new', 'in_progress', 'completed', 'cancelled'];
-  if (!allowed.includes(req.body.status)) {
-    res.status(400);
-    throw new Error('Invalid order status');
-  }
-  const order = await Order.findById(req.params.id).populate('templateId');
-  if (!order) {
-    res.status(404);
-    throw new Error('Order not found');
-  }
-  order.status = req.body.status;
-  await order.save();
-  res.json(mapOrder(order));
 });
 
 export const deleteAdminOrder = asyncHandler(async (req, res) => {
@@ -651,7 +568,7 @@ export const deleteAdminMessage = asyncHandler(async (req, res) => {
 
 export const replyAdminMessage = asyncHandler(async (req, res) => {
   const { subject = 'Reply from Amulet', message } = req.body;
-  if (!message) {
+  if (!String(message || '').trim()) {
     res.status(400);
     throw new Error('Reply message is required');
   }
@@ -662,24 +579,8 @@ export const replyAdminMessage = asyncHandler(async (req, res) => {
     throw new Error('Message not found');
   }
 
-  await sendMail({
-    to: contact.email,
-    subject,
-    replyTo: process.env.SMTP_USER,
-    html: emailShell({
-      title: subject,
-      intro: `Hello ${contact.name}, thank you for contacting Amulet.`,
-      body: String(message).replace(/\n/g, '<br />'),
-      footer: 'Amulet team'
-    }),
-    text: message
-  });
-
-  contact.replies.push({ subject, message });
-  contact.repliedAt = new Date();
-  await contact.save();
-
-  res.json({ message: 'Reply sent' });
+  const delivery = await deliverContactReply(contact, { subject, message });
+  res.json({ message: 'Reply sent', ...delivery });
 });
 
 export const createAdminUser = asyncHandler(async (req, res) => {
@@ -812,39 +713,4 @@ export const broadcastAdminEmail = asyncHandler(async (req, res) => {
   })));
 
   res.json({ sent: users.length });
-});
-
-export const createAdminReview = asyncHandler(async (req, res) => {
-  const review = await Review.create(req.body);
-  res.status(201).json(review);
-});
-
-export const updateAdminReview = asyncHandler(async (req, res) => {
-  const review = await Review.findById(req.params.id);
-  if (!review) {
-    res.status(404);
-    throw new Error('Review not found');
-  }
-  Object.assign(review, req.body);
-  await review.save();
-  res.json(review);
-});
-
-export const deleteAdminReview = asyncHandler(async (req, res) => {
-  const review = await Review.findById(req.params.id);
-  if (!review) {
-    res.status(404);
-    throw new Error('Review not found');
-  }
-  await review.deleteOne();
-  res.json({ message: 'Review deleted' });
-});
-
-export const updateAdminSettings = asyncHandler(async (req, res) => {
-  const setting = await Setting.findOneAndUpdate(
-    { key: 'adminSettings' },
-    { value: req.body },
-    { new: true, upsert: true, setDefaultsOnInsert: true }
-  );
-  res.json(setting.value);
 });

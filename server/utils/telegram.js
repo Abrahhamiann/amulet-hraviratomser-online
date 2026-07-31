@@ -13,6 +13,23 @@ const resolveTelegramBotToken = () => (
   || ''
 ).trim();
 
+const ADMIN_ID_ENV_KEYS = [
+  'TELEGRAM_ADMIN_CHAT_IDS',
+  'TELEGRAM_ADMIN_1_ID',
+  'TELEGRAM_ADMIN_2_ID'
+];
+
+export const getTelegramAdminChatIds = () => [...new Set(
+  ADMIN_ID_ENV_KEYS
+    .flatMap((key) => String(process.env[key] || '').split(/[\s,;]+/))
+    .map((value) => value.trim())
+    .filter((value) => /^-?\d+$/.test(value))
+)];
+
+export const isTelegramAdmin = (chatId) => (
+  getTelegramAdminChatIds().includes(String(chatId || '').trim())
+);
+
 let healthCache = { checkedAt: 0, available: false };
 
 export const getTelegramBotHealth = async () => {
@@ -191,6 +208,26 @@ export const sendTelegramMessage = async (chatId, text, options = {}) => {
   }
   return false;
 };
+
+export const sendTelegramMessageToAdmins = async (text, options = {}) => {
+  const adminChatIds = getTelegramAdminChatIds();
+  if (!adminChatIds.length) {
+    console.warn('Telegram admin notifications are disabled: no admin chat IDs are configured');
+    return { configured: false, delivered: 0, failed: 0 };
+  }
+
+  const results = await Promise.all(
+    adminChatIds.map((chatId) => sendTelegramMessage(chatId, text, options))
+  );
+  return {
+    configured: true,
+    delivered: results.filter(Boolean).length,
+    failed: results.filter((result) => !result).length
+  };
+};
+
+export const escapeTelegramHtml = escapeHtml;
+export const truncateTelegramText = truncate;
 
 export const notifyInvitationOwnerOfRsvp = async (invitation, rsvp) => {
   let order = invitation.orderId

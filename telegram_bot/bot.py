@@ -2,15 +2,20 @@ import html
 import logging
 import math
 import os
+import re
 from datetime import datetime
 from urllib.parse import urlparse
+from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
 from telegram import (
     BotCommand,
+    BotCommandScopeChat,
     BotCommandScopeAllPrivateChats,
+    ForceReply,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    ReplyKeyboardMarkup,
     Update,
 )
 from telegram.constants import ChatType, ParseMode
@@ -21,6 +26,8 @@ from telegram.ext import (
     CallbackQueryHandler,
     CommandHandler,
     ContextTypes,
+    MessageHandler,
+    filters,
 )
 
 from api import AmuletApi, AmuletApiError
@@ -40,6 +47,246 @@ API = AmuletApi(
     os.getenv("TELEGRAM_BOT_API_URL", "http://127.0.0.1:5000/api/telegram/bot"),
     os.getenv("TELEGRAM_BOT_API_SECRET", ""),
 )
+YEREVAN_TZ = ZoneInfo("Asia/Yerevan")
+
+
+def admin_chat_ids() -> set[str]:
+    raw = " ".join([
+        os.getenv("TELEGRAM_ADMIN_CHAT_IDS", ""),
+        os.getenv("TELEGRAM_ADMIN_1_ID", ""),
+        os.getenv("TELEGRAM_ADMIN_2_ID", ""),
+    ])
+    return {value for value in re.split(r"[\s,;]+", raw) if re.fullmatch(r"-?\d+", value)}
+
+
+def is_admin_chat(chat_id: int | str | None) -> bool:
+    return str(chat_id or "") in admin_chat_ids()
+
+
+def format_yerevan_datetime(value: str | None) -> str:
+    if not value:
+        return "—"
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        return parsed.astimezone(YEREVAN_TZ).strftime("%d.%m.%Y %H:%M")
+    except ValueError:
+        return value[:19]
+
+
+def format_money(value) -> str:
+    try:
+        return f"{float(value):,.0f} ֏".replace(",", " ")
+    except (TypeError, ValueError):
+        return "0 ֏"
+
+
+def admin_menu() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("📊 Ամփոփում", callback_data="admin:dashboard")],
+        [
+            InlineKeyboardButton("📦 Պատվերներ", callback_data="admin:orders:0"),
+            InlineKeyboardButton("✉️ Նամակներ", callback_data="admin:messages:0"),
+        ],
+        [InlineKeyboardButton("🔄 Թարմացնել", callback_data="admin:home")],
+    ])
+
+
+def admin_reply_keyboard() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        [["🛡 Ադմին Պանել"]],
+        resize_keyboard=True,
+        is_persistent=True,
+        input_field_placeholder="Բացել Amulet ադմին պանելը",
+    )
+
+
+async def ensure_admin_reply_keyboard(update: Update):
+    if update.effective_message:
+        await update.effective_message.reply_text(
+            "Ադմին պանելի արագ կոճակը միշտ հասանելի է ներքևում։",
+            reply_markup=admin_reply_keyboard(),
+        )
+
+
+async def show_admin_home(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.pop("admin_reply_message_id", None)
+    await edit_or_reply(
+        update,
+        "<b>🛡 Amulet Admin Panel</b>\n\nԸնտրեք կառավարման բաժինը։",
+        admin_menu(),
+    )
+
+
+async def show_admin_dashboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        data = await API.admin_dashboard(update.effective_chat.id)
+    except AmuletApiError:
+        await edit_or_reply(update, "<b>Տվյալները չհաջողվեց բեռնել։</b>", admin_menu())
+        return
+    text = (
+        "<b>📊 Amulet — ամփոփում</b>\n\n"
+        f"Պատվերներ՝ <b>{data.get('orders', 0)}</b>\n"
+        f"Վճարված՝ <b>{data.get('paidOrders', 0)}</b>\n"
+        f"Չվճարված՝ <b>{data.get('unpaidOrders', 0)}</b>\n"
+        f"Եկամուտ՝ <b>{format_money(data.get('revenue'))}</b>\n\n"
+        f"Կապի նամակներ՝ <b>{data.get('messages', 0)}</b>\n"
+        f"Անպատասխան՝ <b>{data.get('unansweredMessages', 0)}</b>"
+    )
+    await edit_or_reply(
+        update,
+        text,
+        InlineKeyboardMarkup([[InlineKeyboardButton("← Գլխավոր", callback_data="admin:home")]]),
+    )
+
+
+async def show_admin_orders(update: Update, context: ContextTypes.DEFAULT_TYPE, page: int):
+    try:
+        data = await API.admin_orders(update.effective_chat.id, page)
+    except AmuletApiError:
+        await edit_or_reply(update, "<b>Պատվերները չհաջողվեց բեռնել։</b>", admin_menu())
+        return
+    rows = [[InlineKeyboardButton(
+        f"{'🟢' if item.get('paymentStatus') == 'paid' else '🟡'} {item.get('customer') or '—'} · {item.get('invitation') or '—'}",
+        callback_data=f"admin:order:{item['id']}",
+    )] for item in data.get("items", [])]
+    navigation = []
+    if data.get("page", 0) > 0:
+        navigation.append(InlineKeyboardButton("← Նախորդ", callback_data=f"admin:orders:{data['page'] - 1}"))
+    if data.get("page", 0) + 1 < data.get("pages", 1):
+        navigation.append(InlineKeyboardButton("Հաջորդ →", callback_data=f"admin:orders:{data['page'] + 1}"))
+    if navigation:
+        rows.append(navigation)
+    rows.append([InlineKeyboardButton("← Գլխավոր", callback_data="admin:home")])
+    text = (
+        f"<b>📦 Պատվերներ ({data.get('total', 0)})</b>\n"
+        f"Էջ {data.get('page', 0) + 1}/{data.get('pages', 1)}"
+    )
+    if not data.get("items"):
+        text += "\n\nՊատվերներ չկան։"
+    await edit_or_reply(update, text, InlineKeyboardMarkup(rows))
+
+
+async def show_admin_order(update: Update, context: ContextTypes.DEFAULT_TYPE, order_id: str):
+    try:
+        item = await API.admin_order(update.effective_chat.id, order_id)
+    except AmuletApiError:
+        await edit_or_reply(update, "<b>Պատվերը չի գտնվել։</b>", admin_menu())
+        return
+    text = (
+        "<b>📦 Պատվերի մանրամասներ</b>\n\n"
+        f"<b>ID՝</b> <code>{html.escape(item.get('id') or '')}</code>\n"
+        f"<b>Ստացվել է՝</b> {format_yerevan_datetime(item.get('createdAt'))} (Երևան)\n"
+        f"<b>Պատվիրատու՝</b> {html.escape(item.get('customer') or '—')}\n"
+        f"<b>Email՝</b> {html.escape(item.get('email') or '—')}\n"
+        f"<b>Հեռախոս՝</b> {html.escape(item.get('phone') or '—')}\n"
+        f"<b>Հրավեր՝</b> {html.escape(item.get('invitation') or '—')}\n"
+        f"<b>Շաբլոն՝</b> {html.escape(item.get('template') or '—')}\n"
+        f"<b>Գին՝</b> {format_money(item.get('amount'))}\n"
+        f"<b>Վճարում՝</b> {html.escape(item.get('paymentStatus') or '—')}\n"
+        f"<b>Միջոցառում՝</b> {format_date(item.get('eventDate'))} · {html.escape(item.get('eventTime') or '—')}\n"
+        f"<b>Վայր՝</b> {html.escape(item.get('eventLocation') or '—')}"
+    )
+    if item.get("notes"):
+        text += f"\n<b>Նշումներ՝</b> {html.escape(item['notes'][:800])}"
+    rows = []
+    if is_public_web_url(item.get("invitationUrl")):
+        rows.append([InlineKeyboardButton("↗ Բացել հրավերը", url=item["invitationUrl"])])
+    rows.append([InlineKeyboardButton("← Պատվերներ", callback_data="admin:orders:0")])
+    await edit_or_reply(update, text, InlineKeyboardMarkup(rows))
+async def show_admin_messages(update: Update, context: ContextTypes.DEFAULT_TYPE, page: int):
+    try:
+        data = await API.admin_messages(update.effective_chat.id, page)
+    except AmuletApiError:
+        await edit_or_reply(update, "<b>Նամակները չհաջողվեց բեռնել։</b>", admin_menu())
+        return
+    rows = [[InlineKeyboardButton(
+        f"{'✅' if item.get('replied') else '🔴'} {item.get('name') or '—'} · {(item.get('message') or '')[:30]}",
+        callback_data=f"admin:message:{item['id']}",
+    )] for item in data.get("items", [])]
+    navigation = []
+    if data.get("page", 0) > 0:
+        navigation.append(InlineKeyboardButton("← Նախորդ", callback_data=f"admin:messages:{data['page'] - 1}"))
+    if data.get("page", 0) + 1 < data.get("pages", 1):
+        navigation.append(InlineKeyboardButton("Հաջորդ →", callback_data=f"admin:messages:{data['page'] + 1}"))
+    if navigation:
+        rows.append(navigation)
+    rows.append([InlineKeyboardButton("← Գլխավոր", callback_data="admin:home")])
+    text = (
+        f"<b>✉️ Կապի նամակներ ({data.get('total', 0)})</b>\n"
+        f"Էջ {data.get('page', 0) + 1}/{data.get('pages', 1)}"
+    )
+    if not data.get("items"):
+        text += "\n\nՆամակներ չկան։"
+    await edit_or_reply(update, text, InlineKeyboardMarkup(rows))
+
+
+async def show_admin_message(update: Update, context: ContextTypes.DEFAULT_TYPE, message_id: str):
+    try:
+        item = await API.admin_message(update.effective_chat.id, message_id)
+    except AmuletApiError:
+        await edit_or_reply(update, "<b>Նամակը չի գտնվել։</b>", admin_menu())
+        return
+    text = (
+        "<b>✉️ Կապի նամակ</b>\n\n"
+        f"<b>Ստացվել է՝</b> {format_yerevan_datetime(item.get('createdAt'))} (Երևան)\n"
+        f"<b>Անուն՝</b> {html.escape(item.get('name') or '—')}\n"
+        f"<b>Email՝</b> {html.escape(item.get('email') or '—')}\n"
+        f"<b>Հեռախոս՝</b> {html.escape(item.get('phone') or '—')}\n\n"
+        f"<b>Նամակ՝</b>\n{html.escape((item.get('message') or '—')[:3000])}"
+    )
+    replies = item.get("replies") or []
+    if replies:
+        latest = replies[-1]
+        text += (
+            f"\n\n<b>Վերջին պատասխանը ({html.escape(latest.get('channel') or 'email')})՝</b>\n"
+            f"{html.escape((latest.get('message') or '')[:900])}"
+        )
+    rows = [
+        [InlineKeyboardButton("↩️ Պատասխանել", callback_data=f"admin:reply:{message_id}")],
+        [InlineKeyboardButton("← Նամակներ", callback_data="admin:messages:0")],
+    ]
+    await edit_or_reply(update, text, InlineKeyboardMarkup(rows))
+
+
+async def begin_admin_reply(update: Update, context: ContextTypes.DEFAULT_TYPE, message_id: str):
+    context.user_data["admin_reply_message_id"] = message_id
+    await update.effective_message.reply_text(
+        "Գրեք պատասխանը մեկ հաղորդագրությամբ։ Չեղարկելու համար ուղարկեք /cancel։",
+        reply_markup=ForceReply(selective=True),
+    )
+
+
+async def admin_text_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message_id = context.user_data.get("admin_reply_message_id")
+    if not message_id or not is_admin_chat(update.effective_chat.id):
+        return
+    reply_text = (update.effective_message.text or "").strip()
+    if not reply_text:
+        return
+    if len(reply_text) > 4000:
+        await update.effective_message.reply_text("Պատասխանը պետք է լինի առավելագույնը 4000 նիշ։")
+        return
+    try:
+        result = await API.admin_reply(update.effective_chat.id, message_id, reply_text)
+    except AmuletApiError as exc:
+        await update.effective_message.reply_text(f"Պատասխանը չուղարկվեց․ {html.escape(str(exc))}")
+        return
+    context.user_data.pop("admin_reply_message_id", None)
+    channel = "Telegram" if result.get("channel") == "telegram" else "email"
+    await update.effective_message.reply_text(
+        f"✅ Պատասխանն ուղարկվեց {channel}-ով։",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("Բացել նամակը", callback_data=f"admin:message:{message_id}")],
+            [InlineKeyboardButton("Գլխավոր", callback_data="admin:home")],
+        ]),
+    )
+
+
+async def cancel_admin_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin_chat(update.effective_chat.id):
+        return
+    context.user_data.pop("admin_reply_message_id", None)
+    await update.effective_message.reply_text("Պատասխանը չեղարկվեց։", reply_markup=admin_menu())
 
 
 def user_language(context: ContextTypes.DEFAULT_TYPE) -> str:
@@ -141,6 +388,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["language"] = normalize_language(result.get("language"), "en")
         context.user_data["notificationsEnabled"] = True
         await show_home(update, context, "welcome")
+        return
+
+    if is_admin_chat(update.effective_chat.id):
+        await ensure_admin_reply_keyboard(update)
+        await show_admin_home(update, context)
         return
 
     await show_home(update, context, "welcome_back")
@@ -386,6 +638,26 @@ async def callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     data = query.data or ""
 
+    if data.startswith("admin:"):
+        if not is_admin_chat(update.effective_chat.id):
+            await update.effective_message.reply_text("Այս բաժինը հասանելի է միայն ադմիններին։")
+            return
+        if data == "admin:home":
+            await show_admin_home(update, context)
+        elif data == "admin:dashboard":
+            await show_admin_dashboard(update, context)
+        elif data.startswith("admin:orders:"):
+            await show_admin_orders(update, context, int(data.rsplit(":", 1)[1]))
+        elif data.startswith("admin:order:"):
+            await show_admin_order(update, context, data.split(":", 2)[2])
+        elif data.startswith("admin:messages:"):
+            await show_admin_messages(update, context, int(data.rsplit(":", 1)[1]))
+        elif data.startswith("admin:message:"):
+            await show_admin_message(update, context, data.split(":", 2)[2])
+        elif data.startswith("admin:reply:"):
+            await begin_admin_reply(update, context, data.split(":", 2)[2])
+        return
+
     if data == "menu:home":
         await show_home(update, context)
     elif data == "menu:invitations":
@@ -436,6 +708,15 @@ async def disconnect_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await ask_disconnect(update, context)
 
 
+async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not is_admin_chat(update.effective_chat.id):
+        await update.effective_message.reply_text("Այս բաժինը հասանելի է միայն ադմիններին։")
+        return
+    context.user_data.pop("admin_reply_message_id", None)
+    await ensure_admin_reply_keyboard(update)
+    await show_admin_home(update, context)
+
+
 async def post_init(application: Application):
     command_descriptions = {
         "en": ("Open Amulet menu", "View purchased invitations", "Change language", "Toggle RSVP notifications", "How the bot works", "Disconnect Telegram"),
@@ -465,6 +746,16 @@ async def post_init(application: Application):
             scope=BotCommandScopeAllPrivateChats(),
             language_code=language,
         )
+    admin_commands = [
+        BotCommand("admin", "Բացել ադմին պանելը"),
+        BotCommand("start", "Բացել ադմին պանելը"),
+        BotCommand("cancel", "Չեղարկել ընթացիկ պատասխանը"),
+    ]
+    for chat_id in admin_chat_ids():
+        await application.bot.set_my_commands(
+            admin_commands,
+            scope=BotCommandScopeChat(chat_id=int(chat_id)),
+        )
 
 
 async def on_error(update: object, context: ContextTypes.DEFAULT_TYPE):
@@ -493,7 +784,11 @@ def main():
     application.add_handler(CommandHandler("notifications", notifications_command))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("disconnect", disconnect_command))
+    application.add_handler(CommandHandler("admin", admin_command))
+    application.add_handler(CommandHandler("cancel", cancel_admin_reply))
     application.add_handler(CallbackQueryHandler(callback))
+    application.add_handler(MessageHandler(filters.Regex(r"^🛡 Ադմին Պանել$"), admin_command))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, admin_text_reply))
     application.add_error_handler(on_error)
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 

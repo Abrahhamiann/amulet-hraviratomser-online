@@ -15,16 +15,13 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminTemplatesRouteImport } from './routes/admin.templates'
-import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
 import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminNotificationsRouteImport } from './routes/admin.notifications'
 import { Route as AdminMessagesRouteImport } from './routes/admin.messages'
-import { Route as AdminLanguagesRouteImport } from './routes/admin.languages'
 import { Route as AdminInvitationsRouteImport } from './routes/admin.invitations'
 import { Route as AdminFaqRouteImport } from './routes/admin.faq'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
-import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminAdministratorsRouteImport } from './routes/admin.administrators'
 
 const LoginRoute = LoginRouteImport.update({
@@ -57,11 +54,6 @@ const AdminTemplatesRoute = AdminTemplatesRouteImport.update({
   path: '/templates',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminReviewsRoute = AdminReviewsRouteImport.update({
-  id: '/reviews',
-  path: '/reviews',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
   id: '/payments',
   path: '/payments',
@@ -82,11 +74,6 @@ const AdminMessagesRoute = AdminMessagesRouteImport.update({
   path: '/messages',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminLanguagesRoute = AdminLanguagesRouteImport.update({
-  id: '/languages',
-  path: '/languages',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminInvitationsRoute = AdminInvitationsRouteImport.update({
   id: '/invitations',
   path: '/invitations',
@@ -102,11 +89,6 @@ const AdminCustomersRoute = AdminCustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
-  id: '/categories',
-  path: '/categories',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminAdministratorsRoute = AdminAdministratorsRouteImport.update({
   id: '/administrators',
   path: '/administrators',
@@ -119,16 +101,13 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/admin/administrators': typeof AdminAdministratorsRoute
-  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/faq': typeof AdminFaqRoute
   '/admin/invitations': typeof AdminInvitationsRoute
-  '/admin/languages': typeof AdminLanguagesRoute
   '/admin/messages': typeof AdminMessagesRoute
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/payments': typeof AdminPaymentsRoute
-  '/admin/reviews': typeof AdminReviewsRoute
   '/admin/templates': typeof AdminTemplatesRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -137,16 +116,13 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/admin/administrators': typeof AdminAdministratorsRoute
-  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/faq': typeof AdminFaqRoute
   '/admin/invitations': typeof AdminInvitationsRoute
-  '/admin/languages': typeof AdminLanguagesRoute
   '/admin/messages': typeof AdminMessagesRoute
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/payments': typeof AdminPaymentsRoute
-  '/admin/reviews': typeof AdminReviewsRoute
   '/admin/templates': typeof AdminTemplatesRoute
   '/admin': typeof AdminIndexRoute
 }
@@ -157,16 +133,13 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/admin/administrators': typeof AdminAdministratorsRoute
-  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/faq': typeof AdminFaqRoute
   '/admin/invitations': typeof AdminInvitationsRoute
-  '/admin/languages': typeof AdminLanguagesRoute
   '/admin/messages': typeof AdminMessagesRoute
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/payments': typeof AdminPaymentsRoute
-  '/admin/reviews': typeof AdminReviewsRoute
   '/admin/templates': typeof AdminTemplatesRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -178,16 +151,13 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/admin/administrators'
-    | '/admin/categories'
     | '/admin/customers'
     | '/admin/faq'
     | '/admin/invitations'
-    | '/admin/languages'
     | '/admin/messages'
     | '/admin/notifications'
     | '/admin/orders'
     | '/admin/payments'
-    | '/admin/reviews'
     | '/admin/templates'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
@@ -196,16 +166,13 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/admin/administrators'
-    | '/admin/categories'
     | '/admin/customers'
     | '/admin/faq'
     | '/admin/invitations'
-    | '/admin/languages'
     | '/admin/messages'
     | '/admin/notifications'
     | '/admin/orders'
     | '/admin/payments'
-    | '/admin/reviews'
     | '/admin/templates'
     | '/admin'
   id:
@@ -215,16 +182,13 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/admin/administrators'
-    | '/admin/categories'
     | '/admin/customers'
     | '/admin/faq'
     | '/admin/invitations'
-    | '/admin/languages'
     | '/admin/messages'
     | '/admin/notifications'
     | '/admin/orders'
     | '/admin/payments'
-    | '/admin/reviews'
     | '/admin/templates'
     | '/admin/'
   fileRoutesById: FileRoutesById
@@ -280,13 +244,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTemplatesRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/reviews': {
-      id: '/admin/reviews'
-      path: '/reviews'
-      fullPath: '/admin/reviews'
-      preLoaderRoute: typeof AdminReviewsRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/payments': {
       id: '/admin/payments'
       path: '/payments'
@@ -315,13 +272,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMessagesRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/languages': {
-      id: '/admin/languages'
-      path: '/languages'
-      fullPath: '/admin/languages'
-      preLoaderRoute: typeof AdminLanguagesRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/invitations': {
       id: '/admin/invitations'
       path: '/invitations'
@@ -343,13 +293,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCustomersRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/categories': {
-      id: '/admin/categories'
-      path: '/categories'
-      fullPath: '/admin/categories'
-      preLoaderRoute: typeof AdminCategoriesRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/administrators': {
       id: '/admin/administrators'
       path: '/administrators'
@@ -362,32 +305,26 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAdministratorsRoute: typeof AdminAdministratorsRoute
-  AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminFaqRoute: typeof AdminFaqRoute
   AdminInvitationsRoute: typeof AdminInvitationsRoute
-  AdminLanguagesRoute: typeof AdminLanguagesRoute
   AdminMessagesRoute: typeof AdminMessagesRoute
   AdminNotificationsRoute: typeof AdminNotificationsRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
-  AdminReviewsRoute: typeof AdminReviewsRoute
   AdminTemplatesRoute: typeof AdminTemplatesRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAdministratorsRoute: AdminAdministratorsRoute,
-  AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCustomersRoute: AdminCustomersRoute,
   AdminFaqRoute: AdminFaqRoute,
   AdminInvitationsRoute: AdminInvitationsRoute,
-  AdminLanguagesRoute: AdminLanguagesRoute,
   AdminMessagesRoute: AdminMessagesRoute,
   AdminNotificationsRoute: AdminNotificationsRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
-  AdminReviewsRoute: AdminReviewsRoute,
   AdminTemplatesRoute: AdminTemplatesRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

@@ -53,3 +53,54 @@ class AmuletApi:
             "/disconnect",
             json={"chatId": str(chat_id)},
         )
+
+    async def admin_dashboard(self, chat_id: int | str):
+        return await self._request(
+            "GET",
+            "/admin/dashboard",
+            params={"chatId": str(chat_id)},
+        )
+
+    async def admin_orders(self, chat_id: int | str, page: int = 0):
+        return await self._request(
+            "GET",
+            "/admin/orders",
+            params={"chatId": str(chat_id), "page": page},
+        )
+
+    async def admin_order(self, chat_id: int | str, order_id: str):
+        return await self._request(
+            "GET",
+            f"/admin/orders/{order_id}",
+            params={"chatId": str(chat_id)},
+        )
+
+    async def admin_messages(self, chat_id: int | str, page: int = 0):
+        return await self._request(
+            "GET",
+            "/admin/messages",
+            params={"chatId": str(chat_id), "page": page},
+        )
+
+    async def admin_message(self, chat_id: int | str, message_id: str):
+        return await self._request(
+            "GET",
+            f"/admin/messages/{message_id}",
+            params={"chatId": str(chat_id)},
+        )
+
+    async def admin_reply(
+        self,
+        chat_id: int | str,
+        message_id: str,
+        message: str,
+    ):
+        return await self._request(
+            "POST",
+            f"/admin/messages/{message_id}/reply",
+            json={
+                "chatId": str(chat_id),
+                "subject": "Reply from Amulet",
+                "message": message,
+            },
+        )

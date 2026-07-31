@@ -1,13 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   AlertCircle,
-  CheckCircle2,
   Clock,
   DollarSign,
   FileText,
   MessageSquare,
-  MoreHorizontal,
   ShoppingBag,
   TrendingUp,
   Users,
@@ -35,7 +33,7 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { StatCard } from "@/components/admin/StatCard";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { currency } from "@/lib/api";
-import { useAdminI18n } from "@/lib/i18n";
+import { formatAdminCategory, formatAdminMonth, useAdminI18n } from "@/lib/i18n";
 import { useDashboard } from "@/hooks/useAdminData";
 
 export const Route = createFileRoute("/admin/")({
@@ -45,13 +43,13 @@ export const Route = createFileRoute("/admin/")({
 const CHART_COLORS = ["#C99A3D", "#8B6F3D", "#D4B26A", "#A67C3D", "#E5C88A"];
 
 function Dashboard() {
-  const { t } = useAdminI18n();
+  const { lang, t } = useAdminI18n();
   const [period, setPeriod] = useState("all");
   const { data: dashboard, isLoading, error } = useDashboard(period);
   const stats = dashboard?.stats ?? {};
-  const revenueByMonth = dashboard?.revenueByMonth ?? [];
-  const categoryDistribution = dashboard?.categoryDistribution ?? [];
-  const paymentMethodStats = dashboard?.paymentMethodStats ?? [];
+  const revenueByMonth = (dashboard?.revenueByMonth ?? []).map((item: any) => ({ ...item, month: formatAdminMonth(item.monthIndex, lang) }));
+  const categoryDistribution = (dashboard?.categoryDistribution ?? []).map((item: any) => ({ ...item, name: formatAdminCategory(item.name, lang) }));
+  const paymentMethodStats = (dashboard?.paymentMethodStats ?? []).map((item: any) => ({ ...item, name: item.name === "Manual" ? t("manual") : item.name }));
   const latest = dashboard?.latestOrders ?? [];
   const topTemplates = dashboard?.topTemplates ?? [];
 
@@ -69,11 +67,10 @@ function Dashboard() {
         actions={
           <Tabs value={period} onValueChange={setPeriod}>
             <TabsList className="bg-secondary/60">
-              <TabsTrigger value="zero">Zero</TabsTrigger>
-              <TabsTrigger value="today">Today</TabsTrigger>
-              <TabsTrigger value="week">Week</TabsTrigger>
-              <TabsTrigger value="year">Year</TabsTrigger>
-              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="today">{t("today")}</TabsTrigger>
+              <TabsTrigger value="week">{t("week")}</TabsTrigger>
+              <TabsTrigger value="year">{t("year")}</TabsTrigger>
+              <TabsTrigger value="all">{t("all")}</TabsTrigger>
             </TabsList>
           </Tabs>
         }
@@ -84,7 +81,7 @@ function Dashboard() {
         <StatCard label={t("totalOrders")} value={stats.orders ?? 0} icon={<ShoppingBag className="h-5 w-5" />} />
         <StatCard label={t("invitations")} value={stats.invitations ?? 0} icon={<FileText className="h-5 w-5" />} />
         <StatCard label={t("customers")} value={stats.customers ?? 0} icon={<Users className="h-5 w-5" />} />
-        <StatCard label={t("pendingOrders")} value={stats.pendingOrders ?? 0} tone="warning" icon={<Clock className="h-5 w-5" />} />
+        <StatCard label={t("unpaidOrders")} value={stats.pendingOrders ?? 0} tone="warning" icon={<Clock className="h-5 w-5" />} />
         <StatCard label={t("messages")} value={stats.unreadMessages ?? 0} tone="destructive" icon={<MessageSquare className="h-5 w-5" />} />
       </div>
 
@@ -92,11 +89,11 @@ function Dashboard() {
         <Card className="lg:col-span-2 p-6 rounded-2xl border-border/60 shadow-[var(--shadow-soft)]">
           <div className="flex items-start justify-between mb-6">
             <div>
-              <h3 className="font-display text-xl">Revenue overview</h3>
-              <p className="text-xs text-muted-foreground mt-1">Monthly performance from real orders</p>
+              <h3 className="font-display text-xl">{t("revenueOverview")}</h3>
+              <p className="text-xs text-muted-foreground mt-1">{t("monthlyPerformance")}</p>
             </div>
             <Badge variant="secondary" className="gap-1">
-              <TrendingUp className="h-3 w-3" /> Live
+              <TrendingUp className="h-3 w-3" /> {t("live")}
             </Badge>
           </div>
           <div className="h-72">
@@ -119,8 +116,8 @@ function Dashboard() {
         </Card>
 
         <Card className="p-6 rounded-2xl border-border/60 shadow-[var(--shadow-soft)]">
-          <h3 className="font-display text-xl">Category distribution</h3>
-          <p className="text-xs text-muted-foreground mt-1 mb-4">Templates by event type</p>
+          <h3 className="font-display text-xl">{t("categoryDistribution")}</h3>
+          <p className="text-xs text-muted-foreground mt-1 mb-4">{t("templatesByEvent")}</p>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -138,7 +135,7 @@ function Dashboard() {
               <div key={category.name} className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full" style={{ background: CHART_COLORS[index % CHART_COLORS.length] }} />
-                  <span>{category.name}</span>
+                  <span>{formatAdminCategory(category.name, lang)}</span>
                 </div>
                 <span className="text-muted-foreground">{category.value}%</span>
               </div>
@@ -149,8 +146,8 @@ function Dashboard() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="p-6 rounded-2xl border-border/60 shadow-[var(--shadow-soft)]">
-          <h3 className="font-display text-xl">Orders trend</h3>
-          <p className="text-xs text-muted-foreground mt-1 mb-4">Order volume over the year</p>
+          <h3 className="font-display text-xl">{t("ordersTrend")}</h3>
+          <p className="text-xs text-muted-foreground mt-1 mb-4">{t("orderVolume")}</p>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={revenueByMonth} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -165,8 +162,8 @@ function Dashboard() {
         </Card>
 
         <Card className="p-6 rounded-2xl border-border/60 shadow-[var(--shadow-soft)]">
-          <h3 className="font-display text-xl">Payment methods</h3>
-          <p className="text-xs text-muted-foreground mt-1 mb-4">Distribution by orders</p>
+          <h3 className="font-display text-xl">{t("paymentMethods")}</h3>
+          <p className="text-xs text-muted-foreground mt-1 mb-4">{t("distribution")}</p>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={paymentMethodStats} layout="vertical" margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
@@ -181,22 +178,22 @@ function Dashboard() {
         </Card>
 
         <Card className="p-6 rounded-2xl border-border/60 shadow-[var(--shadow-soft)]">
-          <h3 className="font-display text-xl">Pending tasks</h3>
-          <p className="text-xs text-muted-foreground mt-1 mb-4">Requires your attention</p>
+          <h3 className="font-display text-xl">{t("pendingTasks")}</h3>
+          <p className="text-xs text-muted-foreground mt-1 mb-4">{t("requiresAttention")}</p>
           <ul className="space-y-3">
             {[
-              { icon: AlertCircle, tone: "text-destructive bg-destructive/10", text: `${stats.pendingOrders ?? 0} pending orders` },
-              { icon: Clock, tone: "text-[color:var(--warning)] bg-[color:var(--warning)]/15", text: `${stats.invitations ?? 0} invitations in the system` },
-              { icon: MessageSquare, tone: "text-[color:var(--gold)] bg-[color:var(--cream)]", text: `${stats.unreadMessages ?? 0} contact messages` },
-              { icon: CheckCircle2, tone: "text-[color:var(--success)] bg-[color:var(--success)]/10", text: `${stats.rsvps ?? 0} RSVP responses` },
+              { icon: AlertCircle, tone: "text-destructive bg-destructive/10", text: t("unpaidNeedAttention").replace("{count}", String(stats.pendingOrders ?? 0)), count: stats.pendingOrders ?? 0 },
+              { icon: MessageSquare, tone: "text-[color:var(--gold)] bg-[color:var(--cream)]", text: t("messagesNeedReply").replace("{count}", String(stats.unreadMessages ?? 0)), count: stats.unreadMessages ?? 0 },
             ].map((task, index) => (
+              task.count > 0 ?
               <li key={index} className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/60 transition">
                 <div className={`h-9 w-9 grid place-items-center rounded-lg ${task.tone}`}>
                   <task.icon className="h-4 w-4" />
                 </div>
                 <span className="text-sm flex-1">{task.text}</span>
-              </li>
+              </li> : null
             ))}
+            {!stats.pendingOrders && !stats.unreadMessages && <li className="py-8 text-center text-sm text-muted-foreground">{t("noPendingTasks")}</li>}
           </ul>
         </Card>
       </div>
@@ -205,20 +202,19 @@ function Dashboard() {
         <Card className="lg:col-span-2 p-6 rounded-2xl border-border/60 shadow-[var(--shadow-soft)]">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-display text-xl">Latest orders</h3>
-              <p className="text-xs text-muted-foreground mt-1">Most recent orders from MongoDB</p>
+              <h3 className="font-display text-xl">{t("latestOrders")}</h3>
+              <p className="text-xs text-muted-foreground mt-1">{t("recentDatabaseOrders")}</p>
             </div>
-            <Button variant="ghost" size="sm">View all</Button>
+            <Button variant="ghost" size="sm" asChild><Link to="/admin/orders">{t("viewAll")}</Link></Button>
           </div>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent border-border/60">
-                  <TableHead>Order</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Payment</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>{t("order")}</TableHead>
+                  <TableHead>{t("customer")}</TableHead>
+                  <TableHead>{t("amount")}</TableHead>
+                  <TableHead>{t("payment")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -228,7 +224,6 @@ function Dashboard() {
                     <TableCell>{order.customer}</TableCell>
                     <TableCell>{currency(order.amount)}</TableCell>
                     <TableCell><StatusBadge status={order.payment} /></TableCell>
-                    <TableCell><StatusBadge status={order.status} /></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -239,10 +234,9 @@ function Dashboard() {
         <Card className="p-6 rounded-2xl border-border/60 shadow-[var(--shadow-soft)]">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-display text-xl">Top templates</h3>
-              <p className="text-xs text-muted-foreground mt-1">Most used templates</p>
+              <h3 className="font-display text-xl">{t("topTemplates")}</h3>
+              <p className="text-xs text-muted-foreground mt-1">{t("mostUsedTemplates")}</p>
             </div>
-            <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
           </div>
           <ul className="space-y-4">
             {topTemplates.map((template: any, index: number) => (
@@ -252,7 +246,7 @@ function Dashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{template.name}</div>
-                  <div className="text-xs text-muted-foreground">{template.category} · {template.usage} uses</div>
+                  <div className="text-xs text-muted-foreground">{formatAdminCategory(template.category, lang)} · {t("templateUses").replace("{count}", String(template.usage))}</div>
                 </div>
                 <div className="text-sm font-medium text-[color:var(--gold)]">#{index + 1}</div>
               </li>

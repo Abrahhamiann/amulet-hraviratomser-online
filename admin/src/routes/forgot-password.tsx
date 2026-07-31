@@ -23,7 +23,7 @@ function ForgotPassword() {
           <div className="font-display text-xl">Amulet</div>
         </div>
         <h2 className="font-display text-3xl">{t("password")}</h2>
-        <p className="text-sm text-muted-foreground mt-1">Contact support to reset an administrator password.</p>
+        <p className="text-sm text-muted-foreground mt-1">{t("contactSupportReset")}</p>
         <form className="mt-8 space-y-4" onSubmit={(event) => {
           event.preventDefault();
           const form = new FormData(event.currentTarget);
@@ -37,7 +37,7 @@ function ForgotPassword() {
           <Button className="w-full gold-gradient border-0 text-white h-11 rounded-xl">{t("sendEmail")}</Button>
         </form>
         <Link to="/login" className="mt-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to sign in
+          <ArrowLeft className="h-3.5 w-3.5" /> {t("backToSignIn")}
         </Link>
       </Card>
     </div>

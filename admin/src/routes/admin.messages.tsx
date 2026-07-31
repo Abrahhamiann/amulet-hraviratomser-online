@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Inbox, Search, Send, Trash2 } from "lucide-react";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -10,22 +9,27 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/admin/PageHeader";
-import { StatusBadge } from "@/components/admin/StatusBadge";
 import { adminApi } from "@/lib/api";
-import { useAdminI18n } from "@/lib/i18n";
+import { formatAdminDate, useAdminI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { useMessages } from "@/hooks/useAdminData";
 
 export const Route = createFileRoute("/admin/messages")({ component: MessagesPage });
 
 function MessagesPage() {
-  const { t } = useAdminI18n();
+  const { lang, t } = useAdminI18n();
   const { data: messages, isLoading, error } = useMessages();
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<any>(null);
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);
+  const [q, setQ] = useState("");
   const chatEndRef = useRef<HTMLDivElement | null>(null);
+  const filteredMessages = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return messages;
+    return messages.filter((item: any) => [item.name, item.email, item.phone, item.message].some((value) => String(value || "").toLowerCase().includes(term)));
+  }, [messages, q]);
 
   useEffect(() => {
     if (!selected && messages.length) setSelected(messages[0]);
@@ -51,7 +55,7 @@ function MessagesPage() {
   const sendReply = async () => {
     if (!selected || !reply.trim()) return;
     const outgoing = {
-      subject: `Re: ${selected.subject}`,
+      subject: `Re: ${t("contactRequest")}`,
       message: reply.trim(),
       sentAt: new Date().toISOString(),
     };
@@ -65,7 +69,7 @@ function MessagesPage() {
           ? { ...current, replies: [...(current.replies || []), outgoing], read: true, repliedAt: outgoing.sentAt }
           : current,
       );
-      toast.success(t("done"));
+      toast.success(t("replySent"));
       setReply("");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("failed"));
@@ -85,11 +89,11 @@ function MessagesPage() {
           <div className="p-3 border-b border-border/60 bg-secondary/30">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search messages..." className="pl-9 h-9 bg-background" />
+              <Input value={q} onChange={(event) => setQ(event.target.value)} placeholder={t("searchMessages")} className="pl-9 h-9 bg-background" />
             </div>
           </div>
           <div className="min-h-0 overflow-y-auto divide-y">
-            {messages.map((message: any) => (
+            {filteredMessages.map((message: any) => (
               <button
                 key={message.id}
                 onClick={() => {
@@ -108,11 +112,10 @@ function MessagesPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <div className={cn("truncate text-sm", !message.read && "font-semibold")}>{message.name}</div>
-                    <div className="text-[10px] text-muted-foreground shrink-0">{format(new Date(message.date), "MMM d")}</div>
+                    <div className="text-[10px] text-muted-foreground shrink-0">{formatAdminDate(message.date, lang)}</div>
                   </div>
-                  <div className="text-xs truncate mt-0.5">{message.subject}</div>
+                  <div className="text-xs truncate mt-0.5">{t("contactRequest")}</div>
                   <div className="text-[11px] text-muted-foreground truncate mt-1">{message.message}</div>
-                  <div className="mt-1.5"><StatusBadge status={message.priority} /></div>
                 </div>
               </button>
             ))}
@@ -124,9 +127,9 @@ function MessagesPage() {
             <>
               <div className="shrink-0 p-4 border-b border-border/60 flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h3 className="font-display text-xl truncate">{selected.subject}</h3>
+                  <h3 className="font-display text-xl truncate">{t("contactRequest")}</h3>
                   <div className="text-sm text-muted-foreground mt-1">
-                    From <span className="text-foreground font-medium">{selected.name}</span> · {selected.email} · {selected.phone}
+                    {t("from")} <span className="text-foreground font-medium">{selected.name}</span> · {selected.email} · {selected.phone}
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -140,7 +143,7 @@ function MessagesPage() {
                       <AvatarFallback className="bg-secondary text-xs">{selected.name.split(" ").map((part: string) => part[0]).join("")}</AvatarFallback>
                     </Avatar>
                     <div className="max-w-[78%] rounded-2xl rounded-bl-md border border-border/60 bg-background px-4 py-3 shadow-sm">
-                      <div className="text-xs text-muted-foreground mb-1">{format(new Date(selected.date), "PPPp")}</div>
+                      <div className="text-xs text-muted-foreground mb-1">{formatAdminDate(selected.date, lang, { dateStyle: "long", timeStyle: "short" })}</div>
                       <p className="leading-relaxed text-sm whitespace-pre-wrap">{selected.message}</p>
                     </div>
                   </div>
@@ -148,7 +151,7 @@ function MessagesPage() {
                   {selected.replies?.map((item: any, index: number) => (
                     <div key={index} className="flex justify-end">
                       <div className="max-w-[78%] rounded-2xl rounded-br-md bg-[color:var(--gold)] px-4 py-3 text-white shadow-[var(--shadow-gold)]">
-                        <div className="text-xs text-white/75 mb-1">{format(new Date(item.sentAt), "PPPp")}</div>
+                        <div className="text-xs text-white/75 mb-1">{formatAdminDate(item.sentAt, lang, { dateStyle: "long", timeStyle: "short" })}</div>
                         <p className="text-sm leading-relaxed whitespace-pre-wrap">{item.message}</p>
                       </div>
                     </div>
@@ -167,7 +170,7 @@ function MessagesPage() {
                         sendReply();
                       }
                     }}
-                    placeholder="Type your reply..."
+                    placeholder={t("typeReply")}
                     className="min-h-[44px] resize-none bg-background"
                     rows={2}
                   />
@@ -186,7 +189,7 @@ function MessagesPage() {
             <div className="flex-1 grid place-items-center text-muted-foreground">
               <div className="text-center">
                 <Inbox className="h-10 w-10 mx-auto mb-2" />
-                <div>Select a message to view</div>
+                <div>{filteredMessages.length ? t("selectMessage") : t("noMessages")}</div>
               </div>
             </div>
           )}

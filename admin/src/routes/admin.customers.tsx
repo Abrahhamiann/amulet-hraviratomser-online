@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Copy, Eye, Mail, Megaphone, MoreHorizontal, Search, Send, UserPlus } from "lucide-react";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -17,13 +16,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { adminApi, currency } from "@/lib/api";
-import { useAdminI18n } from "@/lib/i18n";
+import { formatAdminCategory, formatAdminDate, useAdminI18n } from "@/lib/i18n";
 import { useCustomers } from "@/hooks/useAdminData";
 
 export const Route = createFileRoute("/admin/customers")({ component: CustomersPage });
 
 function CustomersPage() {
-  const { t } = useAdminI18n();
+  const { lang, t } = useAdminI18n();
   const { data: customers, isLoading, error } = useCustomers();
   const queryClient = useQueryClient();
   const [q, setQ] = useState("");
@@ -110,10 +109,10 @@ function CustomersPage() {
           <div className="flex flex-wrap gap-2">
             <Dialog open={broadcastOpen} onOpenChange={setBroadcastOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="rounded-full border-border/70"><Megaphone className="h-4 w-4 mr-2" />Broadcast</Button>
+                <Button variant="outline" className="rounded-full border-border/70"><Megaphone className="h-4 w-4 mr-2" />{t("broadcast")}</Button>
               </DialogTrigger>
               <EmailDialogContent
-                title="Broadcast email"
+                title={t("broadcastEmail")}
                 form={emailForm}
                 setForm={setEmailForm}
                 sending={sending}
@@ -130,7 +129,7 @@ function CustomersPage() {
                 <div className="grid gap-4 py-2">
                   <div className="space-y-2"><Label>{t("name")}</Label><Input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></div>
                   <div className="space-y-2"><Label>{t("email")}</Label><Input type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></div>
-                  <div className="space-y-2"><Label>{t("password")}</Label><Input value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} /></div>
+                  <div className="space-y-2"><Label>{t("password")}</Label><Input type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} /></div>
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setOpen(false)}>{t("cancel")}</Button>
@@ -146,22 +145,22 @@ function CustomersPage() {
         <div className="p-4 border-b border-border/60 bg-secondary/30">
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input value={q} onChange={(event) => setQ(event.target.value)} placeholder="Search by name or email..." className="pl-9 bg-background" />
+            <Input value={q} onChange={(event) => setQ(event.target.value)} placeholder={t("searchCustomers")} className="pl-9 bg-background" />
           </div>
         </div>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/20 hover:bg-secondary/20 border-border/60">
-                <TableHead>Customer</TableHead>
-                <TableHead>Provider</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead>Orders</TableHead>
-                <TableHead>Spent</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last active</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("customer")}</TableHead>
+                <TableHead>{t("provider")}</TableHead>
+                <TableHead>{t("phone")}</TableHead>
+                <TableHead>{t("joined")}</TableHead>
+                <TableHead>{t("orders")}</TableHead>
+                <TableHead>{t("spent")}</TableHead>
+                <TableHead>{t("status")}</TableHead>
+                <TableHead>{t("lastActive")}</TableHead>
+                <TableHead className="text-right">{t("actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -184,14 +183,14 @@ function CustomersPage() {
                     <ProviderBadge provider={customer.provider} />
                   </TableCell>
                   <TableCell className="text-sm">{customer.phone || "-"}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{format(new Date(customer.joined), "MMM d, yyyy")}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{formatAdminDate(customer.joined, lang)}</TableCell>
                   <TableCell>{customer.orders}</TableCell>
                   <TableCell className="font-medium">{currency(customer.spent)}</TableCell>
                   <TableCell><StatusBadge status={customer.status} /></TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{format(new Date(customer.lastActive), "MMM d, HH:mm")}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{formatAdminDate(customer.lastActive, lang, { dateStyle: "medium", timeStyle: "short" })}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label={t("actions")}><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => openEmail(customer)}><Mail className="h-4 w-4 mr-2" />{t("sendEmail")}</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => openProfile(customer)}><Eye className="h-4 w-4 mr-2" />{t("viewProfile")}</DropdownMenuItem>
@@ -202,6 +201,7 @@ function CustomersPage() {
               ))}
             </TableBody>
           </Table>
+          {!filtered.length && <div className="p-10 text-center text-sm text-muted-foreground">{t("noCustomers")}</div>}
         </div>
       </Card>
 
@@ -227,14 +227,14 @@ function CustomersPage() {
                 <Info label={t("name")} value={profile.name} />
                 <Info label={t("email")} value={profile.email} />
                 <div>
-                  <div className="text-xs text-muted-foreground">Provider</div>
+                  <div className="text-xs text-muted-foreground">{t("provider")}</div>
                   <div className="mt-1"><ProviderBadge provider={profile.provider} /></div>
                 </div>
                 <Info label={t("phone")} value={profile.phone || "-"} />
                 <Info label={t("spent")} value={currency(profile.spent)} />
-                <Info label={t("joined")} value={format(new Date(profile.joined), "PPP")} />
-                <Info label={t("status")} value={profile.isEmailVerified ? "Verified" : "Pending"} />
-                <Info label="Role" value={profile.role || "user"} />
+                <Info label={t("joined")} value={formatAdminDate(profile.joined, lang)} />
+                <Info label={t("status")} value={profile.isEmailVerified ? t("verified") : t("emailPending")} />
+                <Info label={t("role")} value={t("customer")} />
               </div>
               <div>
                 <h3 className="font-display text-xl mb-3">{t("invitations")}</h3>
@@ -243,11 +243,11 @@ function CustomersPage() {
                     {profile.invitations.map((invitation: any) => (
                       <div key={invitation.id} className="rounded-xl border border-border/60 p-3 text-sm">
                         <div className="font-medium">{invitation.title || invitation.names || invitation.slug}</div>
-                        <div className="text-muted-foreground">{invitation.eventType || "-"} / {invitation.slug || "-"}</div>
+                        <div className="text-muted-foreground">{formatAdminCategory(invitation.eventType, lang)} / {invitation.slug || "-"}</div>
                       </div>
                     ))}
                   </div>
-                ) : <p className="text-sm text-muted-foreground">No invitations</p>}
+                ) : <p className="text-sm text-muted-foreground">{t("noInvitations")}</p>}
               </div>
               <div>
                 <h3 className="font-display text-xl mb-3">{t("orders")}</h3>
@@ -256,19 +256,19 @@ function CustomersPage() {
                     {profile.orders.map((order: any) => (
                       <div key={order.id} className="rounded-xl border border-border/60 p-3 text-sm">
                         <div className="font-medium">{order.invitation}</div>
-                        <div className="text-muted-foreground">{order.eventType} · {format(new Date(order.eventDate), "PPP")} · {order.eventLocation}</div>
+                        <div className="text-muted-foreground">{formatAdminCategory(order.eventType, lang)} · {formatAdminDate(order.eventDate, lang)} · {order.eventLocation}</div>
                       </div>
                     ))}
                   </div>
-                ) : <p className="text-sm text-muted-foreground">No orders</p>}
+                ) : <p className="text-sm text-muted-foreground">{t("noOrders")}</p>}
               </div>
               <div className="flex flex-wrap justify-end gap-2">
                 <Button variant="outline" onClick={() => copyValue(profile.email)} className="rounded-full">
-                  <Copy className="h-4 w-4 mr-2" />Copy email
+                  <Copy className="h-4 w-4 mr-2" />{t("copyEmail")}
                 </Button>
                 {profile.phone ? (
                   <Button variant="outline" onClick={() => copyValue(profile.phone)} className="rounded-full">
-                    <Copy className="h-4 w-4 mr-2" />Copy phone
+                    <Copy className="h-4 w-4 mr-2" />{t("copyPhone")}
                   </Button>
                 ) : null}
                 <Button onClick={() => openEmail(profile)} className="gold-gradient border-0 text-white rounded-full"><Mail className="h-4 w-4 mr-2" />{t("sendEmail")}</Button>

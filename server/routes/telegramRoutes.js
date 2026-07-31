@@ -8,6 +8,12 @@ import {
   getTelegramBotAccount,
   getTelegramBotInvitation,
   getTelegramStatus,
+  getTelegramAdminDashboard,
+  getTelegramAdminMessage,
+  getTelegramAdminMessages,
+  getTelegramAdminOrder,
+  getTelegramAdminOrders,
+  replyTelegramAdminMessage,
   updateTelegramBotSettings
 } from '../controllers/telegramController.js';
 import { protect } from '../middleware/auth.js';
@@ -45,5 +51,11 @@ router.get('/bot/account', botOnly, getTelegramBotAccount);
 router.get('/bot/invitations/:invitationId', botOnly, validateObjectId('invitationId'), getTelegramBotInvitation);
 router.patch('/bot/settings', botOnly, updateTelegramBotSettings);
 router.delete('/bot/disconnect', botOnly, disconnectTelegramBot);
+router.get('/bot/admin/dashboard', botOnly, getTelegramAdminDashboard);
+router.get('/bot/admin/orders', botOnly, getTelegramAdminOrders);
+router.get('/bot/admin/orders/:orderId', botOnly, validateObjectId('orderId'), getTelegramAdminOrder);
+router.get('/bot/admin/messages', botOnly, getTelegramAdminMessages);
+router.get('/bot/admin/messages/:messageId', botOnly, validateObjectId('messageId'), getTelegramAdminMessage);
+router.post('/bot/admin/messages/:messageId/reply', botOnly, validateObjectId('messageId'), replyTelegramAdminMessage);
 
 export default router;

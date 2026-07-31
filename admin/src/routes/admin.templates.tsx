@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { adminApi, currency } from "@/lib/api";
-import { useAdminI18n } from "@/lib/i18n";
+import { formatAdminCategory, useAdminI18n } from "@/lib/i18n";
 import { useTemplates } from "@/hooks/useAdminData";
 import midnightVowsDefault from "../../../client/src/assets/occasion/midnight-vows-default.jpg";
 import baptismBabyChurch from "../../../client/src/assets/baptism/baptism-baby-church.png";
@@ -183,7 +183,7 @@ function toForm(template?: any) {
 }
 
 function TemplatesPage() {
-  const { t } = useAdminI18n();
+  const { lang, t } = useAdminI18n();
   const { data: templates, isLoading, error } = useTemplates();
   const queryClient = useQueryClient();
   const [view, setView] = useState<"cards" | "table">("cards");
@@ -282,8 +282,8 @@ function TemplatesPage() {
           <>
             <Tabs value={view} onValueChange={(value) => setView(value as "cards" | "table")}>
               <TabsList className="bg-secondary/60">
-                <TabsTrigger value="cards"><LayoutGrid className="h-4 w-4" /></TabsTrigger>
-                <TabsTrigger value="table"><List className="h-4 w-4" /></TabsTrigger>
+                <TabsTrigger value="cards" aria-label={t("cardView")}><LayoutGrid className="h-4 w-4" /></TabsTrigger>
+                <TabsTrigger value="table" aria-label={t("tableView")}><List className="h-4 w-4" /></TabsTrigger>
               </TabsList>
             </Tabs>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -325,12 +325,12 @@ function TemplatesPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <h3 className="font-display text-lg truncate">{template.name}</h3>
-                      <p className="text-xs text-muted-foreground">{template.category} · {template.designKey}</p>
+                      <p className="text-xs text-muted-foreground">{formatAdminCategory(template.category, lang)} · {template.designKey}</p>
                     </div>
                     <div className="font-display text-lg text-[color:var(--gold)]">{currency(template.price)}</div>
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/60">
-                    <div className="text-xs text-muted-foreground">{template.usage} uses</div>
+                    <div className="text-xs text-muted-foreground">{t("templateUses").replace("{count}", String(template.usage))}</div>
                     <TemplateActions template={template} onEdit={openEdit} onDuplicate={duplicateTemplate} onDelete={deleteTemplate} />
                   </div>
                 </div>
@@ -347,11 +347,11 @@ function TemplatesPage() {
                   <TableRow className="bg-secondary/20 hover:bg-secondary/20 border-border/60">
                     <TableHead>{t("templates")}</TableHead>
                     <TableHead>{t("category")}</TableHead>
-                    <TableHead>Design</TableHead>
+                    <TableHead>{t("design")}</TableHead>
                     <TableHead>{t("price")}</TableHead>
-                    <TableHead>Usage</TableHead>
+                    <TableHead>{t("usage")}</TableHead>
                     <TableHead>{t("status")}</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="text-right">{t("actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -363,7 +363,7 @@ function TemplatesPage() {
                           <span className="font-medium">{template.name}</span>
                         </div>
                       </TableCell>
-                      <TableCell>{template.category}</TableCell>
+                      <TableCell>{formatAdminCategory(template.category, lang)}</TableCell>
                       <TableCell>{template.designKey}</TableCell>
                       <TableCell>{currency(template.price)}</TableCell>
                       <TableCell>{template.usage}</TableCell>
@@ -391,7 +391,7 @@ function TemplateActions({ template, onEdit, onDuplicate, onDelete }: any) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label={t("actions")}><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={openPreview}><Eye className="h-4 w-4 mr-2" />{t("preview")}</DropdownMenuItem>
         <DropdownMenuItem onClick={() => onEdit(template)}><Edit className="h-4 w-4 mr-2" />{t("edit")}</DropdownMenuItem>
@@ -481,7 +481,7 @@ function TemplateForm({ form, setForm }: any) {
       <div className="space-y-2"><Label>{t("category")}</Label><Input value={form.category} onChange={(event) => set("category", event.target.value)} /></div>
       <div className="space-y-2"><Label>{t("price")}</Label><Input type="number" value={form.price} onChange={(event) => set("price", event.target.value)} /></div>
       <div className="space-y-2 sm:col-span-2">
-        <Label>Invitation design</Label>
+        <Label>{t("invitationDesign")}</Label>
         <select
           value={form.designKey}
           onChange={(event) => updateDesignKey(event.target.value)}
@@ -491,40 +491,40 @@ function TemplateForm({ form, setForm }: any) {
             <option key={option.key} value={option.key}>{option.label}</option>
           ))}
         </select>
-        <p className="text-xs text-muted-foreground">This links the database card to the static template files in client/src/occasionTemplates.</p>
+        <p className="text-xs text-muted-foreground">{t("designHelp")}</p>
       </div>
       <div className="space-y-2 sm:col-span-2">
         <Label>{t("mainImage")}</Label>
         <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-          <Input value={form.mainImage} onChange={(event) => set("mainImage", event.target.value)} placeholder="https://... կամ ընտրիր նկար" />
+          <Input value={form.mainImage} onChange={(event) => set("mainImage", event.target.value)} placeholder={t("imagePlaceholder")} />
           <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border/70 bg-background px-4 text-sm font-medium shadow-sm transition hover:border-[color:var(--gold)]">
             <Upload className="h-4 w-4" />
-            Upload
+            {t("upload")}
             <input className="sr-only" type="file" accept="image/*" onChange={(event) => chooseImage(event.target.files?.[0])} />
           </label>
         </div>
-        <p className="text-xs text-muted-foreground">{t("mainImage")} link կամ համակարգչից ընտրված նկար՝ մեկը պարտադիր է։</p>
+        <p className="text-xs text-muted-foreground">{t("mainImageHelp")}</p>
         {form.mainImage ? (
           <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,260px)_1fr]">
             <TemplateCardPreview form={form} />
             <div className="space-y-4 rounded-2xl border border-border/60 bg-secondary/20 p-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm font-medium">
-                  <span>Move left / right</span>
+                  <span>{t("moveHorizontal")}</span>
                   <span className="text-muted-foreground">{Math.round(imagePosition.x)}%</span>
                 </div>
                 <Slider value={[imagePosition.x]} min={0} max={100} step={1} onValueChange={([value]) => setImagePosition("x", value)} />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm font-medium">
-                  <span>Move up / down</span>
+                  <span>{t("moveVertical")}</span>
                   <span className="text-muted-foreground">{Math.round(imagePosition.y)}%</span>
                 </div>
                 <Slider value={[imagePosition.y]} min={0} max={100} step={1} onValueChange={([value]) => setImagePosition("y", value)} />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm font-medium">
-                  <span>Zoom</span>
+                  <span>{t("zoom")}</span>
                   <span className="text-muted-foreground">{imagePosition.zoom.toFixed(2)}x</span>
                 </div>
                 <Slider value={[imagePosition.zoom]} min={1} max={2} step={0.01} onValueChange={([value]) => setImagePosition("zoom", value)} />
@@ -535,15 +535,15 @@ function TemplateForm({ form, setForm }: any) {
       </div>
       <div className="space-y-3 rounded-2xl border border-border/60 bg-secondary/20 p-4 sm:col-span-2">
         <div className="space-y-2">
-          <Label>{t("description")} / Info</Label>
+          <Label>{t("description")}</Label>
           <Textarea
             value={form.description}
             onChange={(event) => set("description", event.target.value)}
             rows={6}
-            placeholder="Write the information shown inside the invitation card."
+            placeholder={t("descriptionPlaceholder")}
           />
         </div>
-        <p className="text-xs text-muted-foreground">This text is shown in the information area of the invitation card.</p>
+        <p className="text-xs text-muted-foreground">{t("descriptionHelp")}</p>
       </div>
       <div className="space-y-3 sm:col-span-2">
         <Label>{t("gallery")}</Label>
@@ -551,12 +551,12 @@ function TemplateForm({ form, setForm }: any) {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {galleryImages.map((image, index) => (
               <div key={`${image.slice(0, 32)}-${index}`} className="group relative overflow-hidden rounded-xl border border-border/70 bg-secondary/30 p-1">
-                <img src={getPreviewImage(image)} alt={`Gallery ${index + 1}`} className="aspect-square w-full rounded-lg object-cover" />
+                <img src={getPreviewImage(image)} alt={`${t("gallery")} ${index + 1}`} className="aspect-square w-full rounded-lg object-cover" />
                 <div className="absolute inset-x-1 bottom-1 flex items-center justify-center gap-1 rounded-b-lg bg-black/45 p-1 opacity-0 backdrop-blur-sm transition group-hover:opacity-100 group-focus-within:opacity-100">
                   <Button type="button" size="sm" variant="secondary" className="h-9 flex-1 rounded-lg px-2 text-[11px]" onClick={() => makeGalleryImageCover(image)}>
-                    Cover
+                    {t("makeCover")}
                   </Button>
-                  <label className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-white/20 bg-white/90 text-foreground shadow-sm transition hover:bg-white" aria-label={`Replace gallery image ${index + 1}`}>
+                  <label className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-white/20 bg-white/90 text-foreground shadow-sm transition hover:bg-white" aria-label={`${t("replaceImage")} ${index + 1}`}>
                     <Upload className="h-4 w-4" />
                     <input className="sr-only" type="file" accept="image/*" onChange={(event) => replaceGalleryImage(index, event.target.files?.[0])} />
                   </label>
@@ -567,7 +567,7 @@ function TemplateForm({ form, setForm }: any) {
                   variant="secondary"
                   className="absolute -right-1 -top-1 h-9 w-9 rounded-full bg-white text-destructive shadow-md hover:bg-destructive hover:text-white"
                   onClick={() => removeGalleryImage(index)}
-                  aria-label={`Remove gallery image ${index + 1}`}
+                  aria-label={`${t("removeImage")} ${index + 1}`}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -576,44 +576,45 @@ function TemplateForm({ form, setForm }: any) {
           </div>
         ) : (
           <div className="rounded-xl border border-dashed border-border/80 bg-secondary/20 p-4 text-sm text-muted-foreground">
-            No gallery images yet.
+            {t("noGalleryImages")}
           </div>
         )}
         <label className="flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[color:var(--gold)]/50 bg-secondary/20 px-4 text-sm font-medium transition hover:bg-secondary/40">
           <Upload className="h-5 w-5" />
-          Ավելացնել նկարներ
+          {t("addImages")}
           <input className="sr-only" type="file" accept="image/*" multiple onChange={(event) => addGalleryImages(event.target.files)} />
         </label>
         <Textarea value={form.gallery} onChange={(event) => set("gallery", event.target.value)} rows={3} className="text-xs" />
-        <p className="text-xs text-muted-foreground">Կարող եք նկարները ավելացնել համակարգչից, ջնջել, փոխարինել կամ ընտրել որպես card-ի գլխավոր նկար։</p>
+        <p className="text-xs text-muted-foreground">{t("galleryHelp")}</p>
       </div>
       <div className="space-y-2"><Label>{t("features")}</Label><Textarea value={form.features} onChange={(event) => set("features", event.target.value)} rows={4} /></div>
       <label className="flex items-center gap-3"><Switch checked={form.isFeatured} onCheckedChange={(checked) => set("isFeatured", checked)} /> {t("featured")}</label>
-      <label className="flex items-center gap-3"><Switch checked={form.isActive} onCheckedChange={(checked) => set("isActive", checked)} /> Active on website</label>
+      <label className="flex items-center gap-3"><Switch checked={form.isActive} onCheckedChange={(checked) => set("isActive", checked)} /> {t("activeOnWebsite")}</label>
     </div>
   );
 }
 
 function TemplateCardPreview({ form }: any) {
+  const { lang, t } = useAdminI18n();
   return (
     <div className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-[var(--shadow-soft)]">
       <div className="relative aspect-[4/5] overflow-hidden bg-secondary">
         <img src={getPreviewImage(form.mainImage)} alt="" className="h-full w-full object-cover" style={getImageStyle(form.imagePosition)} />
         {form.isFeatured ? (
           <div className="absolute left-3 top-3 gold-gradient rounded-full px-2 py-1 text-[10px] font-medium text-white">
-            Featured
+            {t("featured")}
           </div>
         ) : null}
       </div>
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="truncate font-display text-lg">{form.title || "Template title"}</h3>
-            <p className="text-xs text-muted-foreground">{form.category || "category"} · {form.designKey}</p>
+            <h3 className="truncate font-display text-lg">{form.title || t("title")}</h3>
+            <p className="text-xs text-muted-foreground">{formatAdminCategory(form.category, lang)} · {form.designKey}</p>
           </div>
           <div className="font-display text-lg text-[color:var(--gold)]">{currency(Number(form.price || 0))}</div>
         </div>
-        <div className="mt-3 border-t border-border/60 pt-3 text-xs text-muted-foreground">0 uses</div>
+        <div className="mt-3 border-t border-border/60 pt-3 text-xs text-muted-foreground">{t("templateUses").replace("{count}", "0")}</div>
       </div>
     </div>
   );

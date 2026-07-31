@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { adminApi } from "@/lib/api";
+import { useAdminI18n } from "@/lib/i18n";
 import { useFaq } from "@/hooks/useAdminData";
 
 export const Route = createFileRoute("/admin/faq")({ component: FaqPage });
@@ -29,6 +30,7 @@ const createFaqItem = (): FaqItem => ({
 });
 
 function FaqPage() {
+  const { t } = useAdminI18n();
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useFaq();
   const [items, setItems] = useState<FaqItem[]>([]);
@@ -65,9 +67,9 @@ function FaqPage() {
       const saved = await adminApi.updateFaq({ items: cleanItems });
       setItems(saved.items.length ? saved.items : [createFaqItem()]);
       await queryClient.invalidateQueries({ queryKey: ["admin", "faq"] });
-      toast.success("FAQ saved");
+      toast.success(t("done"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Action failed");
+      toast.error(err instanceof Error ? err.message : t("failed"));
     } finally {
       setSaving(false);
     }
@@ -76,17 +78,17 @@ function FaqPage() {
   return (
     <div>
       <PageHeader
-        title="FAQ chatbot"
-        subtitle={error ? error.message : isLoading ? "Loading..." : `${items.filter((item) => item.question && item.answer).length} questions`}
+        title="FAQ"
+        subtitle={error ? error.message : isLoading ? t("loading") : t("questionsCount").replace("{count}", String(items.filter((item) => item.question && item.answer).length))}
         actions={
           <>
             <Button variant="outline" className="rounded-full border-border/60" onClick={addItem}>
               <Plus className="mr-2 h-4 w-4" />
-              Add question
+              {t("addQuestion")}
             </Button>
             <Button className="rounded-full border-0 text-white gold-gradient" onClick={saveItems} disabled={saving}>
               <Save className="mr-2 h-4 w-4" />
-              {saving ? "Saving..." : "Save"}
+              {saving ? t("saving") : t("save")}
             </Button>
           </>
         }
@@ -102,8 +104,8 @@ function FaqPage() {
                     <MessageCircleQuestion className="h-5 w-5" />
                   </div>
                   <div>
-                    <div className="font-medium">Question {index + 1}</div>
-                    <div className="text-xs text-muted-foreground">{item.active ? "Visible in chat" : "Hidden from chat"}</div>
+                    <div className="font-medium">{t("questionNumber").replace("{number}", String(index + 1))}</div>
+                    <div className="text-xs text-muted-foreground">{item.active ? t("visibleOnWebsite") : t("hiddenOnWebsite")}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -114,7 +116,7 @@ function FaqPage() {
                     size="icon"
                     className="h-9 w-9 rounded-full border-border/60 text-destructive"
                     onClick={() => removeItem(item.id)}
-                    aria-label="Delete question"
+                    aria-label={t("deleteQuestion")}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -122,20 +124,20 @@ function FaqPage() {
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 <label className="grid gap-2 text-sm font-medium">
-                  Question
+                  {t("question")}
                   <Input
                     value={item.question}
                     onChange={(event) => updateItem(item.id, { question: event.target.value })}
-                    placeholder="What is included in the price?"
+                    placeholder={t("questionPlaceholder")}
                     className="h-11 bg-background"
                   />
                 </label>
                 <label className="grid gap-2 text-sm font-medium">
-                  Answer
+                  {t("answer")}
                   <Textarea
                     value={item.answer}
                     onChange={(event) => updateItem(item.id, { answer: event.target.value })}
-                    placeholder="Write the bot answer..."
+                    placeholder={t("answerPlaceholder")}
                     className="min-h-[110px] resize-y bg-background"
                   />
                 </label>
@@ -145,14 +147,14 @@ function FaqPage() {
         </div>
 
         <Card className="h-max rounded-2xl border-border/60 p-4 shadow-[var(--shadow-soft)]">
-          <div className="mb-3 font-display text-xl">Chat preview</div>
+          <div className="mb-3 font-display text-xl">{t("chatPreview")}</div>
           <div className="rounded-2xl border border-border/60 bg-secondary/30 p-3">
             <div className="mb-3 flex items-start gap-2">
               <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[color:var(--gold)] text-white">
                 <MessageCircleQuestion className="h-4 w-4" />
               </div>
               <div className="rounded-2xl rounded-bl-md bg-background px-3 py-2 text-sm shadow-sm">
-                FAQ chatbot
+                FAQ
               </div>
             </div>
             <div className="grid gap-2">

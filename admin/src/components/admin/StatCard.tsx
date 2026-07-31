@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import { useAdminI18n } from "@/lib/i18n";
 
 export function StatCard({
   label, value, delta, icon, tone = "gold",
@@ -12,6 +13,7 @@ export function StatCard({
   icon: ReactNode;
   tone?: "gold" | "success" | "warning" | "destructive";
 }) {
+  const { t } = useAdminI18n();
   const positive = (delta ?? 0) >= 0;
   const toneMap = {
     gold: "text-[color:var(--gold)] bg-[color:var(--cream)]",
@@ -31,7 +33,7 @@ export function StatCard({
               positive ? "text-[color:var(--success)] bg-[color:var(--success)]/10" : "text-destructive bg-destructive/10")}>
               {positive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
               {Math.abs(delta)}%
-              <span className="text-muted-foreground font-normal ml-1">vs last month</span>
+              <span className="text-muted-foreground font-normal ml-1">{t("vsLastMonth")}</span>
             </div>
           )}
         </div>

@@ -1,10 +1,12 @@
 import asyncHandler from 'express-async-handler';
 import crypto from 'crypto';
+import ContactMessage from '../models/ContactMessage.js';
 import Invitation from '../models/Invitation.js';
 import Order from '../models/Order.js';
 import RSVP from '../models/RSVP.js';
 import User from '../models/User.js';
-import { getTelegramBotHealth, normalizeTelegramLanguage } from '../utils/telegram.js';
+import { deliverContactReply } from '../utils/contactReply.js';
+import { getTelegramBotHealth, isTelegramAdmin, normalizeTelegramLanguage } from '../utils/telegram.js';
 
 const tokenHash = (token) => crypto.createHash('sha256').update(token).digest('hex');
 const cleanBotUsername = () => (
@@ -38,6 +40,49 @@ const findTelegramUser = async (chatId, res) => {
   }
   return user;
 };
+
+const requireTelegramAdmin = (chatId, res) => {
+  if (isTelegramAdmin(chatId)) return String(chatId);
+  res.status(403);
+  throw new Error('Telegram administrator access required');
+};
+
+const pagination = (value, fallback = 0) => {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+};
+
+const adminOrderPayload = (order) => ({
+  id: String(order._id),
+  customer: order.fullName,
+  email: order.email,
+  phone: order.phone,
+  invitation: order.invitationId?.names || order.mainNames,
+  invitationUrl: order.invitationId?.slug ? `${clientUrl()}/invite/${order.invitationId.slug}` : '',
+  template: order.templateId?.title || order.eventType,
+  eventType: order.eventType,
+  amount: Number(order.amount) || Number(order.templateId?.price) || 0,
+  paymentStatus: order.paymentStatus,
+  eventDate: order.eventDate,
+  eventTime: order.eventTime,
+  eventLocation: order.eventLocation,
+  mapLink: order.mapLink,
+  language: order.preferredLanguage,
+  notes: order.notes,
+  createdAt: order.createdAt
+});
+
+const adminMessagePayload = (message) => ({
+  id: String(message._id),
+  name: message.name,
+  email: message.email,
+  phone: message.phone,
+  message: message.message,
+  replied: Boolean(message.repliedAt),
+  repliedAt: message.repliedAt,
+  replies: message.replies || [],
+  createdAt: message.createdAt
+});
 
 const summarizeRsvps = (items) => items.reduce((summary, rsvp) => {
   summary.replies += 1;
@@ -262,4 +307,102 @@ export const disconnectTelegramBot = asyncHandler(async (req, res) => {
   user.telegram.connectedAt = null;
   await user.save();
   res.json({ connected: false });
+});
+
+export const getTelegramAdminDashboard = asyncHandler(async (req, res) => {
+  requireTelegramAdmin(req.query.chatId, res);
+  const [orders, paidOrders, unpaidOrders, messages, unansweredMessages] = await Promise.all([
+    Order.find().populate('templateId').lean(),
+    Order.countDocuments({ paymentStatus: 'paid' }),
+    Order.countDocuments({ paymentStatus: 'unpaid' }),
+    ContactMessage.countDocuments(),
+    ContactMessage.countDocuments({ $or: [{ repliedAt: null }, { repliedAt: { $exists: false } }] })
+  ]);
+  const revenue = orders
+    .filter((order) => order.paymentStatus === 'paid')
+    .reduce((sum, order) => sum + (Number(order.amount) || Number(order.templateId?.price) || 0), 0);
+
+  res.json({
+    orders: orders.length,
+    paidOrders,
+    unpaidOrders,
+    revenue,
+    messages,
+    unansweredMessages
+  });
+});
+
+export const getTelegramAdminOrders = asyncHandler(async (req, res) => {
+  requireTelegramAdmin(req.query.chatId, res);
+  const page = pagination(req.query.page);
+  const pageSize = 6;
+  const [orders, total] = await Promise.all([
+    Order.find()
+      .populate('templateId invitationId')
+      .sort({ createdAt: -1 })
+      .skip(page * pageSize)
+      .limit(pageSize),
+    Order.countDocuments()
+  ]);
+  res.json({
+    items: orders.map(adminOrderPayload),
+    page,
+    pages: Math.max(1, Math.ceil(total / pageSize)),
+    total
+  });
+});
+
+export const getTelegramAdminOrder = asyncHandler(async (req, res) => {
+  requireTelegramAdmin(req.query.chatId, res);
+  const order = await Order.findById(req.params.orderId).populate('templateId invitationId');
+  if (!order) {
+    res.status(404);
+    throw new Error('Order not found');
+  }
+  res.json(adminOrderPayload(order));
+});
+
+export const getTelegramAdminMessages = asyncHandler(async (req, res) => {
+  requireTelegramAdmin(req.query.chatId, res);
+  const page = pagination(req.query.page);
+  const pageSize = 6;
+  const [messages, total] = await Promise.all([
+    ContactMessage.find().sort({ createdAt: -1 }).skip(page * pageSize).limit(pageSize),
+    ContactMessage.countDocuments()
+  ]);
+  res.json({
+    items: messages.map(adminMessagePayload),
+    page,
+    pages: Math.max(1, Math.ceil(total / pageSize)),
+    total
+  });
+});
+
+export const getTelegramAdminMessage = asyncHandler(async (req, res) => {
+  requireTelegramAdmin(req.query.chatId, res);
+  const message = await ContactMessage.findById(req.params.messageId);
+  if (!message) {
+    res.status(404);
+    throw new Error('Message not found');
+  }
+  res.json(adminMessagePayload(message));
+});
+
+export const replyTelegramAdminMessage = asyncHandler(async (req, res) => {
+  const adminChatId = requireTelegramAdmin(req.body?.chatId, res);
+  if (!String(req.body?.message || '').trim()) {
+    res.status(400);
+    throw new Error('Reply message is required');
+  }
+  const message = await ContactMessage.findById(req.params.messageId);
+  if (!message) {
+    res.status(404);
+    throw new Error('Message not found');
+  }
+  const delivery = await deliverContactReply(message, {
+    subject: req.body?.subject || 'Reply from Amulet',
+    message: req.body?.message,
+    adminChatId
+  });
+  res.json({ message: 'Reply sent', ...delivery });
 });

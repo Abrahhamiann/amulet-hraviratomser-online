@@ -1,12 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { CheckCircle2, Clock, Download, ExternalLink, Eye, MoreHorizontal, Search, ShoppingBag, Trash2, XCircle } from "lucide-react";
-import { format } from "date-fns";
+import { CircleDollarSign, Download, ExternalLink, Eye, MoreHorizontal, Search, ShoppingBag, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,18 +14,17 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { StatCard } from "@/components/admin/StatCard";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { adminApi, currency } from "@/lib/api";
-import { useAdminI18n } from "@/lib/i18n";
+import { formatAdminDate, useAdminI18n } from "@/lib/i18n";
 import { useOrders } from "@/hooks/useAdminData";
 
 export const Route = createFileRoute("/admin/orders")({ component: OrdersPage });
 
 function OrdersPage() {
-  const { t } = useAdminI18n();
+  const { lang, t } = useAdminI18n();
   const { data: orders, isLoading, error } = useOrders();
   const queryClient = useQueryClient();
   const [q, setQ] = useState("");
   const [payment, setPayment] = useState("all");
-  const [status, setStatus] = useState("all");
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
 
@@ -38,24 +35,13 @@ function OrdersPage() {
           String(order.id).toLowerCase().includes(q.toLowerCase()) ||
           String(order.customer).toLowerCase().includes(q.toLowerCase()) ||
           String(order.email).toLowerCase().includes(q.toLowerCase())) &&
-        (payment === "all" || order.payment === payment) &&
-        (status === "all" || order.status === status)
+        (payment === "all" || order.payment === payment)
       ),
-    [orders, q, payment, status],
+    [orders, q, payment],
   );
 
-  const updateStatus = async (order: any, nextStatus: string) => {
-    try {
-      await adminApi.updateOrderStatus(order.id, nextStatus);
-      await queryClient.invalidateQueries({ queryKey: ["admin"] });
-      toast.success(t("done"));
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("failed"));
-    }
-  };
-
   const deleteOrder = async (order: any) => {
-    if (!confirm(`Իրո՞ք ցանկանում եք ջնջել այս պատվերը: ${order.invitation || order.customer}`)) return;
+    if (!confirm(`${t("confirmDeleteOrder")} ${order.invitation || order.customer}`)) return;
     try {
       await adminApi.deleteOrder(order.id);
       await queryClient.invalidateQueries({ queryKey: ["admin"] });
@@ -68,7 +54,7 @@ function OrdersPage() {
 
   const deleteAllOrders = async () => {
     if (!orders.length) return;
-    if (!confirm("Իրո՞ք ցանկանում եք ջնջել բոլոր պատվերները։ Այս գործողությունը հնարավոր չէ հետ վերադարձնել։")) return;
+    if (!confirm(t("confirmDeleteAllOrders"))) return;
     try {
       const result = await adminApi.deleteAllOrders();
       await queryClient.invalidateQueries({ queryKey: ["admin"] });
@@ -80,7 +66,7 @@ function OrdersPage() {
   };
 
   const exportCsv = () => {
-    const rows = [["id", "customer", "email", "amount", "payment", "status", "date"], ...filtered.map((order: any) => [order.id, order.customer, order.email, order.amount, order.payment, order.status, order.date])];
+    const rows = [["id", "customer", "email", "amount", "payment", "date"], ...filtered.map((order: any) => [order.id, order.customer, order.email, order.amount, order.payment, order.date])];
     const csv = rows.map((row) => row.map((cell) => `"${String(cell ?? "").replaceAll('"', '""')}"`).join(",")).join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const link = document.createElement("a");
@@ -103,38 +89,31 @@ function OrdersPage() {
         actions={
           <div className="flex flex-wrap gap-2">
             <Button onClick={deleteAllOrders} disabled={!orders.length} variant="outline" className="rounded-full border-destructive/30 text-destructive hover:bg-destructive/10">
-              <Trash2 className="h-4 w-4 mr-2" />Ջնջել բոլորը
+              <Trash2 className="h-4 w-4 mr-2" />{t("deleteAll")}
             </Button>
             <Button onClick={exportCsv} variant="outline" className="rounded-full border-border/60"><Download className="h-4 w-4 mr-2" />{t("exportCsv")}</Button>
           </div>
         }
       />
 
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <StatCard label={t("totalOrders")} value={orders.length} icon={<ShoppingBag className="h-5 w-5" />} />
-        <StatCard label="Completed" value={orders.filter((order: any) => order.status === "completed").length} tone="success" icon={<CheckCircle2 className="h-5 w-5" />} />
-        <StatCard label="In progress" value={orders.filter((order: any) => order.status === "in_progress").length} tone="warning" icon={<Clock className="h-5 w-5" />} />
-        <StatCard label="Cancelled" value={orders.filter((order: any) => order.status === "cancelled").length} tone="destructive" icon={<XCircle className="h-5 w-5" />} />
+        <StatCard label={t("paidOrders")} value={orders.filter((order: any) => order.payment === "paid").length} tone="success" icon={<CircleDollarSign className="h-5 w-5" />} />
+        <StatCard label={t("unpaidOrders")} value={orders.filter((order: any) => order.payment !== "paid").length} tone="warning" icon={<CircleDollarSign className="h-5 w-5" />} />
+        <StatCard label={t("totalAmount")} value={currency(orders.reduce((sum: number, order: any) => sum + Number(order.amount || 0), 0))} icon={<CircleDollarSign className="h-5 w-5" />} />
       </div>
 
       <Card className="rounded-2xl border-border/60 shadow-[var(--shadow-soft)] overflow-hidden">
         <div className="flex flex-wrap items-center gap-3 p-4 border-b border-border/60 bg-secondary/30">
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input value={q} onChange={(event) => setQ(event.target.value)} placeholder="Search orders..." className="pl-9 bg-background" />
+            <Input value={q} onChange={(event) => setQ(event.target.value)} placeholder={t("searchOrders")} className="pl-9 bg-background" />
           </div>
           <Select value={payment} onValueChange={setPayment}>
-            <SelectTrigger className="w-40 bg-background"><SelectValue placeholder="Payment" /></SelectTrigger>
+            <SelectTrigger className="w-44 bg-background"><SelectValue placeholder={t("payment")} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All payments</SelectItem>
-              {["paid", "pending", "failed"].map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger className="w-40 bg-background"><SelectValue placeholder="Status" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              {["new", "in_progress", "completed", "cancelled"].map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}
+              <SelectItem value="all">{t("allPayments")}</SelectItem>
+              {["paid", "pending", "refunded"].map((item) => <SelectItem key={item} value={item}><StatusBadge status={item} /></SelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -142,21 +121,18 @@ function OrdersPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/20 hover:bg-secondary/20 border-border/60">
-                <TableHead className="w-10"><Checkbox /></TableHead>
-                <TableHead>Order</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Invitation</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Payment</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("order")}</TableHead>
+                <TableHead>{t("customer")}</TableHead>
+                <TableHead>{t("invitation")}</TableHead>
+                <TableHead>{t("amount")}</TableHead>
+                <TableHead>{t("payment")}</TableHead>
+                <TableHead>{t("date")}</TableHead>
+                <TableHead className="text-right">{t("actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.map((order: any) => (
                 <TableRow key={order.id} className="border-border/60 hover:bg-secondary/30">
-                  <TableCell><Checkbox /></TableCell>
                   <TableCell className="font-mono text-xs">{String(order.id).slice(-8).toUpperCase()}</TableCell>
                   <TableCell>
                     <div className="font-medium">{order.customer}</div>
@@ -165,18 +141,12 @@ function OrdersPage() {
                   <TableCell>{order.invitation}</TableCell>
                   <TableCell className="font-medium">{currency(order.amount)}</TableCell>
                   <TableCell><StatusBadge status={order.payment} /></TableCell>
-                  <TableCell><StatusBadge status={order.status} /></TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{format(new Date(order.date), "MMM d")}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{formatAdminDate(order.date, lang)}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label={t("actions")}><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => openDetails(order)}><Eye className="h-4 w-4 mr-2" />{t("viewDetails")}</DropdownMenuItem>
-                        {["new", "in_progress", "completed", "cancelled"].map((item) => (
-                          <DropdownMenuItem key={item} onClick={() => updateStatus(order, item)}>
-                            {t("updateStatus")}: <StatusBadge status={item} />
-                          </DropdownMenuItem>
-                        ))}
                         <DropdownMenuItem onClick={() => deleteOrder(order)} className="text-destructive">
                           <Trash2 className="h-4 w-4 mr-2" />{t("delete")}
                         </DropdownMenuItem>
@@ -187,6 +157,7 @@ function OrdersPage() {
               ))}
             </TableBody>
           </Table>
+          {!filtered.length && <div className="p-10 text-center text-sm text-muted-foreground">{t("noData")}</div>}
         </div>
       </Card>
 
@@ -204,7 +175,6 @@ function OrdersPage() {
                     <h3 className="mt-1 text-lg font-semibold">{selectedOrder.invitation || "-"}</h3>
                     <div className="mt-2 flex flex-wrap gap-2">
                       <StatusBadge status={selectedOrder.payment} />
-                      <StatusBadge status={selectedOrder.status} />
                     </div>
                   </div>
                   <div className="text-right">
@@ -218,13 +188,13 @@ function OrdersPage() {
                 <Detail label={t("customer")} value={selectedOrder.customer} />
                 <Detail label={t("email")} value={selectedOrder.email} />
                 <Detail label={t("phone")} value={selectedOrder.phone || "-"} />
-                <Detail label="Template" value={selectedOrder.template || "-"} />
-                <Detail label="Event type" value={selectedOrder.eventType || "-"} />
-                <Detail label="Language" value={selectedOrder.preferredLanguage || "-"} />
-                <Detail label={t("date")} value={selectedOrder.eventDate ? format(new Date(selectedOrder.eventDate), "PPP") : "-"} />
+                <Detail label={t("templates")} value={selectedOrder.template || "-"} />
+                <Detail label={t("eventType")} value={selectedOrder.eventType || "-"} />
+                <Detail label={t("language")} value={selectedOrder.preferredLanguage || "-"} />
+                <Detail label={t("date")} value={formatAdminDate(selectedOrder.eventDate, lang)} />
                 <Detail label={t("time")} value={selectedOrder.eventTime || "-"} />
                 <Detail label={t("location")} value={selectedOrder.eventLocation || "-"} />
-                <Detail label="Created" value={selectedOrder.date ? format(new Date(selectedOrder.date), "PPPp") : "-"} />
+                <Detail label={t("created")} value={formatAdminDate(selectedOrder.date, lang, { dateStyle: "long", timeStyle: "short" })} />
               </div>
 
               {selectedOrder.mapLink ? (
@@ -234,13 +204,13 @@ function OrdersPage() {
                   rel="noreferrer"
                   className="inline-flex w-fit items-center rounded-full border border-border/70 px-4 py-2 text-sm hover:bg-secondary/50"
                 >
-                  <ExternalLink className="h-4 w-4 mr-2" />Open map link
+                  <ExternalLink className="h-4 w-4 mr-2" />{t("openMap")}
                 </a>
               ) : null}
 
               <div className="grid gap-4">
                 <LongDetail label={t("message")} value={selectedOrder.eventMessage || "-"} />
-                <LongDetail label="Notes" value={selectedOrder.notes || "-"} />
+                <LongDetail label={t("notes")} value={selectedOrder.notes || "-"} />
               </div>
             </div>
           ) : null}

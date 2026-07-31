@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, FileText, LayoutTemplate, ShoppingBag, Users, CreditCard,
-  Star, MessageSquare, FolderTree, Languages, Bell, ShieldCheck,
+  MessageSquare, Bell, ShieldCheck,
   LogOut, MessageCircleQuestion, Sparkles,
 } from "lucide-react";
 import {
@@ -19,14 +19,11 @@ const mainNav = [
   { title: "orders", url: "/admin/orders", icon: ShoppingBag },
   { title: "customers", url: "/admin/customers", icon: Users },
   { title: "payments", url: "/admin/payments", icon: CreditCard },
-  { title: "reviews", url: "/admin/reviews", icon: Star },
   { title: "messages", url: "/admin/messages", icon: MessageSquare },
 ];
 
 const configNav = [
   { title: "FAQ", url: "/admin/faq", icon: MessageCircleQuestion },
-  { title: "categories", url: "/admin/categories", icon: FolderTree },
-  { title: "languages", url: "/admin/languages", icon: Languages },
   { title: "notifications", url: "/admin/notifications", icon: Bell },
   { title: "administrators", url: "/admin/administrators", icon: ShieldCheck },
 ];

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { Sparkles } from "lucide-react";
 
 export function PageHeader({
   title, subtitle, actions,
@@ -18,7 +19,7 @@ export function PageHeader({
 export function EmptyState({ title, desc, action }: { title: string; desc?: string; action?: ReactNode }) {
   return (
     <div className="rounded-2xl border border-dashed border-border/70 py-16 text-center bg-secondary/30">
-      <div className="mx-auto mb-3 h-12 w-12 rounded-full bg-[color:var(--cream)] grid place-items-center text-[color:var(--gold)]">✦</div>
+      <div className="mx-auto mb-3 h-12 w-12 rounded-full bg-[color:var(--cream)] grid place-items-center text-[color:var(--gold)]"><Sparkles className="h-5 w-5" /></div>
       <div className="font-medium">{title}</div>
       {desc && <div className="text-sm text-muted-foreground mt-1">{desc}</div>}
       {action && <div className="mt-4">{action}</div>}

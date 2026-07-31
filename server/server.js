@@ -17,6 +17,7 @@ import statsRoutes from './routes/statsRoutes.js';
 import templateRoutes from './routes/templateRoutes.js';
 import telegramRoutes from './routes/telegramRoutes.js';
 import { getPublicFaq } from './controllers/adminController.js';
+import { startContactReminderScheduler } from './utils/contactReminder.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,6 +35,11 @@ if (telegramBotEnv.parsed?.TELEGRAM_BOT_TOKEN) {
 if (telegramBotEnv.parsed?.TELEGRAM_BOT_USERNAME) {
   process.env.TELEGRAM_SHARED_BOT_USERNAME = telegramBotEnv.parsed.TELEGRAM_BOT_USERNAME;
 }
+['TELEGRAM_ADMIN_CHAT_IDS', 'TELEGRAM_ADMIN_1_ID', 'TELEGRAM_ADMIN_2_ID'].forEach((key) => {
+  if (!process.env[key] && telegramBotEnv.parsed?.[key]) {
+    process.env[key] = telegramBotEnv.parsed[key];
+  }
+});
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -82,6 +88,7 @@ app.use(errorHandler);
 
 connectDB()
   .then(() => {
+    startContactReminderScheduler();
     const server = app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
     server.on('error', (error) => {
       if (error.code === 'EADDRINUSE') {
