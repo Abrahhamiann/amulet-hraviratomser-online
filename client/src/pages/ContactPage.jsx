@@ -6,6 +6,7 @@ import Button from '../components/Button.jsx';
 import Input from '../components/Input.jsx';
 import SectionTitle from '../components/SectionTitle.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { CONTACT_PHONE_DISPLAY, CONTACT_PHONE_E164 } from '../data/contact.js';
 import { required, toForm } from '../utils/forms.js';
 
 export default function ContactPage() {
@@ -35,7 +36,7 @@ export default function ContactPage() {
       <div>
         <SectionTitle title={t('contact')} text={t('contactIntro')} />
         <div className="contact-list">
-          <span><Phone size={18} /> {t('contactPhoneValue')}</span>
+          <a href={`tel:${CONTACT_PHONE_E164}`}><Phone size={18} /> {CONTACT_PHONE_DISPLAY}</a>
           <span><Mail size={18} /> {t('contactEmailValue')}</span>
           <span><MapPin size={18} /> {t('contactAddressValue')}</span>
           <span><Instagram size={18} /> {t('contactInstagramValue')}</span>

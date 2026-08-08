@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import api from '../api/axios.js';
+import Loading from '../components/Loading.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
 
@@ -80,13 +82,13 @@ const getGuestSideLabel = (side, isBaptism, t) => {
 export default function GuestResponsesPage() {
   const { invitationId } = useParams();
   const { language, t } = useLanguage();
+  const { initialized, user } = useAuth();
   const [state, setState] = useState('loading');
   const [details, setDetails] = useState(null);
   const [activeFilter, setActiveFilter] = useState('all');
-  const token = localStorage.getItem('userToken');
 
   useEffect(() => {
-    if (!token || !invitationId) return undefined;
+    if (!user || !invitationId) return undefined;
 
     let mounted = true;
     api.get(`/rsvp/my/${invitationId}/details`)
@@ -102,7 +104,7 @@ export default function GuestResponsesPage() {
     return () => {
       mounted = false;
     };
-  }, [invitationId, token]);
+  }, [invitationId, user]);
 
   const rsvps = details?.rsvps || [];
   const invitation = details?.invitation;
@@ -130,7 +132,8 @@ export default function GuestResponsesPage() {
       : rsvps.filter((rsvp) => rsvp.status === activeFilter)
   ), [activeFilter, rsvps]);
 
-  if (!token) return <Navigate to="/login" replace />;
+  if (!initialized) return <Loading text={t('loading')} />;
+  if (!user) return <Navigate to="/login" replace />;
 
   return (
     <section className="guest-responses-page section page-top">

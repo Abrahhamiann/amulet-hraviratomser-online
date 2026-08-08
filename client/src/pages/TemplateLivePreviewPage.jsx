@@ -1,23 +1,17 @@
 import React from 'react';
 import {
-  AlertCircle,
   CalendarDays,
-  ChevronDown,
   ClipboardList,
   Clock,
-  Heart,
   Home,
-  Image as ImageIcon,
-  ImagePlus,
+  Gift,
   MapPin,
   Megaphone,
   MessageSquare,
   Palette,
   Pencil,
-  Plus,
   ShoppingBag,
   Sparkles,
-  Trash2,
   Users,
   X
 } from 'lucide-react';
@@ -25,6 +19,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import api from '../api/axios.js';
 import ErrorState from '../components/ErrorState.jsx';
+import InvitationEditor from '../components/invitationEditor/InvitationEditor.jsx';
 import Loading from '../components/Loading.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
@@ -46,40 +41,18 @@ const defaultColors = {
   overlay: '#202020'
 };
 
-const cleanMapLinks = (links = []) => links
-  .map((item, index) => ({
-    label: String(item?.label || `Քարտեզ ${index + 1}`).trim(),
-    url: String(item?.url || '').trim()
-  }))
-  .filter((item) => item.url);
-
 const cleanVenueLinks = (links = []) => links
   .map((item, index) => ({
     label: String(item?.label || `Վայր ${index + 1}`).trim(),
     time: String(item?.time || '').trim(),
     address: String(item?.address || '').trim(),
-    url: String(item?.url || '').trim()
+    url: String(item?.url || '').trim(),
+    subtitle: String(item?.subtitle || '').trim(),
+    icon: String(item?.icon || 'location').trim(),
+    visible: item?.visible !== false
   }))
-  .filter((item) => item.label || item.time || item.address || item.url);
-
-const createDefaultVenue = (draft = {}, index = 0) => ({
-  label: `Վայր ${index + 1}`,
-  time: index === 0 ? draft.eventTime || '' : '',
-  address: index === 0 ? draft.eventLocation || '' : '',
-  url: index === 0 ? draft.mapLink || '' : ''
-});
-
-const getDraftVenueLinks = (draft = {}) => {
-  const links = Array.isArray(draft?.mapLinks) && draft.mapLinks.length
-    ? draft.mapLinks
-    : [createDefaultVenue(draft, 0)];
-
-  return links.map((item, index) => ({
-    ...createDefaultVenue(draft, index),
-    ...(item || {}),
-    label: String(item?.label || `Վայր ${index + 1}`).trim() || `Վայր ${index + 1}`
-  }));
-};
+  .filter((item) => item.label || item.time || item.address || item.url)
+  .slice(0, 20);
 
 const createInitialDraft = (template) => {
   const occasionTemplate = getOccasionTemplate(template);
@@ -100,6 +73,11 @@ const createInitialDraft = (template) => {
       rsvpQuestion: draft.rsvpQuestion || '',
       dressCode: draft.dressCode || '',
       closingMessage: draft.closingMessage || 'Սիրով սպասում ենք Ձեզ։',
+      musicEnabled: draft.musicEnabled !== false,
+      musicUrl: draft.musicUrl || '',
+      musicTitle: draft.musicTitle || '',
+      musicStart: Number(draft.musicStart) || 0,
+      musicEnd: Number(draft.musicEnd) || 0,
       heroVisible: draft.heroVisible !== false,
       familyVisible: draft.familyVisible !== false,
       openingVisible: draft.openingVisible !== false,
@@ -127,6 +105,11 @@ const createInitialDraft = (template) => {
     rsvpQuestion: '',
     dressCode: '',
     closingMessage: 'Սիրով սպասում ենք Ձեզ։',
+    musicEnabled: true,
+    musicUrl: '',
+    musicTitle: '',
+    musicStart: 0,
+    musicEnd: 0,
     heroVisible: true,
     familyVisible: true,
     openingVisible: true,
@@ -135,327 +118,6 @@ const createInitialDraft = (template) => {
     finalMessageVisible: true
   };
 };
-
-const MAX_STORED_IMAGE_LENGTH = 1400000;
-
-const fileToGalleryImage = (file) => new Promise((resolve, reject) => {
-  const reader = new FileReader();
-  reader.onerror = reject;
-  reader.onload = () => {
-    const originalDataUrl = String(reader.result || '');
-    if (originalDataUrl.length <= MAX_STORED_IMAGE_LENGTH) {
-      resolve(originalDataUrl);
-      return;
-    }
-
-    const img = new Image();
-    img.onerror = reject;
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
-      let maxSize = 2200;
-      let quality = .9;
-
-      for (let attempt = 0; attempt < 10; attempt += 1) {
-        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
-        canvas.width = Math.max(1, Math.round(img.width * scale));
-        canvas.height = Math.max(1, Math.round(img.height * scale));
-        context.fillStyle = '#ffffff';
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        context.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        const compressed = canvas.toDataURL('image/jpeg', quality);
-        if (compressed.length <= MAX_STORED_IMAGE_LENGTH) {
-          resolve(compressed);
-          return;
-        }
-
-        if (quality > .58) quality -= .1;
-        else {
-          maxSize = Math.round(maxSize * .82);
-          quality = .78;
-        }
-      }
-
-      reject(new Error('Image could not be compressed enough to save'));
-    };
-    img.src = originalDataUrl;
-  };
-  reader.readAsDataURL(file);
-});
-
-const splitDisplayNames = (value = '') => {
-  const parts = String(value || '')
-    .split(/\s*(?:&|\+|և|եւ|,|\/)\s*/i)
-    .map((item) => item.trim())
-    .filter(Boolean);
-  return [parts[0] || '', parts[1] || ''];
-};
-
-function EditorSection({ icon: Icon, title, children, defaultOpen = true, enabled, onEnabledChange }) {
-  const [open, setOpen] = useState(defaultOpen);
-  const isOptional = typeof enabled === 'boolean';
-
-  return (
-    <section className={`smart-editor-section${open ? ' is-open' : ''}${isOptional && !enabled ? ' is-disabled' : ''}`}>
-      <header className="smart-editor-section-header">
-        <button type="button" className="smart-editor-section-toggle" onClick={() => setOpen((current) => !current)} aria-expanded={open}>
-          <ChevronDown size={18} />
-          {Icon && <Icon size={18} />}
-          <span>{title}</span>
-        </button>
-        {isOptional && (
-          <label className="smart-editor-switch">
-            <span>{enabled ? 'Ցույց տալ' : 'Թաքցնել'}</span>
-            <input type="checkbox" checked={enabled} onChange={(event) => onEnabledChange(event.target.checked)} />
-            <i aria-hidden="true" />
-          </label>
-        )}
-      </header>
-      {open && <div className="smart-editor-section-body">{children}</div>}
-    </section>
-  );
-}
-
-function SmartInvitationEditor({
-  draft,
-  editorColors,
-  editorMapLinks,
-  isSingleImageTemplate,
-  onClose,
-  onSave,
-  onUpdateDraft,
-  onUpdateMapLink,
-  onAddVenue,
-  onRemoveVenue,
-  onUpdateColor,
-  onCommitColors,
-  onUpdateImages,
-  onSelectImage,
-  onRemoveImage,
-  category
-}) {
-  const [firstName, secondName] = splitDisplayNames(draft.mainNames);
-  const nameLabels = {
-    baptism: ['Երեխայի անունը', 'Երկրորդ անունը'],
-    birth: ['Հոբելյարի անունը', 'Երկրորդ անունը'],
-    corporate: ['Կազմակերպության անունը', 'Միջոցառման անունը'],
-    engagement: ['Փեսայի լրիվ անունը', 'Հարսնացուի լրիվ անունը'],
-    wedding: ['Փեսայի լրիվ անունը', 'Հարսնացուի լրիվ անունը']
-  }[category] || ['Առաջին անունը', 'Երկրորդ անունը'];
-  const [visibleSections, setVisibleSections] = useState({
-    hero: draft.heroVisible !== false,
-    family: draft.familyVisible !== false,
-    opening: draft.openingVisible !== false,
-    reception: draft.receptionVisible !== false,
-    questions: draft.questionsVisible !== false,
-    dressCode: draft.dressCodeVisible === true,
-    finalMessage: draft.finalMessageVisible !== false
-  });
-
-  const setSectionVisible = (key, value) => {
-    setVisibleSections((current) => ({ ...current, [key]: value }));
-    onUpdateDraft({ target: { name: `${key}Visible`, value } });
-  };
-
-  const updateNamePart = (index, value) => {
-    const names = splitDisplayNames(draft.mainNames);
-    names[index] = value;
-    onUpdateDraft({ target: { name: 'mainNames', value: names.filter(Boolean).join(' & ') } });
-  };
-
-  const updateField = (name, value) => {
-    onUpdateDraft({ target: { name, value } });
-  };
-
-  const gallery = withoutEnvelopeImages(draft.gallery || []);
-
-  return (
-    <section className="smart-editor-backdrop" role="dialog" aria-modal="true" aria-labelledby="smart-editor-title">
-      <form className="smart-editor-panel" onSubmit={onSave}>
-        <div className="smart-editor-topbar">
-          <div>
-            <span>Հրավերի տվյալներ</span>
-            <h2 id="smart-editor-title">Նախապես լրացրեք հրավերը</h2>
-            <p>Փոփոխությունները երևում են միայն այս դիտման մեջ։ Refresh-ից հետո հրավերը վերադառնում է նախնական տեսքին։</p>
-          </div>
-          <button type="button" className="smart-editor-close" onClick={onClose} aria-label="Փակել խմբագրիչը">
-            <X size={22} />
-          </button>
-        </div>
-
-        <EditorSection icon={Heart} title="Հիմնական տեղեկություններ" enabled={visibleSections.hero} onEnabledChange={(value) => setSectionVisible('hero', value)}>
-          <div className="smart-editor-tip">
-            <Sparkles size={18} />
-            <span>Օգտագործեք անունները՝ ինչպես ցանկանում եք տեսնել հրավերի գլխավոր հատվածում։</span>
-          </div>
-          <div className="smart-editor-grid two">
-            <label>
-              {nameLabels[0]}
-              <input value={firstName} onChange={(event) => updateNamePart(0, event.target.value)} />
-            </label>
-            <label>
-              {nameLabels[1]}
-              <input value={secondName} onChange={(event) => updateNamePart(1, event.target.value)} />
-            </label>
-          </div>
-        </EditorSection>
-
-        <EditorSection icon={ImageIcon} title="Հերոսի լուսանկար" enabled={visibleSections.hero} onEnabledChange={(value) => setSectionVisible('hero', value)}>
-          <div className="smart-editor-photo-zone">
-            <span>Հերոսի լուսանկար</span>
-            <div className="smart-editor-phone-frame">
-              {draft.image ? <img src={resolveTemplateImage(draft.image)} alt="Հերոսի լուսանկար" /> : <ImageIcon size={38} />}
-            </div>
-            <label className="smart-editor-upload-btn">
-              Վերբեռնել
-              <input type="file" accept="image/*" multiple={false} onChange={onUpdateImages} />
-            </label>
-            <small>JPG, PNG, GIF, WebP, HEIC</small>
-            <p>Օգտագործեք զույգի լուսանկար կամ ամբողջական մարմնի լուսանկար։</p>
-          </div>
-        </EditorSection>
-
-        <EditorSection icon={Users} title="Ընտանեկան տեղեկատվություն" enabled={visibleSections.family} onEnabledChange={(value) => setSectionVisible('family', value)}>
-          <div className="smart-editor-grid">
-            <label className="wide">
-              Փեսայի ընտանիքը
-              <input name="groomFamilyTitle" value={draft.groomFamilyTitle ?? 'Mr. & Mrs.'} onChange={onUpdateDraft} />
-            </label>
-            <label className="wide">
-              Հարսնացուի ընտանիքը
-              <input name="brideFamilyTitle" value={draft.brideFamilyTitle ?? 'Mr. & Mrs.'} onChange={onUpdateDraft} />
-            </label>
-          </div>
-        </EditorSection>
-
-        <EditorSection icon={Megaphone} title="Բացման հաղորդագրություն" enabled={visibleSections.opening} onEnabledChange={(value) => setSectionVisible('opening', value)}>
-          <label>
-            Հատուկ հաղորդագրություն
-            <textarea name="eventMessage" rows="4" value={draft.eventMessage || ''} onChange={onUpdateDraft} />
-          </label>
-        </EditorSection>
-
-        <EditorSection icon={CalendarDays} title="Wedding Reception" enabled={visibleSections.reception} onEnabledChange={(value) => setSectionVisible('reception', value)}>
-          <div className="smart-editor-tabs" aria-label="Reception type">
-            <button type="button" className="is-active">Օրվա գրաֆիկ</button>
-          </div>
-          <div className="smart-editor-grid">
-            <label className="wide">
-              Միջոցառման ամսաթիվ
-              <input name="eventDate" type="date" value={draft.eventDate || ''} onChange={onUpdateDraft} />
-            </label>
-            <label className="wide">
-              Միջոցառման ժամը
-              <input name="eventTime" type="time" value={draft.eventTime || ''} onChange={onUpdateDraft} />
-            </label>
-            <label className="wide">
-              Հասցե
-              <textarea name="eventLocation" rows="3" value={draft.eventLocation || ''} onChange={onUpdateDraft}/>
-            </label>
-          </div>
-          <div className="smart-editor-map-list">
-            <div className="smart-editor-mini-head">
-              <span>Քարտեզ</span>
-              <button type="button" onClick={onAddVenue}><Plus size={16} /> Ավելացնել վայր</button>
-            </div>
-            {editorMapLinks.map((item, index) => (
-              <div className="smart-editor-venue-row" key={`venue-${index}`}>
-                <input value={item.label} onChange={(event) => onUpdateMapLink(index, 'label', event.target.value)} placeholder={`Վայր ${index + 1}`} />
-                <input type="time" value={item.time || (index === 0 ? draft.eventTime || '' : '')} onChange={(event) => onUpdateMapLink(index, 'time', event.target.value)} />
-                <input value={item.address || (index === 0 ? draft.eventLocation || '' : '')} onChange={(event) => onUpdateMapLink(index, 'address', event.target.value)} placeholder="Հասցե" />
-                <input value={item.url || ''} onChange={(event) => onUpdateMapLink(index, 'url', event.target.value)} placeholder="https://maps.google.com/..." />
-                <button type="button" onClick={() => onRemoveVenue(index)} aria-label="Ջնջել վայրը"><Trash2 size={16} /></button>
-              </div>
-            ))}
-          </div>
-        </EditorSection>
-
-        <EditorSection icon={ClipboardList} title="Հաստատեք ձեր պատասխանը" enabled={visibleSections.questions} onEnabledChange={(value) => setSectionVisible('questions', value)}>
-          <div className="smart-editor-tip info">
-            <AlertCircle size={18} />
-            <span>Հյուրերը կարող են հաստատել իրենց ներկայությունը ամենավերջին հրավերի մեջ։</span>
-          </div>
-          <label>
-            Լրացուցիչ հարց
-            <input name="rsvpQuestion" value={draft.rsvpQuestion || ''} onChange={onUpdateDraft} placeholder="օրինակ՝ Ձեզ հետ քանի՞ հյուր է գալու" />
-          </label>
-          <button type="button" className="smart-editor-outline-btn" onClick={() => updateField('rsvpQuestion', draft.rsvpQuestion || 'Ձեզ հետ քանի՞ հյուր է գալու')}>
-            <Plus size={17} />
-            Ավելացնել հարց
-          </button>
-        </EditorSection>
-
-        <EditorSection icon={Palette} title="Հագուստի կանոնակարգ" defaultOpen={false} enabled={visibleSections.dressCode} onEnabledChange={(value) => setSectionVisible('dressCode', value)}>
-          <div className="smart-editor-tip">
-            <Palette size={18} />
-            <span>Հնարավորություն տվեք հյուրերին պատրաստվել հագուստի գույների կամ ոճի համաձայն։</span>
-          </div>
-          <textarea name="dressCode" rows="3" value={draft.dressCode || ''} onChange={onUpdateDraft} placeholder="Օրինակ՝ խնդրում ենք ընտրել բաց գույների հագուստ" />
-        </EditorSection>
-
-        <EditorSection icon={MessageSquare} title="Շնորհակալական նամակ" enabled={visibleSections.finalMessage} onEnabledChange={(value) => setSectionVisible('finalMessage', value)}>
-          <label>
-            Շնորհակալական հաղորդագրություն
-            <textarea name="closingMessage" rows="4" value={draft.closingMessage ?? 'Your presence would be the greatest gift we could receive!'} onChange={onUpdateDraft} />
-          </label>
-        </EditorSection>
-
-        <EditorSection icon={Palette} title="Հրավերի գույները" defaultOpen={false}>
-          <div className="smart-editor-color-grid">
-            {[
-              ['accent', 'Գլխավոր գույն'],
-              ['text', 'Տեքստի գույն'],
-              ['overlay', 'Ֆոնի շերտ']
-            ].map(([key, label]) => (
-              <label key={key}>
-                <span>{label}</span>
-                <input
-                  type="color"
-                  defaultValue={editorColors[key]}
-                  onChange={(event) => onUpdateColor(key, event.target.value)}
-                  onBlur={onCommitColors}
-                  onMouseUp={onCommitColors}
-                  onTouchEnd={onCommitColors}
-                />
-                <em>{editorColors[key]}</em>
-              </label>
-            ))}
-          </div>
-        </EditorSection>
-
-        {gallery.length > 0 && (
-          <div className="smart-editor-gallery">
-            <span>Նկարները</span>
-            <div>
-              {gallery.map((galleryImage, index) => (
-                <div className="smart-editor-gallery-item" key={`${galleryImage.slice(0, 48)}-${index}`}>
-                  <button type="button" className={galleryImage === draft.image ? 'is-selected' : ''} onClick={() => onSelectImage(galleryImage)} aria-label={`Ընտրել նկար ${index + 1}`}>
-                    <img src={resolveTemplateImage(galleryImage)} alt={`Նկար ${index + 1}`} />
-                  </button>
-                  <button type="button" onClick={() => onRemoveImage(galleryImage)} aria-label={`Ջնջել նկար ${index + 1}`}>
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <label className="smart-editor-upload-wide">
-          <ImagePlus size={20} />
-          <span>Ավելացնել նկար</span>
-          <input type="file" accept="image/*" multiple={!isSingleImageTemplate} onChange={onUpdateImages} />
-        </label>
-
-        <div className="smart-editor-actions">
-          <button type="button" className="smart-editor-secondary" onClick={onClose}>Չեղարկել</button>
-          <button type="submit" className="smart-editor-primary">Ցույց տալ թարմացված հրավերը</button>
-        </div>
-      </form>
-    </section>
-  );
-}
 
 function EditRequiredModal({ onClose, onEdit, t }) {
   const closeButtonRef = useRef(null);
@@ -529,7 +191,7 @@ function EditRequiredModal({ onClose, onEdit, t }) {
 
 export default function TemplateLivePreviewPage() {
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id, previewToken } = useParams();
   const [searchParams] = useSearchParams();
   const { t } = useLanguage();
   const [template, setTemplate] = useState(null);
@@ -539,23 +201,34 @@ export default function TemplateLivePreviewPage() {
   const [editRequiredOpen, setEditRequiredOpen] = useState(false);
   const [state, setState] = useState('loading');
   const [checkoutState, setCheckoutState] = useState('idle');
-  const [pendingColors, setPendingColors] = useState(defaultColors);
-  const pendingColorsRef = useRef(defaultColors);
+  const [promoOpen, setPromoOpen] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoError, setPromoError] = useState('');
+  const [promoResult, setPromoResult] = useState(null);
+  const [promoChecking, setPromoChecking] = useState(false);
   const autoEditorOpenedRef = useRef(false);
+  const autoBuyOpenedRef = useRef(false);
 
   useEffect(() => {
-    api.get(`/templates/${id}`)
+    const request = previewToken ? api.get(`/previews/${previewToken}`) : api.get(`/templates/${id}`);
+    request
       .then(({ data }) => {
-        const initialDraft = createInitialDraft(data);
-        setTemplate(data);
+        if (data.mode === 'public' && data.invitationSlug) {
+          navigate(`/invite/${data.invitationSlug}`, { replace: true });
+          return;
+        }
+        const nextTemplate = previewToken ? data.template : data;
+        const initialDraft = previewToken ? data.draft : createInitialDraft(nextTemplate);
+        setTemplate(nextTemplate);
         setDraft(initialDraft);
-        const initialColors = { ...defaultColors, ...(initialDraft.colors || {}) };
-        pendingColorsRef.current = initialColors;
-        setPendingColors(initialColors);
+        setIsEdited(Boolean(previewToken));
         setState('ready');
       })
-      .catch(() => setState('error'));
-  }, [id]);
+      .catch(() => {
+        if (previewToken) navigate('/', { replace: true });
+        else setState('error');
+      });
+  }, [id, navigate, previewToken]);
 
   useEffect(() => {
     if (!autoEditorOpenedRef.current && state === 'ready' && draft && searchParams.get('edit') === '1') {
@@ -564,157 +237,137 @@ export default function TemplateLivePreviewPage() {
     }
   }, [state, draft, searchParams]);
 
-  const updateDraft = (event) => {
-    const { name, value } = event.target;
-    setDraft((current) => {
-      if (name !== 'eventTime' && name !== 'eventLocation') return { ...current, [name]: value };
+  useEffect(() => {
+    if (!autoBuyOpenedRef.current && state === 'ready' && draft && searchParams.get('buy') === '1') {
+      autoBuyOpenedRef.current = true;
+      setIsEdited(true);
+      setPromoError('');
+      setPromoOpen(true);
+    }
+  }, [state, draft, searchParams]);
 
-      const mapLinks = [...getDraftVenueLinks(current)];
-      mapLinks[0] = {
-        ...createDefaultVenue(current, 0),
-        ...(mapLinks[0] || {}),
-        ...(name === 'eventTime' ? { time: value } : { address: value })
-      };
-
-      return {
-        ...current,
-        [name]: value,
-        mapLinks
-      };
-    });
+  const cleanDraft = (sourceDraft = draft) => {
+    const cleanGallery = uniqueImages([sourceDraft.image, ...(sourceDraft.gallery || [])])
+      .filter((image) => !isEnvelopeImage(resolveTemplateImage(image)));
+    return {
+      ...sourceDraft,
+      image: isEnvelopeImage(resolveTemplateImage(sourceDraft.image)) ? (cleanGallery[0] || '') : sourceDraft.image,
+      mapLink: cleanVenueLinks(sourceDraft.mapLinks)[0]?.url || sourceDraft.mapLink || '',
+      mapLinks: cleanVenueLinks(sourceDraft.mapLinks),
+      colors: { ...defaultColors, ...(sourceDraft.colors || {}) },
+      gallery: cleanGallery.slice(0, 10)
+    };
   };
 
-  const updateMapLink = (index, field, value) => {
-    setDraft((current) => {
-      const mapLinks = [...getDraftVenueLinks(current)];
-      mapLinks[index] = { ...createDefaultVenue(current, index), ...(mapLinks[index] || {}), [field]: value };
-      return {
-        ...current,
-        eventTime: index === 0 && field === 'time' ? value : current.eventTime,
-        eventLocation: index === 0 && field === 'address' ? value : current.eventLocation,
-        mapLinks,
-        mapLink: mapLinks[0]?.url || ''
-      };
-    });
+  const saveDraft = async (event, sourceDraft = draft) => {
+    event?.preventDefault?.();
+    setCheckoutState('loading');
+    const nextDraft = cleanDraft(sourceDraft);
+    try {
+      const { data } = await api.post('/previews', { templateId: template._id, draft: nextDraft });
+      setDraft(nextDraft);
+      setIsEdited(true);
+      setEditing(false);
+      setCheckoutState('idle');
+      navigate(data.path, { replace: true });
+      return true;
+    } catch (error) {
+      if (error.response?.status === 401) {
+        localStorage.setItem('amulet_pending_template', template._id);
+        localStorage.setItem('amulet_pending_draft', JSON.stringify(nextDraft));
+        localStorage.setItem('amulet_pending_action', 'preview');
+        window.location.replace('/login');
+        return false;
+      }
+      setCheckoutState('error');
+      return false;
+    }
   };
 
-  const addMapLink = () => {
-    setDraft((current) => {
-      const currentLinks = current.mapLinks?.length ? current.mapLinks : [{ label: 'Քարտեզ 1', url: current.mapLink || '' }];
-      return {
-        ...current,
-        mapLinks: [...currentLinks, { label: `Քարտեզ ${currentLinks.length + 1}`, url: '' }]
-      };
-    });
-  };
-
-  const removeMapLink = (index) => {
-    setDraft((current) => {
-      const mapLinks = (current.mapLinks || []).filter((_, itemIndex) => itemIndex !== index);
-      return { ...current, mapLinks, mapLink: mapLinks[0]?.url || '' };
-    });
-  };
-
-  const addVenue = () => {
-    setDraft((current) => {
-      const currentLinks = getDraftVenueLinks(current);
-      return {
-        ...current,
-        mapLinks: [...currentLinks, createDefaultVenue(current, currentLinks.length)]
-      };
-    });
-  };
-
-  const removeVenue = (index) => {
-    setDraft((current) => {
-      const mapLinks = getDraftVenueLinks(current)
-        .filter((_, itemIndex) => itemIndex !== index);
-      const nextLinks = mapLinks.length ? mapLinks : [createDefaultVenue(current, 0)];
-      return {
-        ...current,
-        eventTime: nextLinks[0]?.time || current.eventTime,
-        eventLocation: nextLinks[0]?.address || current.eventLocation,
-        mapLinks: nextLinks,
-        mapLink: nextLinks[0]?.url || ''
-      };
-    });
-  };
-
-  const updateColor = (key, value) => {
-    pendingColorsRef.current = { ...pendingColorsRef.current, [key]: value };
-  };
-
-  const commitColors = () => {
-    const nextColors = { ...defaultColors, ...pendingColorsRef.current };
-    setPendingColors(nextColors);
-    setDraft((current) => ({
-      ...current,
-      colors: nextColors
-    }));
-  };
-
-  const updateImages = async (event) => {
-    const occasionTemplateKey = getOccasionTemplate(template)?.key;
-    const isSingleImageTemplate = occasionTemplateKey === 'midnight-vows';
-    const files = Array.from(event.target.files || []).slice(0, isSingleImageTemplate ? 1 : 8);
-    if (!files.length) return;
-
-    const images = await Promise.all(files.map(fileToGalleryImage));
-    setDraft((current) => {
-      if (isSingleImageTemplate) return { ...current, image: images[0], gallery: [images[0]] };
-
-      const gallery = withoutEnvelopeImages(uniqueImages([...images, ...(current.gallery || [])])).slice(0, 8);
-      return { ...current, image: images[0], gallery };
-    });
-  };
-
-  const selectImage = (image) => {
-    if (isEnvelopeImage(resolveTemplateImage(image))) return;
-    setDraft((current) => ({ ...current, image }));
-  };
-
-  const removeImage = (imageToRemove) => {
-    setDraft((current) => {
-      const gallery = (current.gallery || []).filter((galleryImage) => galleryImage !== imageToRemove);
-      const image = current.image === imageToRemove ? (gallery[0] || '') : current.image;
-      return { ...current, image, gallery };
-    });
-  };
-
-  const saveDraft = (event) => {
-    event.preventDefault();
-    commitColors();
-    setIsEdited(true);
-    setEditing(false);
+  const buyFromEditor = async (sourceDraft = draft) => {
+    setCheckoutState('loading');
+    const nextDraft = cleanDraft(sourceDraft);
+    try {
+      const { data } = await api.post('/previews', { templateId: template._id, draft: nextDraft });
+      setDraft(nextDraft);
+      setIsEdited(true);
+      setEditing(false);
+      setCheckoutState('idle');
+      setPromoError('');
+      setPromoResult(null);
+      setPromoOpen(true);
+      navigate(data.path, { replace: true });
+      return true;
+    } catch (error) {
+      if (error.response?.status === 401) {
+        localStorage.setItem('amulet_pending_template', template._id);
+        localStorage.setItem('amulet_pending_draft', JSON.stringify(nextDraft));
+        localStorage.setItem('amulet_pending_action', 'buy');
+        window.location.replace('/login');
+        return false;
+      }
+      setCheckoutState('error');
+      return false;
+    }
   };
 
   const openEditor = () => {
-    const nextColors = { ...defaultColors, ...(draft?.colors || {}) };
-    pendingColorsRef.current = nextColors;
-    setPendingColors(nextColors);
     setEditing(true);
   };
 
-  const orderTemplate = async () => {
+  const orderTemplate = () => {
     if (!isEdited) {
       setEditRequiredOpen(true);
       return;
     }
+    setPromoOpen(true);
+    setPromoError('');
+  };
 
+  const performCheckout = async (appliedPromoCode = '') => {
+    setPromoOpen(false);
     setCheckoutState('loading');
+    const nextDraft = cleanDraft();
     try {
-      const cleanGallery = uniqueImages([draft.image, ...(draft.gallery || [])])
-        .filter((image) => !isEnvelopeImage(resolveTemplateImage(image)));
-      await startStripeCheckout(template._id, {
-        ...draft,
-        image: isEnvelopeImage(resolveTemplateImage(draft.image)) ? (cleanGallery[0] || '') : draft.image,
-        mapLink: cleanVenueLinks(draft.mapLinks)[0]?.url || draft.mapLink || '',
-        mapLinks: cleanVenueLinks(draft.mapLinks),
-        colors: { ...defaultColors, ...(draft.colors || {}) },
-        gallery: cleanGallery
+      let checkoutPreviewToken = previewToken;
+      if (!checkoutPreviewToken) {
+        const { data } = await api.post('/previews', { templateId: template._id, draft: nextDraft });
+        checkoutPreviewToken = data.token;
+      }
+      await startStripeCheckout(template._id, nextDraft, {
+        previewToken: checkoutPreviewToken,
+        promoCode: appliedPromoCode
       });
-    } catch {
+    } catch (error) {
+      if (error.response?.status === 401) {
+        await startStripeCheckout(template._id, nextDraft, { promoCode: appliedPromoCode });
+        return;
+      }
       setCheckoutState('error');
+    }
+  };
+
+  const validatePromo = async (event) => {
+    event.preventDefault();
+    if (!promoCode.trim()) return;
+    setPromoChecking(true);
+    setPromoError('');
+    setPromoResult(null);
+    try {
+      const { data } = await api.post('/promocodes/validate', { code: promoCode, templateId: template._id });
+      setPromoResult(data);
+    } catch (error) {
+      if (error.response?.status === 401) {
+        localStorage.setItem('amulet_pending_template', template._id);
+        localStorage.setItem('amulet_pending_draft', JSON.stringify(cleanDraft()));
+        localStorage.setItem('amulet_pending_promo', promoCode.trim());
+        localStorage.removeItem('amulet_pending_action');
+        window.location.replace('/login');
+        return;
+      }
+      setPromoError(error.response?.data?.message || t('promoInvalid'));
+    } finally {
+      setPromoChecking(false);
     }
   };
 
@@ -726,8 +379,6 @@ export default function TemplateLivePreviewPage() {
   const isSingleImageTemplate = occasionTemplate?.key === 'midnight-vows';
   const image = resolveTemplateImage(draft?.image || template.mainImage || template.gallery?.[0]);
   const formattedDate = draft?.eventDate ? new Date(draft.eventDate).toLocaleDateString() : previewDate.toLocaleDateString();
-  const editorMapLinks = getDraftVenueLinks(draft);
-  const editorColors = { ...defaultColors, ...pendingColors };
 
   return (
     <main className={LivePreview ? 'template-live-page test-wedding-page' : 'template-live-page'}>
@@ -828,153 +479,50 @@ export default function TemplateLivePreviewPage() {
         />
       )}
 
-      {editing && draft && (
-        <SmartInvitationEditor
+      {promoOpen && (
+        <div className="promo-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="promo-modal-title">
+          <section className="promo-modal">
+            <button className="promo-modal-close" type="button" onClick={() => setPromoOpen(false)} aria-label={t('close')}><X size={20} /></button>
+            <div className="promo-modal-icon"><Gift size={28} /></div>
+            <span className="promo-modal-kicker">{t('promoQuestionKicker')}</span>
+            <h2 id="promo-modal-title">{t('promoQuestion')}</h2>
+            <p>{t('promoQuestionText')}</p>
+            {!promoResult ? (
+              <form onSubmit={validatePromo} className="promo-modal-form">
+                <label htmlFor="checkout-promo">{t('promoCodeLabel')}</label>
+                <div><input id="checkout-promo" value={promoCode} onChange={(event) => setPromoCode(event.target.value.toUpperCase())} placeholder="AMULET20" maxLength={32} /><button type="submit" disabled={promoChecking || !promoCode.trim()}>{promoChecking ? t('loading') : t('promoApply')}</button></div>
+                {promoError && <span className="promo-modal-error" role="alert">{promoError}</span>}
+                <button className="promo-skip-button" type="button" onClick={() => performCheckout('')}>{t('promoNoCode')}</button>
+              </form>
+            ) : (
+              <div className="promo-gift-reveal" aria-live="polite">
+                <span><Gift size={24} /></span>
+                <strong>{promoResult.giftLabel || promoResult.description || t('promoGiftUnlocked')}</strong>
+                <p>{Number(promoResult.discountAmount).toLocaleString()} AMD {t('promoDiscountApplied')}</p>
+                <div><del>{Number(promoResult.originalAmount).toLocaleString()} AMD</del><b>{Number(promoResult.finalAmount).toLocaleString()} AMD</b></div>
+                <button type="button" onClick={() => performCheckout(promoResult.code)}>{t('promoContinue')}</button>
+              </div>
+            )}
+          </section>
+        </div>
+      )}
+
+      {editing && draft && LivePreview && (
+        <InvitationEditor
+          key={template._id}
           draft={draft}
-          editorColors={editorColors}
-          editorMapLinks={editorMapLinks}
+          template={template}
+          PreviewComponent={LivePreview}
           isSingleImageTemplate={isSingleImageTemplate}
+          saving={checkoutState === 'loading'}
           onClose={() => setEditing(false)}
-          onSave={saveDraft}
-          onUpdateDraft={updateDraft}
-          onUpdateMapLink={updateMapLink}
-          onAddVenue={addVenue}
-          onRemoveVenue={removeVenue}
-          onUpdateColor={updateColor}
-          onCommitColors={commitColors}
-          onUpdateImages={updateImages}
-          onSelectImage={selectImage}
-          onRemoveImage={removeImage}
-          category={template.category}
+          onSave={(nextDraft) => saveDraft(null, nextDraft)}
+          onBuy={buyFromEditor}
+          onDraftChange={setDraft}
+          onSelectTemplate={(templateId) => navigate(`/templates/${templateId}/live?edit=1`)}
         />
       )}
 
-      {/* Previous invitation editor form is temporarily commented out for rollback. */}
-      {false && editing && draft && (
-        <section className="invitation-editor-panel" aria-label="Edit invitation">
-          <form className="invitation-editor-form" onSubmit={saveDraft}>
-            <div className="invitation-editor-title">
-              <span>Խմբագրել հրավերը</span>
-              <button type="button" onClick={() => setEditing(false)} aria-label="Close editor"><X size={20} /></button>
-            </div>
-
-            <label>
-              Անուն ազգանուն
-              <input name="mainNames" value={draft.mainNames} onChange={updateDraft} required />
-            </label>
-            <label>
-              Առիթի օրը
-              <input name="eventDate" type="date" value={draft.eventDate} onChange={updateDraft} required />
-            </label>
-            <label>
-              Ժամը
-              <input name="eventTime" type="time" value={draft.eventTime} onChange={updateDraft} required />
-            </label>
-            <label>
-              Վայրը
-              <input name="eventLocation" value={draft.eventLocation} onChange={updateDraft} required />
-            </label>
-            <div className="invitation-map-links invitation-editor-wide">
-              <div className="invitation-editor-section-head">
-                <span>Քարտեզի հղումներ</span>
-                <button type="button" onClick={addVenue}>Ավելացնել վայր</button>
-              </div>
-              {editorMapLinks.map((item, index) => (
-                <div className="invitation-map-link-row" key={`map-link-${index}`}>
-                  <input
-                    value={item.label}
-                    onChange={(event) => updateMapLink(index, 'label', event.target.value)}
-                    placeholder={`Վայր ${index + 1}`}
-                    aria-label={`Map label ${index + 1}`}
-                  />
-                  <input
-                    type="time"
-                    value={item.time || (index === 0 ? draft.eventTime || '' : '')}
-                    onChange={(event) => updateMapLink(index, 'time', event.target.value)}
-                    aria-label={`Venue time ${index + 1}`}
-                  />
-                  <input
-                    value={item.address || (index === 0 ? draft.eventLocation || '' : '')}
-                    onChange={(event) => updateMapLink(index, 'address', event.target.value)}
-                    placeholder="Հասցե"
-                    aria-label={`Venue address ${index + 1}`}
-                  />
-                  <input
-                    value={item.url || ''}
-                    onChange={(event) => updateMapLink(index, 'url', event.target.value)}
-                    placeholder="https://maps.google.com/..."
-                    aria-label={`Map URL ${index + 1}`}
-                  />
-                  <button type="button" onClick={() => removeVenue(index)} aria-label={`Remove venue ${index + 1}`}>
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              ))}
-            </div>
-            <div className="invitation-color-controls invitation-editor-wide">
-              <span>Հրավերի գույները</span>
-              <div className="invitation-color-grid">
-                {[
-                  ['accent', 'Գլխավոր գույն'],
-                  ['text', 'Տեքստի գույն'],
-                  ['overlay', 'Ֆոնի շերտ']
-                ].map(([key, label]) => (
-                  <label className="invitation-color-field" key={key}>
-                    <span>{label}</span>
-                    <input
-                      type="color"
-                      defaultValue={editorColors[key]}
-                      onChange={(event) => updateColor(key, event.target.value)}
-                      onBlur={commitColors}
-                      onMouseUp={commitColors}
-                      onTouchEnd={commitColors}
-                    />
-                    <em>{editorColors[key]}</em>
-                  </label>
-                ))}
-              </div>
-            </div>
-            <label className="invitation-editor-wide">
-              Հրավերի տեքստ
-              <textarea name="eventMessage" rows="4" value={draft.eventMessage} onChange={updateDraft} required />
-            </label>
-            {withoutEnvelopeImages(draft.gallery || []).length > 0 && (
-              <div className="invitation-gallery-picker">
-                <span>Նկարները</span>
-                <div>
-                  {withoutEnvelopeImages(draft.gallery || []).map((galleryImage, index) => (
-                    <div className="invitation-gallery-item" key={`${galleryImage.slice(0, 48)}-${index}`}>
-                      <button
-                        type="button"
-                        className={`invitation-gallery-select${galleryImage === draft.image ? ' is-selected' : ''}`}
-                        onClick={() => selectImage(galleryImage)}
-                        aria-label={`Select image ${index + 1}`}
-                      >
-                        <img src={galleryImage} alt={`Template ${index + 1}`} />
-                      </button>
-                      <button
-                        type="button"
-                        className="invitation-gallery-remove"
-                        onClick={() => removeImage(galleryImage)}
-                        aria-label={`Remove image ${index + 1}`}
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            <label className="invitation-upload-field">
-              <ImagePlus size={20} />
-              <span>Ավելացնել նկար</span>
-              <input type="file" accept="image/*" multiple={!isSingleImageTemplate} onChange={updateImages} />
-            </label>
-
-            <button className="invitation-save-btn" type="submit">Ցուցադրել թարմացված հրավերը</button>
-          </form>
-        </section>
-      )}
     </main>
   );
 }

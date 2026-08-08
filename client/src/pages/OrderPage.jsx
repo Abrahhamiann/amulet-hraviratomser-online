@@ -7,6 +7,7 @@ import Button from '../components/Button.jsx';
 import Input from '../components/Input.jsx';
 import SectionTitle from '../components/SectionTitle.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { categories } from '../data/categories.js';
 import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
 import { languages } from '../translations/translations.js';
@@ -31,6 +32,7 @@ const cleanOrderPayload = (data) => {
 
 export default function OrderPage() {
   const { t, language } = useLanguage();
+  const { user } = useAuth();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const [templates, setTemplates] = useState([]);
@@ -73,10 +75,11 @@ export default function OrderPage() {
   return (
     <section className="section page-top form-page">
       <SectionTitle title={t('orderCustom')} text={t('orderIntro')} />
-      <form className="panel-form" onSubmit={submit}>
-        <Input label={t('fullName')} name="fullName" error={errors.fullName} />
-        <Input label={t('phone')} name="phone" type="tel" error={errors.phone} />
-        <Input label={t('email')} name="email" type="email" error={errors.email} />
+      <form className="panel-form custom-design-form" onSubmit={submit} key={user?.id || 'guest'}>
+        <input type="hidden" name="requestType" value="custom_design" />
+        <Input label={t('fullName')} name="fullName" defaultValue={user?.name || ''} autoComplete="name" error={errors.fullName} />
+        <Input label={t('phone')} name="phone" type="tel" defaultValue={user?.phone || ''} autoComplete="tel" error={errors.phone} />
+        <Input label={t('email')} name="email" type="email" defaultValue={user?.email || ''} autoComplete="email" error={errors.email} />
         <Input label={t('eventType')} name="eventType" as="select" error={errors.eventType}>
           <option value="">-</option>
           {categories.map((item) => <option key={item.key} value={item.key}>{t(item.key)}</option>)}
@@ -94,7 +97,9 @@ export default function OrderPage() {
           {languages.map((item) => <option key={item.code} value={item.code}>{item.label}</option>)}
         </Input>
         <Input label={t('eventMessage')} name="eventMessage" as="textarea" rows="4" />
-        <Input label={t('notes')} name="notes" as="textarea" rows="4" />
+        <Input label={t('inspirationLink')} name="inspirationLink" type="url" placeholder="https://" />
+        <Input label={t('budgetRange')} name="budgetRange" />
+        <Input label={t('notes')} name="notes" as="textarea" rows="5" placeholder={t('customRequestNote')} />
         <Button type="submit" disabled={status === 'loading'}>{status === 'loading' ? t('loading') : t('submit')}</Button>
         {status === 'success' && <p className="success">{t('successOrder')}</p>}
         {status === 'error' && <p className="form-error">{serverError || t('error')}</p>}

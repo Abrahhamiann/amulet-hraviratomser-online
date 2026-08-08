@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Home, Pause, Pencil, Play, ShoppingBag } from 'lucide-react';
 import weddingSong from '../assets/audio/ed-sheeran-perfect.mp3';
 import midnightVowsDefault from '../assets/occasion/midnight-vows-default.jpg';
 import weddingForest from '../assets/morph/wedding-forest-optimized.jpg';
 import { getConfiguredTemplateGallery, resolveTemplateImages } from './templateAssets.js';
+import { getInvitationDesignVariables, hasCustomInvitationNameStyle, useInvitationMusic } from './invitationMedia.js';
 
 const DESIGN_KEY = 'midnight-vows';
 
@@ -88,7 +89,8 @@ export const getMidnightVowsDraft = (template = {}) => {
   };
 };
 
-function PreviewRsvpForm() {
+function PreviewRsvpForm({ draft }) {
+  const settings = draft?.rsvpSettings || {};
   return (
     <form className="midnight-rsvp-form" onSubmit={(event) => event.preventDefault()}>
       <fieldset>
@@ -96,22 +98,26 @@ function PreviewRsvpForm() {
         <label><input type="radio" name="midnight-side" /> Փեսայի կողմ</label>
       </fieldset>
       <label>
-        <span>Անուն Ազգանուն</span>
+        <span>{settings.guestPlaceholder || 'Անուն Ազգանուն'}</span>
         <input type="text" />
       </label>
       <fieldset>
-        <label><input type="radio" name="midnight-answer" defaultChecked /> Սիրով կմասնակցենք</label>
-        <label><input type="radio" name="midnight-answer" /> Ցավոք, չենք կարող ներկա լինել</label>
+        <label><input type="radio" name="midnight-answer" defaultChecked /> {settings.attendingLabel || 'Սիրով կմասնակցենք'}</label>
+        <label><input type="radio" name="midnight-answer" /> {settings.notAttendingLabel || 'Ցավոք, չենք կարող ներկա լինել'}</label>
       </fieldset>
-      <label>
+      {settings.askGuestCount !== false && <label>
         <span>Հյուրերի ընդհանուր թիվ</span>
         <input type="number" min="1" defaultValue="1" />
-      </label>
+      </label>}
+      {settings.askMeal && <label>
+        <span>Սննդի նախընտրություն</span>
+        <select defaultValue=""><option value="" disabled>Ընտրել տարբերակը</option><option>Ստանդարտ</option><option>Բուսակեր</option></select>
+      </label>}
       <label>
         <span>Մեկնաբանություն</span>
         <textarea rows="3" />
       </label>
-      <button type="submit">Ուղարկել</button>
+      <button type="submit">{settings.submitLabel || 'Ուղարկել'}</button>
     </form>
   );
 }
@@ -136,8 +142,7 @@ function EventBlock({ title, time, location, address, mapLink, delay = 0 }) {
 }
 
 function MidnightVowsLayout({ draft, price, onHome, onEdit, onOrder, loading, actions, rsvpForm, daysLeftText, mode = 'preview' }) {
-  const audioRef = useRef(null);
-  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const { audioRef, isMusicPlaying, source: musicSource, toggleMusic } = useInvitationMusic(draft, weddingSong, .72);
   const draftImages = resolveTemplateImages([draft?.image, ...(draft?.gallery || [])]);
   const gallery = uniqueImages([...draftImages, ...(draftImages.length ? [] : fallbackGallery)]).slice(0, 1);
   const heroImage = draft?.image || gallery[0] || weddingForest;
@@ -151,39 +156,17 @@ function MidnightVowsLayout({ draft, price, onHome, onEdit, onOrder, loading, ac
     delay: `${(index % 9) * 0.45}s`,
     duration: `${5 + (index % 5)}s`
   })), []);
-  const toggleMusic = async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (isMusicPlaying) {
-      audio.pause();
-      setIsMusicPlaying(false);
-      return;
-    }
-
-    try {
-      audio.volume = 0.72;
-      await audio.play();
-      setIsMusicPlaying(true);
-    } catch {
-      setIsMusicPlaying(false);
-    }
-  };
-
-  useEffect(() => () => {
-    audioRef.current?.pause();
-  }, []);
-
   return (
     <article
-      className={`midnight-vows-invite ${mode === 'public' ? 'is-public' : 'is-preview'}`}
+      className={`midnight-vows-invite ${mode === 'public' ? 'is-public' : 'is-preview'}${hasCustomInvitationNameStyle(draft) ? ' has-custom-name-style' : ''}`}
       style={{
+        ...getInvitationDesignVariables(draft),
         '--midnight-accent': colors.accent,
         '--midnight-text': colors.text,
         '--midnight-overlay': colors.overlay
       }}
     >
-      <audio ref={audioRef} src={weddingSong} preload="auto" loop />
+      <audio ref={audioRef} src={musicSource} preload="metadata" loop />
       <div className="midnight-fixed-photo" aria-hidden="true">
         <img src={heroImage} alt="" loading="eager" decoding="async" fetchpriority="high" />
       </div>
@@ -213,7 +196,7 @@ function MidnightVowsLayout({ draft, price, onHome, onEdit, onOrder, loading, ac
             </button>
             <button className="btn btn-primary" type="button" onClick={onOrder} disabled={loading}>
               <ShoppingBag size={18} />
-              {loading ? 'Բեռնվում է...' : 'Պատվիրել'}
+              {loading ? 'Բեռնվում է...' : 'Գնել'}
             </button>
           </motion.div>
         )}
@@ -231,14 +214,16 @@ function MidnightVowsLayout({ draft, price, onHome, onEdit, onOrder, loading, ac
           <i />
           <strong>{formatDate(draft?.eventDate)}</strong>
           <p>{draft?.eventLocation}</p>
-          <button
-            className={`midnight-music-button${isMusicPlaying ? ' is-playing' : ''}`}
-            type="button"
-            onClick={toggleMusic}
-            aria-label={isMusicPlaying ? 'Pause music' : 'Play music'}
-          >
-            {isMusicPlaying ? <Pause size={20} /> : <Play size={20} />}
-          </button>
+          {draft?.musicEnabled !== false && (
+            <button
+              className={`midnight-music-button${isMusicPlaying ? ' is-playing' : ''}`}
+              type="button"
+              onClick={toggleMusic}
+              aria-label={isMusicPlaying ? 'Pause music' : 'Play music'}
+            >
+              {isMusicPlaying ? <Pause size={20} /> : <Play size={20} />}
+            </button>
+          )}
         </motion.div>
       </section>
 
@@ -287,10 +272,10 @@ function MidnightVowsLayout({ draft, price, onHome, onEdit, onOrder, loading, ac
             viewport={{ once: true, amount: 0.5 }}
             transition={{ duration: 0.55 }}
           >
-            Խնդրում ենք հաստատել Ձեր ներկայությունը
+            {draft?.rsvpSettings?.title || 'Խնդրում ենք հաստատել Ձեր ներկայությունը'}
           </motion.h2>
           {draft?.rsvpQuestion && <p className="midnight-form-note">{draft.rsvpQuestion}</p>}
-          {rsvpForm || <PreviewRsvpForm />}
+          {rsvpForm || <PreviewRsvpForm draft={draft} />}
           <motion.div
             className="midnight-signature"
             initial={{ opacity: 0, scale: 0.92 }}

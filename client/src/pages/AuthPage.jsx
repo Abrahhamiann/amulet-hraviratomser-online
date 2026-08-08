@@ -1,8 +1,9 @@
-import React from 'react';
-import { LogIn, Mail, ShieldCheck, UserPlus } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { Check, LogIn, Mail, Phone, ShieldCheck, UserPlus, X } from 'lucide-react';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
+import Loading from '../components/Loading.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { startStripeCheckout } from '../utils/checkout.js';
 
@@ -10,44 +11,56 @@ const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 export default function AuthPage() {
   const navigate = useNavigate();
+  const { initialized, setAuthenticatedUser, user } = useAuth();
   const { t } = useLanguage();
   const googleRef = useRef(null);
   const codeRefs = useRef([]);
   const [mode, setMode] = useState('login');
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', identifier: '', password: '', confirmPassword: '' });
   const [verificationEmail, setVerificationEmail] = useState('');
   const [code, setCode] = useState(Array(6).fill(''));
   const [verificationComplete, setVerificationComplete] = useState(false);
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const passwordChecks = {
+    length: form.password.length >= 8,
+    uppercase: /[A-Z]/.test(form.password),
+    lowercase: /[a-z]/.test(form.password),
+    number: /\d/.test(form.password),
+    special: /[^A-Za-z0-9]/.test(form.password)
+  };
 
-  const saveSession = ({ token, user }) => {
-    localStorage.setItem('userToken', token);
-    localStorage.setItem('user', JSON.stringify(user));
-    window.dispatchEvent(new Event('amulet-auth-change'));
+  const saveSession = ({ user: nextUser }) => {
+    setAuthenticatedUser(nextUser);
     const pendingTemplate = localStorage.getItem('amulet_pending_template');
     if (pendingTemplate) {
       const pendingDraft = localStorage.getItem('amulet_pending_draft');
-      localStorage.removeItem('amulet_pending_template');
-      localStorage.removeItem('amulet_pending_draft');
+      const pendingAction = localStorage.getItem('amulet_pending_action');
+      const pendingPromo = localStorage.getItem('amulet_pending_promo');
+      ['amulet_pending_template', 'amulet_pending_draft', 'amulet_pending_action', 'amulet_pending_promo'].forEach((key) => localStorage.removeItem(key));
       let parsedDraft = null;
-
-      try {
-        parsedDraft = pendingDraft ? JSON.parse(pendingDraft) : null;
-      } catch {
-        parsedDraft = null;
+      try { parsedDraft = pendingDraft ? JSON.parse(pendingDraft) : null; } catch { parsedDraft = null; }
+      if (pendingAction === 'preview') {
+        api.post('/previews', { templateId: pendingTemplate, draft: parsedDraft })
+          .then(({ data }) => navigate(data.path, { replace: true }))
+          .catch(() => navigate(`/templates/${pendingTemplate}/live`, { replace: true }));
+        return;
       }
-
-      startStripeCheckout(pendingTemplate, parsedDraft).catch(() => navigate(`/templates/${pendingTemplate}/live`));
+      if (pendingAction === 'buy') {
+        api.post('/previews', { templateId: pendingTemplate, draft: parsedDraft })
+          .then(({ data }) => navigate(`${data.path}?buy=1`, { replace: true }))
+          .catch(() => navigate(`/templates/${pendingTemplate}/live?edit=1`, { replace: true }));
+        return;
+      }
+      startStripeCheckout(pendingTemplate, parsedDraft, { promoCode: pendingPromo || '' }).catch(() => navigate(`/templates/${pendingTemplate}/live`, { replace: true }));
       return;
     }
-    navigate('/');
+    navigate('/', { replace: true });
   };
 
   useEffect(() => {
     if (!googleClientId || !googleRef.current) return undefined;
-
     const loadGoogle = () => new Promise((resolve) => {
       if (window.google?.accounts?.id) return resolve();
       const script = document.createElement('script');
@@ -57,7 +70,6 @@ export default function AuthPage() {
       script.onload = resolve;
       document.head.appendChild(script);
     });
-
     let cancelled = false;
     loadGoogle().then(() => {
       if (cancelled || !window.google?.accounts?.id || !googleRef.current) return;
@@ -65,42 +77,32 @@ export default function AuthPage() {
         client_id: googleClientId,
         callback: async ({ credential }) => {
           try {
-            setError('');
-            setBusy(true);
+            setError(''); setBusy(true);
             const { data } = await api.post('/auth/google', { idToken: credential });
             saveSession(data);
-          } catch (err) {
-            setError(err.response?.data?.message || 'Google sign-in failed');
-          } finally {
-            setBusy(false);
-          }
+          } catch (err) { setError(err.response?.data?.message || 'Google sign-in failed'); }
+          finally { setBusy(false); }
         }
       });
       googleRef.current.innerHTML = '';
       window.google.accounts.id.renderButton(googleRef.current, {
-        theme: 'outline',
-        size: 'large',
-        shape: 'pill',
-        text: mode === 'register' ? 'signup_with' : 'signin_with',
+        theme: 'outline', size: 'large', shape: 'pill', text: mode === 'register' ? 'signup_with' : 'signin_with',
         width: Math.min(Math.max(googleRef.current.offsetWidth || 320, 240), 400)
       });
     });
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [mode]);
 
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+  const changeMode = (nextMode) => { setMode(nextMode); setError(''); setStatus(''); };
 
   const submit = async (event) => {
     event.preventDefault();
-    setBusy(true);
-    setError('');
-    setStatus('');
-
+    setBusy(true); setError(''); setStatus('');
     try {
       if (mode === 'register') {
+        if (!Object.values(passwordChecks).every(Boolean)) throw new Error(t('authPasswordRulesError'));
+        if (form.password !== form.confirmPassword) throw new Error(t('authPasswordsMismatch'));
         const { data } = await api.post('/auth/register', form);
         setVerificationEmail(data.email);
         setCode(Array(6).fill(''));
@@ -108,57 +110,32 @@ export default function AuthPage() {
         window.setTimeout(() => codeRefs.current[0]?.focus(), 120);
         return;
       }
-
-      const { data } = await api.post('/auth/login', {
-        email: form.email,
-        password: form.password
-      });
+      const { data } = await api.post('/auth/login', { identifier: form.identifier, password: form.password });
       saveSession(data);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Something went wrong');
-    } finally {
-      setBusy(false);
-    }
+    } catch (err) { setError(err.response?.data?.message || err.message || t('error')); }
+    finally { setBusy(false); }
   };
 
   const updateCode = (index, value) => {
     const digit = value.replace(/\D/g, '').slice(-1);
-    setCode((current) => {
-      const next = [...current];
-      next[index] = digit;
-      return next;
-    });
+    setCode((current) => current.map((item, itemIndex) => itemIndex === index ? digit : item));
     if (digit && index < 5) codeRefs.current[index + 1]?.focus();
-  };
-
-  const handleCodeKeyDown = (index, event) => {
-    if (event.key === 'Backspace' && !code[index] && index > 0) codeRefs.current[index - 1]?.focus();
   };
 
   const verifyCode = async (event) => {
     event.preventDefault();
-    const joinedCode = code.join('');
-    if (joinedCode.length !== 6) {
-      setError(t('authCodeLength'));
-      return;
-    }
-
+    if (code.join('').length !== 6) return setError(t('authCodeLength'));
     try {
-      setBusy(true);
-      setError('');
-      const { data } = await api.post('/auth/verify-email', {
-        email: verificationEmail,
-        code: joinedCode
-      });
+      setBusy(true); setError('');
+      const { data } = await api.post('/auth/verify-email', { email: verificationEmail, code: code.join('') });
       setVerificationComplete(true);
       window.setTimeout(() => saveSession(data), 900);
-    } catch (err) {
-      const message = err.response?.data?.message;
-      setError(message === 'Verification code is incorrect' ? t('authCodeWrong') : message || t('authCodeWrong'));
-    } finally {
-      setBusy(false);
-    }
+    } catch (err) { setError(err.response?.data?.message || t('authCodeWrong')); }
+    finally { setBusy(false); }
   };
+
+  if (!initialized) return <Loading text={t('loading')} />;
+  if (user) return <Navigate to="/" replace />;
 
   return (
     <section className="auth-page">
@@ -168,66 +145,49 @@ export default function AuthPage() {
           <h1>{verificationEmail ? t('authVerifyTitle') : t('login')}</h1>
           <p>{verificationEmail ? t('authVerifyIntro').replace('{email}', verificationEmail) : t('authIntro')}</p>
         </div>
-
         {!verificationEmail ? (
           <>
             <div className="auth-tabs">
-              <button type="button" className={mode === 'login' ? 'is-active' : ''} onClick={() => setMode('login')}><LogIn size={16} />{t('login')}</button>
-              <button type="button" className={mode === 'register' ? 'is-active' : ''} onClick={() => setMode('register')}><UserPlus size={16} />{t('authRegister')}</button>
+              <button type="button" className={mode === 'login' ? 'is-active' : ''} onClick={() => changeMode('login')}><LogIn size={16} />{t('login')}</button>
+              <button type="button" className={mode === 'register' ? 'is-active' : ''} onClick={() => changeMode('register')}><UserPlus size={16} />{t('authRegister')}</button>
             </div>
-
             <form className="auth-form" onSubmit={submit}>
+              {mode === 'register' && <label><span>{t('contactName')}</span><input autoComplete="name" value={form.name} onChange={(event) => update('name', event.target.value)} placeholder={t('authNamePlaceholder')} required /></label>}
+              {mode === 'register' ? (
+                <>
+                  <label><span>Email</span><input type="email" autoComplete="email" value={form.email} onChange={(event) => update('email', event.target.value)} required /></label>
+                  <label><span>{t('phone')}</span><div className="auth-input-icon"><Phone size={17} /><input type="tel" autoComplete="tel" value={form.phone} onChange={(event) => update('phone', event.target.value)} required /></div></label>
+                </>
+              ) : <label><span>{t('authIdentifier')}</span><input autoComplete="username" value={form.identifier} onChange={(event) => update('identifier', event.target.value)} required /></label>}
+              <label><span>{t('password')}</span><input type="password" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} value={form.password} onChange={(event) => update('password', event.target.value)} placeholder="••••••••" required minLength={8} maxLength={128} /></label>
               {mode === 'register' && (
-                <label>
-                  <span>{t('contactName')}</span>
-                  <input value={form.name} onChange={(event) => update('name', event.target.value)} placeholder={t('authNamePlaceholder')} />
-                </label>
+                <>
+                  <label><span>{t('authRepeatPassword')}</span><input type="password" autoComplete="new-password" value={form.confirmPassword} onChange={(event) => update('confirmPassword', event.target.value)} placeholder="••••••••" required minLength={8} maxLength={128} /></label>
+                  <PasswordRequirements checks={passwordChecks} t={t} />
+                </>
               )}
-              <label>
-                <span>Email</span>
-                <input type="email" value={form.email} onChange={(event) => update('email', event.target.value)} placeholder="name@example.com" required />
-              </label>
-              <label>
-                <span>Password</span>
-                <input type="password" value={form.password} onChange={(event) => update('password', event.target.value)} placeholder="••••••••" required minLength={6} />
-              </label>
-              <button className="auth-submit" type="submit" disabled={busy}>
-                {mode === 'register' ? <UserPlus size={18} /> : <LogIn size={18} />}
-                <span>{busy ? t('authWait') : mode === 'register' ? t('authCreateAccount') : t('authSignIn')}</span>
-              </button>
+              {mode === 'login' && <Link className="auth-forgot-link" to="/forgot-password">{t('authForgotPassword')}</Link>}
+              <button className="auth-submit" type="submit" disabled={busy}>{mode === 'register' ? <UserPlus size={18} /> : <LogIn size={18} />}<span>{busy ? t('authWait') : mode === 'register' ? t('authCreateAccount') : t('authSignIn')}</span></button>
             </form>
-
             <div className="auth-divider"><span>{t('authOr')}</span></div>
-            <div className="google-auth-slot" ref={googleRef}>
-              {!googleClientId && <span>{t('authGoogleMissing')}</span>}
-            </div>
+            <div className="google-auth-slot" ref={googleRef}>{!googleClientId && <span>{t('authGoogleMissing')}</span>}</div>
           </>
         ) : (
           <form className={verificationComplete ? 'verification-form is-complete' : 'verification-form'} onSubmit={verifyCode}>
             <div className="verification-code-row" aria-label="Verification code">
-              {code.map((digit, index) => (
-                <input
-                  key={index}
-                  ref={(element) => { codeRefs.current[index] = element; }}
-                  value={digit}
-                  inputMode="numeric"
-                  maxLength={1}
-                  onChange={(event) => updateCode(index, event.target.value)}
-                  onKeyDown={(event) => handleCodeKeyDown(index, event)}
-                  disabled={verificationComplete}
-                />
-              ))}
+              {code.map((digit, index) => <input key={index} ref={(element) => { codeRefs.current[index] = element; }} value={digit} inputMode="numeric" maxLength={1} onChange={(event) => updateCode(index, event.target.value)} onKeyDown={(event) => { if (event.key === 'Backspace' && !code[index] && index > 0) codeRefs.current[index - 1]?.focus(); }} disabled={verificationComplete} />)}
             </div>
-            <button className="auth-submit" type="submit" disabled={busy || verificationComplete}>
-              <ShieldCheck size={18} />
-              <span>{busy ? t('authChecking') : t('authConfirm')}</span>
-            </button>
+            <button className="auth-submit" type="submit" disabled={busy || verificationComplete}><ShieldCheck size={18} /><span>{busy ? t('authChecking') : t('authConfirm')}</span></button>
           </form>
         )}
-
         {status && <p className="auth-status"><Mail size={16} /> {status}</p>}
         {error && <p className="auth-error">{error}</p>}
       </div>
     </section>
   );
+}
+
+export function PasswordRequirements({ checks, t }) {
+  const items = [['length', 'authPasswordLength'], ['uppercase', 'authPasswordUppercase'], ['lowercase', 'authPasswordLowercase'], ['number', 'authPasswordNumber'], ['special', 'authPasswordSpecial']];
+  return <div className="password-requirements"><span>{t('authPasswordRules')}</span>{items.map(([key, label]) => <small className={checks[key] ? 'is-valid' : ''} key={key}>{checks[key] ? <Check size={14} /> : <X size={14} />}{t(label)}</small>)}</div>;
 }

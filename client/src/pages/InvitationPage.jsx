@@ -150,7 +150,8 @@ export default function InvitationPage() {
       eventMessage: invitation.message,
       image: gallery[0] || '',
       gallery,
-      colors: invitation.colors || undefined
+      colors: invitation.colors || undefined,
+      ...(invitation.customization || {})
     };
 
     return (

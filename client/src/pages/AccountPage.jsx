@@ -9,6 +9,7 @@ import {
   MapPin,
   RefreshCw,
   Send,
+  Star,
   Trash2,
   Unlink,
   Users,
@@ -18,6 +19,8 @@ import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
 import telegramLogo from '../assets/telegram-logo.png';
+import Loading from '../components/Loading.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
 
@@ -64,6 +67,7 @@ function AccountInvitationPreview({ order, fallbackText }) {
 export default function AccountPage() {
   const navigate = useNavigate();
   const { language, t } = useLanguage();
+  const { initialized, logout: endSession, user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [state, setState] = useState('loading');
   const [logoutOpen, setLogoutOpen] = useState(false);
@@ -73,21 +77,25 @@ export default function AccountPage() {
   const [telegramStatus, setTelegramStatus] = useState(null);
   const [telegramState, setTelegramState] = useState('loading');
   const [telegramError, setTelegramError] = useState('');
-  const token = localStorage.getItem('userToken');
-  const user = JSON.parse(localStorage.getItem('user') || 'null');
-
+  const [reviewsByOrder, setReviewsByOrder] = useState({});
+  const [reviewTarget, setReviewTarget] = useState(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewText, setReviewText] = useState('');
+  const [reviewState, setReviewState] = useState('idle');
+  const [reviewError, setReviewError] = useState('');
   useEffect(() => {
-    if (!token) return undefined;
-    api.get('/orders/my/list')
-      .then(({ data }) => {
-        setOrders(data);
+    if (!user) return undefined;
+    Promise.all([api.get('/orders/my/list'), api.get('/reviews/my')])
+      .then(([ordersResponse, reviewsResponse]) => {
+        setOrders(ordersResponse.data);
+        setReviewsByOrder(Object.fromEntries(reviewsResponse.data.map((review) => [review.orderId, review])));
         setState('ready');
       })
       .catch(() => setState('error'));
-  }, [token]);
+  }, [user]);
 
   const loadTelegramStatus = async ({ quiet = false } = {}) => {
-    if (!token) return;
+    if (!user) return;
     if (!quiet) setTelegramState('loading');
     try {
       const { data } = await api.get('/telegram/status');
@@ -105,13 +113,18 @@ export default function AccountPage() {
     const handleFocus = () => loadTelegramStatus({ quiet: true });
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [token, language]);
+  }, [user, language]);
 
   useEffect(() => {
     if (telegramState !== 'linking') return undefined;
-    const interval = window.setInterval(async () => {
+    let requestInFlight = false;
+    let active = true;
+    const refreshLinkedState = async () => {
+      if (requestInFlight || !active) return;
+      requestInFlight = true;
       try {
         const { data } = await api.get('/telegram/status');
+        if (!active) return;
         setTelegramStatus(data);
         if (data.connected) {
           setTelegramState('ready');
@@ -119,25 +132,36 @@ export default function AccountPage() {
         }
       } catch {
         // Keep the current linking state; focus refresh offers another recovery path.
+      } finally {
+        requestInFlight = false;
       }
-    }, 3000);
+    };
+    const refreshWhenVisible = () => {
+      if (!document.hidden) refreshLinkedState();
+    };
+    refreshLinkedState();
+    const interval = window.setInterval(refreshLinkedState, 800);
+    window.addEventListener('focus', refreshLinkedState);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
     const timeout = window.setTimeout(() => {
       setTelegramState('ready');
       setTelegramError(t('telegramLinkExpired'));
     }, 10 * 60 * 1000);
     return () => {
+      active = false;
       window.clearInterval(interval);
       window.clearTimeout(timeout);
+      window.removeEventListener('focus', refreshLinkedState);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
     };
   }, [telegramState, language]);
 
-  if (!token) return <Navigate to="/login" replace />;
+  if (!initialized) return <Loading text={t('loading')} />;
+  if (!user) return <Navigate to="/login" replace />;
 
-  const logout = () => {
-    localStorage.removeItem('userToken');
-    localStorage.removeItem('user');
-    window.dispatchEvent(new Event('amulet-auth-change'));
-    navigate('/login');
+  const logout = async () => {
+    await endSession();
+    navigate('/login', { replace: true });
   };
 
   const formatEventDate = (date) => {
@@ -170,6 +194,32 @@ export default function AccountPage() {
     } catch {
       setDeleteState('error');
       setDeleteError(t('accountDeleteError'));
+    }
+  };
+  const openReviewModal = (order) => {
+    setReviewTarget(order);
+    setReviewRating(5);
+    setReviewText('');
+    setReviewError('');
+    setReviewState('idle');
+  };
+  const submitReview = async (event) => {
+    event.preventDefault();
+    if (!reviewTarget?._id) return;
+    setReviewState('loading');
+    setReviewError('');
+    try {
+      const { data } = await api.post('/reviews', {
+        orderId: reviewTarget._id,
+        rating: reviewRating,
+        text: reviewText
+      });
+      setReviewsByOrder((current) => ({ ...current, [reviewTarget._id]: data }));
+      setReviewState('success');
+      window.setTimeout(() => setReviewTarget(null), 700);
+    } catch (error) {
+      setReviewState('error');
+      setReviewError(error.response?.data?.message || t('reviewSubmitError'));
     }
   };
   const connectTelegram = async () => {
@@ -363,21 +413,32 @@ export default function AccountPage() {
                       invitationCard
                     )}
 
-                    {invitation?._id && (
-                      <Link
-                        className="account-guest-responses-link"
-                        to={`/account/invitations/${invitation._id}/responses`}
-                        aria-label={`${t('accountGuestResponses')}: ${order.mainNames}`}
-                      >
-                        <span>
-                          <Users size={20} />
-                          <span>
-                            <strong>{t('accountGuestResponses')}</strong>
-                            <small>{t('accountGuestResponsesDescription')}</small>
-                          </span>
-                        </span>
-                        <ArrowRight size={20} />
-                      </Link>
+                    {(invitation?._id || order.paymentStatus === 'paid') && (
+                      <div className="account-invitation-tools">
+                        {invitation?._id && (
+                          <Link
+                            className="account-guest-responses-link"
+                            to={`/account/invitations/${invitation._id}/responses`}
+                            aria-label={`${t('accountGuestResponses')}: ${order.mainNames}`}
+                          >
+                            <span>
+                              <Users size={18} />
+                              <span>
+                                <strong>{t('accountGuestResponses')}</strong>
+                                <small>{t('accountGuestResponsesDescription')}</small>
+                              </span>
+                            </span>
+                            <ArrowRight size={18} />
+                          </Link>
+                        )}
+                        {order.paymentStatus === 'paid' && (
+                          reviewsByOrder[order._id] ? (
+                            <div className="account-review-complete"><CheckCircle2 size={18} /><span><strong>{t('reviewSubmitted')}</strong><small>{t('reviewPendingApproval')}</small></span></div>
+                          ) : (
+                            <button className="account-add-review" type="button" onClick={() => openReviewModal(order)}><Star size={19} /><span><strong>{t('addReview')}</strong><small>{t('addReviewHint')}</small></span><ArrowRight size={19} /></button>
+                          )
+                        )}
+                      </div>
                     )}
                   </div>
                 </article>
@@ -416,6 +477,24 @@ export default function AccountPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {reviewTarget && (
+        <div className="account-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="review-title">
+          <form className={`account-modal account-review-modal${reviewState === 'success' ? ' is-success' : ''}`} onSubmit={submitReview}>
+            {reviewState === 'success' ? <CheckCircle2 size={38} /> : <Star size={30} />}
+            <h2 id="review-title">{reviewState === 'success' ? t('reviewThankYou') : t('addReview')}</h2>
+            <p>{reviewTarget.mainNames}</p>
+            {reviewState !== 'success' && (
+              <>
+                <fieldset className="account-review-stars"><legend>{t('reviewRating')}</legend>{[1, 2, 3, 4, 5].map((value) => <button key={value} type="button" className={value <= reviewRating ? 'is-active' : ''} onClick={() => setReviewRating(value)} aria-label={`${value} / 5`}><Star size={25} fill={value <= reviewRating ? 'currentColor' : 'none'} /></button>)}</fieldset>
+                <label className="account-review-field"><span>{t('reviewText')}</span><textarea value={reviewText} onChange={(event) => setReviewText(event.target.value)} onInput={(event) => { const field = event.currentTarget; field.style.height = 'auto'; field.style.height = `${Math.min(field.scrollHeight, 360)}px`; field.style.overflowY = field.scrollHeight > 360 ? 'auto' : 'hidden'; }} minLength={8} maxLength={1200} rows={5} required /></label>
+                {reviewError && <span className="account-delete-error" role="alert">{reviewError}</span>}
+                <div className="account-modal-actions"><button type="button" className="account-modal-secondary" onClick={() => setReviewTarget(null)} disabled={reviewState === 'loading'}>{t('cancel')}</button><button type="submit" className="account-modal-primary" disabled={reviewState === 'loading'}>{reviewState === 'loading' ? t('loading') : t('submitReview')}</button></div>
+              </>
+            )}
+          </form>
         </div>
       )}
     </section>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, CreditCard, HelpCircle, Mail, MessageCircle, MonitorCheck, Pencil, Phone, Search, Send, Share2, Sparkles, X } from 'lucide-react';
+import { MessageCircle, Pencil, Phone, PhoneCall, Search, Send, Share2, Sparkles, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import baptismChurch from '../assets/morph/baptism-church.webp';
@@ -9,50 +9,13 @@ import corporateEvent from '../assets/morph/corporate-event.jpg';
 import engagementSmile from '../assets/morph/engagement-smile.jpg';
 import weddingForest from '../assets/morph/wedding-forest-optimized.jpg';
 import weddingTemple from '../assets/morph/wedding-temple.jpg';
-import homePhones from '../assets/home/amulet-iphones-transparent.png';
 import homeDeviceSuite from '../assets/home/amulet-device-suite.png';
-import api from '../api/axios.js';
 import Button from '../components/Button.jsx';
 import FAQItem from '../components/FAQItem.jsx';
 import TestimonialV2 from '../components/ui/TestimonialV2.jsx';
 import CircularTestimonials from '../components/ui/CircularTestimonials.jsx';
-// import ScrollMorphHero from '../components/ui/ScrollMorphHero.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-
-const roadmapIcons = [Search, MonitorCheck, Pencil, Sparkles, CreditCard, Share2, MessageCircle];
-
-const galleryPhotos = [
-  {
-    id: 1,
-    src: weddingTemple,
-    altKey: 'wedding',
-    className: 'gallery-card-one'
-  },
-  {
-    id: 2,
-    src: baptismLift,
-    altKey: 'baptism',
-    className: 'gallery-card-two'
-  },
-  {
-    id: 3,
-    src: engagementSmile,
-    altKey: 'engagement',
-    className: 'gallery-card-three'
-  },
-  {
-    id: 4,
-    src: birthdayCakeLights,
-    altKey: 'birth',
-    className: 'gallery-card-four'
-  },
-  {
-    id: 5,
-    src: corporateEvent,
-    altKey: 'corporate',
-    className: 'gallery-card-five'
-  }
-];
+import { CONTACT_PHONE_DIGITS, CONTACT_PHONE_E164, CONTACT_TELEGRAM_URL } from '../data/contact.js';
 
 const occasionLinks = [
   { category: 'wedding', image: weddingTemple },
@@ -111,71 +74,12 @@ function getYouTubeEmbedUrl(rawUrl) {
   }
 }
 
-function GalleryPhoto({ photo, index, label }) {
-  return (
-    <div
-      className={`gallery-photo ${photo.className}`}
-      style={{ '--gallery-index': index }}
-      tabIndex={0}
-    >
-      <img src={photo.src} alt={label} loading={index > 2 ? 'lazy' : 'eager'} draggable="false" />
-    </div>
-  );
-}
-
 export default function HomePage() {
   const { language, t } = useLanguage();
-  const roadmapRef = useRef(null);
   const creationFlowRef = useRef(null);
   const [socialsOpen, setSocialsOpen] = useState(false);
-  const [faqChatOpen, setFaqChatOpen] = useState(false);
-  const [chatFaqIndex, setChatFaqIndex] = useState(null);
-  const [displayedChatFaqIndex, setDisplayedChatFaqIndex] = useState(null);
-  const [chatTyping, setChatTyping] = useState(false);
-  const [serverFaqItems, setServerFaqItems] = useState([]);
-  const [serverFaqLoaded, setServerFaqLoaded] = useState(false);
-  const [activeRoadmapIndex, setActiveRoadmapIndex] = useState(0);
   const [activeFaqIndex, setActiveFaqIndex] = useState(null);
   const [activeEventIndex, setActiveEventIndex] = useState(0);
-
-  useEffect(() => {
-    const section = roadmapRef.current;
-    if (!section) return undefined;
-
-    let frame = 0;
-    const clamp = (value) => Math.min(1, Math.max(0, value));
-
-    const updateRoadmap = () => {
-      const stage = section.querySelector('.roadmap-stage') || section;
-      const rect = stage.getBoundingClientRect();
-      const viewport = window.innerHeight || document.documentElement.clientHeight || 1;
-      const start = viewport * 0.88;
-      const end = -(rect.height - viewport * 0.34);
-      const range = Math.max(1, start - end);
-      const next = clamp((start - rect.top) / range);
-      const textProgress = clamp(next + 0.12);
-      const steps = Number(section.dataset.steps || 1);
-      const nextIndex = Math.min(steps - 1, Math.max(0, Math.floor(textProgress * steps)));
-
-      section.style.setProperty('--roadmap-progress', next.toFixed(4));
-      setActiveRoadmapIndex((current) => (current === nextIndex ? current : nextIndex));
-    };
-
-    const requestUpdate = () => {
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(updateRoadmap);
-    };
-
-    updateRoadmap();
-    window.addEventListener('scroll', requestUpdate, { passive: true });
-    window.addEventListener('resize', requestUpdate);
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', requestUpdate);
-      window.removeEventListener('resize', requestUpdate);
-    };
-  }, []);
 
   useEffect(() => {
     const section = creationFlowRef.current;
@@ -212,38 +116,7 @@ export default function HomePage() {
     };
   }, [language]);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    api.get('/faq')
-      .then(({ data }) => {
-        const items = Array.isArray(data?.items)
-          ? data.items
-            .filter((item) => item?.question && item?.answer && item.active !== false)
-            .map((item) => [item.question, item.answer])
-          : [];
-        if (isMounted) {
-          setServerFaqItems(items);
-          setServerFaqLoaded(true);
-        }
-      })
-      .catch(() => {
-        if (isMounted) {
-          setServerFaqItems([]);
-          setServerFaqLoaded(false);
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
   const staticFaqItems = t('faqItems');
-  // Admin-managed FAQ content is currently stored in Armenian. Keep using it
-  // for Armenian, while every other locale uses its translated FAQ entries.
-  const chatFaqItems = language === 'hy' && serverFaqLoaded ? serverFaqItems : staticFaqItems;
-  const roadmapSteps = t('roadmapSteps');
   const creationSteps = t('creationSteps');
   const eventTestimonials = t('eventTestimonials').map((item) => ({
     ...item,
@@ -265,57 +138,14 @@ export default function HomePage() {
   const activeEventCategory = eventTestimonials[activeEventIndex]?.category || '';
   const activeInvitationPath = activeEventCategory ? `/templates?category=${activeEventCategory}` : '/templates';
 
-  useEffect(() => {
-    if (!chatFaqItems.length || !faqChatOpen || chatFaqIndex === null) {
-      setChatTyping(false);
-      return undefined;
-    }
-
-    setChatTyping(true);
-    const timeout = window.setTimeout(() => {
-      setDisplayedChatFaqIndex(chatFaqIndex);
-      setChatTyping(false);
-    }, 920);
-
-    return () => window.clearTimeout(timeout);
-  }, [chatFaqIndex, faqChatOpen, chatFaqItems.length]);
-
-  useEffect(() => {
-    if (chatFaqIndex !== null && chatFaqIndex > chatFaqItems.length - 1) {
-      setChatFaqIndex(null);
-      setDisplayedChatFaqIndex(null);
-    }
-  }, [chatFaqIndex, chatFaqItems.length]);
-
-  useEffect(() => {
-    setChatFaqIndex(null);
-    setDisplayedChatFaqIndex(null);
-    setChatTyping(false);
-  }, [language]);
-
-  const toggleFaqChat = () => {
-    const nextOpen = !faqChatOpen;
-    setFaqChatOpen(nextOpen);
-    if (nextOpen) {
-      setSocialsOpen(false);
-      setChatFaqIndex(null);
-      setDisplayedChatFaqIndex(null);
-      setChatTyping(false);
-    }
-  };
-
   const toggleSocials = () => {
-    const nextOpen = !socialsOpen;
-    setSocialsOpen(nextOpen);
-    if (nextOpen) setFaqChatOpen(false);
+    setSocialsOpen((current) => !current);
   };
 
   return (
     <>
       <section className="photo-gallery-hero" aria-labelledby="gallery-title">
         <div className="home-intro-media" aria-hidden="true">
-          {/* Previous iPhone-only hero image. Kept for quick rollback if needed. */}
-          {/* <img src={homePhones} alt="" draggable="false" /> */}
           <img className="home-device-suite" src={homeDeviceSuite} alt="" draggable="false" />
         </div>
         <div className="home-intro-copy">
@@ -349,46 +179,6 @@ export default function HomePage() {
           ))}
         </div>
       </nav>
-
-      {/* Previous roadmap section, temporarily hidden.
-      <section className="roadmap-section" aria-labelledby="roadmap-title" ref={roadmapRef} data-steps={roadmapSteps.length} style={{ '--roadmap-progress': 0 }}>
-        <div className="roadmap-heading">
-          <h2 id="roadmap-title" className="home-section-heading">{t('roadmapTitle')}</h2>
-          <span />
-        </div>
-        <div className="roadmap-stage">
-          <svg className="roadmap-line" viewBox="0 0 220 1180" preserveAspectRatio="none" aria-hidden="true">
-            <path className="roadmap-line-muted" d="M112 0 C205 94 196 183 112 268 C22 362 24 451 112 554 C198 657 195 749 112 851 C28 955 28 1055 112 1180" pathLength="1" />
-            <path className="roadmap-line-live" d="M112 0 C205 94 196 183 112 268 C22 362 24 451 112 554 C198 657 195 749 112 851 C28 955 28 1055 112 1180" pathLength="1" />
-          </svg>
-          <div className="roadmap-traveler-track" aria-hidden="true">
-            <div className="roadmap-traveler">
-              <Mail size={30} />
-            </div>
-          </div>
-          <div className="roadmap-items">
-            {roadmapSteps.map((step, index) => {
-              const Icon = roadmapIcons[index] || Sparkles;
-              const isVisible = activeRoadmapIndex >= index;
-              const isPast = activeRoadmapIndex > index;
-              const isActive = activeRoadmapIndex === index;
-              const sideClass = index % 2 === 0 ? 'is-left' : 'is-right';
-              const stateClass = `${isVisible ? 'is-visible' : 'is-upcoming'} ${isPast ? 'is-past' : ''} ${isActive ? 'is-active' : ''}`;
-
-              return (
-                <article className={`roadmap-step ${sideClass} ${stateClass}`} key={step.title} style={{ '--step-index': index }}>
-                  <div className="roadmap-step-icon"><Icon size={24} /></div>
-                  <div className="roadmap-step-copy">
-                    <h3>{step.title}</h3>
-                    <p>{step.text}</p>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-      */}
 
       <section className="creation-flow-section" aria-labelledby="creation-flow-title" ref={creationFlowRef}>
         <div className="creation-flow-heading">
@@ -425,9 +215,6 @@ export default function HomePage() {
         </div>
         <Button to="/templates" className="red-pill creation-flow-cta">{t('startCreating')}</Button>
       </section>
-
-      {/* Temporarily hidden. Uncomment this line when the invitation morph gallery is needed again. */}
-      {/* <ScrollMorphHero /> */}
 
       <section className="events-testimonials-section" aria-labelledby="events-testimonials-title">
         <div className="events-testimonials-heading">
@@ -471,63 +258,14 @@ export default function HomePage() {
       </section>
 
       <div className={socialsOpen ? 'floating-help expanded' : 'floating-help'} aria-label="Quick contact buttons">
-        {faqChatOpen && (
-          <div className="faq-chatbot is-open" role="dialog" aria-label={`${t('brand')} ${t('faq')}`}>
-            <div className="faq-chatbot-header">
-              <span><Bot size={18} /> {t('faq')}</span>
-              <button type="button" onClick={() => setFaqChatOpen(false)} aria-label={`${t('close')} ${t('faq')}`}><X size={18} /></button>
-            </div>
-            <div className="faq-chatbot-body">
-              <div className="faq-chatbot-greeting">
-                <Bot size={18} />
-                <p>{t('faqTitle')}</p>
-              </div>
-              <div className="faq-chatbot-questions" aria-label={t('faqTitle')}>
-                {chatFaqItems.map(([question], index) => (
-                  <button
-                    key={question}
-                    type="button"
-                    className={chatFaqIndex === index ? 'is-active' : ''}
-                    onClick={() => setChatFaqIndex(index)}
-                    aria-pressed={chatFaqIndex === index}
-                  >
-                    {question}
-                  </button>
-                ))}
-              </div>
-              {chatFaqIndex !== null && (
-                chatTyping ? (
-                  <div className="faq-chatbot-answer is-typing" aria-live="polite">
-                    <span><Bot size={16} /></span>
-                    <p><i /> <i /> <i /></p>
-                  </div>
-                ) : displayedChatFaqIndex !== null ? (
-                  <div className="faq-chatbot-answer" key={displayedChatFaqIndex} aria-live="polite">
-                    <span><Bot size={16} /></span>
-                    <p>{chatFaqItems[displayedChatFaqIndex]?.[1]}</p>
-                  </div>
-                ) : null
-              )}
-            </div>
-          </div>
-        )}
         {socialsOpen && (
           <>
-            <a href="mailto:hello@amulet.local" aria-label="Email Amulet"><Mail size={23} /></a>
-            <a href="viber://chat?number=%2B37477805607" aria-label="Viber"><Phone size={23} /></a>
-            <a href="https://wa.me/37477805607" target="_blank" rel="noreferrer" aria-label="WhatsApp"><MessageCircle size={24} /></a>
-            <a href="https://t.me/" target="_blank" rel="noreferrer" aria-label="Telegram"><Send size={23} /></a>
+            <a href={`tel:${CONTACT_PHONE_E164}`} aria-label={`Call Amulet ${CONTACT_PHONE_E164}`}><PhoneCall size={23} /></a>
+            <a href={`viber://chat?number=${encodeURIComponent(CONTACT_PHONE_E164)}`} aria-label={`Viber ${CONTACT_PHONE_E164}`}><Phone size={23} /></a>
+            <a href={`https://wa.me/${CONTACT_PHONE_DIGITS}`} target="_blank" rel="noreferrer" aria-label={`WhatsApp ${CONTACT_PHONE_E164}`}><MessageCircle size={24} /></a>
+            <a href={CONTACT_TELEGRAM_URL} target="_blank" rel="noreferrer" aria-label="Telegram @amulet_invitiations"><Send size={23} /></a>
           </>
         )}
-        <button
-          className={faqChatOpen ? 'floating-question is-active' : 'floating-question'}
-          type="button"
-          onClick={toggleFaqChat}
-          aria-label={t('faq')}
-          aria-expanded={faqChatOpen}
-        >
-          <HelpCircle size={28} />
-        </button>
         <button className="floating-chat" type="button" onClick={toggleSocials} aria-label="Open social links" aria-expanded={socialsOpen}>
           {socialsOpen ? <X size={24} /> : <MessageCircle size={25} />}
         </button>

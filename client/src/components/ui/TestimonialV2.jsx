@@ -478,7 +478,7 @@ const latinNames = [
   'Mher Manukyan'
 ];
 
-function makeTestimonials(language) {
+export function makeTestimonials(language) {
   const texts = localizedTexts[language] || localizedTexts.en;
   const names = language === 'hy' ? hyNames : latinNames;
   return texts.map((text, index) => ({
@@ -488,9 +488,9 @@ function makeTestimonials(language) {
   }));
 }
 
-function ReviewCard({ item }) {
+function ReviewCard({ item, onPause, onResume }) {
   return (
-    <article className="customer-review-card">
+    <article className="customer-review-card" onPointerEnter={onPause} onPointerLeave={onResume} onPointerDown={onPause} onPointerUp={onResume} onPointerCancel={onResume}>
       <Quote size={21} aria-hidden="true" />
       <p>{item.text}</p>
       <strong>{item.name}</strong>
@@ -517,11 +517,6 @@ export default function TestimonialV2() {
     <section
       className={paused ? 'customer-testimonials-section is-paused' : 'customer-testimonials-section'}
       aria-labelledby="customer-testimonials-title"
-      onPointerEnter={(event) => event.pointerType === 'mouse' && setPaused(true)}
-      onPointerLeave={(event) => event.pointerType === 'mouse' && setPaused(false)}
-      onPointerDown={pauseForPointer}
-      onPointerUp={resumeForPointer}
-      onPointerCancel={resumeForPointer}
     >
       <div className="customer-testimonials-heading">
         <span>{t('customerTestimonialsKicker')}</span>
@@ -530,10 +525,10 @@ export default function TestimonialV2() {
       </div>
       <div className="testimonial-v2-marquee" aria-label={t('customerTestimonialsTitle')}>
         <div className="testimonial-v2-row">
-          {[...firstRow, ...firstRow].map((item, index) => <ReviewCard key={`top-${language}-${item.id}-${index}`} item={item} />)}
+          {[...firstRow, ...firstRow].map((item, index) => <ReviewCard key={`top-${language}-${item.id}-${index}`} item={item} onPause={pauseForPointer} onResume={resumeForPointer} />)}
         </div>
         <div className="testimonial-v2-row reverse">
-          {[...secondRow, ...secondRow].map((item, index) => <ReviewCard key={`bottom-${language}-${item.id}-${index}`} item={item} />)}
+          {[...secondRow, ...secondRow].map((item, index) => <ReviewCard key={`bottom-${language}-${item.id}-${index}`} item={item} onPause={pauseForPointer} onResume={resumeForPointer} />)}
         </div>
       </div>
     </section>

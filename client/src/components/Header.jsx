@@ -4,29 +4,16 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { NavLink } from 'react-router-dom';
 import logoImage from '../assets/logo.png';
+import { CONTACT_PHONE_DISPLAY, CONTACT_PHONE_E164 } from '../data/contact.js';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import LanguageSelector from './LanguageSelector.jsx';
 
-const getStoredUser = () => {
-  const token = localStorage.getItem('userToken');
-  if (!token) {
-    localStorage.removeItem('user');
-    return null;
-  }
-
-  try {
-    return JSON.parse(localStorage.getItem('user') || 'null');
-  } catch {
-    localStorage.removeItem('user');
-    return null;
-  }
-};
-
 export default function Header() {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [user, setUser] = useState(getStoredUser);
   const links = [
     ['/', t('home')],
     ['/templates', t('templates')],
@@ -63,16 +50,6 @@ export default function Header() {
     return () => {
       window.cancelAnimationFrame(frame);
       window.removeEventListener('scroll', requestUpdate);
-    };
-  }, []);
-
-  useEffect(() => {
-    const syncUser = () => setUser(getStoredUser());
-    window.addEventListener('storage', syncUser);
-    window.addEventListener('amulet-auth-change', syncUser);
-    return () => {
-      window.removeEventListener('storage', syncUser);
-      window.removeEventListener('amulet-auth-change', syncUser);
     };
   }, []);
 
@@ -141,9 +118,9 @@ export default function Header() {
             </NavLink>
           ))}
         </div>
-        <a className="nav-overlay-phone" href="tel:+37455710208" onClick={() => setOpen(false)}>
+        <a className="nav-overlay-phone" href={`tel:${CONTACT_PHONE_E164}`} onClick={() => setOpen(false)}>
           <Phone size={18} />
-          <span>+374 55 710 208</span>
+          <span>{CONTACT_PHONE_DISPLAY}</span>
         </a>
         <div className="nav-overlay-secondary">
           {user && <NavLink to="/account" onClick={() => setOpen(false)}>{t('accountTitle')}</NavLink>}
@@ -159,7 +136,7 @@ export default function Header() {
         <NavLink to="/" className="logo" onClick={() => setOpen(false)}>{brandLogo}</NavLink>
         <nav className="nav-links">
           {links.map(([to, label]) => <NavLink key={to} to={to} onClick={() => setOpen(false)}>{label}</NavLink>)}
-          <a className="header-phone" href="tel:+37455710208"><Phone size={16} /> +374 55 710 208</a>
+          <a className="header-phone" href={`tel:${CONTACT_PHONE_E164}`}><Phone size={16} /> {CONTACT_PHONE_DISPLAY}</a>
           <LanguageSelector />
         </nav>
         <div className="mobile-header-actions">

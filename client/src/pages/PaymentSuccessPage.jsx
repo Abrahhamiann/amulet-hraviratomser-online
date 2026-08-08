@@ -4,18 +4,19 @@ import { useEffect, useState } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import api from '../api/axios.js';
 import Loading from '../components/Loading.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 export default function PaymentSuccessPage() {
   const { t } = useLanguage();
+  const { initialized, user } = useAuth();
   const [params] = useSearchParams();
   const [state, setState] = useState('loading');
   const [order, setOrder] = useState(null);
-  const token = localStorage.getItem('userToken');
   const sessionId = params.get('session_id');
 
   useEffect(() => {
-    if (!token || !sessionId) return undefined;
+    if (!user || !sessionId) return undefined;
 
     api.post('/payments/confirm-checkout-session', { sessionId })
       .then(({ data }) => {
@@ -23,9 +24,10 @@ export default function PaymentSuccessPage() {
         setState('ready');
       })
       .catch(() => setState('error'));
-  }, [sessionId, token]);
+  }, [sessionId, user]);
 
-  if (!token) return <Navigate to="/login" replace />;
+  if (!initialized) return <Loading text={t('loading')} />;
+  if (!user) return <Navigate to="/login" replace />;
   if (state === 'loading') return <Loading text={t('loading')} />;
 
   const invitePath = order?.invitationId?.slug ? `/invite/${order.invitationId.slug}` : '/account';

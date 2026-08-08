@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CalendarDays, Home, Pause, Pencil, Play, ShoppingBag } from 'lucide-react';
 import engagementSong from '../assets/audio/john-legend-all-of-you.mp3';
@@ -12,6 +12,7 @@ import engagementRoses from '../assets/morph/engagement-roses.jpg';
 import engagementSmile from '../assets/morph/engagement-smile.jpg';
 import weddingSunset from '../assets/morph/wedding-sunset.jpg';
 import { getConfiguredTemplateGallery, resolveTemplateImages } from './templateAssets.js';
+import { getInvitationDesignVariables, hasCustomInvitationNameStyle, useInvitationMusic } from './invitationMedia.js';
 
 const fallbackGallery = [
   weddingSunset,
@@ -212,7 +213,8 @@ export const getEngagementSerenadeDraft = (template = {}) => {
   };
 };
 
-function PreviewEngagementRsvpForm() {
+function PreviewEngagementRsvpForm({ draft }) {
+  const settings = draft?.rsvpSettings || {};
   return (
     <form className="engagement-preview-rsvp-form test-wedding-rsvp-form" onSubmit={(event) => event.preventDefault()}>
       <fieldset className="rsvp-choice-group">
@@ -221,23 +223,24 @@ function PreviewEngagementRsvpForm() {
         <label className="rsvp-radio"><input type="radio" name="engagement-side" /><span>Փեսացուի կողմ</span></label>
       </fieldset>
       <label className="field">
-        <span>Անուն Ազգանուն</span>
+        <span>{settings.guestPlaceholder || 'Անուն Ազգանուն'}</span>
         <input className="input" type="text" />
       </label>
       <fieldset className="rsvp-choice-group">
         <legend>Մասնակցություն</legend>
-        <label className="rsvp-radio"><input type="radio" name="engagement-answer" defaultChecked /><span>Կգամ</span></label>
-        <label className="rsvp-radio"><input type="radio" name="engagement-answer" /><span>Չեմ կարողանա գալ</span></label>
+        <label className="rsvp-radio"><input type="radio" name="engagement-answer" defaultChecked /><span>{settings.attendingLabel || 'Կգամ'}</span></label>
+        <label className="rsvp-radio"><input type="radio" name="engagement-answer" /><span>{settings.notAttendingLabel || 'Չեմ կարողանա գալ'}</span></label>
       </fieldset>
-      <label className="field">
+      {settings.askGuestCount !== false && <label className="field">
         <span>Հյուրերի թիվ</span>
         <input className="input" type="number" min="1" defaultValue="1" />
-      </label>
+      </label>}
+      {settings.askMeal && <label className="field"><span>Սննդի նախընտրություն</span><select className="input" defaultValue=""><option value="" disabled>Ընտրել տարբերակը</option><option>Ստանդարտ</option><option>Բուսակեր</option></select></label>}
       <label className="field">
         <span>Մեկնաբանություն</span>
         <textarea className="input" rows="3" />
       </label>
-      <button className="btn" type="submit">Պատասխանել</button>
+      <button className="btn" type="submit">{settings.submitLabel || 'Պատասխանել'}</button>
     </form>
   );
 }
@@ -255,8 +258,7 @@ function MapButton({ url }) {
 }
 
 function EngagementLayout({ draft, price, onHome, onEdit, onOrder, loading, actions, rsvpForm, daysLeftText, mode = 'preview' }) {
-  const audioRef = useRef(null);
-  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const { audioRef, isMusicPlaying, source: musicSource, toggleMusic } = useInvitationMusic(draft, engagementSong, .68);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
   const [countdown, setCountdown] = useState(() => getCountdown(draft?.eventDate));
   const draftImages = resolveTemplateImages([draft?.image, ...(draft?.gallery || [])]);
@@ -283,38 +285,17 @@ function EngagementLayout({ draft, price, onHome, onEdit, onOrder, loading, acti
     return () => window.clearInterval(timer);
   }, [gallery.length]);
 
-  useEffect(() => () => {
-    audioRef.current?.pause();
-  }, []);
-
-  const toggleMusic = async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (isMusicPlaying) {
-      audio.pause();
-      setIsMusicPlaying(false);
-      return;
-    }
-
-    try {
-      audio.volume = 0.68;
-      await audio.play();
-      setIsMusicPlaying(true);
-    } catch {
-      setIsMusicPlaying(false);
-    }
-  };
-
   return (
     <article
-      className={`engagement-serenade-invite ${mode === 'public' ? 'is-public' : 'is-preview'}`}
+      className={`engagement-serenade-invite ${mode === 'public' ? 'is-public' : 'is-preview'}${hasCustomInvitationNameStyle(draft) ? ' has-custom-name-style' : ''}`}
       style={{
+        ...getInvitationDesignVariables(draft),
         '--engagement-accent': colors.accent,
         '--engagement-text': colors.text,
         '--engagement-overlay': colors.overlay
       }}
     >
-      <audio ref={audioRef} src={engagementSong} preload="auto" loop />
+      <audio ref={audioRef} src={musicSource} preload="metadata" loop />
       <div className="engagement-fixed-photo" aria-hidden="true">
         {gallery.map((image, index) => (
           <img
@@ -347,7 +328,7 @@ function EngagementLayout({ draft, price, onHome, onEdit, onOrder, loading, acti
           </button>
           <button className="btn btn-primary" type="button" onClick={onOrder} disabled={loading}>
             <ShoppingBag size={18} />
-            {loading ? 'Բեռնվում է...' : 'Պատվիրել'}
+            {loading ? 'Բեռնվում է...' : 'Գնել'}
           </button>
         </motion.div>
       )}
@@ -371,15 +352,17 @@ function EngagementLayout({ draft, price, onHome, onEdit, onOrder, loading, acti
           </motion.h1>
           <motion.i variants={textRevealItem} />
           <motion.strong variants={textRevealItem}>{formatDate(draft?.eventDate)}</motion.strong>
-          <motion.button
-            className={`engagement-music-button${isMusicPlaying ? ' is-playing' : ''}`}
-            type="button"
-            onClick={toggleMusic}
-            aria-label={isMusicPlaying ? 'Pause music' : 'Play music'}
-            variants={textRevealItem}
-          >
-            {isMusicPlaying ? <Pause size={19} /> : <Play size={19} />}
-          </motion.button>
+          {draft?.musicEnabled !== false && (
+            <motion.button
+              className={`engagement-music-button${isMusicPlaying ? ' is-playing' : ''}`}
+              type="button"
+              onClick={toggleMusic}
+              aria-label={isMusicPlaying ? 'Pause music' : 'Play music'}
+              variants={textRevealItem}
+            >
+              {isMusicPlaying ? <Pause size={19} /> : <Play size={19} />}
+            </motion.button>
+          )}
         </motion.div>
       </section>
 
@@ -441,9 +424,9 @@ function EngagementLayout({ draft, price, onHome, onEdit, onOrder, loading, acti
 
       {draft?.questionsVisible !== false && <motion.section className="engagement-rsvp-section engagement-photo-screen" {...revealProps}>
         <motion.div className="engagement-rsvp-shell" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} variants={textRevealContainer}>
-          <motion.h2 variants={textRevealItem}>Շնորհակալ կլինենք, եթե նախապես հաստատեք Ձեր ներկայությունը</motion.h2>
+          <motion.h2 variants={textRevealItem}>{draft?.rsvpSettings?.title || 'Շնորհակալ կլինենք, եթե նախապես հաստատեք Ձեր ներկայությունը'}</motion.h2>
           {draft?.rsvpQuestion && <motion.p className="engagement-form-note" variants={textRevealItem}>{draft.rsvpQuestion}</motion.p>}
-          {rsvpForm || <PreviewEngagementRsvpForm />}
+          {rsvpForm || <PreviewEngagementRsvpForm draft={draft} />}
           <motion.img className="engagement-love-mark" src={loveMark} alt="" aria-hidden="true" loading="lazy" variants={textRevealItem} />
           <motion.p variants={textRevealItem}>Սիրով սպասում ենք Ձեզ</motion.p>
         </motion.div>

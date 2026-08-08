@@ -10,10 +10,10 @@ export const languages = [
 
 const common = {
   brand: 'Amulet',
-  contactPhoneValue: '+374 77 805 607',
-  contactEmailValue: 'hello@amulet.local',
+  contactPhoneValue: '041 401415',
+  contactEmailValue: 'amulet.invitation@gmail.com',
   contactAddressValue: 'Yerevan, Armenia',
-  contactInstagramValue: '@amulet.placeholder',
+  contactInstagramValue: '@amulet_invite',
   phoneWeddingDate: '26.08.26',
   phoneCorporate: 'AMULET'
 };
@@ -24,9 +24,9 @@ const en = {
   templates: 'Invitations',
   about: 'About',
   contact: 'Contact',
-  orderNow: 'Order',
+  orderNow: 'Buy',
   viewTemplates: 'View invitations',
-  orderCustom: 'Order custom invitation',
+  orderCustom: 'Buy a custom invitation',
   heroTitle: '1 invitation instead of 1000 calls',
   heroDevice: 'Wedding invitation',
   heroRsvp: 'RSVP',
@@ -42,16 +42,6 @@ const en = {
   featured: 'Featured invitations',
   faq: 'FAQ',
   faqTitle: 'Frequently Asked Questions',
-  roadmapTitle: 'How to use',
-  roadmapSteps: [
-    { title: 'Find your event style', text: 'Start from the category that matches your celebration: wedding, baptism, birthday, engagement, or corporate event.' },
-    { title: 'Preview it on a phone', text: 'Open a template and see how the digital invitation will feel on a guest mobile screen.' },
-    { title: 'Place the order', text: 'Fill in names, date, time, location, map link, photos, and the message for your guests.' },
-    { title: 'We build your invitation', text: 'The Amulet team turns your details into a polished online invitation with gallery, map, countdown, and RSVP.' },
-    { title: 'Approve the final version', text: 'Check the prepared link, request final edits if needed, and confirm the invitation before it goes live.' },
-    { title: 'Send one beautiful link', text: 'Share the invitation through WhatsApp, Viber, Telegram, email, Instagram, or any other channel.' },
-    { title: 'Collect guest replies', text: 'Guests submit RSVP answers from the invitation page, so attendance stays organized.' }
-  ],
   eventTestimonials: [
     { name: 'Wedding and engagement', designation: 'Wedding / Engagement', quote: 'Wedding, engagement, and love stories begin with a carefully chosen invitation.', image: 'wedding' },
     { name: 'Baptism', designation: 'Baptism', quote: 'A warm digital invitation for a sacred day that family and guests will remember.', image: 'baptism' },
@@ -90,9 +80,9 @@ const en = {
   priceDesc: 'Price high to low',
   all: 'All',
   preview: 'Preview',
-  order: 'Order',
+  order: 'Buy',
   livePreview: 'Live preview',
-  orderThis: 'Order this invitation',
+  orderThis: 'Buy this invitation',
   features: 'Features',
   gallery: 'Gallery',
   fullName: 'Full name',
@@ -183,9 +173,9 @@ const hy = {
   templates: 'Հրավերներ',
   about: 'Մեր մասին',
   contact: 'Կապ',
-  orderNow: 'Պատվիրել',
+  orderNow: 'Գնել',
   viewTemplates: 'Դիտել հրավերները',
-  orderCustom: 'Պատվիրել անհատական հրավեր',
+  orderCustom: 'Գնել անհատական հրավեր',
   heroTitle: '1 հրավեր՝ 1000 զանգի փոխարեն',
   heroDevice: 'Հարսանեկան հրավեր',
   hashtags: ['# Վեբ հրավիրատոմսեր', '# Հարսանիք', '# Մկրտություն', '# Ծնունդ'],
@@ -199,16 +189,6 @@ const hy = {
   featured: 'Ընտրված հրավերներ',
   faq: 'Հարցեր',
   faqTitle: 'Հաճախ տրվող հարցեր',
-  roadmapTitle: 'Ինչպե՞ս օգտվել',
-  roadmapSteps: [
-    { title: 'Գտիր քո միջոցառման ոճը', text: 'Սկսիր այն բաժնից, որը համապատասխանում է քո օրվան՝ հարսանիք, մկրտություն, ծնունդ, նշանադրություն կամ կորպորատիվ միջոցառում։' },
-    { title: 'Դիտիր հեռախոսային preview-ը', text: 'Բացիր նախադիտումը եւ տես, թե հրավերը ինչպես է երեւալու հյուրի հեռախոսում։' },
-    { title: 'Լրացրու պատվերի տվյալները', text: 'Գրիր անունները, օրը, ժամը, վայրը, քարտեզի հղումը, նկարները եւ հյուրերին փոխանցվող հիմնական տեքստը։' },
-    { title: 'Մենք ձեւավորում ենք հրավերը', text: 'Amulet-ի թիմը քո տվյալներով պատրաստում է առցանց հրավեր՝ պատկերասրահով, քարտեզով, հետհաշվարկով եւ RSVP դաշտով։' },
-    { title: 'Հաստատիր վերջնական տարբերակը', text: 'Դիտիր պատրաստի հղումը, անհրաժեշտության դեպքում խնդրիր վերջին փոփոխությունները եւ հաստատիր հրապարակումը։' },
-    { title: 'Ուղարկիր մեկ գեղեցիկ հղում', text: 'Կիսվիր հրավերով WhatsApp-ով, Viber-ով, Telegram-ով, email-ով, Instagram-ով կամ ցանկացած այլ հարթակով։' },
-    { title: 'Հավաքիր RSVP պատասխանները', text: 'Հյուրերը հրավերի էջից հաստատում են մասնակցությունը, իսկ դու ստանում ես պատասխանները ավելի կազմակերպված ձեւով։' }
-  ],
   eventTestimonials: [
     { name: 'Հարսանեկան եւ նշանադրության', designation: 'Հարսանիք / Նշանադրություն', quote: 'Հարսանիք, նշանադրություն եւ սիրո պատմություն՝ ամենաթանկ ակնթարթները սկսվում են հրավերից։', image: 'wedding' },
     { name: 'Մկրտության', designation: 'Մկրտություն', quote: 'Սուրբ օրվա համար ջերմ թվային հրավեր, որը կմնա ընտանիքի եւ հյուրերի հիշողության մեջ։', image: 'baptism' },
@@ -247,9 +227,9 @@ const hy = {
   priceDesc: 'Գին՝ բարձրից ցածր',
   all: 'Բոլորը',
   preview: 'Դիտել',
-  order: 'Պատվիրել',
+  order: 'Գնել',
   livePreview: 'Կենդանի դիտում',
-  orderThis: 'Պատվիրել այս հրավերը',
+  orderThis: 'Գնել այս հրավերը',
   features: 'Հնարավորություններ',
   gallery: 'Պատկերասրահ',
   fullName: 'Անուն ազգանուն',
@@ -339,9 +319,9 @@ const ru = {
   templates: 'Приглашения',
   about: 'О нас',
   contact: 'Контакты',
-  orderNow: 'Заказать',
+  orderNow: 'Купить',
   viewTemplates: 'Смотреть приглашения',
-  orderCustom: 'Заказать индивидуальное приглашение',
+  orderCustom: 'Купить индивидуальное приглашение',
   heroTitle: '1 приглашение вместо 1000 звонков',
   heroDevice: 'Свадебное приглашение',
   hashtags: ['# Веб-приглашения', '# Свадьба', '# Крещение', '# День рождения'],
@@ -355,16 +335,6 @@ const ru = {
   featured: 'Избранные приглашения',
   faq: 'Вопросы',
   faqTitle: 'Частые вопросы',
-  roadmapTitle: 'Как пользоваться',
-  roadmapSteps: [
-    { title: 'Найди стиль события', text: 'Выбери категорию для свадьбы, крещения, дня рождения, помолвки или корпоративного события.' },
-    { title: 'Посмотри на телефоне', text: 'Открой шаблон и увидь, как приглашение будет выглядеть на экране гостя.' },
-    { title: 'Оформи заказ', text: 'Добавь имена, дату, время, место, ссылку на карту, фотографии и текст приглашения.' },
-    { title: 'Мы создаем приглашение', text: 'Команда Amulet превращает данные в красивое онлайн-приглашение с галереей, картой, таймером и RSVP.' },
-    { title: 'Подтверди финальную версию', text: 'Проверь готовую ссылку, попроси правки при необходимости и подтверди публикацию.' },
-    { title: 'Отправь одну красивую ссылку', text: 'Делись приглашением через WhatsApp, Viber, Telegram, email, Instagram или любой другой канал.' },
-    { title: 'Собирай ответы гостей', text: 'Гости отправляют RSVP прямо со страницы приглашения, а ответы остаются организованными.' }
-  ],
   eventTestimonials: [
     { name: 'Свадьба и помолвка', designation: 'Свадьба / Помолвка', quote: 'Свадьба, помолвка и история любви начинаются с продуманного приглашения.', image: 'wedding' },
     { name: 'Крещение', designation: 'Крещение', quote: 'Теплое цифровое приглашение для святого дня, который запомнят семья и гости.', image: 'baptism' },
@@ -403,9 +373,9 @@ const es = {
   templates: 'Invitaciones',
   about: 'Nosotros',
   contact: 'Contacto',
-  orderNow: 'Pedir',
+  orderNow: 'Comprar',
   viewTemplates: 'Ver invitaciones',
-  orderCustom: 'Pedir invitación personalizada',
+  orderCustom: 'Comprar invitación personalizada',
   heroTitle: '1 invitación en lugar de 1000 llamadas',
   storiesKicker: 'Bienvenido a Amulet',
   storiesTitle: 'Cada celebración empieza con una invitación hermosa',
@@ -417,7 +387,6 @@ const es = {
   featured: 'Invitaciones destacadas',
   faq: 'Preguntas',
   faqTitle: 'Preguntas frecuentes',
-  roadmapTitle: 'Cómo funciona',
   chooseInvitation: 'Elegir invitación',
   menuPartners: 'Para socios',
   menuPrivacy: 'Política de privacidad',
@@ -442,9 +411,9 @@ const fr = {
   templates: 'Invitations',
   about: 'À propos',
   contact: 'Contact',
-  orderNow: 'Commander',
+  orderNow: 'Acheter',
   viewTemplates: 'Voir les invitations',
-  orderCustom: 'Commander une invitation sur mesure',
+  orderCustom: 'Acheter une invitation personnalisée',
   heroTitle: '1 invitation au lieu de 1000 appels',
   storiesKicker: 'Bienvenue chez Amulet',
   storiesTitle: 'Chaque fête commence par une belle invitation',
@@ -456,7 +425,6 @@ const fr = {
   featured: 'Invitations sélectionnées',
   faq: 'Questions',
   faqTitle: 'Questions fréquentes',
-  roadmapTitle: 'Comment ça marche',
   chooseInvitation: 'Choisir une invitation',
   menuPartners: 'Pour les partenaires',
   menuPrivacy: 'Politique de confidentialité',
@@ -481,9 +449,9 @@ const de = {
   templates: 'Einladungen',
   about: 'Über uns',
   contact: 'Kontakt',
-  orderNow: 'Bestellen',
+  orderNow: 'Kaufen',
   viewTemplates: 'Einladungen ansehen',
-  orderCustom: 'Individuelle Einladung bestellen',
+  orderCustom: 'Individuelle Einladung kaufen',
   heroTitle: '1 Einladung statt 1000 Anrufen',
   storiesKicker: 'Willkommen bei Amulet',
   storiesTitle: 'Jede Feier beginnt mit einer schönen Einladung',
@@ -495,7 +463,6 @@ const de = {
   featured: 'Ausgewählte Einladungen',
   faq: 'Fragen',
   faqTitle: 'Häufige Fragen',
-  roadmapTitle: 'So funktioniert es',
   chooseInvitation: 'Einladung wählen',
   menuPartners: 'Für Partner',
   menuPrivacy: 'Datenschutz',
@@ -520,9 +487,9 @@ const it = {
   templates: 'Inviti',
   about: 'Chi siamo',
   contact: 'Contatti',
-  orderNow: 'Ordina',
+  orderNow: 'Acquista',
   viewTemplates: 'Vedi inviti',
-  orderCustom: 'Ordina invito personalizzato',
+  orderCustom: 'Acquista un invito personalizzato',
   heroTitle: '1 invito invece di 1000 chiamate',
   storiesKicker: 'Benvenuto in Amulet',
   storiesTitle: 'Ogni festa inizia con un bellissimo invito',
@@ -534,7 +501,6 @@ const it = {
   featured: 'Inviti in evidenza',
   faq: 'Domande',
   faqTitle: 'Domande frequenti',
-  roadmapTitle: 'Come funziona',
   chooseInvitation: 'Scegli invito',
   menuPartners: 'Per partner',
   menuPrivacy: 'Privacy policy',
@@ -561,9 +527,9 @@ Object.assign(ru, {
   priceDesc: 'Цена по убыванию',
   all: 'Все',
   preview: 'Просмотр',
-  order: 'Заказать',
+  order: 'Купить',
   livePreview: 'Живой просмотр',
-  orderThis: 'Заказать это приглашение',
+  orderThis: 'Купить это приглашение',
   features: 'Возможности',
   gallery: 'Галерея',
   fullName: 'Имя и фамилия',
@@ -643,15 +609,6 @@ Object.assign(ru, {
 });
 
 Object.assign(es, {
-  roadmapSteps: [
-    { title: 'Encuentra el estilo de tu evento', text: 'Elige la categoría que corresponde a tu celebración: boda, bautizo, cumpleaños, compromiso o evento corporativo.' },
-    { title: 'Míralo en el teléfono', text: 'Abre una plantilla y comprueba cómo se verá la invitación digital en la pantalla del invitado.' },
-    { title: 'Realiza el pedido', text: 'Añade nombres, fecha, hora, lugar, mapa, fotos y el mensaje para tus invitados.' },
-    { title: 'Creamos tu invitación', text: 'El equipo de Amulet convierte tus datos en una invitación online con galería, mapa, cuenta regresiva y RSVP.' },
-    { title: 'Aprueba la versión final', text: 'Revisa el enlace preparado, solicita últimos cambios si hace falta y confirma la publicación.' },
-    { title: 'Envía un enlace bonito', text: 'Comparte la invitación por WhatsApp, Viber, Telegram, email, Instagram o cualquier canal.' },
-    { title: 'Recoge respuestas RSVP', text: 'Los invitados responden desde la página y la asistencia queda organizada.' }
-  ],
   partnerTitle: 'Para socios', partnerSubtitle: 'Cómo ser socio', partnerLogin: 'Entrar',
   weddingTitle: 'Boda y compromiso', weddingSubtitle: 'Los momentos más valiosos empiezan con una invitación',
   baptismTitle: 'Bautizo', baptismSubtitle: 'Envía una invitación que será recordada',
@@ -659,7 +616,7 @@ Object.assign(es, {
   corporateTitle: 'Corporativo', corporateSubtitle: 'Ahorra tiempo',
   phoneWeddingNames: 'Aram & Lilit', phoneBaptismName: 'Narek', phoneBlessedDay: 'Día santo', phoneBirthday: 'Cumpleaños',
   search: 'Buscar', sort: 'Ordenar', newest: 'Más nuevos', priceAsc: 'Precio menor a mayor', priceDesc: 'Precio mayor a menor', all: 'Todos',
-  preview: 'Vista previa', order: 'Pedir', livePreview: 'Vista en vivo', orderThis: 'Pedir esta invitación', features: 'Funciones', gallery: 'Galería',
+  preview: 'Vista previa', order: 'Comprar', livePreview: 'Vista en vivo', orderThis: 'Comprar esta invitación', features: 'Funciones', gallery: 'Galería',
   fullName: 'Nombre completo', phone: 'Teléfono', email: 'Email', eventType: 'Tipo de evento', selectedTemplate: 'Invitación seleccionada',
   eventDate: 'Fecha del evento', eventTime: 'Hora', eventLocation: 'Lugar', mapLink: 'Enlace de Google Maps', mainNames: 'Nombres principales',
   eventMessage: 'Texto de invitación', preferredLanguage: 'Idioma preferido', notes: 'Notas adicionales', submit: 'Enviar',
@@ -704,15 +661,6 @@ Object.assign(es, {
 });
 
 Object.assign(fr, {
-  roadmapSteps: [
-    { title: 'Trouve le style de ton événement', text: 'Choisis la catégorie qui correspond à ta célébration : mariage, baptême, anniversaire, fiançailles ou corporate.' },
-    { title: 'Prévisualise sur téléphone', text: 'Ouvre un modèle et vois comment l’invitation digitale apparaîtra sur l’écran d’un invité.' },
-    { title: 'Passe commande', text: 'Ajoute les noms, la date, l’heure, le lieu, la carte, les photos et le message pour les invités.' },
-    { title: 'Nous créons ton invitation', text: 'L’équipe Amulet transforme tes détails en invitation en ligne avec galerie, carte, compte à rebours et RSVP.' },
-    { title: 'Valide la version finale', text: 'Vérifie le lien préparé, demande les derniers ajustements si besoin et confirme la mise en ligne.' },
-    { title: 'Envoie un beau lien', text: 'Partage l’invitation via WhatsApp, Viber, Telegram, email, Instagram ou tout autre canal.' },
-    { title: 'Collecte les réponses RSVP', text: 'Les invités répondent depuis la page et la présence reste organisée.' }
-  ],
   partnerTitle: 'Pour les partenaires', partnerSubtitle: 'Comment devenir partenaire', partnerLogin: 'Entrer',
   weddingTitle: 'Mariage et fiançailles', weddingSubtitle: 'Les moments les plus précieux commencent par une invitation',
   baptismTitle: 'Baptême', baptismSubtitle: 'Envoie une invitation dont on se souviendra',
@@ -720,7 +668,7 @@ Object.assign(fr, {
   corporateTitle: 'Corporate', corporateSubtitle: 'Gagne du temps',
   phoneWeddingNames: 'Aram & Lilit', phoneBaptismName: 'Narek', phoneBlessedDay: 'Jour sacré', phoneBirthday: 'Anniversaire',
   search: 'Rechercher', sort: 'Trier', newest: 'Nouveautés', priceAsc: 'Prix croissant', priceDesc: 'Prix décroissant', all: 'Tous',
-  preview: 'Aperçu', order: 'Commander', livePreview: 'Aperçu en direct', orderThis: 'Commander cette invitation', features: 'Fonctions', gallery: 'Galerie',
+  preview: 'Aperçu', order: 'Acheter', livePreview: 'Aperçu en direct', orderThis: 'Acheter cette invitation', features: 'Fonctions', gallery: 'Galerie',
   fullName: 'Nom complet', phone: 'Téléphone', email: 'Email', eventType: 'Type d’événement', selectedTemplate: 'Invitation sélectionnée',
   eventDate: 'Date', eventTime: 'Heure', eventLocation: 'Lieu', mapLink: 'Lien Google Maps', mainNames: 'Noms principaux',
   eventMessage: 'Texte de l’invitation', preferredLanguage: 'Langue préférée', notes: 'Notes supplémentaires', submit: 'Envoyer',
@@ -765,15 +713,6 @@ Object.assign(fr, {
 });
 
 Object.assign(de, {
-  roadmapSteps: [
-    { title: 'Finde den Stil deines Events', text: 'Wähle die passende Kategorie: Hochzeit, Taufe, Geburtstag, Verlobung oder Firmenevent.' },
-    { title: 'Sieh es auf dem Telefon', text: 'Öffne eine Vorlage und prüfe, wie die digitale Einladung auf dem Gastbildschirm wirkt.' },
-    { title: 'Gib die Bestellung auf', text: 'Trage Namen, Datum, Uhrzeit, Ort, Karte, Fotos und die Nachricht an die Gäste ein.' },
-    { title: 'Wir erstellen deine Einladung', text: 'Das Amulet-Team macht daraus eine Online-Einladung mit Galerie, Karte, Countdown und RSVP.' },
-    { title: 'Bestätige die finale Version', text: 'Prüfe den Link, bitte bei Bedarf um letzte Änderungen und bestätige die Veröffentlichung.' },
-    { title: 'Sende einen schönen Link', text: 'Teile die Einladung über WhatsApp, Viber, Telegram, E-Mail, Instagram oder jeden anderen Kanal.' },
-    { title: 'Sammle RSVP-Antworten', text: 'Gäste antworten direkt auf der Seite und die Teilnahme bleibt übersichtlich.' }
-  ],
   partnerTitle: 'Für Partner', partnerSubtitle: 'Wie man Partner wird', partnerLogin: 'Eintreten',
   weddingTitle: 'Hochzeit und Verlobung', weddingSubtitle: 'Die wertvollsten Momente beginnen mit einer Einladung',
   baptismTitle: 'Taufe', baptismSubtitle: 'Sende eine Einladung, die in Erinnerung bleibt',
@@ -781,7 +720,7 @@ Object.assign(de, {
   corporateTitle: 'Corporate', corporateSubtitle: 'Spare Zeit',
   phoneWeddingNames: 'Aram & Lilit', phoneBaptismName: 'Narek', phoneBlessedDay: 'Heiliger Tag', phoneBirthday: 'Geburtstag',
   search: 'Suchen', sort: 'Sortieren', newest: 'Neueste', priceAsc: 'Preis aufsteigend', priceDesc: 'Preis absteigend', all: 'Alle',
-  preview: 'Vorschau', order: 'Bestellen', livePreview: 'Live-Vorschau', orderThis: 'Diese Einladung bestellen', features: 'Funktionen', gallery: 'Galerie',
+  preview: 'Vorschau', order: 'Kaufen', livePreview: 'Live-Vorschau', orderThis: 'Diese Einladung kaufen', features: 'Funktionen', gallery: 'Galerie',
   fullName: 'Vollständiger Name', phone: 'Telefon', email: 'E-Mail', eventType: 'Eventtyp', selectedTemplate: 'Gewählte Einladung',
   eventDate: 'Datum', eventTime: 'Uhrzeit', eventLocation: 'Ort', mapLink: 'Google Maps Link', mainNames: 'Hauptnamen',
   eventMessage: 'Einladungstext', preferredLanguage: 'Bevorzugte Sprache', notes: 'Zusätzliche Notizen', submit: 'Senden',
@@ -826,15 +765,6 @@ Object.assign(de, {
 });
 
 Object.assign(it, {
-  roadmapSteps: [
-    { title: 'Trova lo stile del tuo evento', text: 'Scegli la categoria adatta: matrimonio, battesimo, compleanno, fidanzamento o evento corporate.' },
-    { title: 'Guardalo sul telefono', text: 'Apri un modello e vedi come apparirà l’invito digitale sullo schermo degli ospiti.' },
-    { title: 'Effettua l’ordine', text: 'Inserisci nomi, data, ora, luogo, mappa, foto e messaggio per gli ospiti.' },
-    { title: 'Creiamo il tuo invito', text: 'Il team Amulet trasforma i dettagli in un invito online con galleria, mappa, conto alla rovescia e RSVP.' },
-    { title: 'Approva la versione finale', text: 'Controlla il link, chiedi ultime modifiche se servono e conferma la pubblicazione.' },
-    { title: 'Invia un bel link', text: 'Condividi l’invito via WhatsApp, Viber, Telegram, email, Instagram o qualsiasi canale.' },
-    { title: 'Raccogli RSVP', text: 'Gli ospiti rispondono dalla pagina e la partecipazione resta organizzata.' }
-  ],
   partnerTitle: 'Per partner', partnerSubtitle: 'Come diventare partner', partnerLogin: 'Entra',
   weddingTitle: 'Matrimonio e fidanzamento', weddingSubtitle: 'I momenti più preziosi iniziano con un invito',
   baptismTitle: 'Battesimo', baptismSubtitle: 'Invia un invito che sarà ricordato',
@@ -842,7 +772,7 @@ Object.assign(it, {
   corporateTitle: 'Corporate', corporateSubtitle: 'Risparmia tempo',
   phoneWeddingNames: 'Aram & Lilit', phoneBaptismName: 'Narek', phoneBlessedDay: 'Giorno sacro', phoneBirthday: 'Compleanno',
   search: 'Cerca', sort: 'Ordina', newest: 'Più recenti', priceAsc: 'Prezzo crescente', priceDesc: 'Prezzo decrescente', all: 'Tutti',
-  preview: 'Anteprima', order: 'Ordina', livePreview: 'Anteprima live', orderThis: 'Ordina questo invito', features: 'Funzioni', gallery: 'Galleria',
+  preview: 'Anteprima', order: 'Acquista', livePreview: 'Anteprima live', orderThis: 'Acquista questo invito', features: 'Funzioni', gallery: 'Galleria',
   fullName: 'Nome completo', phone: 'Telefono', email: 'Email', eventType: 'Tipo di evento', selectedTemplate: 'Invito selezionato',
   eventDate: 'Data', eventTime: 'Ora', eventLocation: 'Luogo', mapLink: 'Link Google Maps', mainNames: 'Nomi principali',
   eventMessage: 'Testo invito', preferredLanguage: 'Lingua preferita', notes: 'Note aggiuntive', submit: 'Invia',
@@ -948,7 +878,7 @@ const privacySectionsHy = [
   {
     title: 'Կապ մեզ հետ',
     text: [
-      'Գաղտնիության քաղաքականության վերաբերյալ հարցերի դեպքում կարող եք գրել hello@amulet.local հասցեին կամ զանգահարել +374 77 805 607։'
+      'Գաղտնիության քաղաքականության վերաբերյալ հարցերի դեպքում կարող եք գրել amulet.invitation@gmail.com հասցեին կամ զանգահարել 041 401415։'
     ]
   }
 ];
@@ -963,7 +893,7 @@ const privacySectionsEn = [
   { title: 'Storage and security', text: ['Data is kept only as long as needed for orders, support, or legal obligations, and we use reasonable safeguards to protect it.'] },
   { title: 'Your rights', text: ['You may ask to access, correct, delete, or restrict the use of your personal data by contacting us.'] },
   { title: 'Children data and photos', text: ['For baptisms or children events, photos and information should be provided with parent or legal guardian consent.'] },
-  { title: 'Contact', text: ['For privacy questions, contact hello@amulet.local or +374 77 805 607.'] }
+  { title: 'Contact', text: ['For privacy questions, contact amulet.invitation@gmail.com or 041 401415.'] }
 ];
 
 const privacySectionsRu = [
@@ -976,7 +906,7 @@ const privacySectionsRu = [
   { title: 'Хранение и безопасность', text: ['Данные хранятся столько, сколько нужно для заказа, поддержки или юридических обязательств.'] },
   { title: 'Ваши права', text: ['Вы можете запросить доступ, исправление, удаление или ограничение использования ваших данных.'] },
   { title: 'Данные и фото детей', text: ['Для детских событий данные и фото должны передаваться с согласием родителя или законного представителя.'] },
-  { title: 'Контакты', text: ['По вопросам конфиденциальности: hello@amulet.local или +374 77 805 607.'] }
+  { title: 'Контакты', text: ['По вопросам конфиденциальности: amulet.invitation@gmail.com или 041 401415.'] }
 ];
 
 const privacySectionsEs = [
@@ -989,7 +919,7 @@ const privacySectionsEs = [
   { title: 'Seguridad', text: ['Conservamos los datos solo el tiempo necesario y usamos medidas razonables de protección.'] },
   { title: 'Tus derechos', text: ['Puedes pedir acceso, corrección, eliminación o limitación del uso de tus datos.'] },
   { title: 'Datos de niños', text: ['En eventos infantiles, las fotos y datos deben enviarse con consentimiento de los padres o tutores.'] },
-  { title: 'Contacto', text: ['Para privacidad: hello@amulet.local o +374 77 805 607.'] }
+  { title: 'Contacto', text: ['Para privacidad: hello@amulet.local o 041 401415.'] }
 ];
 
 const privacySectionsFr = [
@@ -1002,7 +932,7 @@ const privacySectionsFr = [
   { title: 'Sécurité', text: ['Les données sont conservées uniquement le temps nécessaire et protégées par des mesures raisonnables.'] },
   { title: 'Vos droits', text: ['Vous pouvez demander l’accès, la correction, la suppression ou la limitation de vos données.'] },
   { title: 'Données des enfants', text: ['Pour les événements d’enfants, les photos et données doivent être fournies avec l’accord d’un parent ou représentant légal.'] },
-  { title: 'Contact', text: ['Questions de confidentialité : hello@amulet.local ou +374 77 805 607.'] }
+  { title: 'Contact', text: ['Questions de confidentialité : hello@amulet.local ou 041 401415.'] }
 ];
 
 const privacySectionsDe = [
@@ -1015,7 +945,7 @@ const privacySectionsDe = [
   { title: 'Speicherung und Sicherheit', text: ['Daten werden nur so lange gespeichert wie nötig und mit angemessenen Maßnahmen geschützt.'] },
   { title: 'Ihre Rechte', text: ['Sie können Zugriff, Korrektur, Löschung oder Einschränkung Ihrer Daten beantragen.'] },
   { title: 'Kinderdaten und Fotos', text: ['Bei Kinderveranstaltungen müssen Fotos und Daten mit Zustimmung der Eltern oder Erziehungsberechtigten bereitgestellt werden.'] },
-  { title: 'Kontakt', text: ['Datenschutzfragen: hello@amulet.local oder +374 77 805 607.'] }
+  { title: 'Kontakt', text: ['Datenschutzfragen: hello@amulet.local oder 041 401415.'] }
 ];
 
 const privacySectionsIt = [
@@ -1028,7 +958,7 @@ const privacySectionsIt = [
   { title: 'Sicurezza', text: ['I dati sono conservati solo per il tempo necessario e protetti con misure ragionevoli.'] },
   { title: 'I tuoi diritti', text: ['Puoi chiedere accesso, correzione, eliminazione o limitazione dei tuoi dati.'] },
   { title: 'Dati e foto di bambini', text: ['Per eventi di bambini, foto e dati devono essere forniti con consenso dei genitori o tutori.'] },
-  { title: 'Contatto', text: ['Domande sulla privacy: hello@amulet.local o +374 77 805 607.'] }
+  { title: 'Contatto', text: ['Domande sulla privacy: hello@amulet.local o 041 401415.'] }
 ];
 
 Object.assign(hy, {
@@ -1579,7 +1509,7 @@ Object.assign(hy, {
   occasionBrowserKicker: 'Առիթներ',
   occasionBrowserTitle: 'Կատալոգ ըստ առիթի',
   editRequiredTitle: 'Նախ խմբագրեք հրավերը',
-  editRequiredText: 'Պատվիրելուց առաջ լրացրեք անունները, օրը, ժամը և միջոցառման մյուս անհրաժեշտ մանրամասները։',
+  editRequiredText: 'Գնելուց առաջ լրացրեք անունները, օրը, ժամը և միջոցառման մյուս անհրաժեշտ մանրամասները։',
   editRequiredAction: 'Խմբագրել հիմա',
   editRequiredLater: 'Ավելի ուշ'
 });
@@ -2035,6 +1965,42 @@ Object.assign(it, {
   telegramComingSoon: 'Disponibile a breve',
   telegramConnectError: 'Impossibile aprire il bot Telegram. Controlla la configurazione e riprova.',
   telegramDisconnectError: 'Impossibile scollegare Telegram. Riprova.'
+});
+
+Object.assign(en, {
+  promoQuestionKicker: 'A little gift', promoQuestion: 'Do you have a promo code?', promoQuestionText: 'Enter it now to reveal your Amulet gift before payment.', promoCodeLabel: 'Promo code', promoApply: 'Reveal gift', promoNoCode: 'I do not have a promo code', promoInvalid: 'This promo code is invalid or expired.', promoGiftUnlocked: 'Your gift is unlocked', promoDiscountApplied: 'discount applied', promoContinue: 'Continue to payment',
+  addReview: 'Add a review', addReviewHint: 'Tell us about your invitation', reviewSubmitted: 'Review submitted', reviewPendingApproval: 'Thank you — it is awaiting approval', reviewThankYou: 'Thank you for your review!', reviewRating: 'Your rating', reviewText: 'Your experience', submitReview: 'Submit review', reviewSubmitError: 'The review could not be submitted.', cancel: 'Cancel'
+});
+
+Object.assign(hy, {
+  promoQuestionKicker: 'Փոքրիկ նվեր', promoQuestion: 'Ունե՞ք պրոմոկոդ', promoQuestionText: 'Մուտքագրեք այն և բացահայտեք Ձեր Amulet նվերը վճարումից առաջ։', promoCodeLabel: 'Պրոմոկոդ', promoApply: 'Բացել նվերը', promoNoCode: 'Չունեմ պրոմոկոդ', promoInvalid: 'Պրոմոկոդը սխալ է կամ ժամկետանց։', promoGiftUnlocked: 'Ձեր նվերը բացված է', promoDiscountApplied: 'զեղչ կիրառվեց', promoContinue: 'Շարունակել վճարումը',
+  addReview: 'Ավելացնել կարծիք', addReviewHint: 'Պատմեք Ձեր հրավերի փորձի մասին', reviewSubmitted: 'Կարծիքն ուղարկված է', reviewPendingApproval: 'Շնորհակալություն․ այն սպասում է հաստատման', reviewThankYou: 'Շնորհակալություն կարծիքի համար', reviewRating: 'Ձեր գնահատականը', reviewText: 'Ձեր տպավորությունը', submitReview: 'Ուղարկել կարծիքը', reviewSubmitError: 'Չհաջողվեց ուղարկել կարծիքը։', cancel: 'Չեղարկել'
+});
+
+Object.assign(ru, {
+  promoQuestionKicker: 'Небольшой подарок', promoQuestion: 'У вас есть промокод?', promoQuestionText: 'Введите его, чтобы открыть подарок Amulet до оплаты.', promoCodeLabel: 'Промокод', promoApply: 'Открыть подарок', promoNoCode: 'У меня нет промокода', promoInvalid: 'Промокод недействителен или истёк.', promoGiftUnlocked: 'Ваш подарок открыт', promoDiscountApplied: 'скидка применена', promoContinue: 'Перейти к оплате',
+  addReview: 'Добавить отзыв', addReviewHint: 'Расскажите о вашем приглашении', reviewSubmitted: 'Отзыв отправлен', reviewPendingApproval: 'Спасибо — он ожидает проверки', reviewThankYou: 'Спасибо за отзыв!', reviewRating: 'Ваша оценка', reviewText: 'Ваши впечатления', submitReview: 'Отправить отзыв', reviewSubmitError: 'Не удалось отправить отзыв.', cancel: 'Отмена'
+});
+
+Object.assign(en, {
+  authIdentifier: 'Email or phone number', authIdentifierPlaceholder: 'name@example.com or 041 401415', authRepeatPassword: 'Repeat password', authForgotPassword: 'Forgot password?',
+  authPasswordRules: 'Password requirements', authPasswordLength: 'At least 8 characters', authPasswordUppercase: 'One uppercase letter', authPasswordLowercase: 'One lowercase letter', authPasswordNumber: 'One number', authPasswordSpecial: 'One special character', authPasswordRulesError: 'Please meet every password requirement.', authPasswordsMismatch: 'Passwords do not match.',
+  authResetTitle: 'Reset your password', authResetIntro: 'Enter your account email and we will send a secure 6-digit code.', authSendResetCode: 'Send reset code', authResetCodeTitle: 'Enter the email code', authResetCodeIntro: 'We sent a 6-digit code to {email}.', authNewPasswordTitle: 'Create a new password', authNewPasswordIntro: 'Choose a strong password you have not used before.', authNewPassword: 'New password', authSavePassword: 'Save new password', authResetCompleteTitle: 'Password updated', authResetCompleteIntro: 'Your password was changed securely. Redirecting you to login.',
+  customDesignCtaKicker: 'Made only for your story', customDesignCtaTitle: 'Need a completely custom invitation?', customDesignCtaText: 'Send your event details and inspiration. Our designers will contact you with a personal concept.', customDesignCtaButton: 'Order a custom design', inspirationLink: 'Style or inspiration link', budgetRange: 'Planned budget', customRequestNote: 'Describe the desired style, colors, sections, and any special ideas.'
+});
+
+Object.assign(hy, {
+  authIdentifier: 'Էլ․ հասցե կամ հեռախոսահամար', authIdentifierPlaceholder: 'name@example.com կամ 041 401415', authRepeatPassword: 'Կրկնել գաղտնաբառը', authForgotPassword: 'Մոռացե՞լ եք գաղտնաբառը',
+  authPasswordRules: 'Գաղտնաբառի պահանջները', authPasswordLength: 'Առնվազն 8 նիշ', authPasswordUppercase: 'Մեկ մեծատառ լատինատառ', authPasswordLowercase: 'Մեկ փոքրատառ լատինատառ', authPasswordNumber: 'Մեկ թիվ', authPasswordSpecial: 'Մեկ հատուկ նշան', authPasswordRulesError: 'Խնդրում ենք կատարել գաղտնաբառի բոլոր պահանջները։', authPasswordsMismatch: 'Գաղտնաբառերը չեն համընկնում։',
+  authResetTitle: 'Վերականգնել գաղտնաբառը', authResetIntro: 'Գրեք օգտահաշվի էլ․ հասցեն, և մենք կուղարկենք անվտանգ 6-նիշ կոդ։', authSendResetCode: 'Ուղարկել կոդը', authResetCodeTitle: 'Մուտքագրեք email-ի կոդը', authResetCodeIntro: '{email} հասցեին ուղարկել ենք 6-նիշ կոդ։', authNewPasswordTitle: 'Ստեղծեք նոր գաղտնաբառ', authNewPasswordIntro: 'Ընտրեք ուժեղ գաղտնաբառ, որը նախկինում չեք օգտագործել։', authNewPassword: 'Նոր գաղտնաբառ', authSavePassword: 'Պահպանել նոր գաղտնաբառը', authResetCompleteTitle: 'Գաղտնաբառը փոխված է', authResetCompleteIntro: 'Գաղտնաբառը անվտանգ փոխվեց։ Ձեզ տեղափոխում ենք մուտքի էջ։',
+  customDesignCtaKicker: 'Ստեղծված միայն ձեր պատմության համար', customDesignCtaTitle: 'Ցանկանո՞ւմ եք ամբողջությամբ անհատական հրավեր', customDesignCtaText: 'Ուղարկեք միջոցառման տվյալներն ու ոճային գաղափարները․ մեր դիզայները կկապվի ձեզ հետ անհատական առաջարկով։', customDesignCtaButton: 'Պատվիրել անհատական դիզայնով հրավեր', inspirationLink: 'Ոճի կամ ներշնչանքի հղում', budgetRange: 'Նախատեսվող բյուջե', customRequestNote: 'Նկարագրեք ցանկալի ոճը, գույները, բաժինները և հատուկ գաղափարները։'
+});
+
+Object.assign(ru, {
+  authIdentifier: 'Email или номер телефона', authIdentifierPlaceholder: 'name@example.com или 041 401415', authRepeatPassword: 'Повторите пароль', authForgotPassword: 'Забыли пароль?',
+  authPasswordRules: 'Требования к паролю', authPasswordLength: 'Минимум 8 символов', authPasswordUppercase: 'Одна заглавная буква', authPasswordLowercase: 'Одна строчная буква', authPasswordNumber: 'Одна цифра', authPasswordSpecial: 'Один специальный символ', authPasswordRulesError: 'Выполните все требования к паролю.', authPasswordsMismatch: 'Пароли не совпадают.',
+  authResetTitle: 'Восстановить пароль', authResetIntro: 'Введите email аккаунта, и мы отправим защищённый 6-значный код.', authSendResetCode: 'Отправить код', authResetCodeTitle: 'Введите код из письма', authResetCodeIntro: 'Мы отправили 6-значный код на {email}.', authNewPasswordTitle: 'Создайте новый пароль', authNewPasswordIntro: 'Выберите надёжный пароль, который раньше не использовали.', authNewPassword: 'Новый пароль', authSavePassword: 'Сохранить пароль', authResetCompleteTitle: 'Пароль обновлён', authResetCompleteIntro: 'Пароль безопасно изменён. Переходим на страницу входа.',
+  customDesignCtaKicker: 'Только для вашей истории', customDesignCtaTitle: 'Нужно полностью индивидуальное приглашение?', customDesignCtaText: 'Отправьте данные события и примеры стиля. Дизайнер свяжется с вами с персональным предложением.', customDesignCtaButton: 'Заказать индивидуальный дизайн', inspirationLink: 'Ссылка на стиль или пример', budgetRange: 'Планируемый бюджет', customRequestNote: 'Опишите желаемый стиль, цвета, разделы и особые идеи.'
 });
 
 export const translations = { hy, en, ru, es, fr, de, it };

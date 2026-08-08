@@ -7,9 +7,7 @@ const resolveApiBaseURL = () => {
       const apiUrl = new URL(configuredUrl);
       const pageHost = typeof window !== 'undefined' ? window.location.hostname : '';
       const isLoopbackApi = ['localhost', '127.0.0.1', '::1'].includes(apiUrl.hostname);
-      const isLoopbackPage = ['localhost', '127.0.0.1', '::1'].includes(pageHost);
-
-      if (isLoopbackApi && pageHost && !isLoopbackPage) {
+      if (isLoopbackApi && pageHost) {
         apiUrl.hostname = pageHost;
         return apiUrl.toString().replace(/\/$/, '');
       }
@@ -28,13 +26,8 @@ const resolveApiBaseURL = () => {
 };
 
 const api = axios.create({
-  baseURL: resolveApiBaseURL()
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('userToken');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
+  baseURL: resolveApiBaseURL(),
+  withCredentials: true
 });
 
 export default api;

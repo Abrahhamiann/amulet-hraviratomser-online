@@ -12,6 +12,7 @@ import baptismSoftPhoto from '../assets/morph/baptism-soft.webp';
 import baptismVoguePhoto from '../assets/morph/baptism-vogue.jpg';
 import baptismWaterPhoto from '../assets/morph/baptism-water.jpg';
 import { getConfiguredTemplateGallery, resolveTemplateImages } from './templateAssets.js';
+import { getInvitationDesignVariables, hasCustomInvitationNameStyle, useInvitationMusic } from './invitationMedia.js';
 
 const fallbackGallery = [
   babyChurchImage,
@@ -152,26 +153,7 @@ export const getBaptismBlessingDraft = (template = {}) => {
   };
 };
 
-function MusicButton({ audioRef, isMusicPlaying, setIsMusicPlaying }) {
-  const toggleMusic = async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (isMusicPlaying) {
-      audio.pause();
-      setIsMusicPlaying(false);
-      return;
-    }
-
-    try {
-      audio.volume = 0.68;
-      await audio.play();
-      setIsMusicPlaying(true);
-    } catch {
-      setIsMusicPlaying(false);
-    }
-  };
-
+function MusicButton({ isMusicPlaying, toggleMusic }) {
   return (
     <button
       className={`baptism-music-button${isMusicPlaying ? ' is-playing' : ''}`}
@@ -200,35 +182,36 @@ function MapButton({ url }) {
   );
 }
 
-function PreviewBaptismRsvpForm() {
+function PreviewBaptismRsvpForm({ draft }) {
+  const settings = draft?.rsvpSettings || {};
   return (
     <form className="baptism-preview-rsvp-form test-wedding-rsvp-form" onSubmit={(event) => event.preventDefault()}>
       <label className="field">
-        <span>Անուն Ազգանուն</span>
+        <span>{settings.guestPlaceholder || 'Անուն Ազգանուն'}</span>
         <input className="input" type="text" />
       </label>
       <fieldset className="rsvp-choice-group">
         <legend>Մասնակցություն</legend>
-        <label className="rsvp-radio"><input type="radio" name="baptism-answer" defaultChecked /><span>Սիրով կմասնակցենք</span></label>
-        <label className="rsvp-radio"><input type="radio" name="baptism-answer" /><span>Ցավոք, չենք կարող ներկա լինել</span></label>
+        <label className="rsvp-radio"><input type="radio" name="baptism-answer" defaultChecked /><span>{settings.attendingLabel || 'Սիրով կմասնակցենք'}</span></label>
+        <label className="rsvp-radio"><input type="radio" name="baptism-answer" /><span>{settings.notAttendingLabel || 'Ցավոք, չենք կարող ներկա լինել'}</span></label>
       </fieldset>
-      <label className="field">
+      {settings.askGuestCount !== false && <label className="field">
         <span>Հյուրերի թիվ</span>
         <input className="input" type="number" min="1" defaultValue="1" />
-      </label>
+      </label>}
+      {settings.askMeal && <label className="field"><span>Սննդի նախընտրություն</span><select className="input" defaultValue=""><option value="" disabled>Ընտրել տարբերակը</option><option>Ստանդարտ</option><option>Բուսակեր</option></select></label>}
       <label className="field">
         <span>Հաղորդագրություն</span>
         <textarea className="input" rows="4" />
       </label>
-      <button className="btn" type="submit">Ուղարկել</button>
+      <button className="btn" type="submit">{settings.submitLabel || 'Ուղարկել'}</button>
     </form>
   );
 }
 
 function BaptismLayout({ draft, price, onHome, onEdit, onOrder, loading, actions, rsvpForm, daysLeftText, mode = 'preview' }) {
-  const audioRef = useRef(null);
   const contentRef = useRef(null);
-  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const { audioRef, isMusicPlaying, playMusic, source: musicSource, toggleMusic } = useInvitationMusic(draft, baptismSong, .62);
   const [isEnvelopeOpen, setIsEnvelopeOpen] = useState(false);
   const [countdown, setCountdown] = useState(() => getCountdown(draft?.eventDate));
   const draftImages = resolveTemplateImages([draft?.image, ...(draft?.gallery || [])]);
@@ -269,22 +252,9 @@ function BaptismLayout({ draft, price, onHome, onEdit, onOrder, loading, actions
     return () => window.clearInterval(timer);
   }, [isEnvelopeOpen, scenePhotos.length]);
 
-  useEffect(() => () => {
-    audioRef.current?.pause();
-  }, []);
-
   const openInvitation = async () => {
     setIsEnvelopeOpen(true);
-    const audio = audioRef.current;
-    if (audio) {
-      try {
-        audio.volume = 0.62;
-        await audio.play();
-        setIsMusicPlaying(true);
-      } catch {
-        setIsMusicPlaying(false);
-      }
-    }
+    await playMusic();
     window.setTimeout(() => {
       contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 1050);
@@ -292,15 +262,16 @@ function BaptismLayout({ draft, price, onHome, onEdit, onOrder, loading, actions
 
   return (
     <article
-      className={`baptism-blessing-invite ${mode === 'public' ? 'is-public' : 'is-preview'}${isEnvelopeOpen ? ' is-open' : ''}`}
+      className={`baptism-blessing-invite ${mode === 'public' ? 'is-public' : 'is-preview'}${isEnvelopeOpen ? ' is-open' : ''}${hasCustomInvitationNameStyle(draft) ? ' has-custom-name-style' : ''}`}
       style={{
+        ...getInvitationDesignVariables(draft),
         '--baptism-accent': colors.accent,
         '--baptism-text': colors.text,
         '--baptism-paper': colors.overlay,
         '--baptism-overlay': colors.overlay
       }}
     >
-      <audio ref={audioRef} src={baptismSong} preload="auto" loop />
+      <audio ref={audioRef} src={musicSource} preload="metadata" loop />
 
       {mode === 'preview' && (
         <motion.div
@@ -319,7 +290,7 @@ function BaptismLayout({ draft, price, onHome, onEdit, onOrder, loading, actions
           </button>
           <button className="btn btn-primary" type="button" onClick={onOrder} disabled={loading}>
             <ShoppingBag size={18} />
-            {loading ? 'Բեռնվում է...' : 'Պատվիրել'}
+            {loading ? 'Բեռնվում է...' : 'Գնել'}
           </button>
         </motion.div>
       )}
@@ -369,7 +340,7 @@ function BaptismLayout({ draft, price, onHome, onEdit, onOrder, loading, actions
             <span>ՄԿՐՏՈՒԹՅԱՆ ՀՐԱՎԵՐ</span>
             <h1>{name}</h1>
             <strong>{formatDate(draft?.eventDate)}</strong>
-            <MusicButton audioRef={audioRef} isMusicPlaying={isMusicPlaying} setIsMusicPlaying={setIsMusicPlaying} />
+            {draft?.musicEnabled !== false && <MusicButton isMusicPlaying={isMusicPlaying} toggleMusic={toggleMusic} />}
           </div>
         </motion.section>
 
@@ -418,9 +389,9 @@ function BaptismLayout({ draft, price, onHome, onEdit, onOrder, loading, actions
 
         {draft?.questionsVisible !== false && <motion.section className="baptism-rsvp-section baptism-photo-screen" {...scrollRevealProps}>
           <div className="baptism-rsvp-shell">
-            <h2>Խնդրում ենք հաստատել Ձեր ներկայությունը մինչև {formatDate(draft?.eventDate)}</h2>
+            <h2>{draft?.rsvpSettings?.title || `Խնդրում ենք հաստատել Ձեր ներկայությունը մինչև ${formatDate(draft?.eventDate)}`}</h2>
             {draft?.rsvpQuestion && <p className="baptism-form-note">{draft.rsvpQuestion}</p>}
-            {rsvpForm || <PreviewBaptismRsvpForm />}
+            {rsvpForm || <PreviewBaptismRsvpForm draft={draft} />}
             <div className="baptism-signature">{draft?.finalMessageVisible !== false && draft?.closingMessage ? draft.closingMessage : 'Սիրով սպասում ենք Ձեզ'}</div>
           </div>
         </motion.section>}
