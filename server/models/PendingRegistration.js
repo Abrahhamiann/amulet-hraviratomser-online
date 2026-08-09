@@ -4,6 +4,7 @@ const pendingRegistrationSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true },
+    phone: { type: String, required: true },
     passwordHash: { type: String, required: true },
     verificationCode: { type: String, required: true },
     verificationExpires: { type: Date, required: true },
@@ -13,5 +14,6 @@ const pendingRegistrationSchema = new mongoose.Schema(
 );
 
 pendingRegistrationSchema.index({ verificationExpires: 1 }, { expireAfterSeconds: 0 });
+pendingRegistrationSchema.index({ phone: 1 }, { unique: true, sparse: true });
 
 export default mongoose.model('PendingRegistration', pendingRegistrationSchema);

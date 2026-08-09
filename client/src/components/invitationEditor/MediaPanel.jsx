@@ -18,6 +18,10 @@ export default function MediaPanel({ isSingleImageTemplate }) {
   const galleryInput = useRef(null);
   const audioInput = useRef(null);
   const gallery = data.gallery || [];
+  const orderedGallery = useMemo(
+    () => [data.image, ...gallery].filter((image, index, images) => image && images.indexOf(image) === index),
+    [data.image, gallery]
+  );
   const visibleTracks = useMemo(() => [...builtInTracks, ...customTracks].filter((track) => `${track.title} ${track.artist || ''}`.toLowerCase().includes(query.trim().toLowerCase())), [customTracks, query]);
 
   const selectTrack = (track) => update((draft) => {
@@ -39,7 +43,7 @@ export default function MediaPanel({ isSingleImageTemplate }) {
     setError('');
     const source = Array.from(files || []);
     if (!source.length) return;
-    const room = heroOnly || isSingleImageTemplate ? 1 : MAX_GALLERY_IMAGES - gallery.length;
+    const room = heroOnly || isSingleImageTemplate ? 1 : MAX_GALLERY_IMAGES - orderedGallery.length;
     if (room <= 0) { setError(`Կարելի է ավելացնել առավելագույնը ${MAX_GALLERY_IMAGES} նկար։`); return; }
     try {
       const list = source.slice(0, room);
@@ -86,7 +90,7 @@ export default function MediaPanel({ isSingleImageTemplate }) {
       <PanelHeader title="Մեդիա և երաժշտություն" subtitle="Վերբեռնեք լուսանկարներ և ընտրեք ֆոնային երգ։" />
 
       <section className="invite-editor-card">
-        <div className="invite-editor-card-title"><strong>Հիմնական նկար</strong><small>{gallery.length}/{isSingleImageTemplate ? 1 : MAX_GALLERY_IMAGES}</small></div>
+        <div className="invite-editor-card-title"><strong>Հիմնական նկար</strong><small>{orderedGallery.length}/{isSingleImageTemplate ? 1 : MAX_GALLERY_IMAGES}</small></div>
         <button type="button" className="invite-editor-main-image" onClick={() => heroInput.current?.click()}>
           {data.image ? <img src={resolveTemplateImage(data.image)} alt="Ընտրված գլխավոր նկար" /> : <ImageIcon size={30} />}
           <span><Upload size={16} /> Փոխարինել նկարը</span>
@@ -95,10 +99,10 @@ export default function MediaPanel({ isSingleImageTemplate }) {
       </section>
 
       {!isSingleImageTemplate && <section className="invite-editor-card">
-        <div className="invite-editor-card-title"><strong>Պատկերասրահ</strong><small>{gallery.length}/{MAX_GALLERY_IMAGES}</small></div>
+        <div className="invite-editor-card-title"><strong>Նկարների հերթականություն</strong><small>{orderedGallery.length}/{MAX_GALLERY_IMAGES}</small></div>
         <div className="invite-editor-gallery-grid">
-          {gallery.map((image, index) => <article key={`${String(image).slice(0, 35)}-${index}`} className={data.image === image ? 'is-selected' : ''}><button type="button" onClick={() => update((draft) => { draft.image = image; })}><img src={resolveTemplateImage(image)} alt={`Նկար ${index + 1}`} /><span>{index + 1}</span></button><button type="button" onClick={() => update((draft) => { draft.gallery = draft.gallery.filter((item) => item !== image); if (draft.image === image) draft.image = draft.gallery[0] || ''; })} aria-label={`Ջնջել նկար ${index + 1}`}><Trash2 size={13} /></button></article>)}
-          {gallery.length < MAX_GALLERY_IMAGES && <button type="button" className="invite-editor-gallery-add" onClick={() => galleryInput.current?.click()}><ImagePlus size={21} /><span>Ավելացնել</span></button>}
+          {orderedGallery.map((image, index) => <article key={`${String(image).slice(0, 35)}-${index}`} data-editor-field={`gallery.${index}`} className={data.image === image ? 'is-selected' : ''}><button type="button" onClick={() => update((draft) => { draft.image = image; })}><img src={resolveTemplateImage(image)} alt={`Նկար ${index + 1}`} /><span>{index + 1}</span></button><button type="button" onClick={() => update((draft) => { const nextImages = [draft.image, ...draft.gallery].filter((item, itemIndex, items) => item && item !== image && items.indexOf(item) === itemIndex); draft.gallery = nextImages; if (draft.image === image) draft.image = nextImages[0] || ''; })} aria-label={`Ջնջել նկար ${index + 1}`}><Trash2 size={13} /></button></article>)}
+          {orderedGallery.length < MAX_GALLERY_IMAGES && <button type="button" className="invite-editor-gallery-add" onClick={() => galleryInput.current?.click()}><ImagePlus size={21} /><span>Ավելացնել</span></button>}
         </div>
         <input ref={galleryInput} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onChange={(event) => { void addImages(event.target.files); event.target.value = ''; }} />
         {imageProgress !== null && <div className="invite-editor-progress"><i style={{ width: `${imageProgress}%` }} /></div>}
@@ -115,10 +119,8 @@ export default function MediaPanel({ isSingleImageTemplate }) {
           })}
           {!visibleTracks.length && <EmptyState title="Երգ չի գտնվել" text="Փորձեք այլ անուն կամ վերբեռնեք Ձեր երգը։" />}
         </div>
-        <div className="invite-editor-wave" aria-hidden="true">{Array.from({ length: 52 }, (_, index) => <i key={index} style={{ height: `${18 + ((index * 29) % 70)}%` }} />)}</div>
-        <div className="invite-editor-grid-two"><Field label="Սկիզբ (վրկ)"><input type="number" min="0" max="3600" step=".1" value={data.musicStart || 0} onChange={(event) => update((draft) => { draft.musicStart = Number(event.target.value); })} /></Field><Field label="Ավարտ (վրկ)"><input type="number" min="0" max="3600" step=".1" value={data.musicEnd || 0} onChange={(event) => update((draft) => { draft.musicEnd = Number(event.target.value); })} /></Field></div>
         <div className="invite-editor-upload-heading"><span>Ձեր վերբեռնումները</span><b>{customTracks.length}/{MAX_CUSTOM_TRACKS} երգ</b></div>
-        <button type="button" className="invite-editor-audio-upload" disabled={customTracks.length >= MAX_CUSTOM_TRACKS} onClick={() => audioInput.current?.click()}><FileAudio size={19} /><span><strong>Վերբեռնել երգ հեռախոսից</strong><small>MP3, WAV, OGG կամ M4A · մինչև 5 MB</small></span></button>
+        <button type="button" className="invite-editor-audio-upload" disabled={customTracks.length >= MAX_CUSTOM_TRACKS} onClick={() => audioInput.current?.click()}><FileAudio size={19} /><span><strong>Վերբեռնել երգ</strong><small>MP3, WAV, OGG կամ M4A · մինչև 5 MB</small></span></button>
         <input ref={audioInput} type="file" accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg,audio/mp4,.m4a" hidden onChange={(event) => { void uploadTrack(event.target.files); event.target.value = ''; }} />
       </section>
       {error && <p className="invite-editor-error" role="alert">{error}</p>}

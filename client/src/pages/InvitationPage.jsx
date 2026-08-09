@@ -87,8 +87,8 @@ export default function InvitationPage() {
   const secondaryGallery = invitation.gallery?.slice(1) || [];
   const occasionTemplate = getOccasionTemplate(invitation.templateId);
   const PublicView = occasionTemplate?.PublicView;
-  const isBaptismTemplate = occasionTemplate?.key === 'baptism-blessing';
-  const isEngagementTemplate = occasionTemplate?.key === 'engagement-serenade';
+  const isBaptismTemplate = occasionTemplate?.key === 'sacred-beginnings';
+  const isEngagementTemplate = false;
   const mapLinks = normalizeMapLinks(invitation);
   const mapActionLinks = mapLinks.filter((item) => item.url);
   const gallery = (invitation.gallery || []).filter((image) => {

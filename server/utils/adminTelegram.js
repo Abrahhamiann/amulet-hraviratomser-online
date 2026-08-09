@@ -29,7 +29,10 @@ const safe = (value, fallback = '—') => escapeTelegramHtml(value || fallback);
 export const notifyAdminsOfOrder = async (order, { paidPurchase = false } = {}) => {
   const template = order.templateId;
   const invitation = order.invitationId;
-  const title = paidPurchase ? 'Նոր վճարված գնում' : 'Նոր պատվերի հայտ';
+  const isCustomDesign = order.requestType === 'custom_design' || !order.templateId;
+  const title = paidPurchase
+    ? 'Նոր վճարված գնում'
+    : isCustomDesign ? 'Անհատական դիզայնի նոր հայտ' : 'Նոր պատվերի հայտ';
   const lines = [
     `<b>🛍 ${title}</b>`,
     '',
@@ -49,6 +52,8 @@ export const notifyAdminsOfOrder = async (order, { paidPurchase = false } = {}) 
   ];
 
   if (order.notes) lines.push(`<b>Նշումներ՝</b> ${safe(truncateTelegramText(order.notes, 700))}`);
+  if (order.inspirationLink) lines.push(`<b>Ոճի օրինակ / հղում՝</b> ${safe(order.inspirationLink)}`);
+  if (order.budgetRange) lines.push(`<b>Նախատեսվող բյուջե՝</b> ${safe(order.budgetRange)}`);
 
   return sendTelegramMessageToAdmins(lines.join('\n'), {
     reply_markup: {
@@ -101,6 +106,22 @@ export const notifyAdminsOfUnansweredContactMessage = async (contact) => {
       ]]
     }
   });
+};
+
+export const notifyAdminsOfReview = async (review, order) => {
+  const stars = '★'.repeat(Math.max(1, Math.min(5, Number(review.rating) || 5)));
+  const lines = [
+    '<b>⭐ Նոր հաճախորդի կարծիք</b>',
+    '',
+    `<b>Հաճախորդ՝</b> ${safe(review.customer)}`,
+    `<b>Գնահատական՝</b> ${safe(stars)}`,
+    `<b>Հրավեր՝</b> ${safe(review.target || order?.mainNames)}`,
+    `<b>Պատվերի ID՝</b> <code>${safe(order?._id || review.orderId)}</code>`,
+    '',
+    `<b>Կարծիք՝</b>\n${safe(truncateTelegramText(review.text, 2400))}`
+  ];
+
+  return sendTelegramMessageToAdmins(lines.join('\n'));
 };
 
 export { formatYerevanDateTime };

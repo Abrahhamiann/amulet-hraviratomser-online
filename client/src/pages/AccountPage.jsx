@@ -212,7 +212,8 @@ export default function AccountPage() {
       const { data } = await api.post('/reviews', {
         orderId: reviewTarget._id,
         rating: reviewRating,
-        text: reviewText
+        text: reviewText,
+        language
       });
       setReviewsByOrder((current) => ({ ...current, [reviewTarget._id]: data }));
       setReviewState('success');

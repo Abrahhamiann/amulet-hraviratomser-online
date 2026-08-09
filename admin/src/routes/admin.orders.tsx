@@ -188,6 +188,7 @@ function OrdersPage() {
                 <Detail label={t("customer")} value={selectedOrder.customer} />
                 <Detail label={t("email")} value={selectedOrder.email} />
                 <Detail label={t("phone")} value={selectedOrder.phone || "-"} />
+                <Detail label={t("order")} value={selectedOrder.requestType === "custom_design" ? "Custom design" : "Standard"} />
                 <Detail label={t("templates")} value={selectedOrder.template || "-"} />
                 <Detail label={t("eventType")} value={selectedOrder.eventType || "-"} />
                 <Detail label={t("language")} value={selectedOrder.preferredLanguage || "-"} />
@@ -211,6 +212,8 @@ function OrdersPage() {
               <div className="grid gap-4">
                 <LongDetail label={t("message")} value={selectedOrder.eventMessage || "-"} />
                 <LongDetail label={t("notes")} value={selectedOrder.notes || "-"} />
+                {selectedOrder.inspirationLink ? <LongDetail label="Inspiration" value={selectedOrder.inspirationLink} /> : null}
+                {selectedOrder.budgetRange ? <LongDetail label="Budget" value={selectedOrder.budgetRange} /> : null}
               </div>
             </div>
           ) : null}

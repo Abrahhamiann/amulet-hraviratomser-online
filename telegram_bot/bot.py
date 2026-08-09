@@ -63,6 +63,31 @@ def is_admin_chat(chat_id: int | str | None) -> bool:
     return str(chat_id or "") in admin_chat_ids()
 
 
+def admin_bot_commands() -> list[BotCommand]:
+    return [
+        BotCommand("admin", "Բացել ադմին պանելը"),
+        BotCommand("start", "Բացել ադմին պանելը"),
+        BotCommand("cancel", "Չեղարկել ընթացիկ պատասխանը"),
+    ]
+
+
+async def install_admin_commands(bot, chat_id: int | str) -> bool:
+    try:
+        await bot.set_my_commands(
+            admin_bot_commands(),
+            scope=BotCommandScopeChat(chat_id=int(chat_id)),
+        )
+        return True
+    except BadRequest as exc:
+        if "chat not found" not in str(exc).lower():
+            raise
+        LOGGER.warning(
+            "Admin chat %s is not available to the bot yet; commands will be installed after /start or /admin",
+            chat_id,
+        )
+        return False
+
+
 def format_yerevan_datetime(value: str | None) -> str:
     if not value:
         return "—"
@@ -166,6 +191,42 @@ async def show_admin_orders(update: Update, context: ContextTypes.DEFAULT_TYPE, 
     await edit_or_reply(update, text, InlineKeyboardMarkup(rows))
 
 
+async def ask_delete_all_admin_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.pop("admin_reply_message_id", None)
+    await edit_or_reply(
+        update,
+        "<b>⚠️ Ջնջե՞լ բոլոր նամակները։</b>\n\n"
+        "Կջնջվեն կայքի «Կապ» էջից ստացված բոլոր նամակները և դրանց պատասխանների պատմությունը։ "
+        "Տվյալները կհեռացվեն Տվյալների Բազայից և չեն վերականգնվի։",
+        InlineKeyboardMarkup([
+            [InlineKeyboardButton("🗑 Այո, ջնջել բոլորը", callback_data="admin:delete_messages:confirm")],
+            [InlineKeyboardButton("Չեղարկել", callback_data="admin:messages:0")],
+        ]),
+    )
+
+
+async def delete_all_admin_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        result = await API.admin_delete_all_messages(update.effective_chat.id)
+    except AmuletApiError as exc:
+        await edit_or_reply(
+            update,
+            f"<b>Նամակները չջնջվեցին։</b>\n{html.escape(str(exc))}",
+            InlineKeyboardMarkup([[InlineKeyboardButton("← Նամակներ", callback_data="admin:messages:0")]]),
+        )
+        return
+
+    context.user_data.pop("admin_reply_message_id", None)
+    await edit_or_reply(
+        update,
+        f"<b>✅ Բոլոր նամակները ջնջված են։</b>\n\nMongoDB-ից ջնջվել է՝ <b>{result.get('deleted', 0)}</b> նամակ։",
+        InlineKeyboardMarkup([
+            [InlineKeyboardButton("✉️ Նամակների բաժին", callback_data="admin:messages:0")],
+            [InlineKeyboardButton("← Գլխավոր", callback_data="admin:home")],
+        ]),
+    )
+
+
 async def show_admin_order(update: Update, context: ContextTypes.DEFAULT_TYPE, order_id: str):
     try:
         item = await API.admin_order(update.effective_chat.id, order_id)
@@ -210,6 +271,11 @@ async def show_admin_messages(update: Update, context: ContextTypes.DEFAULT_TYPE
         navigation.append(InlineKeyboardButton("Հաջորդ →", callback_data=f"admin:messages:{data['page'] + 1}"))
     if navigation:
         rows.append(navigation)
+    if data.get("total", 0) > 0:
+        rows.append([InlineKeyboardButton(
+            "🗑 Ջնջել բոլոր նամակները",
+            callback_data="admin:delete_messages:ask",
+        )])
     rows.append([InlineKeyboardButton("← Գլխավոր", callback_data="admin:home")])
     text = (
         f"<b>✉️ Կապի նամակներ ({data.get('total', 0)})</b>\n"
@@ -391,6 +457,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if is_admin_chat(update.effective_chat.id):
+        await install_admin_commands(context.bot, update.effective_chat.id)
         await ensure_admin_reply_keyboard(update)
         await show_admin_home(update, context)
         return
@@ -650,6 +717,10 @@ async def callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await show_admin_orders(update, context, int(data.rsplit(":", 1)[1]))
         elif data.startswith("admin:order:"):
             await show_admin_order(update, context, data.split(":", 2)[2])
+        elif data == "admin:delete_messages:ask":
+            await ask_delete_all_admin_messages(update, context)
+        elif data == "admin:delete_messages:confirm":
+            await delete_all_admin_messages(update, context)
         elif data.startswith("admin:messages:"):
             await show_admin_messages(update, context, int(data.rsplit(":", 1)[1]))
         elif data.startswith("admin:message:"):
@@ -713,6 +784,7 @@ async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.effective_message.reply_text("Այս բաժինը հասանելի է միայն ադմիններին։")
         return
     context.user_data.pop("admin_reply_message_id", None)
+    await install_admin_commands(context.bot, update.effective_chat.id)
     await ensure_admin_reply_keyboard(update)
     await show_admin_home(update, context)
 
@@ -746,16 +818,8 @@ async def post_init(application: Application):
             scope=BotCommandScopeAllPrivateChats(),
             language_code=language,
         )
-    admin_commands = [
-        BotCommand("admin", "Բացել ադմին պանելը"),
-        BotCommand("start", "Բացել ադմին պանելը"),
-        BotCommand("cancel", "Չեղարկել ընթացիկ պատասխանը"),
-    ]
     for chat_id in admin_chat_ids():
-        await application.bot.set_my_commands(
-            admin_commands,
-            scope=BotCommandScopeChat(chat_id=int(chat_id)),
-        )
+        await install_admin_commands(application.bot, chat_id)
 
 
 async def on_error(update: object, context: ContextTypes.DEFAULT_TYPE):

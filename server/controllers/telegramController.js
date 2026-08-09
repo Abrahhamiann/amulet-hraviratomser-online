@@ -118,7 +118,9 @@ const invitationPayload = (order, rsvps = []) => {
 export const getTelegramStatus = asyncHandler(async (req, res) => {
   const connected = Boolean(req.user.telegram?.chatId);
   const configured = isBotConfigured();
-  const available = configured ? await getTelegramBotHealth() : false;
+  // A completed database link is authoritative. Avoid delaying the UI with a
+  // Telegram network health request immediately after the user presses Start.
+  const available = connected ? configured : (configured ? await getTelegramBotHealth() : false);
   res.json({
     configured,
     available,
@@ -386,6 +388,15 @@ export const getTelegramAdminMessage = asyncHandler(async (req, res) => {
     throw new Error('Message not found');
   }
   res.json(adminMessagePayload(message));
+});
+
+export const deleteTelegramAdminMessages = asyncHandler(async (req, res) => {
+  requireTelegramAdmin(req.body?.chatId, res);
+  const result = await ContactMessage.deleteMany({});
+  res.json({
+    message: 'Contact messages deleted',
+    deleted: result.deletedCount || 0
+  });
 });
 
 export const replyTelegramAdminMessage = asyncHandler(async (req, res) => {

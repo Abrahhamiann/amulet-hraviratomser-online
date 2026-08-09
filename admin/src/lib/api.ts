@@ -5,9 +5,7 @@ function resolveApiBaseURL() {
       const apiUrl = new URL(configuredUrl);
       const pageHost = typeof window !== "undefined" ? window.location.hostname : "";
       const isLoopbackApi = ["localhost", "127.0.0.1", "::1"].includes(apiUrl.hostname);
-      const isLoopbackPage = ["localhost", "127.0.0.1", "::1"].includes(pageHost);
-
-      if (isLoopbackApi && pageHost && !isLoopbackPage) {
+      if (isLoopbackApi && pageHost) {
         apiUrl.hostname = pageHost;
         return apiUrl.toString().replace(/\/$/, "");
       }
@@ -26,7 +24,7 @@ function resolveApiBaseURL() {
 }
 
 const API_BASE_URL = resolveApiBaseURL();
-const TOKEN_KEY = "amulet_admin_token";
+const LEGACY_TOKEN_KEYS = ["amulet_admin_token", "token", "userToken"];
 
 export type AdminUser = {
   id: string;
@@ -42,28 +40,19 @@ export const currency = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value || 0);
 
-export function getToken() {
-  if (typeof window === "undefined") return "";
-  return localStorage.getItem(TOKEN_KEY) || "";
-}
-
-export function setToken(token: string) {
-  localStorage.setItem(TOKEN_KEY, token);
-}
-
 export function clearToken() {
-  localStorage.removeItem(TOKEN_KEY);
+  if (typeof window === "undefined") return;
+  LEGACY_TOKEN_KEYS.forEach((key) => localStorage.removeItem(key));
+  LEGACY_TOKEN_KEYS.forEach((key) => sessionStorage.removeItem(key));
 }
 
 export async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers = new Headers(options.headers);
   headers.set("Content-Type", "application/json");
-  const token = getToken();
-  if (token) headers.set("Authorization", `Bearer ${token}`);
-
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     headers,
+    credentials: "include",
   });
 
   const data = await response.json().catch(() => ({}));
@@ -74,22 +63,32 @@ export async function request<T>(path: string, options: RequestInit = {}): Promi
 }
 
 export async function login(email: string, password: string) {
-  const data = await request<{ token: string; user: AdminUser }>("/auth/login", {
+  clearToken();
+  const data = await request<{ success: boolean; user: AdminUser }>("/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
 
   if (!["admin", "super_admin"].includes(data.user.role)) {
+    await request("/auth/logout", { method: "POST" }).catch(() => undefined);
     throw new Error("Admin access required");
   }
 
-  setToken(data.token);
   return data;
+}
+
+export async function logout() {
+  try {
+    await request<{ success: boolean }>("/auth/logout", { method: "POST" });
+  } finally {
+    clearToken();
+  }
 }
 
 export const adminApi = {
   me: () => request<AdminUser>("/auth/me"),
-  dashboard: (period = "all") => request<any>(`/admin/dashboard?period=${encodeURIComponent(period)}`),
+  dashboard: (period = "all") =>
+    request<any>(`/admin/dashboard?period=${encodeURIComponent(period)}`),
   orders: () => request<any[]>("/admin/orders"),
   templates: () => request<any[]>("/admin/templates"),
   invitations: () => request<any[]>("/admin/invitations"),
@@ -100,21 +99,42 @@ export const adminApi = {
   administrators: () => request<any[]>("/admin/administrators"),
   notifications: () => request<any[]>("/admin/notifications"),
   faq: () => request<any>("/admin/faq"),
-  createTemplate: (data: any) => request<any>("/admin/templates", { method: "POST", body: JSON.stringify(data) }),
-  updateTemplate: (id: string, data: any) => request<any>(`/admin/templates/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  promocodes: () => request<any[]>("/admin/promocodes"),
+  reviews: () => request<any[]>("/admin/reviews"),
+  createTemplate: (data: any) =>
+    request<any>("/admin/templates", { method: "POST", body: JSON.stringify(data) }),
+  updateTemplate: (id: string, data: any) =>
+    request<any>(`/admin/templates/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deleteTemplate: (id: string) => request<any>(`/admin/templates/${id}`, { method: "DELETE" }),
   deleteOrder: (id: string) => request<any>(`/admin/orders/${id}`, { method: "DELETE" }),
   deleteAllOrders: () => request<any>("/admin/orders", { method: "DELETE" }),
-  createInvitation: (data: any) => request<any>("/admin/invitations", { method: "POST", body: JSON.stringify(data) }),
-  updateInvitation: (id: string, data: any) => request<any>(`/admin/invitations/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  createInvitation: (data: any) =>
+    request<any>("/admin/invitations", { method: "POST", body: JSON.stringify(data) }),
+  updateInvitation: (id: string, data: any) =>
+    request<any>(`/admin/invitations/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deleteInvitation: (id: string) => request<any>(`/admin/invitations/${id}`, { method: "DELETE" }),
   deleteMessage: (id: string) => request<any>(`/admin/messages/${id}`, { method: "DELETE" }),
-  replyMessage: (id: string, data: any) => request<any>(`/admin/messages/${id}/reply`, { method: "POST", body: JSON.stringify(data) }),
-  createUser: (data: any) => request<any>("/admin/users", { method: "POST", body: JSON.stringify(data) }),
+  replyMessage: (id: string, data: any) =>
+    request<any>(`/admin/messages/${id}/reply`, { method: "POST", body: JSON.stringify(data) }),
+  createUser: (data: any) =>
+    request<any>("/admin/users", { method: "POST", body: JSON.stringify(data) }),
   updateUserRole: (id: string, role: string) =>
     request<any>(`/admin/users/${id}/role`, { method: "PATCH", body: JSON.stringify({ role }) }),
   deleteUser: (id: string) => request<any>(`/admin/users/${id}`, { method: "DELETE" }),
-  sendCustomerEmail: (id: string, data: any) => request<any>(`/admin/customers/${id}/email`, { method: "POST", body: JSON.stringify(data) }),
-  broadcastEmail: (data: any) => request<any>("/admin/broadcast", { method: "POST", body: JSON.stringify(data) }),
-  updateFaq: (data: any) => request<any>("/admin/faq", { method: "PUT", body: JSON.stringify(data) }),
+  sendCustomerEmail: (id: string, data: any) =>
+    request<any>(`/admin/customers/${id}/email`, { method: "POST", body: JSON.stringify(data) }),
+  broadcastEmail: (data: any) =>
+    request<any>("/admin/broadcast", { method: "POST", body: JSON.stringify(data) }),
+  updateFaq: (data: any) =>
+    request<any>("/admin/faq", { method: "PUT", body: JSON.stringify(data) }),
+  createPromoCode: (data: any) =>
+    request<any>("/admin/promocodes", { method: "POST", body: JSON.stringify(data) }),
+  updatePromoCode: (id: string, data: any) =>
+    request<any>(`/admin/promocodes/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deletePromoCode: (id: string) => request<any>(`/admin/promocodes/${id}`, { method: "DELETE" }),
+  createReview: (data: any) =>
+    request<any>("/admin/reviews", { method: "POST", body: JSON.stringify(data) }),
+  updateReview: (id: string, data: any) =>
+    request<any>(`/admin/reviews/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  deleteReview: (id: string) => request<any>(`/admin/reviews/${id}`, { method: "DELETE" }),
 };

@@ -5,8 +5,8 @@ export function PanelHeader({ title, subtitle, children }) {
   return <header className="invite-editor-panel-header"><div><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div>{children}</header>;
 }
 
-export function Field({ label, hint, action, children }) {
-  return <label className="invite-editor-field"><span><b>{label}</b>{hint && <small>{hint}</small>}</span><div>{children}{action}</div></label>;
+export function Field({ label, hint, action, editorField, children }) {
+  return <label className="invite-editor-field" data-editor-field={editorField || undefined}><span><b>{label}</b>{hint && <small>{hint}</small>}</span><div>{children}{action}</div></label>;
 }
 
 export function Toggle({ checked, onChange, label }) {
@@ -20,7 +20,7 @@ export function Toggle({ checked, onChange, label }) {
 
 export function CollapsibleSection({ id, title, icon: Icon, open, onToggle, enabled, onEnabledChange, children }) {
   return (
-    <section className={`invite-editor-section${open ? ' is-open' : ''}${enabled === false ? ' is-disabled' : ''}`}>
+    <section className={`invite-editor-section${open ? ' is-open' : ''}${enabled === false ? ' is-disabled' : ''}`} data-editor-section-id={id}>
       <header>
         <button type="button" onClick={onToggle} aria-expanded={open} aria-controls={`invite-editor-${id}`}>
           {Icon && <Icon size={17} />}<strong>{title}</strong><ChevronDown size={16} />
@@ -62,4 +62,3 @@ export function TypographyEditor({ value, onChange }) {
 export function EmptyState({ title, text }) {
   return <div className="invite-editor-empty"><strong>{title}</strong>{text && <p>{text}</p>}</div>;
 }
-

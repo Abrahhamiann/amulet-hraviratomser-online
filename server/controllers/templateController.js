@@ -2,7 +2,11 @@ import asyncHandler from 'express-async-handler';
 import Template from '../models/Template.js';
 import { makeSlug } from '../utils/slug.js';
 
-const PUBLIC_DESIGN_KEYS = ['midnight-vows', 'baptism-blessing', 'engagement-serenade'];
+const PUBLIC_DESIGN_KEYS = [
+  'sacred-beginnings',
+  'birthday-sparkle',
+  'ivory-vows'
+];
 
 export const getTemplates = asyncHandler(async (req, res) => {
   const { category, search, sort = 'newest', featured } = req.query;

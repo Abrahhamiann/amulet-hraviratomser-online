@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CalendarDays, ChevronDown, ChevronUp, ClipboardList, Heart, MapPin, MessageSquare, Plus, Sparkles, Trash2, Users } from 'lucide-react';
 import { useEditor } from './EditorContext.jsx';
 import { CollapsibleSection, Field, PanelHeader, Toggle, TypographyEditor } from './EditorControls.jsx';
@@ -7,10 +7,21 @@ import { splitNames } from './editorData.js';
 const newVenue = (index) => ({ id: `venue-${Date.now()}-${index}`, label: `Վայր ${index + 1}`, time: '18:00', address: '', url: '', subtitle: '', icon: 'location', visible: true });
 
 export default function ContentPanel() {
-  const { data, update } = useEditor();
+  const { activeSection, data, focusEditorTarget, update } = useEditor();
   const [openSections, setOpenSections] = useState(['hero', 'schedule']);
   const [firstName, secondName] = splitNames(data.mainNames);
   const toggleOpen = (id) => setOpenSections((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]);
+
+  useEffect(() => {
+    if (!activeSection || activeSection === 'media') return;
+    setOpenSections((items) => items.includes(activeSection) ? items : [...items, activeSection]);
+  }, [activeSection]);
+
+  const handleFieldFocus = (event) => {
+    const field = event.target.closest('[data-editor-field]')?.dataset.editorField;
+    const section = event.target.closest('[data-editor-section-id]')?.dataset.editorSectionId;
+    if (section) focusEditorTarget({ section, field: field || '', scrollPreview: true });
+  };
   const setVisible = (field, value) => update((draft) => { draft[field] = value; });
   const setField = (field, value) => update((draft) => { draft[field] = value; });
   const updateName = (index, value) => update((draft) => {
@@ -46,35 +57,38 @@ export default function ContentPanel() {
     title,
     icon,
     open: openSections.includes(id),
-    onToggle: () => toggleOpen(id),
+    onToggle: () => {
+      focusEditorTarget({ section: id, scrollPreview: true });
+      toggleOpen(id);
+    },
     enabled: field ? data[field] !== false : undefined,
     onEnabledChange: field ? (value) => setVisible(field, value) : undefined
   });
 
   return (
-    <div className="invite-editor-panel">
+    <div className="invite-editor-panel" onFocusCapture={handleFieldFocus}>
       <PanelHeader title="Հրավերի խմբագրում" subtitle="Փոփոխությունները անմիջապես երևում են նախադիտման մեջ։" />
 
       <CollapsibleSection {...sectionProps('hero', 'Գլխավոր էկրան', Heart, 'heroVisible')}>
         <div className="invite-editor-grid-two">
-          <Field label="Առաջին անունը"><input value={firstName} onChange={(event) => updateName(0, event.target.value)} /></Field>
-          <Field label="Երկրորդ անունը"><input value={secondName} onChange={(event) => updateName(1, event.target.value)} /></Field>
+          <Field label="Առաջին անունը" editorField="mainNames"><input value={firstName} onChange={(event) => updateName(0, event.target.value)} /></Field>
+          <Field label="Երկրորդ անունը" editorField="mainNames"><input value={secondName} onChange={(event) => updateName(1, event.target.value)} /></Field>
         </div>
-        <Field label="Անունների տեսքը" action={<TypographyEditor value={data.textStyles.names || {}} onChange={updateTextStyle} />}>
+        <Field label="Անունների տեսքը" editorField="mainNames" action={<TypographyEditor value={data.textStyles.names || {}} onChange={updateTextStyle} />}>
           <input value={data.mainNames || ''} onChange={(event) => setField('mainNames', event.target.value)} />
         </Field>
-        <Field label="Հրավերի հիմնական տեքստ"><textarea rows="4" value={data.eventMessage || ''} onChange={(event) => setField('eventMessage', event.target.value)} /></Field>
+        <Field label="Հրավերի հիմնական տեքստ" editorField="eventMessage"><textarea rows="4" value={data.eventMessage || ''} onChange={(event) => setField('eventMessage', event.target.value)} /></Field>
       </CollapsibleSection>
 
       <CollapsibleSection {...sectionProps('family', 'Ընտանեկան տվյալներ', Users, 'familyVisible')}>
-        <Field label="Առաջին ընտանիքը"><input value={data.groomFamilyTitle || ''} onChange={(event) => setField('groomFamilyTitle', event.target.value)} /></Field>
-        <Field label="Երկրորդ ընտանիքը"><input value={data.brideFamilyTitle || ''} onChange={(event) => setField('brideFamilyTitle', event.target.value)} /></Field>
+        <Field label="Առաջին ընտանիքը" editorField="groomFamilyTitle"><input value={data.groomFamilyTitle || ''} onChange={(event) => setField('groomFamilyTitle', event.target.value)} /></Field>
+        <Field label="Երկրորդ ընտանիքը" editorField="brideFamilyTitle"><input value={data.brideFamilyTitle || ''} onChange={(event) => setField('brideFamilyTitle', event.target.value)} /></Field>
       </CollapsibleSection>
 
       <CollapsibleSection {...sectionProps('schedule', 'Օր, ժամ և ծրագիր', CalendarDays, 'receptionVisible')}>
         <div className="invite-editor-grid-two">
-          <Field label="Ամսաթիվ"><input type="date" value={data.eventDate || ''} onChange={(event) => setField('eventDate', event.target.value)} /></Field>
-          <Field label="Հիմնական ժամ"><input type="time" value={data.eventTime || ''} onChange={(event) => updateVenue(0, 'time', event.target.value)} /></Field>
+          <Field label="Ամսաթիվ" editorField="eventDate"><input type="date" value={data.eventDate || ''} onChange={(event) => setField('eventDate', event.target.value)} /></Field>
+          <Field label="Հիմնական ժամ" editorField="eventTime"><input type="time" value={data.eventTime || ''} onChange={(event) => updateVenue(0, 'time', event.target.value)} /></Field>
         </div>
         <div className="invite-editor-list-heading"><strong>Միջոցառման ծրագիր</strong><button type="button" onClick={() => update((draft) => { draft.mapLinks.push(newVenue(draft.mapLinks.length)); })}><Plus size={15} /> Ավելացնել</button></div>
         <div className="invite-editor-venue-list">
@@ -92,36 +106,35 @@ export default function ContentPanel() {
                   draft.mapLink = draft.mapLinks[0]?.url || '';
                 })} aria-label="Ջնջել վայրը"><Trash2 size={14} /></button>
               </div></header>
-              <Field label="Անվանում"><input value={item.label || ''} onChange={(event) => updateVenue(index, 'label', event.target.value)} /></Field>
-              <div className="invite-editor-grid-two"><Field label="Ժամ"><input type="time" value={item.time || ''} onChange={(event) => updateVenue(index, 'time', event.target.value)} /></Field><Field label="Տեսակ"><select value={item.icon || 'location'} onChange={(event) => updateVenue(index, 'icon', event.target.value)}><option value="location">Վայր</option><option value="church">Եկեղեցի</option><option value="home">Տուն</option><option value="party">Հանդիսություն</option><option value="photo">Ֆոտոսեսիա</option></select></Field></div>
-              <Field label="Ենթավերնագիր" hint="ըստ ցանկության"><input value={item.subtitle || ''} onChange={(event) => updateVenue(index, 'subtitle', event.target.value)} /></Field>
-              <Field label="Հասցե"><textarea rows="2" value={item.address || ''} onChange={(event) => updateVenue(index, 'address', event.target.value)} /></Field>
-              <Field label="Google Maps հղում"><input inputMode="url" value={item.url || ''} onChange={(event) => updateVenue(index, 'url', event.target.value)} /></Field>
+              <Field label="Անվանում" editorField={`mapLinks.${index}.label`}><input value={item.label || ''} onChange={(event) => updateVenue(index, 'label', event.target.value)} /></Field>
+              <div className="invite-editor-grid-two"><Field label="Ժամ" editorField={`mapLinks.${index}.time`}><input type="time" value={item.time || ''} onChange={(event) => updateVenue(index, 'time', event.target.value)} /></Field><Field label="Տեսակ"><select value={item.icon || 'location'} onChange={(event) => updateVenue(index, 'icon', event.target.value)}><option value="location">Վայր</option><option value="church">Եկեղեցի</option><option value="home">Տուն</option><option value="party">Հանդիսություն</option><option value="photo">Ֆոտոսեսիա</option></select></Field></div>
+              <Field label="Ենթավերնագիր" hint="ըստ ցանկության" editorField={`mapLinks.${index}.subtitle`}><input value={item.subtitle || ''} onChange={(event) => updateVenue(index, 'subtitle', event.target.value)} /></Field>
+              <Field label="Հասցե" editorField={`mapLinks.${index}.address`}><textarea rows="2" value={item.address || ''} onChange={(event) => updateVenue(index, 'address', event.target.value)} /></Field>
+              <Field label="Google Maps հղում" editorField={`mapLinks.${index}.url`}><input inputMode="url" value={item.url || ''} onChange={(event) => updateVenue(index, 'url', event.target.value)} /></Field>
             </article>
           ))}
         </div>
       </CollapsibleSection>
 
       <CollapsibleSection {...sectionProps('rsvp', 'Հյուրերի պատասխաններ', ClipboardList, 'questionsVisible')}>
-        <Field label="Վերնագիր"><input value={data.rsvpSettings.title} onChange={(event) => update((draft) => { draft.rsvpSettings.title = event.target.value; })} /></Field>
-        <Field label="Բացատրություն"><textarea rows="3" value={data.rsvpSettings.description} onChange={(event) => update((draft) => { draft.rsvpSettings.description = event.target.value; })} /></Field>
-        <Field label="Անվան դաշտ"><input value={data.rsvpSettings.guestPlaceholder} onChange={(event) => update((draft) => { draft.rsvpSettings.guestPlaceholder = event.target.value; })} /></Field>
-        <div className="invite-editor-grid-two"><Field label="Կգամ"><input value={data.rsvpSettings.attendingLabel} onChange={(event) => update((draft) => { draft.rsvpSettings.attendingLabel = event.target.value; })} /></Field><Field label="Չեմ գա"><input value={data.rsvpSettings.notAttendingLabel} onChange={(event) => update((draft) => { draft.rsvpSettings.notAttendingLabel = event.target.value; })} /></Field></div>
-        <Field label="Ուղարկելու կոճակ"><input value={data.rsvpSettings.submitLabel} onChange={(event) => update((draft) => { draft.rsvpSettings.submitLabel = event.target.value; })} /></Field>
+        <Field label="Վերնագիր" editorField="rsvpSettings.title"><input value={data.rsvpSettings.title} onChange={(event) => update((draft) => { draft.rsvpSettings.title = event.target.value; })} /></Field>
+        <Field label="Բացատրություն" editorField="rsvpSettings.description"><textarea rows="3" value={data.rsvpSettings.description} onChange={(event) => update((draft) => { draft.rsvpSettings.description = event.target.value; })} /></Field>
+        <Field label="Անվան դաշտ" editorField="rsvpSettings.guestPlaceholder"><input value={data.rsvpSettings.guestPlaceholder} onChange={(event) => update((draft) => { draft.rsvpSettings.guestPlaceholder = event.target.value; })} /></Field>
+        <div className="invite-editor-grid-two"><Field label="Կգամ" editorField="rsvpSettings.attendingLabel"><input value={data.rsvpSettings.attendingLabel} onChange={(event) => update((draft) => { draft.rsvpSettings.attendingLabel = event.target.value; })} /></Field><Field label="Չեմ գա" editorField="rsvpSettings.notAttendingLabel"><input value={data.rsvpSettings.notAttendingLabel} onChange={(event) => update((draft) => { draft.rsvpSettings.notAttendingLabel = event.target.value; })} /></Field></div>
+        <Field label="Ուղարկելու կոճակ" editorField="rsvpSettings.submitLabel"><input value={data.rsvpSettings.submitLabel} onChange={(event) => update((draft) => { draft.rsvpSettings.submitLabel = event.target.value; })} /></Field>
         <Field label="Վերջնաժամկետ"><input type="date" value={data.rsvpSettings.deadline || ''} onChange={(event) => update((draft) => { draft.rsvpSettings.deadline = event.target.value; })} /></Field>
         <div className="invite-editor-toggle-row"><span>Հյուրերի քանակ</span><Toggle checked={data.rsvpSettings.askGuestCount !== false} onChange={(value) => update((draft) => { draft.rsvpSettings.askGuestCount = value; })} label="Հյուրերի քանակ" /></div>
         <div className="invite-editor-toggle-row"><span>Սննդի նախընտրություն</span><Toggle checked={data.rsvpSettings.askMeal === true} onChange={(value) => update((draft) => { draft.rsvpSettings.askMeal = value; })} label="Սննդի նախընտրություն" /></div>
-        <Field label="Լրացուցիչ հարց"><input value={data.rsvpQuestion || ''} onChange={(event) => setField('rsvpQuestion', event.target.value)} /></Field>
+        <Field label="Լրացուցիչ հարց" editorField="rsvpQuestion"><input value={data.rsvpQuestion || ''} onChange={(event) => setField('rsvpQuestion', event.target.value)} /></Field>
       </CollapsibleSection>
 
       <CollapsibleSection {...sectionProps('dress', 'Հագուստի կանոնակարգ', Sparkles, 'dressCodeVisible')}>
-        <Field label="Dress code"><textarea rows="4" value={data.dressCode || ''} onChange={(event) => setField('dressCode', event.target.value)} /></Field>
+        <Field label="Dress code" editorField="dressCode"><textarea rows="4" value={data.dressCode || ''} onChange={(event) => setField('dressCode', event.target.value)} /></Field>
       </CollapsibleSection>
 
       <CollapsibleSection {...sectionProps('closing', 'Վերջնական խոսք', MessageSquare, 'finalMessageVisible')}>
-        <Field label="Շնորհակալական հաղորդագրություն"><textarea rows="4" value={data.closingMessage || ''} onChange={(event) => setField('closingMessage', event.target.value)} /></Field>
+        <Field label="Շնորհակալական հաղորդագրություն" editorField="closingMessage"><textarea rows="4" value={data.closingMessage || ''} onChange={(event) => setField('closingMessage', event.target.value)} /></Field>
       </CollapsibleSection>
     </div>
   );
 }
-

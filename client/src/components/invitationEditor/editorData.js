@@ -43,6 +43,61 @@ export const fontOptions = [
   { label: 'Ձեռագիր', value: 'SHK Dzeragir, cursive' }
 ];
 
+const templateColorPalettes = {
+  midnight: [
+    { id: 'midnight-gold', name: 'Կեսգիշերային ոսկի', description: 'Դասական և հանդիսավոր', colors: { accent: '#d8b98e', text: '#ffffff', overlay: '#202020' } },
+    { id: 'midnight-champagne', name: 'Շամպայն', description: 'Փափուկ ու լուսավոր', colors: { accent: '#e7cda8', text: '#fffaf1', overlay: '#3a2f29' } },
+    { id: 'midnight-burgundy', name: 'Բորդո', description: 'Խորը և ռոմանտիկ', colors: { accent: '#d6a8a0', text: '#fff8f6', overlay: '#4a1823' } },
+    { id: 'midnight-emerald', name: 'Զմրուխտ', description: 'Բնական շքեղություն', colors: { accent: '#d1bd82', text: '#f8fff9', overlay: '#123a31' } },
+    { id: 'midnight-blue', name: 'Լուսնային կապույտ', description: 'Ժամանակակից և հանգիստ', colors: { accent: '#b9c9e7', text: '#f8fbff', overlay: '#17243d' } }
+  ],
+  engagement: [
+    { id: 'engagement-gold', name: 'Այգու ոսկի', description: 'Տաք և բնական', colors: { accent: '#efe4d8', text: '#ffffff', overlay: '#2b211b' } },
+    { id: 'engagement-blush', name: 'Վարդագույն շղարշ', description: 'Նուրբ ու ռոմանտիկ', colors: { accent: '#e8b7b0', text: '#fffafa', overlay: '#58343a' } },
+    { id: 'engagement-sage', name: 'Եղեսպակ', description: 'Թարմ և հանգիստ', colors: { accent: '#c7d2b1', text: '#fbfff8', overlay: '#35443a' } },
+    { id: 'engagement-lavender', name: 'Նարդոս', description: 'Երազային և մեղմ', colors: { accent: '#cdbfe3', text: '#fffaff', overlay: '#443852' } },
+    { id: 'engagement-night', name: 'Երեկոյան երկինք', description: 'Խորը և էլեգանտ', colors: { accent: '#d9c48d', text: '#f8fbff', overlay: '#1d2940' } }
+  ],
+  baptism: [
+    { id: 'baptism-ivory', name: 'Փղոսկր և ոսկի', description: 'Մաքուր ու դասական', colors: { accent: '#d8b98e', text: '#ffffff', overlay: '#241f1a' } },
+    { id: 'baptism-sky', name: 'Երկնագույն', description: 'Լուսավոր և խաղաղ', colors: { accent: '#9dc9df', text: '#f8fdff', overlay: '#31566b' } },
+    { id: 'baptism-rose', name: 'Փոշոտ վարդ', description: 'Ջերմ ու նուրբ', colors: { accent: '#d8aaa7', text: '#fffafa', overlay: '#624447' } },
+    { id: 'baptism-sage', name: 'Բաց եղեսպակ', description: 'Բնական և մեղմ', colors: { accent: '#b8c6a1', text: '#fbfff8', overlay: '#465342' } },
+    { id: 'baptism-pearl', name: 'Մարգարտյա մոխրագույն', description: 'Չեզոք և ժամանակակից', colors: { accent: '#d8d2c7', text: '#ffffff', overlay: '#45484d' } }
+  ],
+  sacred: [
+    { id: 'sacred-ivory', name: 'Փղոսկր և ոսկի', description: 'Մաքուր և դասական', colors: { accent: '#b89262', text: '#47382a', overlay: '#f5eee4' } },
+    { id: 'sacred-sky', name: 'Երկնային կապույտ', description: 'Լուսավոր և խաղաղ', colors: { accent: '#7faec2', text: '#344f5c', overlay: '#edf6f8' } },
+    { id: 'sacred-rose', name: 'Նուրբ վարդագույն', description: 'Ջերմ և քնքուշ', colors: { accent: '#c7928e', text: '#5d4545', overlay: '#faefed' } },
+    { id: 'sacred-sage', name: 'Եղեսպակ', description: 'Բնական և մեղմ', colors: { accent: '#879578', text: '#465043', overlay: '#f0f3eb' } },
+    { id: 'sacred-pearl', name: 'Մարգարտյա', description: 'Ժամանակակից և չեզոք', colors: { accent: '#aaa399', text: '#4b4946', overlay: '#f2f1ee' } }
+  ],
+  birthday: [
+    { id: 'birthday-blush', name: 'Վարդագույն փայլ', description: 'Նուրբ և տոնական', colors: { accent: '#d99890', text: '#553f4a', overlay: '#faeee9' } },
+    { id: 'birthday-lilac', name: 'Յասամանագույն', description: 'Երազային և պայծառ', colors: { accent: '#a68bbd', text: '#51445d', overlay: '#f3edf8' } },
+    { id: 'birthday-champagne', name: 'Շամպայն', description: 'Շքեղ և ջերմ', colors: { accent: '#c49a62', text: '#594a39', overlay: '#fbf3e6' } },
+    { id: 'birthday-mint', name: 'Թարմ անանուխ', description: 'Թեթև և ուրախ', colors: { accent: '#72a899', text: '#3e5a54', overlay: '#edf8f4' } },
+    { id: 'birthday-night', name: 'Տոնական գիշեր', description: 'Խորը և արտահայտիչ', colors: { accent: '#e2b86e', text: '#fff8eb', overlay: '#392f48' } }
+  ],
+  ivory: [
+    { id: 'ivory-classic', name: 'Դասական փղոսկր', description: 'Նրբաճաշակ և ջերմ', colors: { accent: '#b28b63', text: '#42372e', overlay: '#f2eadf' } },
+    { id: 'ivory-olive', name: 'Ձիթապտղի այգի', description: 'Բնական և էլեգանտ', colors: { accent: '#899073', text: '#414638', overlay: '#eff0e8' } },
+    { id: 'ivory-rose', name: 'Հին վարդ', description: 'Ռոմանտիկ և մեղմ', colors: { accent: '#b7837f', text: '#57413f', overlay: '#f6ece9' } },
+    { id: 'ivory-stone', name: 'Տաք քար', description: 'Չեզոք և ժամանակակից', colors: { accent: '#9d8d7e', text: '#45403b', overlay: '#f0ede9' } },
+    { id: 'ivory-espresso', name: 'Էսպրեսո և ոսկի', description: 'Խորը և հանդիսավոր', colors: { accent: '#c4a06c', text: '#fff9ef', overlay: '#49382e' } }
+  ]
+};
+
+export const getTemplateColorPalettes = (template = {}) => {
+  const key = [template.designKey, template.slug, template.title].filter(Boolean).join(' ').toLowerCase();
+  if (key.includes('sacred-beginnings')) return templateColorPalettes.sacred;
+  if (key.includes('birthday-sparkle')) return templateColorPalettes.birthday;
+  if (key.includes('ivory-vows')) return templateColorPalettes.ivory;
+  if (key.includes('baptism') || key.includes('մկրտ')) return templateColorPalettes.baptism;
+  if (key.includes('engagement') || key.includes('նշան')) return templateColorPalettes.engagement;
+  return templateColorPalettes.midnight;
+};
+
 const defaultRsvp = {
   title: 'Հաստատեք Ձեր մասնակցությունը',
   description: 'Խնդրում ենք պատասխանել մինչև նշված վերջնաժամկետը։',

@@ -15,7 +15,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useNotifications } from "@/hooks/useAdminData";
-import { clearToken } from "@/lib/api";
+import { logout } from "@/lib/api";
 import { formatAdminDate, useAdminI18n, type AdminLang } from "@/lib/i18n";
 
 const titles: Record<string, string> = {
@@ -25,6 +25,7 @@ const titles: Record<string, string> = {
   "/admin/orders": "orders",
   "/admin/customers": "customers",
   "/admin/payments": "payments",
+  "/admin/promocodes": "promocodes",
   "/admin/messages": "messages",
   "/admin/notifications": "notifications",
   "/admin/administrators": "administrators",
@@ -40,12 +41,20 @@ export function TopHeader() {
 
   const notificationCopy = (item: any) => {
     if (item.type === "order") {
-      return { title: t("newOrder"), desc: t("orderedInvitation").replace("{customer}", item.customer || "—").replace("{invitation}", item.invitation || "—") };
+      return {
+        title: t("newOrder"),
+        desc: t("orderedInvitation")
+          .replace("{customer}", item.customer || "—")
+          .replace("{invitation}", item.invitation || "—"),
+      };
     }
     if (item.type === "message") {
       return { title: t("contactMessage"), desc: `${item.customer || "—"}: ${item.message || ""}` };
     }
-    return { title: item.published ? t("invitationPublished") : t("invitationDraft"), desc: item.invitation || "—" };
+    return {
+      title: item.published ? t("invitationPublished") : t("invitationDraft"),
+      desc: item.invitation || "—",
+    };
   };
 
   useEffect(() => {
@@ -54,7 +63,10 @@ export function TopHeader() {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border/60 bg-background/85 backdrop-blur-md px-4 md:px-6">
-      <SidebarTrigger className="text-muted-foreground hover:text-foreground" aria-label={t("toggleSidebar")} />
+      <SidebarTrigger
+        className="text-muted-foreground hover:text-foreground"
+        aria-label={t("toggleSidebar")}
+      />
       <div className="min-w-0 flex-1">
         <h1 className="font-display text-xl md:text-2xl leading-none truncate">{title}</h1>
         <p className="hidden sm:block text-xs text-muted-foreground mt-1">{t("welcome")}</p>
@@ -62,7 +74,12 @@ export function TopHeader() {
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="rounded-full" aria-label={t("changeLanguage")}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            aria-label={t("changeLanguage")}
+          >
             <Globe className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -75,39 +92,69 @@ export function TopHeader() {
             ["en", "English"],
           ].map(([code, label]) => (
             <DropdownMenuItem key={code} onClick={() => setLang(code as AdminLang)}>
-              <span className={lang === code ? "font-semibold text-[color:var(--gold)]" : ""}>{label}</span>
+              <span className={lang === code ? "font-semibold text-[color:var(--gold)]" : ""}>
+                {label}
+              </span>
             </DropdownMenuItem>
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Button variant="ghost" size="icon" className="rounded-full" aria-label={t("toggleTheme")} onClick={() => setDark((value) => !value)}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="rounded-full"
+        aria-label={t("toggleTheme")}
+        onClick={() => setDark((value) => !value)}
+      >
         {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       </Button>
 
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative rounded-full" aria-label={t("notifications")}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative rounded-full"
+            aria-label={t("notifications")}
+          >
             <Bell className="h-4 w-4" />
-            {unread > 0 && <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-[color:var(--gold)] ring-2 ring-background" />}
+            {unread > 0 && (
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-[color:var(--gold)] ring-2 ring-background" />
+            )}
           </Button>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-80 p-0">
           <div className="flex items-center justify-between px-4 py-3 border-b">
             <div className="font-medium text-sm">{t("notifications")}</div>
-            <Badge variant="secondary" className="text-[10px]">{unread}</Badge>
+            <Badge variant="secondary" className="text-[10px]">
+              {unread}
+            </Badge>
           </div>
           <div className="max-h-80 overflow-y-auto divide-y">
             {notifications.slice(0, 5).map((item: any) => {
               const copy = notificationCopy(item);
-              return <div key={item.id} className="flex gap-3 px-4 py-3 hover:bg-secondary/50 transition">
-                <div className="mt-1 h-2 w-2 shrink-0 rounded-full" style={{ background: item.read ? "var(--border)" : "var(--gold)" }} />
-                <div className="min-w-0">
-                  <div className="text-sm font-medium truncate">{copy.title}</div>
-                  <div className="text-xs text-muted-foreground truncate">{copy.desc}</div>
-                  <div className="text-[10px] text-muted-foreground mt-1">{formatAdminDate(item.time, lang, { dateStyle: "medium", timeStyle: "short" })}</div>
+              return (
+                <div
+                  key={item.id}
+                  className="flex gap-3 px-4 py-3 hover:bg-secondary/50 transition"
+                >
+                  <div
+                    className="mt-1 h-2 w-2 shrink-0 rounded-full"
+                    style={{ background: item.read ? "var(--border)" : "var(--gold)" }}
+                  />
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium truncate">{copy.title}</div>
+                    <div className="text-xs text-muted-foreground truncate">{copy.desc}</div>
+                    <div className="text-[10px] text-muted-foreground mt-1">
+                      {formatAdminDate(item.time, lang, {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </div>
+                  </div>
                 </div>
-              </div>;
+              );
             })}
           </div>
         </PopoverContent>
@@ -115,9 +162,14 @@ export function TopHeader() {
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="flex items-center gap-2 rounded-full pl-1 pr-2 py-1 hover:bg-secondary/70 transition" aria-label={t("myAccount")}>
+          <button
+            className="flex items-center gap-2 rounded-full pl-1 pr-2 py-1 hover:bg-secondary/70 transition"
+            aria-label={t("myAccount")}
+          >
             <Avatar className="h-8 w-8 ring-2 ring-[color:var(--gold-soft)]">
-              <AvatarFallback className="gold-gradient text-white text-xs font-medium">A</AvatarFallback>
+              <AvatarFallback className="gold-gradient text-white text-xs font-medium">
+                A
+              </AvatarFallback>
             </Avatar>
             <div className="hidden lg:flex flex-col items-start leading-tight">
               <span className="text-xs font-medium">{t("administrator")}</span>
@@ -131,12 +183,13 @@ export function TopHeader() {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className="text-destructive"
-            onClick={() => {
-              clearToken();
-              window.location.assign("/login");
+            onClick={async () => {
+              await logout();
+              window.location.replace("/login");
             }}
           >
-            <LogOut className="h-4 w-4 mr-2" />{t("logout")}
+            <LogOut className="h-4 w-4 mr-2" />
+            {t("logout")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -23,6 +23,7 @@ function NotifPage() {
   const notificationCopy = (item: any) => {
     if (item.type === "order") return { title: t("newOrder"), desc: t("orderedInvitation").replace("{customer}", item.customer || "—").replace("{invitation}", item.invitation || "—") };
     if (item.type === "message") return { title: t("contactMessage"), desc: `${item.customer || "—"}: ${item.message || ""}` };
+    if (item.type === "review") return { title: t("reviews"), desc: `${item.customer || "—"} · ${"★".repeat(item.rating || 5)}: ${item.message || ""}` };
     return { title: item.published ? t("invitationPublished") : t("invitationDraft"), desc: item.invitation || "—" };
   };
 

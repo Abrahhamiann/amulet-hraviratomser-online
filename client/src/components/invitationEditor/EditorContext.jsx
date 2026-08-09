@@ -33,12 +33,15 @@ function historyReducer(state, action) {
   };
 }
 
-export function EditorProvider({ initialDraft, template, actions, children }) {
+export function EditorProvider({ initialDraft, initialTarget = {}, template, actions, children }) {
   const [history, dispatch] = useReducer(historyReducer, initialDraft, createHistory);
-  const [tab, setTab] = useState('content');
+  const [tab, setTab] = useState(initialTarget.targetTab || 'content');
   const [device, setDevice] = useState('desktop');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSheet, setMobileSheet] = useState('medium');
+  const [activeSection, setActiveSection] = useState(initialTarget.section || 'hero');
+  const [activeField, setActiveField] = useState(initialTarget.field || (initialTarget.section ? '' : 'mainNames'));
+  const [previewFocusRequest, setPreviewFocusRequest] = useState(0);
   const [saveStatus, setSaveStatus] = useState('idle');
   const baselineRef = useRef(JSON.stringify(prepareEditorDraft(initialDraft)));
   const actionsRef = useRef(actions);
@@ -58,6 +61,14 @@ export function EditorProvider({ initialDraft, template, actions, children }) {
   const update = useCallback((change) => dispatch({ type: 'update', change }), []);
   const undo = useCallback(() => dispatch({ type: 'undo' }), []);
   const redo = useCallback(() => dispatch({ type: 'redo' }), []);
+  const focusEditorTarget = useCallback(({ section = 'hero', field = '', targetTab = 'content', scrollPreview = true } = {}) => {
+    setActiveSection(section);
+    setActiveField(field);
+    setTab(targetTab);
+    setSidebarOpen(true);
+    setMobileSheet('medium');
+    if (scrollPreview) setPreviewFocusRequest((value) => value + 1);
+  }, []);
 
   const save = useCallback(async () => {
     setSaveStatus('saving');
@@ -107,8 +118,12 @@ export function EditorProvider({ initialDraft, template, actions, children }) {
     sidebarOpen,
     setSidebarOpen,
     mobileSheet,
-    setMobileSheet
-  }), [actions, device, dirty, history.future.length, history.past.length, history.present, mobileSheet, redo, save, saveStatus, sidebarOpen, tab, template, undo, update]);
+    setMobileSheet,
+    activeSection,
+    activeField,
+    previewFocusRequest,
+    focusEditorTarget
+  }), [actions, activeField, activeSection, device, dirty, focusEditorTarget, history.future.length, history.past.length, history.present, mobileSheet, previewFocusRequest, redo, save, saveStatus, sidebarOpen, tab, template, undo, update]);
 
   return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>;
 }

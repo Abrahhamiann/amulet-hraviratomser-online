@@ -34,7 +34,10 @@ export const getMyInvitationRSVPs = asyncHandler(async (req, res) => {
     throw new Error('Invitation not found');
   }
 
-  if (invitation.orderId?.email !== req.user.email) {
+  const belongsToUser = invitation.orderId?.userId
+    ? String(invitation.orderId.userId) === String(req.user._id)
+    : invitation.orderId?.email === req.user.email;
+  if (!belongsToUser) {
     res.status(403);
     throw new Error('This invitation does not belong to the current user');
   }
@@ -56,7 +59,10 @@ export const getMyInvitationRSVPDetails = asyncHandler(async (req, res) => {
     throw new Error('Invitation not found');
   }
 
-  if (invitation.orderId?.email !== req.user.email) {
+  const belongsToUser = invitation.orderId?.userId
+    ? String(invitation.orderId.userId) === String(req.user._id)
+    : invitation.orderId?.email === req.user.email;
+  if (!belongsToUser) {
     res.status(403);
     throw new Error('This invitation does not belong to the current user');
   }

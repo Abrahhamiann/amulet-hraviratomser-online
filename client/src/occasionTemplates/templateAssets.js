@@ -1,68 +1,73 @@
-import midnightVowsDefault from '../assets/occasion/midnight-vows-default.jpg';
-import baptismBabyChurch from '../assets/baptism/baptism-baby-church.png';
-import baptismEnvelope from '../assets/baptism/baptism-envelope.png';
-import baptismFamily from '../assets/baptism/baptism-family.png';
-import baptismFamilyPhoto from '../assets/morph/baptism-family.jpg';
-import baptismLiftPhoto from '../assets/morph/baptism-lift.jpg';
-import baptismPriestPhoto from '../assets/morph/baptism-priest.jpg';
-import baptismSoftPhoto from '../assets/morph/baptism-soft.webp';
-import baptismVoguePhoto from '../assets/morph/baptism-vogue.jpg';
-import baptismWaterPhoto from '../assets/morph/baptism-water.jpg';
-import engagementBouquet from '../assets/morph/engagement-bouquet-red.jpg';
-import engagementChandelier from '../assets/morph/engagement-chandelier.jpg';
-import engagementHand from '../assets/morph/engagement-hand.jpg';
-import engagementRing from '../assets/morph/engagement-ring.jpg';
-import engagementRoses from '../assets/morph/engagement-roses.jpg';
-import engagementSmile from '../assets/morph/engagement-smile.jpg';
-import weddingSunset from '../assets/morph/wedding-sunset.jpg';
+import sacredPortrait from '../assets/importedTemplates/sacred/child-portrait.jpg';
+import sacredGallery1 from '../assets/importedTemplates/sacred/gallery-1.jpg';
+import sacredGallery2 from '../assets/importedTemplates/sacred/gallery-2.jpg';
+import sacredGallery3 from '../assets/importedTemplates/sacred/gallery-3.jpg';
+import sacredGallery4 from '../assets/importedTemplates/sacred/gallery-4.jpg';
+import sacredGallery5 from '../assets/importedTemplates/sacred/gallery-5.jpg';
+import birthdayPortrait from '../assets/importedTemplates/birthday/portrait.jpg';
+import birthdayVenue from '../assets/importedTemplates/birthday/venue.jpg';
+import birthdayGallery1 from '../assets/importedTemplates/birthday/gallery-1.jpg';
+import birthdayGallery2 from '../assets/importedTemplates/birthday/gallery-2.jpg';
+import birthdayGallery3 from '../assets/importedTemplates/birthday/gallery-3.jpg';
+import birthdayGallery4 from '../assets/importedTemplates/birthday/gallery-4.jpg';
+import birthdayGallery5 from '../assets/importedTemplates/birthday/gallery-5.jpg';
+import ivoryHero from '../assets/importedTemplates/ivory/hero.jpg';
+import ivoryChurch from '../assets/importedTemplates/ivory/church.jpg';
+import ivoryHall from '../assets/importedTemplates/ivory/hall.jpg';
+import ivoryGallery1 from '../assets/importedTemplates/ivory/gallery-1.jpg';
+import ivoryGallery2 from '../assets/importedTemplates/ivory/gallery-2.jpg';
+import ivoryGallery3 from '../assets/importedTemplates/ivory/gallery-3.jpg';
+import ivoryGallery4 from '../assets/importedTemplates/ivory/gallery-4.jpg';
 
 export const templateAssetSources = {
-  'asset:occasion/midnight-vows-default.jpg': midnightVowsDefault,
-  'asset:baptism/baptism-angel.png': baptismBabyChurch,
-  'asset:baptism/baptism-baby-church.png': baptismBabyChurch,
-  'asset:baptism/baptism-candle.png': baptismEnvelope,
-  'asset:baptism/baptism-church-icon.png': baptismBabyChurch,
-  'asset:baptism/baptism-cross.png': baptismEnvelope,
-  'asset:baptism/baptism-dove.png': baptismFamily,
-  'asset:baptism/baptism-envelope.png': baptismEnvelope,
-  'asset:baptism/baptism-family.png': baptismFamily,
-  'asset:morph/baptism-family.jpg': baptismFamilyPhoto,
-  'asset:morph/baptism-lift.jpg': baptismLiftPhoto,
-  'asset:morph/baptism-priest.jpg': baptismPriestPhoto,
-  'asset:morph/baptism-soft.webp': baptismSoftPhoto,
-  'asset:morph/baptism-vogue.jpg': baptismVoguePhoto,
-  'asset:morph/baptism-water.jpg': baptismWaterPhoto,
-  'asset:morph/engagement-bouquet-red.jpg': engagementBouquet,
-  'asset:morph/engagement-chandelier.jpg': engagementChandelier,
-  'asset:morph/engagement-hand.jpg': engagementHand,
-  'asset:morph/engagement-ring.jpg': engagementRing,
-  'asset:morph/engagement-roses.jpg': engagementRoses,
-  'asset:morph/engagement-smile.jpg': engagementSmile,
-  'asset:morph/wedding-sunset.jpg': weddingSunset
+  'asset:curated/sacred/child-portrait.jpg': sacredPortrait,
+  'asset:curated/sacred/gallery-1.jpg': sacredGallery1,
+  'asset:curated/sacred/gallery-2.jpg': sacredGallery2,
+  'asset:curated/sacred/gallery-3.jpg': sacredGallery3,
+  'asset:curated/sacred/gallery-4.jpg': sacredGallery4,
+  'asset:curated/sacred/gallery-5.jpg': sacredGallery5,
+  'asset:curated/birthday/portrait.jpg': birthdayPortrait,
+  'asset:curated/birthday/venue.jpg': birthdayVenue,
+  'asset:curated/birthday/gallery-1.jpg': birthdayGallery1,
+  'asset:curated/birthday/gallery-2.jpg': birthdayGallery2,
+  'asset:curated/birthday/gallery-3.jpg': birthdayGallery3,
+  'asset:curated/birthday/gallery-4.jpg': birthdayGallery4,
+  'asset:curated/birthday/gallery-5.jpg': birthdayGallery5,
+  'asset:curated/ivory/hero.jpg': ivoryHero,
+  'asset:curated/ivory/church.jpg': ivoryChurch,
+  'asset:curated/ivory/hall.jpg': ivoryHall,
+  'asset:curated/ivory/gallery-1.jpg': ivoryGallery1,
+  'asset:curated/ivory/gallery-2.jpg': ivoryGallery2,
+  'asset:curated/ivory/gallery-3.jpg': ivoryGallery3,
+  'asset:curated/ivory/gallery-4.jpg': ivoryGallery4
 };
 
 export const templateDefaultGalleryIds = {
-  'midnight-vows': [
-    'asset:occasion/midnight-vows-default.jpg'
+  'sacred-beginnings': [
+    'asset:curated/sacred/child-portrait.jpg',
+    'asset:curated/sacred/gallery-1.jpg',
+    'asset:curated/sacred/gallery-2.jpg',
+    'asset:curated/sacred/gallery-3.jpg',
+    'asset:curated/sacred/gallery-4.jpg',
+    'asset:curated/sacred/gallery-5.jpg'
   ],
-  'baptism-blessing': [
-    'asset:baptism/baptism-baby-church.png',
-    'asset:baptism/baptism-family.png',
-    'asset:morph/baptism-family.jpg',
-    'asset:morph/baptism-lift.jpg',
-    'asset:morph/baptism-priest.jpg',
-    'asset:morph/baptism-soft.webp',
-    'asset:morph/baptism-vogue.jpg',
-    'asset:morph/baptism-water.jpg'
+  'birthday-sparkle': [
+    'asset:curated/birthday/portrait.jpg',
+    'asset:curated/birthday/venue.jpg',
+    'asset:curated/birthday/gallery-1.jpg',
+    'asset:curated/birthday/gallery-2.jpg',
+    'asset:curated/birthday/gallery-3.jpg',
+    'asset:curated/birthday/gallery-4.jpg',
+    'asset:curated/birthday/gallery-5.jpg'
   ],
-  'engagement-serenade': [
-    'asset:morph/wedding-sunset.jpg',
-    'asset:morph/engagement-smile.jpg',
-    'asset:morph/engagement-hand.jpg',
-    'asset:morph/engagement-ring.jpg',
-    'asset:morph/engagement-roses.jpg',
-    'asset:morph/engagement-bouquet-red.jpg',
-    'asset:morph/engagement-chandelier.jpg'
+  'ivory-vows': [
+    'asset:curated/ivory/hero.jpg',
+    'asset:curated/ivory/church.jpg',
+    'asset:curated/ivory/hall.jpg',
+    'asset:curated/ivory/gallery-1.jpg',
+    'asset:curated/ivory/gallery-2.jpg',
+    'asset:curated/ivory/gallery-3.jpg',
+    'asset:curated/ivory/gallery-4.jpg'
   ]
 };
 
@@ -74,7 +79,9 @@ export const resolveTemplateImages = (images = []) => images
 
 export const getConfiguredTemplateGallery = (template = {}, fallbackGallery = []) => {
   const configuredGallery = Array.isArray(template.gallery) ? template.gallery : [];
-  if (template.galleryConfigured === true) return resolveTemplateImages(configuredGallery);
+  if (template.galleryConfigured === true) {
+    return [...new Set(resolveTemplateImages([...configuredGallery, ...fallbackGallery]))];
+  }
 
   return resolveTemplateImages([
     template.mainImage,

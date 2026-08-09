@@ -32,7 +32,7 @@ function CustomersPage() {
   const [broadcastOpen, setBroadcastOpen] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [emailTarget, setEmailTarget] = useState<any>(null);
-  const [form, setForm] = useState({ name: "", email: "", password: "Useramulet2026" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "Useramulet2026!" });
   const [emailForm, setEmailForm] = useState({ subject: "", message: "" });
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
@@ -48,7 +48,7 @@ function CustomersPage() {
       await queryClient.invalidateQueries({ queryKey: ["admin", "customers"] });
       toast.success(t("done"));
       setOpen(false);
-      setForm({ name: "", email: "", password: "Useramulet2026" });
+      setForm({ name: "", email: "", phone: "", password: "Useramulet2026!" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("failed"));
     } finally {
@@ -129,6 +129,7 @@ function CustomersPage() {
                 <div className="grid gap-4 py-2">
                   <div className="space-y-2"><Label>{t("name")}</Label><Input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></div>
                   <div className="space-y-2"><Label>{t("email")}</Label><Input type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></div>
+                  <div className="space-y-2"><Label>{t("phone")}</Label><Input type="tel" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} /></div>
                   <div className="space-y-2"><Label>{t("password")}</Label><Input type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} /></div>
                 </div>
                 <DialogFooter>

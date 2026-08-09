@@ -5,6 +5,7 @@ import {
   createTelegramLink,
   disconnectTelegram,
   disconnectTelegramBot,
+  deleteTelegramAdminMessages,
   getTelegramBotAccount,
   getTelegramBotInvitation,
   getTelegramStatus,
@@ -55,6 +56,7 @@ router.get('/bot/admin/dashboard', botOnly, getTelegramAdminDashboard);
 router.get('/bot/admin/orders', botOnly, getTelegramAdminOrders);
 router.get('/bot/admin/orders/:orderId', botOnly, validateObjectId('orderId'), getTelegramAdminOrder);
 router.get('/bot/admin/messages', botOnly, getTelegramAdminMessages);
+router.delete('/bot/admin/messages', botOnly, deleteTelegramAdminMessages);
 router.get('/bot/admin/messages/:messageId', botOnly, validateObjectId('messageId'), getTelegramAdminMessage);
 router.post('/bot/admin/messages/:messageId/reply', botOnly, validateObjectId('messageId'), replyTelegramAdminMessage);
 

@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "project": {
+    "name": "e-invite-mern",
+    "productType": "digital invitation builder",
+    "stack": ["React", "Vite", "CSS", "Lucide React", "Framer Motion"]
+  },
+  "sources": {
+    "tokens": [],
+    "components": [],
+    "assets": [],
+    "instructions": []
+  },
+  "design": {
+    "colorMode": "light",
+    "colors": { "ink": "#181818", "paper": "#ffffff", "canvas": "#f5f5f4", "brand": "#d8b98e" },
+    "typography": {},
+    "spacing": {},
+    "radius": {},
+    "shadows": {},
+    "motion": {},
+    "density": "compact"
+  },
+  "components": {
+    "installed": [],
+    "preferredPrimitives": [],
+    "patterns": []
+  },
+  "constraints": {
+    "must": ["Mobile-first editing", "Real-time preview", "44px minimum touch targets", "Keyboard focus visibility", "Reduced-motion support"],
+    "avoid": ["Demo-only controls", "Nested horizontal scrolling", "Decorative gradients in editor chrome", "Duplicate checkout logic"]
+  },
+  "decisions": [
+    { "id": "invitation-studio-shell", "decision": "Adapt the supplied amulet-invite-studio editor architecture into the existing React 18 application with scoped CSS, a compact white rail/sidebar, real device frames, and a draggable bottom sheet on phones." },
+    { "id": "editor-data-model", "decision": "Keep one normalized invitation draft as the source of truth for content, typography, colors, buttons, gallery, RSVP configuration, music, undo/redo, private preview, and checkout." },
+    { "id": "reuse-commerce-flow", "decision": "Save through the private preview API and route every Buy action through the existing promo validation, Stripe checkout, and post-payment publication flow." }
+  ],
+  "evidence": [],
+  "generatedAt": "2026-08-08T17:53:38.161Z"
+}

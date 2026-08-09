@@ -3,8 +3,22 @@ import Stripe from 'stripe';
 import Invitation from '../models/Invitation.js';
 import InvitationDraft from '../models/InvitationDraft.js';
 import Order from '../models/Order.js';
+import PreviewSession from '../models/PreviewSession.js';
+import PromoCode from '../models/PromoCode.js';
 import Template from '../models/Template.js';
 import { notifyAdminsOfOrder } from '../utils/adminTelegram.js';
+import {
+  invitationCustomization,
+  isAllowedImage,
+  metadataText,
+  normalizeColors,
+  normalizeDraft,
+  normalizeMapLinks,
+  PUBLIC_DESIGN_KEYS,
+  uniqueImages
+} from '../utils/invitationDraft.js';
+import { hashPreviewToken } from '../utils/previewToken.js';
+import { normalizePromoCode, resolvePromo } from '../utils/promo.js';
 
 let stripeClient = null;
 
@@ -12,71 +26,6 @@ const getStripe = () => {
   if (!process.env.STRIPE_SECRET_KEY) return null;
   if (!stripeClient) stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY);
   return stripeClient;
-};
-
-const metadataText = (value, fallback = '', limit = 420) => {
-  const text = String(value || fallback || '').trim();
-  return text.slice(0, limit);
-};
-
-const uniqueImages = (images = []) => [...new Set(
-  images.filter((image) => typeof image === 'string' && image.trim())
-)];
-
-const isAllowedImage = (image) => /^(https?:\/\/|data:image\/|\/|asset:)/.test(image) && image.length < 2500000;
-const isHexColor = (value) => /^#[0-9a-f]{6}$/i.test(String(value || '').trim());
-const normalizeMapLinks = (source) => {
-  const links = Array.isArray(source?.mapLinks) ? source.mapLinks : [];
-  const normalized = links
-    .map((item, index) => ({
-      label: metadataText(item?.label, `Քարտեզ ${index + 1}`, 80),
-      time: metadataText(item?.time, '', 24),
-      address: metadataText(item?.address, '', 180),
-      url: metadataText(item?.url, '', 600)
-    }))
-    .filter((item) => item.label || item.time || item.address || /^(https?:\/\/)/.test(item.url));
-
-  const mapLink = metadataText(source?.mapLink, '', 600);
-  if (mapLink && /^(https?:\/\/)/.test(mapLink) && !normalized.some((item) => item.url === mapLink)) {
-    normalized.unshift({ label: 'Քարտեզ', url: mapLink });
-  }
-
-  return normalized.slice(0, 20);
-};
-
-const normalizeColors = (source = {}) => ({
-  accent: isHexColor(source.accent) ? source.accent : '#d8b98e',
-  text: isHexColor(source.text) ? source.text : '#ffffff',
-  overlay: isHexColor(source.overlay) ? source.overlay : '#202020'
-});
-
-const PUBLIC_DESIGN_KEYS = ['midnight-vows', 'baptism-blessing', 'engagement-serenade'];
-
-const normalizeDraft = (draft, template) => {
-  const source = draft && typeof draft === 'object' ? draft : {};
-  const sourceGallery = Array.isArray(source.gallery) ? source.gallery : [];
-  const templateImage = template.mainImage || template.gallery?.[0] || '';
-  const requestedImage = String(source.image || '').trim();
-  const image = isAllowedImage(requestedImage)
-    ? requestedImage
-    : (isAllowedImage(templateImage) ? templateImage : '');
-  const gallery = uniqueImages([image, ...sourceGallery, templateImage])
-    .filter(isAllowedImage)
-    .slice(0, 8);
-  const mapLinks = normalizeMapLinks(source);
-
-  return {
-    mainNames: metadataText(source.mainNames, template.title, 120),
-    eventDate: metadataText(source.eventDate, '', 32),
-    eventTime: metadataText(source.eventTime, '18:00', 24),
-    eventLocation: metadataText(source.eventLocation, 'Yerevan, Armenia', 180),
-    mapLink: mapLinks[0]?.url || '',
-    mapLinks,
-    eventMessage: metadataText(source.eventMessage, template.description, 420),
-    image,
-    gallery,
-    colors: normalizeColors(source.colors)
-  };
 };
 
 export const createCheckoutSession = asyncHandler(async (req, res) => {
@@ -97,8 +46,28 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
     throw new Error('Template is not active');
   }
 
-  const draft = normalizeDraft(req.body.draft, template);
-  const checkoutDraft = await InvitationDraft.create({
+  const preview = req.body.previewToken
+    ? await PreviewSession.findOne({
+      tokenHash: hashPreviewToken(req.body.previewToken),
+      userId: req.user._id,
+      templateId: template._id,
+      isPurchased: false,
+      expiresAt: { $gt: new Date() }
+    }).select('+tokenHash')
+    : null;
+  if (req.body.previewToken && !preview) {
+    res.status(403);
+    throw new Error('Preview is not available');
+  }
+
+  const draft = preview?.data || normalizeDraft(req.body.draft, template);
+  const promoResult = req.body.promoCode ? await resolvePromo(req.body.promoCode, template.price) : null;
+  if (req.body.promoCode && !promoResult) {
+    res.status(400);
+    throw new Error('Promo code is invalid or expired');
+  }
+  const checkoutAmount = promoResult?.finalAmount ?? Number(template.price);
+  const checkoutDraft = preview ? null : await InvitationDraft.create({
     userId: req.user._id,
     templateId: template._id,
     data: draft,
@@ -113,7 +82,7 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
         quantity: 1,
         price_data: {
           currency: 'amd',
-          unit_amount: Math.round(Number(template.price) * 100),
+          unit_amount: Math.round(checkoutAmount * 100),
           product_data: {
             name: template.title,
             description: template.description,
@@ -125,12 +94,17 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
     metadata: {
       templateId: String(template._id),
       userId: String(req.user._id),
-      draftId: String(checkoutDraft._id),
+      draftId: checkoutDraft ? String(checkoutDraft._id) : '',
+      previewSessionId: preview ? String(preview._id) : '',
       mainNames: draft.mainNames,
       eventDate: draft.eventDate,
       eventTime: draft.eventTime,
       eventLocation: draft.eventLocation,
-      eventMessage: draft.eventMessage
+      eventMessage: draft.eventMessage,
+      promoCode: promoResult?.code || '',
+      promoGift: promoResult?.promo.giftLabel || '',
+      originalAmount: String(Number(template.price) || 0),
+      discountAmount: String(promoResult?.discountAmount || 0)
     },
     customer_email: req.user.email,
     success_url: `${clientUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
@@ -200,7 +174,14 @@ export const confirmCheckoutSession = asyncHandler(async (req, res) => {
       templateId: template._id
     })
     : null;
-  const draftData = checkoutDraft?.data || {};
+  const preview = session.metadata?.previewSessionId
+    ? await PreviewSession.findOne({
+      _id: session.metadata.previewSessionId,
+      userId: req.user._id,
+      templateId: template._id
+    }).select('+tokenHash')
+    : null;
+  const draftData = preview?.data || checkoutDraft?.data || {};
 
   const fallbackDate = new Date();
   fallbackDate.setMonth(fallbackDate.getMonth() + 1);
@@ -223,6 +204,7 @@ export const confirmCheckoutSession = asyncHandler(async (req, res) => {
   ]).filter(isAllowedImage).slice(0, 8);
 
   const order = await Order.create({
+    userId: req.user._id,
     fullName: req.user.name || req.user.email,
     phone: 'Pending',
     email: req.user.email,
@@ -237,7 +219,11 @@ export const confirmCheckoutSession = asyncHandler(async (req, res) => {
     eventMessage,
     colors,
     preferredLanguage: 'hy',
-    amount: template.price,
+    amount: Number(session.amount_total || 0) / 100,
+    originalAmount: Number(session.metadata?.originalAmount) || Number(template.price) || 0,
+    discountAmount: Number(session.metadata?.discountAmount) || 0,
+    promoCode: normalizePromoCode(session.metadata?.promoCode),
+    promoGift: metadataText(session.metadata?.promoGift, '', 120),
     paymentStatus: 'paid',
     stripeSessionId: session.id,
     status: 'new'
@@ -258,12 +244,22 @@ export const confirmCheckoutSession = asyncHandler(async (req, res) => {
     gallery,
     colors,
     language: 'hy',
+    customization: invitationCustomization(draftData),
     isPublished: true
   });
 
   order.invitationId = invitation._id;
   await order.save();
   if (checkoutDraft) await InvitationDraft.deleteOne({ _id: checkoutDraft._id });
+  if (preview) {
+    preview.invitationId = invitation._id;
+    preview.isPurchased = true;
+    preview.expiresAt = undefined;
+    await preview.save();
+  }
+  if (order.promoCode) {
+    await PromoCode.updateOne({ code: order.promoCode }, { $inc: { usageCount: 1 } });
+  }
   await order.populate('templateId invitationId');
 
   const notification = await notifyAdminsOfOrder(order, { paidPurchase: true });

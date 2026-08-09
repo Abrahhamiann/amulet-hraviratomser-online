@@ -1,6 +1,7 @@
 import React from 'react';
 import { Quote } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import api from '../../api/axios.js';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 
 const hyTexts = [
@@ -501,9 +502,30 @@ function ReviewCard({ item, onPause, onResume }) {
 export default function TestimonialV2() {
   const { language, t } = useLanguage();
   const [paused, setPaused] = useState(false);
-  const testimonials = makeTestimonials(language);
-  const firstRow = testimonials.slice(0, 25);
-  const secondRow = testimonials.slice(25);
+  const [publishedReviews, setPublishedReviews] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    api.get(`/reviews/public?language=${encodeURIComponent(language)}`)
+      .then(({ data }) => {
+        if (!active) return;
+        setPublishedReviews(data.map((item) => ({
+          id: item._id,
+          name: item.customer,
+          text: item.text,
+          rating: item.rating
+        })));
+      })
+      .catch(() => {
+        if (active) setPublishedReviews(null);
+      });
+    return () => { active = false; };
+  }, [language]);
+
+  const testimonials = publishedReviews ?? makeTestimonials(language);
+  const midpoint = Math.ceil(testimonials.length / 2);
+  const firstRow = testimonials.slice(0, midpoint);
+  const secondRow = testimonials.slice(midpoint);
 
   const pauseForPointer = (event) => {
     if (event.pointerType === 'mouse' || event.pointerType === 'touch' || event.pointerType === 'pen') setPaused(true);
@@ -512,6 +534,8 @@ export default function TestimonialV2() {
   const resumeForPointer = (event) => {
     if (event.pointerType === 'mouse' || event.pointerType === 'touch' || event.pointerType === 'pen') setPaused(false);
   };
+
+  if (!testimonials.length) return null;
 
   return (
     <section

@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { deleteTelegramAdminMessages } from '../controllers/telegramController.js';
+import ContactMessage from '../models/ContactMessage.js';
 import { notifyAdminsOfOrder, notifyAdminsOfUnansweredContactMessage } from '../utils/adminTelegram.js';
 import { getTelegramAdminChatIds, isTelegramAdmin } from '../utils/telegram.js';
 
@@ -10,6 +12,7 @@ const ORIGINAL_ENV = {
   token: process.env.TELEGRAM_BOT_TOKEN
 };
 const ORIGINAL_FETCH = global.fetch;
+const ORIGINAL_DELETE_MANY = ContactMessage.deleteMany;
 
 const restoreEnv = (key, value) => {
   if (value === undefined) delete process.env[key];
@@ -22,6 +25,36 @@ test.afterEach(() => {
   restoreEnv('TELEGRAM_ADMIN_2_ID', ORIGINAL_ENV.second);
   restoreEnv('TELEGRAM_BOT_TOKEN', ORIGINAL_ENV.token);
   global.fetch = ORIGINAL_FETCH;
+  ContactMessage.deleteMany = ORIGINAL_DELETE_MANY;
+});
+
+test('deletes every contact message from MongoDB for a Telegram administrator', async () => {
+  process.env.TELEGRAM_ADMIN_CHAT_IDS = '111';
+  let receivedFilter;
+  ContactMessage.deleteMany = async (filter) => {
+    receivedFilter = filter;
+    return { deletedCount: 7 };
+  };
+  let payload;
+  const response = {
+    status() { return this; },
+    json(value) {
+      payload = value;
+      return this;
+    }
+  };
+
+  await deleteTelegramAdminMessages(
+    { body: { chatId: '111' } },
+    response,
+    (error) => { throw error; }
+  );
+
+  assert.deepEqual(receivedFilter, {});
+  assert.deepEqual(payload, {
+    message: 'Contact messages deleted',
+    deleted: 7
+  });
 });
 
 test('normalizes, validates, and deduplicates configured Telegram admin IDs', () => {

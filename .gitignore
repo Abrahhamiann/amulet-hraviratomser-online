@@ -29,6 +29,7 @@ Thumbs.db
 .idea/
 .agents/
 .codex/
+.imports/
 
 uploads/
 tmp/

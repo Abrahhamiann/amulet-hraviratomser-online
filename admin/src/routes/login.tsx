@@ -1,12 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Eye, EyeOff, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { login } from "@/lib/api";
+import { adminApi, clearToken, login } from "@/lib/api";
 import { useAdminI18n, type AdminLang } from "@/lib/i18n";
 import {
   DropdownMenu,
@@ -29,6 +29,16 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    clearToken();
+    adminApi
+      .me()
+      .then((user) => {
+        if (["admin", "super_admin"].includes(user.role)) nav({ to: "/admin", replace: true });
+      })
+      .catch(() => undefined);
+  }, [nav]);
+
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
@@ -36,7 +46,7 @@ function LoginPage() {
 
     try {
       await login(email, password);
-      nav({ to: "/admin" });
+      nav({ to: "/admin", replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : t("signInFailed"));
     } finally {
@@ -54,15 +64,17 @@ function LoginPage() {
           <div className="font-display text-2xl">Amulet</div>
         </div>
         <div className="relative z-10">
-          <div className="text-[10px] uppercase tracking-[0.28em] opacity-80">{t("adminPanel")}</div>
+          <div className="text-[10px] uppercase tracking-[0.28em] opacity-80">
+            {t("adminPanel")}
+          </div>
           <h1 className="font-display text-5xl leading-tight mt-4 max-w-md">
             {t("marketingHeadline")}
           </h1>
-          <p className="mt-4 max-w-md text-white/85">
-            {t("marketingBody")}
-          </p>
+          <p className="mt-4 max-w-md text-white/85">{t("marketingBody")}</p>
         </div>
-        <div className="text-xs text-white/70">© {new Date().getFullYear()} Amulet. {t("rightsReserved")}</div>
+        <div className="text-xs text-white/70">
+          © {new Date().getFullYear()} Amulet. {t("rightsReserved")}
+        </div>
       </div>
 
       <div className="flex items-center justify-center p-6 md:p-12">
@@ -79,14 +91,20 @@ function LoginPage() {
               <p className="text-sm text-muted-foreground mt-1">{t("signInSubtitle")}</p>
             </div>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild><Button variant="outline" size="sm">{lang.toUpperCase()}</Button></DropdownMenuTrigger>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  {lang.toUpperCase()}
+                </Button>
+              </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {[
                   ["hy", "Հայերեն"],
                   ["ru", "Русский"],
                   ["en", "English"],
                 ].map(([code, label]) => (
-                  <DropdownMenuItem key={code} onClick={() => setLang(code as AdminLang)}>{label}</DropdownMenuItem>
+                  <DropdownMenuItem key={code} onClick={() => setLang(code as AdminLang)}>
+                    {label}
+                  </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
@@ -95,12 +113,21 @@ function LoginPage() {
           <form onSubmit={submit} className="mt-8 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">{t("email")}</Label>
-              <Input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">{t("password")}</Label>
-                <Link to="/forgot-password" className="text-xs text-[color:var(--gold)] hover:underline">
+                <Link
+                  to="/forgot-password"
+                  className="text-xs text-[color:var(--gold)] hover:underline"
+                >
                   {t("forgotPassword")}
                 </Link>
               </div>
@@ -130,7 +157,11 @@ function LoginPage() {
                 {error}
               </div>
             )}
-            <Button type="submit" disabled={loading} className="w-full gold-gradient border-0 text-white h-11 rounded-xl">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full gold-gradient border-0 text-white h-11 rounded-xl"
+            >
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("signingIn")}
@@ -141,9 +172,7 @@ function LoginPage() {
             </Button>
           </form>
 
-          <p className="text-xs text-center text-muted-foreground mt-6">
-            {t("sessionSecurity")}
-          </p>
+          <p className="text-xs text-center text-muted-foreground mt-6">{t("sessionSecurity")}</p>
         </Card>
       </div>
     </div>

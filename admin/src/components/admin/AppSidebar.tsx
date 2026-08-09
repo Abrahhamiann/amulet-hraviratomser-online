@@ -1,15 +1,34 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, FileText, LayoutTemplate, ShoppingBag, Users, CreditCard,
-  MessageSquare, Bell, ShieldCheck,
-  LogOut, MessageCircleQuestion, Sparkles,
+  LayoutDashboard,
+  FileText,
+  LayoutTemplate,
+  ShoppingBag,
+  Users,
+  CreditCard,
+  MessageSquare,
+  Bell,
+  ShieldCheck,
+  LogOut,
+  MessageCircleQuestion,
+  Sparkles,
+  TicketPercent,
+  Star,
 } from "lucide-react";
 import {
-  Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
-  SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { clearToken } from "@/lib/api";
+import { logout } from "@/lib/api";
 import { useAdminI18n } from "@/lib/i18n";
 
 const mainNav = [
@@ -19,6 +38,8 @@ const mainNav = [
   { title: "orders", url: "/admin/orders", icon: ShoppingBag },
   { title: "customers", url: "/admin/customers", icon: Users },
   { title: "payments", url: "/admin/payments", icon: CreditCard },
+  { title: "reviews", url: "/admin/reviews", icon: Star },
+  { title: "promocodes", url: "/admin/promocodes", icon: TicketPercent },
   { title: "messages", url: "/admin/messages", icon: MessageSquare },
 ];
 
@@ -99,7 +120,14 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="hover:bg-destructive/10 hover:text-destructive">
-              <Link to="/login" onClick={clearToken} className="flex items-center gap-3">
+              <Link
+                to="/login"
+                onClick={(event) => {
+                  event.preventDefault();
+                  void logout().finally(() => window.location.replace("/login"));
+                }}
+                className="flex items-center gap-3"
+              >
                 <LogOut className="h-4 w-4 shrink-0" />
                 {!collapsed && <span>{t("logout")}</span>}
               </Link>

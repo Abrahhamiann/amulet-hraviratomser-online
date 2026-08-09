@@ -24,3 +24,4 @@ export const useMessages = () => useAdminData("messages", adminApi.messages, [])
 export const useAdministrators = () => useAdminData("administrators", adminApi.administrators, []);
 export const useNotifications = () => useAdminData("notifications", adminApi.notifications, []);
 export const useFaq = () => useAdminData("faq", adminApi.faq, { items: [] });
+export const useReviews = () => useAdminData("reviews", adminApi.reviews, []);

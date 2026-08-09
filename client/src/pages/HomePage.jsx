@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageCircle, Pencil, Phone, PhoneCall, Search, Send, Share2, Sparkles, X } from 'lucide-react';
+import { Pencil, Search, Share2, Sparkles } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import baptismChurch from '../assets/morph/baptism-church.webp';
@@ -15,7 +15,6 @@ import FAQItem from '../components/FAQItem.jsx';
 import TestimonialV2 from '../components/ui/TestimonialV2.jsx';
 import CircularTestimonials from '../components/ui/CircularTestimonials.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { CONTACT_PHONE_DIGITS, CONTACT_PHONE_E164, CONTACT_TELEGRAM_URL } from '../data/contact.js';
 
 const occasionLinks = [
   { category: 'wedding', image: weddingTemple },
@@ -77,7 +76,6 @@ function getYouTubeEmbedUrl(rawUrl) {
 export default function HomePage() {
   const { language, t } = useLanguage();
   const creationFlowRef = useRef(null);
-  const [socialsOpen, setSocialsOpen] = useState(false);
   const [activeFaqIndex, setActiveFaqIndex] = useState(null);
   const [activeEventIndex, setActiveEventIndex] = useState(0);
 
@@ -137,10 +135,6 @@ export default function HomePage() {
   }));
   const activeEventCategory = eventTestimonials[activeEventIndex]?.category || '';
   const activeInvitationPath = activeEventCategory ? `/templates?category=${activeEventCategory}` : '/templates';
-
-  const toggleSocials = () => {
-    setSocialsOpen((current) => !current);
-  };
 
   return (
     <>
@@ -257,19 +251,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <div className={socialsOpen ? 'floating-help expanded' : 'floating-help'} aria-label="Quick contact buttons">
-        {socialsOpen && (
-          <>
-            <a href={`tel:${CONTACT_PHONE_E164}`} aria-label={`Call Amulet ${CONTACT_PHONE_E164}`}><PhoneCall size={23} /></a>
-            <a href={`viber://chat?number=${encodeURIComponent(CONTACT_PHONE_E164)}`} aria-label={`Viber ${CONTACT_PHONE_E164}`}><Phone size={23} /></a>
-            <a href={`https://wa.me/${CONTACT_PHONE_DIGITS}`} target="_blank" rel="noreferrer" aria-label={`WhatsApp ${CONTACT_PHONE_E164}`}><MessageCircle size={24} /></a>
-            <a href={CONTACT_TELEGRAM_URL} target="_blank" rel="noreferrer" aria-label="Telegram @amulet_invitiations"><Send size={23} /></a>
-          </>
-        )}
-        <button className="floating-chat" type="button" onClick={toggleSocials} aria-label="Open social links" aria-expanded={socialsOpen}>
-          {socialsOpen ? <X size={24} /> : <MessageCircle size={25} />}
-        </button>
-      </div>
     </>
   );
 }

@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 
 const orderSchema = new mongoose.Schema(
   {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null, index: true },
+    requestType: { type: String, enum: ['standard', 'custom_design'], default: 'standard' },
     fullName: { type: String, required: true },
     phone: { type: String, required: true },
     email: { type: String, required: true },
@@ -26,7 +28,13 @@ const orderSchema = new mongoose.Schema(
     },
     preferredLanguage: { type: String, default: 'hy' },
     notes: { type: String, default: '' },
+    inspirationLink: { type: String, default: '' },
+    budgetRange: { type: String, default: '' },
     amount: { type: Number, default: 0 },
+    originalAmount: { type: Number, default: 0 },
+    discountAmount: { type: Number, default: 0 },
+    promoCode: { type: String, default: '' },
+    promoGift: { type: String, default: '' },
     paymentStatus: {
       type: String,
       enum: ['unpaid', 'paid', 'refunded'],

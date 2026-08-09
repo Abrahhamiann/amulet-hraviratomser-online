@@ -3,12 +3,14 @@ import ContactMessage from '../models/ContactMessage.js';
 import Invitation from '../models/Invitation.js';
 import Order from '../models/Order.js';
 import RSVP from '../models/RSVP.js';
+import Review from '../models/Review.js';
 import Setting from '../models/Setting.js';
 import Template from '../models/Template.js';
 import User from '../models/User.js';
 import { emailShell, sendMail } from '../utils/mailer.js';
 import { deliverContactReply } from '../utils/contactReply.js';
 import { makeSlug } from '../utils/slug.js';
+import { normalizePhone } from '../utils/accountValidation.js';
 
 const categoryLabels = {
   wedding: 'Wedding',
@@ -20,8 +22,12 @@ const categoryLabels = {
 
 const adminRoles = ['admin', 'super_admin'];
 const userRoles = ['user', ...adminRoles];
-const DEFAULT_DESIGN_KEY = 'midnight-vows';
-const PUBLIC_DESIGN_KEYS = ['midnight-vows', 'baptism-blessing', 'engagement-serenade'];
+const DEFAULT_DESIGN_KEY = 'ivory-vows';
+const PUBLIC_DESIGN_KEYS = [
+  'sacred-beginnings',
+  'birthday-sparkle',
+  'ivory-vows'
+];
 const FAQ_SETTING_KEY = 'faqItems';
 const DEFAULT_FAQ_ITEMS = [
   {
@@ -129,6 +135,7 @@ const mapOrder = (order) => ({
   customer: order.fullName,
   email: order.email,
   phone: order.phone,
+  requestType: order.requestType || (order.templateId ? 'standard' : 'custom_design'),
   invitation: order.mainNames,
   eventType: order.eventType,
   template: order.templateId?.title || '',
@@ -142,7 +149,9 @@ const mapOrder = (order) => ({
   mapLink: order.mapLink,
   eventMessage: order.eventMessage,
   preferredLanguage: order.preferredLanguage,
-  notes: order.notes
+  notes: order.notes,
+  inspirationLink: order.inspirationLink,
+  budgetRange: order.budgetRange
 });
 
 const mapTemplate = (template, usage = 0) => ({
@@ -181,7 +190,7 @@ const mapInvitation = (invitation) => ({
   createdAt: invitation.createdAt
 });
 
-const buildNotifications = ({ orders, messages, invitations }) => {
+const buildNotifications = ({ orders, messages, invitations, reviews = [] }) => {
   const orderItems = orders.slice(0, 4).map((order) => ({
     id: `order-${order._id}`,
     customer: order.fullName,
@@ -206,7 +215,17 @@ const buildNotifications = ({ orders, messages, invitations }) => {
     read: invitation.isPublished,
     type: 'invitation'
   }));
-  return [...messageItems, ...orderItems, ...invitationItems]
+  const reviewItems = reviews.slice(0, 6).map((review) => ({
+    id: `review-${review._id}`,
+    customer: review.customer,
+    invitation: review.target,
+    message: review.text,
+    rating: review.rating,
+    time: review.createdAt,
+    read: review.status !== 'pending',
+    type: 'review'
+  }));
+  return [...reviewItems, ...messageItems, ...orderItems, ...invitationItems]
     .sort((a, b) => new Date(b.time) - new Date(a.time))
     .slice(0, 10);
 };
@@ -237,13 +256,14 @@ export const getPublicFaq = asyncHandler(async (req, res) => {
 
 export const getAdminDashboard = asyncHandler(async (req, res) => {
   const period = ['today', 'week', 'year', 'all'].includes(req.query.period) ? req.query.period : 'all';
-  const [templates, orders, invitations, rsvps, messages, users] = await Promise.all([
+  const [templates, orders, invitations, rsvps, messages, users, reviews] = await Promise.all([
     Template.find({ designKey: { $in: PUBLIC_DESIGN_KEYS } }).sort({ createdAt: -1 }),
     Order.find().populate('templateId').sort({ createdAt: -1 }),
     Invitation.find().populate('orderId templateId').sort({ createdAt: -1 }),
     RSVP.find().sort({ createdAt: -1 }),
     ContactMessage.find().sort({ createdAt: -1 }),
-    User.find({ role: 'user' }).sort({ createdAt: -1 })
+    User.find({ role: 'user' }).sort({ createdAt: -1 }),
+    Review.find().sort({ createdAt: -1 }).limit(12)
   ]);
   const periodOrders = filterByPeriod(orders, period);
   const periodInvitations = filterByPeriod(invitations, period);
@@ -293,7 +313,7 @@ export const getAdminDashboard = asyncHandler(async (req, res) => {
       .map((template) => mapTemplate(template, templateUsage.get(String(template._id)) || 0))
       .sort((a, b) => b.usage - a.usage)
       .slice(0, 5),
-    notifications: buildNotifications({ orders: periodOrders, messages: periodMessages, invitations: periodInvitations })
+    notifications: buildNotifications({ orders: periodOrders, messages: periodMessages, invitations: periodInvitations, reviews })
   });
 });
 
@@ -335,7 +355,7 @@ export const getAdminCustomers = asyncHandler(async (req, res) => {
       email: user.email,
       provider: user.provider,
       googleId: user.googleId,
-      phone: userOrders[0]?.phone || '',
+      phone: user.phone || userOrders[0]?.phone || '',
       joined: user.createdAt,
       orders: userOrders.length,
       spent,
@@ -366,7 +386,7 @@ export const getAdminCustomer = asyncHandler(async (req, res) => {
     isEmailVerified: user.isEmailVerified,
     joined: user.createdAt,
     lastActive: user.updatedAt,
-    phone: orders[0]?.phone || '',
+    phone: user.phone || orders[0]?.phone || '',
     orders: orders.map(mapOrder),
     invitations: invitations.map(mapInvitation),
     spent: orders.reduce((sum, order) => sum + orderAmount(order), 0)
@@ -415,12 +435,13 @@ export const getAdminAdministrators = asyncHandler(async (req, res) => {
 });
 
 export const getAdminNotifications = asyncHandler(async (req, res) => {
-  const [orders, messages, invitations] = await Promise.all([
+  const [orders, messages, invitations, reviews] = await Promise.all([
     Order.find().sort({ createdAt: -1 }).limit(10),
     ContactMessage.find().sort({ createdAt: -1 }).limit(10),
-    Invitation.find().sort({ createdAt: -1 }).limit(10)
+    Invitation.find().sort({ createdAt: -1 }).limit(10),
+    Review.find().sort({ createdAt: -1 }).limit(10)
   ]);
-  res.json(buildNotifications({ orders, messages, invitations }));
+  res.json(buildNotifications({ orders, messages, invitations, reviews }));
 });
 
 export const getAdminFaq = asyncHandler(async (req, res) => {
@@ -584,7 +605,7 @@ export const replyAdminMessage = asyncHandler(async (req, res) => {
 });
 
 export const createAdminUser = asyncHandler(async (req, res) => {
-  const { name, email, password = 'Adminamulet2026', role = 'user' } = req.body;
+  const { name, email, phone, password = 'Adminamulet2026!', role = 'user' } = req.body;
   if (!name || !email) {
     res.status(400);
     throw new Error('Name and email are required');
@@ -604,6 +625,7 @@ export const createAdminUser = asyncHandler(async (req, res) => {
   const user = await User.create({
     name,
     email,
+    ...(normalizePhone(phone) ? { phone: normalizePhone(phone) } : {}),
     password,
     role,
     provider: 'local',

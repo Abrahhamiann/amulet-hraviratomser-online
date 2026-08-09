@@ -25,6 +25,7 @@ const invitationSchema = new mongoose.Schema(
       overlay: { type: String, default: '#202020' }
     },
     language: { type: String, default: 'hy' },
+    customization: { type: mongoose.Schema.Types.Mixed, default: {} },
     isPublished: { type: Boolean, default: false }
   },
   { timestamps: true }

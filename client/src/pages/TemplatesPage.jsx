@@ -1,6 +1,5 @@
 import React from 'react';
-import { ArrowRight, ChevronDown, Palette, Search, Sparkles } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ChevronDown, Search, Sparkles } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../api/axios.js';
@@ -155,16 +154,6 @@ export default function TemplatesPage() {
           )}
         </div>
       </div>
-
-      <aside className="custom-design-cta" aria-labelledby="custom-design-title">
-        <div className="custom-design-cta-icon"><Palette size={27} /></div>
-        <div>
-          <span>{t('customDesignCtaKicker')}</span>
-          <h2 id="custom-design-title">{t('customDesignCtaTitle')}</h2>
-          <p>{t('customDesignCtaText')}</p>
-        </div>
-        <Link className="custom-design-cta-button" to="/order?custom=1">{t('customDesignCtaButton')}<ArrowRight size={18} /></Link>
-      </aside>
 
       {state === 'loading' && <Loading text={t('loading')} />}
       {state === 'error' && <ErrorState text={t('error')} />}

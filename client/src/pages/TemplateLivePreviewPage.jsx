@@ -19,7 +19,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import api from '../api/axios.js';
 import ErrorState from '../components/ErrorState.jsx';
-import InvitationEditor from '../components/invitationEditor/InvitationEditor.jsx';
+import InvitationEditor, { decoratePreview } from '../components/invitationEditor/InvitationEditor.jsx';
 import Loading from '../components/Loading.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
@@ -58,7 +58,7 @@ const createInitialDraft = (template) => {
   const occasionTemplate = getOccasionTemplate(template);
   if (occasionTemplate?.getInitialDraft) {
     const draft = occasionTemplate.getInitialDraft(template);
-    const isBaptismTemplate = occasionTemplate.key === 'baptism-blessing';
+    const isBaptismTemplate = occasionTemplate.key === 'sacred-beginnings';
     const gallery = isBaptismTemplate ? withoutEnvelopeImages(draft.gallery || []) : (draft.gallery || []);
     const image = isBaptismTemplate && isEnvelopeImage(resolveTemplateImage(draft.image)) ? (gallery[0] || '') : draft.image;
     return {
@@ -198,6 +198,7 @@ export default function TemplateLivePreviewPage() {
   const [draft, setDraft] = useState(null);
   const [isEdited, setIsEdited] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [editorInitialTarget, setEditorInitialTarget] = useState({});
   const [editRequiredOpen, setEditRequiredOpen] = useState(false);
   const [state, setState] = useState('loading');
   const [checkoutState, setCheckoutState] = useState('idle');
@@ -208,6 +209,7 @@ export default function TemplateLivePreviewPage() {
   const [promoChecking, setPromoChecking] = useState(false);
   const autoEditorOpenedRef = useRef(false);
   const autoBuyOpenedRef = useRef(false);
+  const livePreviewRootRef = useRef(null);
 
   useEffect(() => {
     const request = previewToken ? api.get(`/previews/${previewToken}`) : api.get(`/templates/${id}`);
@@ -245,6 +247,65 @@ export default function TemplateLivePreviewPage() {
       setPromoOpen(true);
     }
   }, [state, draft, searchParams]);
+
+  useEffect(() => {
+    const root = livePreviewRootRef.current;
+    if (!root || state !== 'ready' || !draft || editing) return undefined;
+
+    const eventRoots = new Set();
+    const activateEditorTarget = (event) => {
+      if (event.amuletEditorHandled) return;
+      const path = event.composedPath();
+      const target = path.find((node) => ['map', 'image'].includes(node?.dataset?.editorKind))
+        || path.find((node) => node?.dataset?.editorKind);
+      if (!target) return;
+      event.amuletEditorHandled = true;
+      event.preventDefault();
+      event.stopPropagation();
+      setEditorInitialTarget({
+        section: target.dataset.editorSection || (target.dataset.editorKind === 'image' ? 'media' : 'hero'),
+        field: target.dataset.editorField || '',
+        targetTab: target.dataset.editorTab || (target.dataset.editorKind === 'image' ? 'media' : 'content')
+      });
+      setEditing(true);
+    };
+    const activateEditorTargetFromKeyboard = (event) => {
+      if (!['Enter', ' '].includes(event.key)) return;
+      activateEditorTarget(event);
+    };
+    const registerEventRoots = () => {
+      const queue = [root];
+      for (let index = 0; index < queue.length; index += 1) {
+        const scope = queue[index];
+        if (!eventRoots.has(scope)) {
+          scope.addEventListener('click', activateEditorTarget, true);
+          scope.addEventListener('keydown', activateEditorTargetFromKeyboard, true);
+          eventRoots.add(scope);
+        }
+        scope.querySelectorAll?.('*').forEach((element) => {
+          if (element.shadowRoot && !queue.includes(element.shadowRoot)) queue.push(element.shadowRoot);
+        });
+      }
+    };
+    const decorate = () => {
+      decoratePreview(root, draft);
+      registerEventRoots();
+    };
+    const frame = window.requestAnimationFrame(decorate);
+    const timers = [120, 420, 900].map((delay) => window.setTimeout(decorate, delay));
+    const observer = new MutationObserver(decorate);
+    observer.observe(root, { childList: true, subtree: true, characterData: true });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      timers.forEach((timer) => window.clearTimeout(timer));
+      observer.disconnect();
+      eventRoots.forEach((scope) => {
+        scope.removeEventListener('click', activateEditorTarget, true);
+        scope.removeEventListener('keydown', activateEditorTargetFromKeyboard, true);
+      });
+    };
+  }, [draft, editing, state]);
 
   const cleanDraft = (sourceDraft = draft) => {
     const cleanGallery = uniqueImages([sourceDraft.image, ...(sourceDraft.gallery || [])])
@@ -311,7 +372,11 @@ export default function TemplateLivePreviewPage() {
     }
   };
 
-  const openEditor = () => {
+  const openEditor = (target = {}) => {
+    const isEditorTarget = target && typeof target === 'object' && (
+      Object.hasOwn(target, 'section') || Object.hasOwn(target, 'field') || Object.hasOwn(target, 'targetTab')
+    );
+    setEditorInitialTarget(isEditorTarget ? target : {});
     setEditing(true);
   };
 
@@ -376,12 +441,15 @@ export default function TemplateLivePreviewPage() {
 
   const occasionTemplate = getOccasionTemplate(template);
   const LivePreview = occasionTemplate?.LivePreview;
-  const isSingleImageTemplate = occasionTemplate?.key === 'midnight-vows';
+  const isSingleImageTemplate = false;
   const image = resolveTemplateImage(draft?.image || template.mainImage || template.gallery?.[0]);
   const formattedDate = draft?.eventDate ? new Date(draft.eventDate).toLocaleDateString() : previewDate.toLocaleDateString();
 
   return (
-    <main className={LivePreview ? 'template-live-page test-wedding-page' : 'template-live-page'}>
+    <main
+      ref={livePreviewRootRef}
+      className={`${LivePreview ? 'template-live-page test-wedding-page' : 'template-live-page'}${editing ? ' is-editing' : ''}`}
+    >
       {LivePreview ? (
         <>
           <LivePreview
@@ -511,6 +579,7 @@ export default function TemplateLivePreviewPage() {
         <InvitationEditor
           key={template._id}
           draft={draft}
+          initialTarget={editorInitialTarget}
           template={template}
           PreviewComponent={LivePreview}
           isSingleImageTemplate={isSingleImageTemplate}

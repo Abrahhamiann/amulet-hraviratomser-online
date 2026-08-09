@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Eye, ShoppingBag, X } from 'lucide-react';
+import { Eye, Pencil, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
 import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
+import { getTemplatePagePreview } from '../occasionTemplates/templatePagePreviews.js';
 
 export default function TemplateCard({ template }) {
   const { t } = useLanguage();
@@ -17,6 +18,7 @@ export default function TemplateCard({ template }) {
   const zoom = Number.isFinite(Number(imagePosition.zoom)) ? Math.min(2, Math.max(1, Number(imagePosition.zoom))) : 1;
   const objectPosition = `${x}% ${y}%`;
   const mainImage = resolveTemplateImage(template.mainImage);
+  const pagePreview = getTemplatePagePreview(template);
   const previewPath = `/templates/${template._id}/live`;
   const previewUrl = useMemo(() => {
     if (typeof window === 'undefined') return previewPath;
@@ -59,7 +61,16 @@ export default function TemplateCard({ template }) {
       aria-label={`${template.title}. ${t('scanQr')}`}
     >
       <div className="template-image catalog-template-preview">
-        {mainImage ? (
+        {pagePreview ? (
+          <img
+            className="catalog-template-scroll-shot"
+            src={pagePreview}
+            alt={`${template.title} — ամբողջական էջ`}
+            width="630"
+            height="16384"
+            loading="lazy"
+          />
+        ) : mainImage ? (
           <img
             src={mainImage}
             alt={template.title}
@@ -88,7 +99,9 @@ export default function TemplateCard({ template }) {
               <X size={22} />
             </button>
             <div className="template-qr-preview">
-              {mainImage ? (
+              {pagePreview ? (
+                <img className="template-qr-auto-scroll" src={pagePreview} alt={`${template.title} — ամբողջական էջ`} width="630" height="16384" />
+              ) : mainImage ? (
                 <img src={mainImage} alt={template.title} />
               ) : CardPreview ? (
                 <CardPreview template={template} />
@@ -114,8 +127,8 @@ export default function TemplateCard({ template }) {
               </div>
               <div className="template-qr-actions">
                 <Link className="btn btn-primary" to={`/templates/${template._id}/live?edit=1`} onClick={closeQr}>
-                  <ShoppingBag size={17} />
-                  {t('chooseTemplate')}
+                  <Pencil size={17} />
+                  {t('edit')}
                 </Link>
                 <a className="btn btn-ghost" href={previewPath} target="_blank" rel="noreferrer">
                   <Eye size={17} />

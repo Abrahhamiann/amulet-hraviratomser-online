@@ -233,6 +233,29 @@
 .invite-editor-color-grid label { display: grid; justify-items: center; gap: 5px; padding: 7px 3px; border: 1px solid #ece9e4; border-radius: 9px; font-size: .61rem; }
 .invite-editor-color-grid input { width: 48px; height: 30px; padding: 0; border: 0; background: transparent; }
 .invite-editor-color-grid code { color: #847e77; font-size: .55rem; }
+.invite-editor-palette-list { display: grid; gap: 8px; }
+.invite-editor-palette-list > button {
+  min-height: 62px;
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid var(--editor-line);
+  border-radius: 11px;
+  background: #fff;
+  color: var(--editor-ink);
+  text-align: left;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.invite-editor-palette-list > button:hover { border-color: #c9b28f; background: #fdfbf8; }
+.invite-editor-palette-list > button.is-active { border-color: var(--editor-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--editor-accent) 18%, transparent); }
+.invite-editor-palette-list > button > span:nth-child(2) { min-width: 0; display: grid; gap: 2px; }
+.invite-editor-palette-list strong { overflow: hidden; font-size: .7rem; text-overflow: ellipsis; white-space: nowrap; }
+.invite-editor-palette-list small { color: var(--editor-muted); font-size: .59rem; }
+.invite-editor-palette-swatches { height: 42px; display: flex; overflow: hidden; border: 1px solid #e3dfd8; border-radius: 9px; }
+.invite-editor-palette-swatches i { flex: 1; }
+.invite-editor-palette-check { width: 23px; height: 23px; display: grid; place-items: center; border-radius: 50%; background: var(--editor-ink); color: #fff; }
 .invite-editor-preset-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .invite-editor-preset-grid button { min-height: 42px; padding: 4px; border: 1px solid var(--editor-line); border-radius: 9px; background: #faf9f7; }
 .invite-editor-preset-grid button.is-active { border-color: var(--editor-ink); box-shadow: 0 0 0 2px rgba(25,24,23,.12); }
@@ -330,20 +353,95 @@
   padding: 17px;
   background: radial-gradient(circle at 50% -10%, #fff 0, #f3f1ed 56%, #eae7e1 100%);
 }
-.invite-editor-device { width: min(1200px, 100%); height: 100%; position: relative; overflow: hidden; border: 1px solid #d8d4ce; border-radius: 13px; background: #fff; box-shadow: 0 20px 58px rgba(44,37,29,.12); transition: width .22s ease, border .22s ease, border-radius .22s ease; }
-.invite-editor-device.is-tablet { width: min(760px, 100%); border: 6px solid #182033; border-radius: 24px; }
-.invite-editor-device.is-mobile { width: min(390px, 100%); border: 6px solid #111827; border-radius: 35px; }
-.invite-editor-phone-island { width: 92px; height: 19px; position: absolute; z-index: 5; top: 7px; left: 50%; border-radius: 20px; background: #071125; transform: translateX(-50%); }
-.invite-editor-preview-scroll { width: 100%; height: 100%; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; background: #fff; scrollbar-width: thin; }
+.invite-editor-device {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  position: relative;
+  overflow: visible;
+  background: transparent;
+  transition: width .22s ease, height .22s ease, aspect-ratio .22s ease;
+}
+.invite-editor-device.is-tablet { width: auto; height: min(100%, 920px); aspect-ratio: 1076 / 1462; filter: drop-shadow(0 22px 36px rgba(25,24,23,.22)); }
+.invite-editor-device.is-mobile { width: auto; height: min(100%, 900px); aspect-ratio: 845 / 1849; filter: drop-shadow(0 22px 36px rgba(25,24,23,.24)); }
+.invite-editor-device-screen { position: absolute; z-index: 1; overflow: hidden; background: #fff; }
+.invite-editor-device.is-desktop .invite-editor-device-screen { inset: 0; border: 1px solid #d8d4ce; border-radius: 13px; box-shadow: 0 20px 58px rgba(44,37,29,.12); }
+.invite-editor-device.is-tablet .invite-editor-device-screen { inset: 3.55% 4.8% 3.35%; border-radius: 2.7% / 2%; }
+.invite-editor-device.is-mobile .invite-editor-device-screen { inset: 1.7% 4.55%; border-radius: 10.5% / 4.5%; }
+.invite-editor-device-frame { width: 100%; height: 100%; position: absolute; z-index: 4; inset: 0; object-fit: fill; pointer-events: none; user-select: none; }
+.invite-editor-preview-viewport { width: 100%; height: 100%; display: block; border: 0; background: #fff; transform-origin: top left; }
+.invite-editor-preview-scroll { width: 100%; height: 100%; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; background: #fff; scrollbar-width: none; -ms-overflow-style: none; }
+.invite-editor-preview-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .invite-editor-preview-scroll { container-type: inline-size; }
-.invite-editor-device.is-desktop .invite-editor-preview-scroll { height: 100%; }
 .invite-editor-preview-scroll > article { min-height: 100%; }
 .invite-editor-preview-scroll .midnight-vows-invite,
 .invite-editor-preview-scroll .engagement-serenade-invite,
-.invite-editor-preview-scroll .baptism-blessing-invite { width: 100% !important; max-width: none !important; overflow: visible !important; }
+.invite-editor-preview-scroll .baptism-blessing-invite,
+.invite-editor-preview-scroll .curated-invite { width: 100% !important; max-width: none !important; overflow: visible !important; }
 .invite-editor-preview-scroll .midnight-fixed-photo,
 .invite-editor-preview-scroll .engagement-fixed-photo { position: absolute; }
 .invite-editor-preview-scroll .engagement-cover-copy h1 { font-size: clamp(3rem, 12cqw, 7.2rem); }
+.invite-editor-preview-scroll [data-editor-section] { scroll-margin-block: 18%; }
+.invite-editor-preview-scroll [data-editor-kind] { position: relative; cursor: pointer; touch-action: manipulation; outline: 2px solid transparent; outline-offset: 5px; transition: outline-color .2s ease, background-color .2s ease; }
+.invite-editor-preview-scroll [data-editor-kind]::after {
+  content: attr(data-editor-label);
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  position: absolute;
+  z-index: 80;
+  top: -12px;
+  right: -7px;
+  padding: 0 9px 0 29px;
+  border: 1px solid rgba(255,255,255,.82);
+  border-radius: 4px;
+  background-color: #d07d4f;
+  background-position: 8px center;
+  background-repeat: no-repeat;
+  background-size: 13px;
+  color: #fff;
+  font: 700 10px/1 Arial, sans-serif;
+  white-space: nowrap;
+  box-shadow: 0 5px 16px rgba(50,28,14,.22);
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+}
+.invite-editor-preview-scroll [data-editor-kind="text"]::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E"); }
+.invite-editor-preview-scroll [data-editor-kind="image"]::after {
+  top: 12px;
+  right: 12px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.5 4h-5L7.8 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.8z'/%3E%3Ccircle cx='12' cy='13' r='3'/%3E%3C/svg%3E");
+}
+.invite-editor-preview-scroll [data-editor-kind="map"]::after { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E"); }
+.invite-editor-preview-scroll [data-editor-kind]:is(:hover, :focus-visible) { outline-color: #d07d4f; background-color: rgba(208,125,79,.035); }
+.invite-editor-preview-scroll [data-editor-kind]:is(:hover, :focus-visible)::after { opacity: 1; transform: translateY(0); }
+@media (hover: none) {
+  .invite-editor-preview-scroll [data-editor-kind]::after { content: ''; width: 32px; min-height: 32px; padding: 0; background-position: center; opacity: .92; transform: none; }
+}
+.invite-editor-preview-scroll .is-editor-active { outline: 2px solid #d07d4f !important; outline-offset: -2px; box-shadow: inset 0 0 0 9999px rgba(208,125,79,.035); }
+.invite-editor-preview-camera {
+  width: 38px;
+  height: 38px;
+  position: fixed;
+  z-index: 120;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,.72);
+  border-radius: 50%;
+  background: rgba(25,24,23,.88);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(0,0,0,.28);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.invite-editor-preview-camera:hover { background: #191817; transform: translateY(-1px); }
+.invite-editor-preview-camera:focus-visible { outline: 3px solid #e2b27c; outline-offset: 2px; }
 .invite-editor-open-sheet { display: none; }
 
 .invite-editor-confirm { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 20px; background: rgba(20,18,16,.58); backdrop-filter: blur(8px); }
@@ -358,7 +456,8 @@
 
 .midnight-vows-invite.has-custom-name-style .midnight-cover-copy h1,
 .engagement-serenade-invite.has-custom-name-style .engagement-cover-copy h1,
-.baptism-blessing-invite.has-custom-name-style .baptism-hero-copy h1 {
+.baptism-blessing-invite.has-custom-name-style .baptism-hero-copy h1,
+.curated-invite.has-custom-name-style .curated-hero-copy h1 {
   color: var(--invitation-name-color, inherit) !important;
   font-family: var(--invitation-name-font, inherit) !important;
   font-size: var(--invitation-name-size, inherit) !important;
@@ -416,7 +515,7 @@
   .invite-editor-top-actions button:nth-last-child(2) span { display: none; }
   .invite-editor-top-actions button:nth-last-child(2) { padding: 0; }
   .invite-editor-devices { justify-self: center; }
-  .invite-editor-devices button { min-width: 38px; padding: 0 8px; }
+  .invite-editor-devices button { min-width: 44px; min-height: 44px; padding: 0 8px; }
   .invite-editor-devices span { display: none; }
   .invite-editor-rail { grid-column: 1; grid-row: 3; z-index: 35; flex-direction: row; align-items: center; justify-content: space-around; gap: 3px; padding: 5px max(6px, env(safe-area-inset-right, 0px)) calc(5px + env(safe-area-inset-bottom, 0px)) max(6px, env(safe-area-inset-left, 0px)); border-top: 1px solid var(--editor-line); border-right: 0; }
   .invite-editor-rail > strong,
@@ -431,9 +530,9 @@
   .invite-editor-sheet-handle > button { width: 34px; height: 26px; position: absolute; right: 9px; display: grid; place-items: center; border: 0; border-radius: 8px; background: #f5f3ef; }
   .invite-editor-sidebar-scroll { padding-top: 4px; }
   .invite-editor-preview { grid-column: 1; grid-row: 2; padding: 6px; }
-  .invite-editor-device { height: 100%; }
-  .invite-editor-device.is-desktop,
-  .invite-editor-device.is-tablet { width: 100%; border-width: 1px; border-radius: 12px; }
+  .invite-editor-device.is-desktop { width: 100%; height: 100%; }
+  .invite-editor-device.is-tablet { width: auto; height: min(100%, 760px); }
+  .invite-editor-device.is-mobile { width: auto; height: min(100%, 720px); }
   .invite-editor-open-sheet { min-height: 45px; position: absolute; z-index: 22; right: 14px; bottom: 14px; display: inline-flex; align-items: center; gap: 7px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--editor-ink); color: #fff; box-shadow: 0 12px 32px rgba(0,0,0,.25); font-weight: 800; }
 }
 
@@ -441,13 +540,13 @@
   .invite-editor-top-left button,
   .invite-editor-top-actions button { min-width: 38px; min-height: 38px; }
   .invite-editor-devices { gap: 1px; padding: 2px; }
-  .invite-editor-devices button { min-width: 34px; min-height: 34px; padding: 0 7px; }
+  .invite-editor-devices button { min-width: 42px; min-height: 42px; padding: 0 7px; }
   .invite-editor-sidebar { height: min(58dvh, 600px); }
   .invite-editor-sidebar.is-expanded { height: min(90dvh, 820px); }
   .invite-editor-sidebar > footer { grid-template-columns: 1fr 86px; }
   .invite-editor-sidebar > footer button { padding-inline: 8px; }
   .invite-editor-grid-two { grid-template-columns: 1fr; }
-  .invite-editor-device.is-mobile { width: min(100%, 390px); border-width: 4px; border-radius: 27px; }
+  .invite-editor-device.is-mobile { width: auto; height: min(100%, 680px); }
   .invite-editor-preview { padding: 3px; }
 }
 

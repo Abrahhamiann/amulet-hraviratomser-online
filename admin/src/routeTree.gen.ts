@@ -15,6 +15,8 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminTemplatesRouteImport } from './routes/admin.templates'
+import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
+import { Route as AdminPromocodesRouteImport } from './routes/admin.promocodes'
 import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminNotificationsRouteImport } from './routes/admin.notifications'
@@ -52,6 +54,16 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminTemplatesRoute = AdminTemplatesRouteImport.update({
   id: '/templates',
   path: '/templates',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminReviewsRoute = AdminReviewsRouteImport.update({
+  id: '/reviews',
+  path: '/reviews',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPromocodesRoute = AdminPromocodesRouteImport.update({
+  id: '/promocodes',
+  path: '/promocodes',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
@@ -108,6 +120,8 @@ export interface FileRoutesByFullPath {
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/promocodes': typeof AdminPromocodesRoute
+  '/admin/reviews': typeof AdminReviewsRoute
   '/admin/templates': typeof AdminTemplatesRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -123,6 +137,8 @@ export interface FileRoutesByTo {
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/promocodes': typeof AdminPromocodesRoute
+  '/admin/reviews': typeof AdminReviewsRoute
   '/admin/templates': typeof AdminTemplatesRoute
   '/admin': typeof AdminIndexRoute
 }
@@ -140,6 +156,8 @@ export interface FileRoutesById {
   '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/payments': typeof AdminPaymentsRoute
+  '/admin/promocodes': typeof AdminPromocodesRoute
+  '/admin/reviews': typeof AdminReviewsRoute
   '/admin/templates': typeof AdminTemplatesRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -158,6 +176,8 @@ export interface FileRouteTypes {
     | '/admin/notifications'
     | '/admin/orders'
     | '/admin/payments'
+    | '/admin/promocodes'
+    | '/admin/reviews'
     | '/admin/templates'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
@@ -173,6 +193,8 @@ export interface FileRouteTypes {
     | '/admin/notifications'
     | '/admin/orders'
     | '/admin/payments'
+    | '/admin/promocodes'
+    | '/admin/reviews'
     | '/admin/templates'
     | '/admin'
   id:
@@ -189,6 +211,8 @@ export interface FileRouteTypes {
     | '/admin/notifications'
     | '/admin/orders'
     | '/admin/payments'
+    | '/admin/promocodes'
+    | '/admin/reviews'
     | '/admin/templates'
     | '/admin/'
   fileRoutesById: FileRoutesById
@@ -242,6 +266,20 @@ declare module '@tanstack/react-router' {
       path: '/templates'
       fullPath: '/admin/templates'
       preLoaderRoute: typeof AdminTemplatesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/reviews': {
+      id: '/admin/reviews'
+      path: '/reviews'
+      fullPath: '/admin/reviews'
+      preLoaderRoute: typeof AdminReviewsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/promocodes': {
+      id: '/admin/promocodes'
+      path: '/promocodes'
+      fullPath: '/admin/promocodes'
+      preLoaderRoute: typeof AdminPromocodesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/payments': {
@@ -312,6 +350,8 @@ interface AdminRouteChildren {
   AdminNotificationsRoute: typeof AdminNotificationsRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
+  AdminPromocodesRoute: typeof AdminPromocodesRoute
+  AdminReviewsRoute: typeof AdminReviewsRoute
   AdminTemplatesRoute: typeof AdminTemplatesRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -325,6 +365,8 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminNotificationsRoute: AdminNotificationsRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
+  AdminPromocodesRoute: AdminPromocodesRoute,
+  AdminReviewsRoute: AdminReviewsRoute,
   AdminTemplatesRoute: AdminTemplatesRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

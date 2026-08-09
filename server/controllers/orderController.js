@@ -14,14 +14,22 @@ const normalizeDateValue = (value) => {
 
 export const createOrder = asyncHandler(async (req, res) => {
   const required = ['fullName', 'phone', 'email', 'eventType', 'eventDate', 'eventTime', 'eventLocation', 'mainNames'];
+  const allowed = new Set([
+    ...required,
+    'templateId', 'mapLink', 'mapLinks', 'eventMessage', 'colors', 'preferredLanguage', 'notes',
+    'requestType', 'inspirationLink', 'budgetRange'
+  ]);
   const payload = Object.fromEntries(
     Object.entries(req.body || {})
+      .filter(([key]) => allowed.has(key))
       .map(([key, value]) => [key, typeof value === 'string' ? value.trim() : value])
       .filter(([, value]) => value !== '')
   );
 
   payload.eventDate = normalizeDateValue(payload.eventDate);
   if (!payload.templateId || !mongoose.Types.ObjectId.isValid(payload.templateId)) delete payload.templateId;
+  payload.requestType = payload.requestType === 'custom_design' ? 'custom_design' : 'standard';
+  if (req.user?._id) payload.userId = req.user._id;
 
   const missing = required.filter((field) => !payload[field]);
   if (missing.length) {
@@ -44,7 +52,9 @@ export const getOrders = asyncHandler(async (req, res) => {
 });
 
 export const getMyOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({ email: req.user.email }).populate('templateId invitationId').sort({ createdAt: -1 });
+  const orders = await Order.find({
+    $or: [{ userId: req.user._id }, { userId: null, email: req.user.email }]
+  }).populate('templateId invitationId').sort({ createdAt: -1 });
   res.json(orders);
 });
 
@@ -58,7 +68,10 @@ export const getOrder = asyncHandler(async (req, res) => {
 });
 
 export const deleteMyOrder = asyncHandler(async (req, res) => {
-  const order = await Order.findOne({ _id: req.params.id, email: req.user.email });
+  const order = await Order.findOne({
+    _id: req.params.id,
+    $or: [{ userId: req.user._id }, { userId: null, email: req.user.email }]
+  });
   if (!order) {
     res.status(404);
     throw new Error('Invitation not found');

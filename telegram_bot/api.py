@@ -82,6 +82,13 @@ class AmuletApi:
             params={"chatId": str(chat_id), "page": page},
         )
 
+    async def admin_delete_all_messages(self, chat_id: int | str):
+        return await self._request(
+            "DELETE",
+            "/admin/messages",
+            json={"chatId": str(chat_id)},
+        )
+
     async def admin_message(self, chat_id: int | str, message_id: str):
         return await self._request(
             "GET",

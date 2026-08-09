@@ -1,10 +1,10 @@
 import { createFileRoute, Outlet, useNavigate, Navigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/admin/AppSidebar";
 import { TopHeader } from "@/components/admin/TopHeader";
 import { Toaster } from "@/components/ui/sonner";
-import { getToken } from "@/lib/api";
+import { adminApi, clearToken } from "@/lib/api";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -13,12 +13,32 @@ export const Route = createFileRoute("/admin")({
 
 function AdminLayout() {
   const nav = useNavigate();
+  const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
-    if (!getToken()) {
-      nav({ to: "/login" });
-    }
+    clearToken();
+    let active = true;
+    adminApi
+      .me()
+      .then((user) => {
+        if (!active) return;
+        if (["admin", "super_admin"].includes(user.role)) setAuthorized(true);
+        else nav({ to: "/login", replace: true });
+      })
+      .catch(() => {
+        if (active) nav({ to: "/login", replace: true });
+      });
+    return () => {
+      active = false;
+    };
   }, [nav]);
+
+  if (!authorized)
+    return (
+      <div className="min-h-screen grid place-items-center text-sm text-muted-foreground">
+        Loading...
+      </div>
+    );
 
   return (
     <SidebarProvider>

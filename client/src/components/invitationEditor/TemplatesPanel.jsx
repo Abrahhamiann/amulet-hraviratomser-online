@@ -6,6 +6,7 @@ import { useEditor } from './EditorContext.jsx';
 import { EmptyState, PanelHeader } from './EditorControls.jsx';
 
 const categoryLabels = {
+  birth: 'Ծնունդ',
   wedding: 'Հարսանեկան',
   engagement: 'Նշանադրություն',
   baptism: 'Կնունք',
@@ -53,4 +54,3 @@ export default function TemplatesPanel() {
     </div>
   );
 }
-
