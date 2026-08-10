@@ -1,5 +1,5 @@
 export const metadataText = (value, fallback = '', limit = 420) =>
-  String(value || fallback || '').trim().slice(0, limit);
+  String(value ?? fallback ?? '').trim().slice(0, limit);
 
 export const uniqueImages = (images = []) => [...new Set(
   images.filter((image) => typeof image === 'string' && image.trim())
@@ -83,6 +83,19 @@ export const normalizeButtonDesign = (source = {}) => ({
   radius: allowedButtonRadii.has(source.radius) ? source.radius : 'pill'
 });
 
+const normalizeTemplateTextOverrides = (source = {}) => Object.fromEntries(
+  Object.entries(source && typeof source === 'object' ? source : {})
+    .filter(([key, value]) => /^text-\d+$/.test(key) && typeof value === 'string')
+    .slice(0, 500)
+    .map(([key, value]) => [key, value.slice(0, 1200)])
+);
+
+const normalizeTemplateImageOverrides = (source = {}) => Object.fromEntries(
+  Object.entries(source && typeof source === 'object' ? source : {})
+    .filter(([key, value]) => /^image-\d+$/.test(key) && (value === '' || (typeof value === 'string' && isAllowedImage(value))))
+    .slice(0, 100)
+);
+
 export const normalizeRsvpSettings = (source = {}) => ({
   title: metadataText(source.title, 'Confirm your attendance', 140),
   description: metadataText(source.description, '', 320),
@@ -124,6 +137,7 @@ export const normalizeDraft = (draft, template) => {
     image,
     gallery,
     colors: normalizeColors(source.colors),
+    colorPaletteId: metadataText(source.colorPaletteId, '', 80),
     imageFilter: allowedImageFilters.has(source.imageFilter) ? source.imageFilter : 'none',
     musicEnabled: source.musicEnabled !== false,
     musicUrl: isAllowedMusic(requestedMusic) ? requestedMusic : '',
@@ -132,6 +146,8 @@ export const normalizeDraft = (draft, template) => {
     musicEnd: normalizedSecond(source.musicEnd),
     textStyles: normalizeTextStyles(source.textStyles),
     buttonDesign: normalizeButtonDesign(source.buttonDesign),
+    templateTextOverrides: normalizeTemplateTextOverrides(source.templateTextOverrides),
+    templateImageOverrides: normalizeTemplateImageOverrides(source.templateImageOverrides),
     rsvpSettings: normalizeRsvpSettings(source.rsvpSettings),
     groomFamilyTitle: metadataText(source.groomFamilyTitle, '', 120),
     brideFamilyTitle: metadataText(source.brideFamilyTitle, '', 120),
@@ -162,6 +178,8 @@ export const invitationCustomization = (draft = {}) => ({
   musicEnd: normalizedSecond(draft.musicEnd),
   textStyles: normalizeTextStyles(draft.textStyles),
   buttonDesign: normalizeButtonDesign(draft.buttonDesign),
+  templateTextOverrides: normalizeTemplateTextOverrides(draft.templateTextOverrides),
+  templateImageOverrides: normalizeTemplateImageOverrides(draft.templateImageOverrides),
   rsvpSettings: normalizeRsvpSettings(draft.rsvpSettings),
   heroVisible: draft.heroVisible !== false,
   familyVisible: draft.familyVisible !== false,

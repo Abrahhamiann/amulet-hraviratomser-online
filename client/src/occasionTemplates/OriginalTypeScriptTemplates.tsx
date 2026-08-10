@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Home, Pencil, ShoppingBag } from 'lucide-react';
 
@@ -52,6 +52,7 @@ type SurfaceProps = {
   css: string;
   fontImport: string;
   label: string;
+  draft?: Draft;
   customize?: (root: HTMLDivElement) => void;
 };
 
@@ -63,6 +64,10 @@ type Draft = {
   eventMessage?: string;
   image?: string;
   gallery?: string[];
+  templateTextOverrides?: Record<string, string>;
+  templateImageOverrides?: Record<string, string>;
+  colors?: { accent?: string; text?: string; overlay?: string };
+  colorPaletteId?: string;
 };
 
 type TemplateProps = {
@@ -143,6 +148,38 @@ const localizeTemplateUi = (root: HTMLDivElement) => {
   });
 };
 
+const TEMPLATE_TEXT_SELECTOR = 'h1, h2, h3, p, span, strong, b, em, legend, blockquote, label, button, li, figcaption, small';
+
+const applyTemplateOverrides = (root: HTMLDivElement, draft: Draft = {}) => {
+  const textOverrides = draft.templateTextOverrides || {};
+  const imageOverrides = draft.templateImageOverrides || {};
+  const textElements = [...root.querySelectorAll<HTMLElement>(TEMPLATE_TEXT_SELECTOR)]
+    .filter((element) => (
+      [...element.childNodes].some((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim())
+      && !element.closest('.original-template-preview-actions')
+    ));
+
+  textElements.forEach((element, index) => {
+    const key = element.dataset.templateTextKey || `text-${index}`;
+    if (!element.dataset.templateTextKey) element.dataset.templateTextKey = key;
+    if (element.dataset.templateTextDefault === undefined) element.dataset.templateTextDefault = element.textContent || '';
+    if (Object.prototype.hasOwnProperty.call(textOverrides, key)) {
+      const nextValue = String(textOverrides[key] ?? '');
+      if (element.textContent !== nextValue) element.textContent = nextValue;
+    }
+  });
+
+  [...root.querySelectorAll<HTMLImageElement>('img:not([aria-hidden="true"])')].forEach((image, index) => {
+    const key = image.dataset.templateImageKey || `image-${index}`;
+    if (!image.dataset.templateImageKey) image.dataset.templateImageKey = key;
+    if (!image.dataset.templateImageDefault) image.dataset.templateImageDefault = image.currentSrc || image.src;
+    if (!Object.prototype.hasOwnProperty.call(imageOverrides, key)) return;
+    const nextSource = String(imageOverrides[key] ?? '');
+    image.hidden = !nextSource;
+    if (nextSource && image.src !== nextSource) image.src = nextSource;
+  });
+};
+
 const formatArmenianDate = (value?: string) => {
   if (!value) return '';
   const date = new Date(`${value}T12:00:00`);
@@ -177,10 +214,61 @@ export const isIvoryVowsTemplate = (template?: TemplateRecord) => matches(templa
   'ivory-vows', 'amulet-ivory-vows', 'ivory-wedding'
 ]);
 
-function OriginalTemplateSurface({ children, css, fontImport, label, customize }: SurfaceProps) {
+function OriginalTemplateSurface({ children, css, fontImport, label, draft, customize }: SurfaceProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [portalRoot, setPortalRoot] = useState<HTMLDivElement | null>(null);
   const isolatedCss = useMemo(() => css.replaceAll(':root', ':host'), [css]);
+  const customizeRef = useRef(customize);
+  const draftRef = useRef(draft);
+  const themeStyle = useMemo(() => {
+    const accent = draft?.colors?.accent;
+    const text = draft?.colors?.text;
+    const overlay = draft?.colors?.overlay;
+    if (!accent || !text || !overlay) return undefined;
+    const isLegacyFallback = accent.toLowerCase() === '#d8b98e'
+      && text.toLowerCase() === '#ffffff'
+      && overlay.toLowerCase() === '#202020';
+    if (!draft?.colorPaletteId && isLegacyFallback) return undefined;
+    return {
+      '--background': overlay,
+      '--foreground': text,
+      '--primary': accent,
+      '--primary-foreground': overlay,
+      '--accent': `color-mix(in srgb, ${accent} 22%, ${overlay})`,
+      '--accent-foreground': text,
+      '--secondary': `color-mix(in srgb, ${accent} 13%, ${overlay})`,
+      '--secondary-foreground': text,
+      '--muted': `color-mix(in srgb, ${text} 8%, ${overlay})`,
+      '--muted-foreground': `color-mix(in srgb, ${text} 68%, ${overlay})`,
+      '--card': `color-mix(in srgb, ${text} 5%, ${overlay})`,
+      '--card-foreground': text,
+      '--popover': overlay,
+      '--popover-foreground': text,
+      '--border': `color-mix(in srgb, ${accent} 30%, ${overlay})`,
+      '--input': `color-mix(in srgb, ${accent} 24%, ${overlay})`,
+      '--ring': accent,
+      '--cream': `color-mix(in srgb, ${text} 7%, ${overlay})`,
+      '--ivory': overlay,
+      '--sand': `color-mix(in srgb, ${accent} 25%, ${overlay})`,
+      '--champagne': `color-mix(in srgb, ${accent} 36%, ${overlay})`,
+      '--gold': accent,
+      '--gold-soft': `color-mix(in srgb, ${accent} 58%, ${overlay})`,
+      '--ink': text,
+      '--ink-soft': `color-mix(in srgb, ${text} 68%, ${overlay})`,
+      '--blush': `color-mix(in srgb, #e7a3ad 52%, ${overlay})`,
+      '--peach': `color-mix(in srgb, #efb18b 48%, ${overlay})`,
+      '--lavender': `color-mix(in srgb, #bda6db 48%, ${overlay})`,
+      '--sky': `color-mix(in srgb, #95c6df 46%, ${overlay})`,
+      '--coral': accent,
+      '--mint': `color-mix(in srgb, #89c9b2 45%, ${overlay})`,
+      '--sage': `color-mix(in srgb, #8fa481 48%, ${overlay})`,
+      '--dusty-blue': `color-mix(in srgb, #8ba9c8 48%, ${overlay})`,
+      '--gradient-heaven': `radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, ${text} 12%, ${overlay}) 0%, ${overlay} 72%)`,
+      '--gradient-warm': `linear-gradient(180deg, ${overlay} 0%, color-mix(in srgb, ${accent} 12%, ${overlay}) 100%)`
+    } as CSSProperties;
+  }, [draft?.colorPaletteId, draft?.colors?.accent, draft?.colors?.overlay, draft?.colors?.text]);
+  customizeRef.current = customize;
+  draftRef.current = draft;
 
   useLayoutEffect(() => {
     const host = hostRef.current;
@@ -200,7 +288,8 @@ function OriginalTemplateSurface({ children, css, fontImport, label, customize }
 
     const applyLocalization = () => {
       localizeTemplateUi(root);
-      customize?.(root);
+      customizeRef.current?.(root);
+      applyTemplateOverrides(root, draftRef.current);
     };
     const observer = new MutationObserver(applyLocalization);
     observer.observe(root, { childList: true, subtree: true, characterData: true });
@@ -211,10 +300,17 @@ function OriginalTemplateSurface({ children, css, fontImport, label, customize }
       observer.disconnect();
       setPortalRoot(null);
     };
-  }, [customize, fontImport, isolatedCss]);
+  }, [fontImport, isolatedCss]);
+
+  useLayoutEffect(() => {
+    if (!portalRoot) return;
+    localizeTemplateUi(portalRoot);
+    customize?.(portalRoot);
+    applyTemplateOverrides(portalRoot, draft);
+  }, [customize, draft, portalRoot]);
 
   return (
-    <div ref={hostRef} className="original-ts-template-host" role="document" aria-label={label}>
+    <div ref={hostRef} className="original-ts-template-host" role="document" aria-label={label} style={themeStyle}>
       {portalRoot ? createPortal(children, portalRoot) : null}
     </div>
   );
@@ -253,16 +349,17 @@ function SacredBeginningsTemplate(props: TemplateProps) {
     const gallery = (draft.gallery || []).map(resolveTemplateImage).filter(Boolean);
     return {
       ...sacredInvitation,
-      child: { ...sacredInvitation.child, name: draft.mainNames || sacredInvitation.child.name, portrait: { ...sacredInvitation.child.portrait, src: image } },
-      hero: { ...sacredInvitation.hero, dateLabel: formatArmenianDate(draft.eventDate) || sacredInvitation.hero.dateLabel },
-      intro: { ...sacredInvitation.intro, subMessage: draft.eventMessage || sacredInvitation.intro.subMessage },
-      event: { ...sacredInvitation.event, isoDate: draft.eventDate ? `${draft.eventDate}T${draft.eventTime || '14:00'}:00+04:00` : sacredInvitation.event.isoDate, dateLabel: formatArmenianDate(draft.eventDate) || sacredInvitation.event.dateLabel, timeLabel: draft.eventTime || sacredInvitation.event.timeLabel, venue: draft.eventLocation || sacredInvitation.event.venue },
+      child: { ...sacredInvitation.child, name: draft.mainNames ?? sacredInvitation.child.name, portrait: { ...sacredInvitation.child.portrait, src: image } },
+      hero: { ...sacredInvitation.hero, dateLabel: draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : sacredInvitation.hero.dateLabel },
+      intro: { ...sacredInvitation.intro, subMessage: draft.eventMessage ?? sacredInvitation.intro.subMessage },
+      event: { ...sacredInvitation.event, isoDate: draft.eventDate ? `${draft.eventDate}T${draft.eventTime ?? '14:00'}:00+04:00` : '', dateLabel: draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : sacredInvitation.event.dateLabel, timeLabel: draft.eventTime ?? sacredInvitation.event.timeLabel, venue: draft.eventLocation ?? sacredInvitation.event.venue },
       gallery: gallery.length ? gallery.map((src, index) => ({ src, alt: `${draft.mainNames || sacredInvitation.child.name} ${index + 1}` })) : sacredInvitation.gallery
     };
   }, [draft]);
   return (
     <TemplateShell props={props}><OriginalTemplateSurface
       css={sacredStyles}
+      draft={draft}
       fontImport={'@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap");'}
       label="Սուրբ սկիզբ մկրտության հրավեր"
     >
@@ -281,13 +378,13 @@ function BirthdaySparkleTemplate(props: TemplateProps) {
     const gallery = (draft.gallery || []).map(resolveTemplateImage).filter(Boolean);
     return {
       ...birthdayInvitation,
-      birthdayPersonName: draft.mainNames || birthdayInvitation.birthdayPersonName,
-      fullName: draft.mainNames || birthdayInvitation.fullName,
-      eventDateISO: draft.eventDate ? `${draft.eventDate}T${draft.eventTime || '19:00'}:00` : birthdayInvitation.eventDateISO,
-      dateLabel: formatArmenianDate(draft.eventDate) || birthdayInvitation.dateLabel,
-      timeLabel: draft.eventTime || birthdayInvitation.timeLabel,
-      venue: draft.eventLocation || birthdayInvitation.venue,
-      personalMessage: draft.eventMessage || birthdayInvitation.personalMessage,
+      birthdayPersonName: draft.mainNames ?? birthdayInvitation.birthdayPersonName,
+      fullName: draft.mainNames ?? birthdayInvitation.fullName,
+      eventDateISO: draft.eventDate ? `${draft.eventDate}T${draft.eventTime ?? '19:00'}:00` : '',
+      dateLabel: draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : birthdayInvitation.dateLabel,
+      timeLabel: draft.eventTime ?? birthdayInvitation.timeLabel,
+      venue: draft.eventLocation ?? birthdayInvitation.venue,
+      personalMessage: draft.eventMessage ?? birthdayInvitation.personalMessage,
       portrait: { ...birthdayInvitation.portrait, src: image },
       photos: gallery.length ? gallery.map((src, index) => ({ src, alt: `${draft.mainNames || birthdayInvitation.fullName} ${index + 1}`, width: 900, height: 1100 })) : birthdayInvitation.photos
     };
@@ -296,6 +393,7 @@ function BirthdaySparkleTemplate(props: TemplateProps) {
   return (
     <TemplateShell props={props}><OriginalTemplateSurface
       css={birthdayStyles}
+      draft={draft}
       fontImport={'@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Outfit:wght@200..700&family=Caveat:wght@400..700&display=swap");'}
       label="Փայլուն տարեդարձի հրավեր"
     >
@@ -321,20 +419,21 @@ function IvoryVowsTemplate(props: TemplateProps) {
   const { draft = {} } = props;
   const [ceremony, reception] = wedding.venues;
   const customize = useCallback((root: HTMLDivElement) => {
-    const [groom, bride] = splitNames(draft.mainNames);
+    const explicitNames = String(draft.mainNames ?? '').split(/\s*[&+,·]\s*/, 2);
+    const [groom, bride] = explicitNames.length > 1 ? [explicitNames[0] || '', explicitNames[1] || ''] : splitNames(draft.mainNames);
     const replacements: Record<string, string> = {
-      [wedding.couple.groom.name]: groom || wedding.couple.groom.name,
-      [wedding.couple.bride.name]: bride || wedding.couple.bride.name,
-      [wedding.date.long]: formatArmenianDate(draft.eventDate) || wedding.date.long,
-      [wedding.invitation.note]: draft.eventMessage || wedding.invitation.note,
-      [wedding.venues[0]?.name || '']: draft.eventLocation || wedding.venues[0]?.name || ''
+      [wedding.couple.groom.name]: draft.mainNames !== undefined ? (groom || '') : wedding.couple.groom.name,
+      [wedding.couple.bride.name]: draft.mainNames !== undefined ? (bride || '') : wedding.couple.bride.name,
+      [wedding.date.long]: draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : wedding.date.long,
+      [wedding.invitation.note]: draft.eventMessage ?? wedding.invitation.note,
+      [wedding.venues[0]?.name || '']: draft.eventLocation ?? wedding.venues[0]?.name ?? ''
     };
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     let node = walker.nextNode();
     while (node) {
       const value = node.nodeValue || '';
       const trimmed = value.trim();
-      if (replacements[trimmed]) {
+      if (Object.prototype.hasOwnProperty.call(replacements, trimmed)) {
         const nextValue = value.replace(trimmed, replacements[trimmed]);
         if (nextValue !== value) node.nodeValue = nextValue;
       }
@@ -348,6 +447,7 @@ function IvoryVowsTemplate(props: TemplateProps) {
   return (
     <TemplateShell props={props}><OriginalTemplateSurface
       css={ivoryStyles}
+      draft={draft}
       fontImport={'@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&family=Noto+Serif+Armenian:wght@300;400&family=Noto+Sans+Armenian:wght@300;400&display=swap");'}
       label="Փղոսկրե երդումներ հարսանեկան հրավեր"
       customize={customize}

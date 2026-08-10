@@ -19,13 +19,14 @@ const orderSchema = new mongoose.Schema(
       address: { type: String, default: '' },
       url: { type: String, default: '' }
     }],
-    mainNames: { type: String, required: true },
+    mainNames: { type: String, default: '' },
     eventMessage: { type: String, default: '' },
     colors: {
       accent: { type: String, default: '#d8b98e' },
       text: { type: String, default: '#ffffff' },
       overlay: { type: String, default: '#202020' }
     },
+    colorPaletteId: { type: String, default: '' },
     preferredLanguage: { type: String, default: 'hy' },
     notes: { type: String, default: '' },
     inspirationLink: { type: String, default: '' },

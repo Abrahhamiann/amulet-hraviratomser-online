@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import Template from '../models/Template.js';
 import { makeSlug } from '../utils/slug.js';
+import { ensureTemplateCodes, nextTemplateCode } from '../utils/templateCode.js';
 
 const PUBLIC_DESIGN_KEYS = [
   'sacred-beginnings',
@@ -9,11 +10,15 @@ const PUBLIC_DESIGN_KEYS = [
 ];
 
 export const getTemplates = asyncHandler(async (req, res) => {
+  await ensureTemplateCodes();
   const { category, search, sort = 'newest', featured } = req.query;
   const query = { isActive: { $ne: false }, designKey: { $in: PUBLIC_DESIGN_KEYS } };
   if (category) query.category = category;
   if (featured === 'true') query.isFeatured = true;
-  if (search) query.title = { $regex: search, $options: 'i' };
+  if (search) query.$or = [
+    { code: { $regex: search, $options: 'i' } },
+    { title: { $regex: search, $options: 'i' } }
+  ];
 
   const sortMap = {
     newest: { createdAt: -1 },
@@ -26,6 +31,7 @@ export const getTemplates = asyncHandler(async (req, res) => {
 });
 
 export const getTemplate = asyncHandler(async (req, res) => {
+  await ensureTemplateCodes();
   const template = await Template.findById(req.params.id);
   if (!template || !PUBLIC_DESIGN_KEYS.includes(template.designKey) || template.isActive === false) {
     res.status(404);
@@ -37,7 +43,7 @@ export const getTemplate = asyncHandler(async (req, res) => {
 export const createTemplate = asyncHandler(async (req, res) => {
   const data = req.body;
   const slug = data.slug || makeSlug(data.title);
-  const template = await Template.create({ ...data, slug });
+  const template = await Template.create({ ...data, code: await nextTemplateCode(data.category), slug });
   res.status(201).json(template);
 });
 
@@ -47,7 +53,8 @@ export const updateTemplate = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Template not found');
   }
-  Object.assign(template, req.body);
+  const { code: _ignoredCode, ...updates } = req.body;
+  Object.assign(template, updates);
   if (req.body.title && !req.body.slug) template.slug = makeSlug(req.body.title);
   await template.save();
   res.json(template);

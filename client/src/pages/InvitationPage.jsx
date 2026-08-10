@@ -151,6 +151,7 @@ export default function InvitationPage() {
       image: gallery[0] || '',
       gallery,
       colors: invitation.colors || undefined,
+      colorPaletteId: invitation.colorPaletteId || '',
       ...(invitation.customization || {})
     };
 

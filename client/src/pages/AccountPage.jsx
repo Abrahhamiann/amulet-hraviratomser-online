@@ -372,7 +372,7 @@ export default function AccountPage() {
           <div className="account-invitation-list">
             {orders.map((order) => {
               const invitation = order.invitationId;
-              const invitationIdentifier = invitation?.slug || invitation?._id;
+              const invitationIdentifier = invitation?.slug;
               const invitationHref = invitationIdentifier ? `/invite/${invitationIdentifier}` : '';
               const invitationCard = (
                 <div className={invitationHref ? 'account-invitation-card' : 'account-invitation-card is-disabled'}>

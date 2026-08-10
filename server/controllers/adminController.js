@@ -11,6 +11,8 @@ import { emailShell, sendMail } from '../utils/mailer.js';
 import { deliverContactReply } from '../utils/contactReply.js';
 import { makeSlug } from '../utils/slug.js';
 import { normalizePhone } from '../utils/accountValidation.js';
+import { ensureTemplateCodes, nextTemplateCode } from '../utils/templateCode.js';
+import { createSecureInvitationSlug } from '../utils/invitationSlug.js';
 
 const categoryLabels = {
   wedding: 'Wedding',
@@ -156,6 +158,7 @@ const mapOrder = (order) => ({
 
 const mapTemplate = (template, usage = 0) => ({
   id: String(template._id),
+  code: template.code || '',
   name: template.title,
   slug: template.slug,
   category: categoryLabels[template.category] || template.category,
@@ -323,6 +326,7 @@ export const getAdminOrders = asyncHandler(async (req, res) => {
 });
 
 export const getAdminTemplates = asyncHandler(async (req, res) => {
+  await ensureTemplateCodes();
   const [templates, orders] = await Promise.all([
     Template.find({ designKey: { $in: PUBLIC_DESIGN_KEYS } }).sort({ createdAt: -1 }),
     Order.find()
@@ -464,6 +468,7 @@ export const createAdminTemplate = asyncHandler(async (req, res) => {
   const slug = data.slug || makeSlug(data.title);
   const template = await Template.create({
     ...data,
+    code: await nextTemplateCode(data.category),
     slug,
     features: Array.isArray(data.features) ? data.features : String(data.features || '').split('\n').filter(Boolean),
     gallery: Array.isArray(data.gallery) ? data.gallery : String(data.gallery || '').split('\n').filter(Boolean),
@@ -481,7 +486,7 @@ export const updateAdminTemplate = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Template not found');
   }
-  const data = { ...req.body };
+  const { code: _ignoredCode, ...data } = req.body;
   data.designKey = PUBLIC_DESIGN_KEYS.includes(data.designKey) ? data.designKey : DEFAULT_DESIGN_KEY;
   if (typeof data.features === 'string') data.features = data.features.split('\n').filter(Boolean);
   if (typeof data.gallery === 'string') data.gallery = data.gallery.split('\n').filter(Boolean);
@@ -548,7 +553,7 @@ export const createAdminInvitation = asyncHandler(async (req, res) => {
       ...req.body
     };
   }
-  payload.slug = payload.slug || makeSlug(`${payload.names}-${Date.now()}`);
+  payload.slug = await createSecureInvitationSlug();
   const invitation = await Invitation.create(payload);
   await invitation.populate('orderId templateId');
   res.status(201).json(mapInvitation(invitation));

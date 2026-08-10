@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 const templateSchema = new mongoose.Schema(
   {
+    code: { type: String, unique: true, sparse: true, uppercase: true, trim: true, match: /^[A-E][1-9]\d*$/ },
     title: { type: String, required: true },
     slug: { type: String, required: true, unique: true },
     category: {

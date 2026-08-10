@@ -3,6 +3,17 @@ import { cloneEditorDraft, prepareEditorDraft } from './editorData.js';
 
 const EditorContext = createContext(null);
 const MAX_HISTORY = 60;
+const getInitialPreviewDevice = () => {
+  if (typeof window === 'undefined') return 'desktop';
+  if (window.matchMedia('(max-width: 820px)').matches) return 'mobile';
+  if (window.matchMedia('(max-width: 1180px)').matches) return 'tablet';
+  return 'desktop';
+};
+
+const getInitialMobileSheet = () => {
+  if (typeof window === 'undefined') return 'medium';
+  return window.matchMedia('(max-width: 820px)').matches ? 'collapsed' : 'medium';
+};
 
 const createHistory = (draft) => ({ past: [], present: prepareEditorDraft(draft), future: [] });
 
@@ -36,12 +47,13 @@ function historyReducer(state, action) {
 export function EditorProvider({ initialDraft, initialTarget = {}, template, actions, children }) {
   const [history, dispatch] = useReducer(historyReducer, initialDraft, createHistory);
   const [tab, setTab] = useState(initialTarget.targetTab || 'content');
-  const [device, setDevice] = useState('desktop');
+  const [device, setDevice] = useState(getInitialPreviewDevice);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [mobileSheet, setMobileSheet] = useState('medium');
+  const [mobileSheet, setMobileSheet] = useState(getInitialMobileSheet);
   const [activeSection, setActiveSection] = useState(initialTarget.section || 'hero');
   const [activeField, setActiveField] = useState(initialTarget.field || (initialTarget.section ? '' : 'mainNames'));
   const [previewFocusRequest, setPreviewFocusRequest] = useState(0);
+  const [editableContent, setEditableContent] = useState({ texts: [], images: [] });
   const [saveStatus, setSaveStatus] = useState('idle');
   const baselineRef = useRef(JSON.stringify(prepareEditorDraft(initialDraft)));
   const actionsRef = useRef(actions);
@@ -68,6 +80,12 @@ export function EditorProvider({ initialDraft, initialTarget = {}, template, act
     setSidebarOpen(true);
     setMobileSheet('medium');
     if (scrollPreview) setPreviewFocusRequest((value) => value + 1);
+  }, []);
+  const registerEditableContent = useCallback((catalog = {}) => {
+    setEditableContent((current) => {
+      const next = { texts: catalog.texts || [], images: catalog.images || [] };
+      return JSON.stringify(current) === JSON.stringify(next) ? current : next;
+    });
   }, []);
 
   const save = useCallback(async () => {
@@ -122,8 +140,10 @@ export function EditorProvider({ initialDraft, initialTarget = {}, template, act
     activeSection,
     activeField,
     previewFocusRequest,
-    focusEditorTarget
-  }), [actions, activeField, activeSection, device, dirty, focusEditorTarget, history.future.length, history.past.length, history.present, mobileSheet, previewFocusRequest, redo, save, saveStatus, sidebarOpen, tab, template, undo, update]);
+    focusEditorTarget,
+    editableContent,
+    registerEditableContent
+  }), [actions, activeField, activeSection, device, dirty, editableContent, focusEditorTarget, history.future.length, history.past.length, history.present, mobileSheet, previewFocusRequest, redo, registerEditableContent, save, saveStatus, sidebarOpen, tab, template, undo, update]);
 
   return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>;
 }

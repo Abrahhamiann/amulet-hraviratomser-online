@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { CalendarDays, ChevronDown, ChevronUp, ClipboardList, Heart, MapPin, MessageSquare, Plus, Sparkles, Trash2, Users } from 'lucide-react';
 import { useEditor } from './EditorContext.jsx';
 import { CollapsibleSection, Field, PanelHeader, Toggle, TypographyEditor } from './EditorControls.jsx';
@@ -6,9 +6,16 @@ import { splitNames } from './editorData.js';
 
 const newVenue = (index) => ({ id: `venue-${Date.now()}-${index}`, label: `Վայր ${index + 1}`, time: '18:00', address: '', url: '', subtitle: '', icon: 'location', visible: true });
 
+const autoGrowTextarea = (textarea) => {
+  if (!(textarea instanceof HTMLTextAreaElement)) return;
+  textarea.style.height = '0px';
+  textarea.style.height = `${Math.max(textarea.scrollHeight, 46)}px`;
+};
+
 export default function ContentPanel() {
-  const { activeSection, data, focusEditorTarget, update } = useEditor();
+  const { activeSection, data, editableContent, focusEditorTarget, update } = useEditor();
   const [openSections, setOpenSections] = useState(['hero', 'schedule']);
+  const panelRef = useRef(null);
   const [firstName, secondName] = splitNames(data.mainNames);
   const toggleOpen = (id) => setOpenSections((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]);
 
@@ -16,6 +23,10 @@ export default function ContentPanel() {
     if (!activeSection || activeSection === 'media') return;
     setOpenSections((items) => items.includes(activeSection) ? items : [...items, activeSection]);
   }, [activeSection]);
+
+  useEffect(() => {
+    panelRef.current?.querySelectorAll('textarea').forEach(autoGrowTextarea);
+  }, [data, editableContent.texts.length, openSections]);
 
   const handleFieldFocus = (event) => {
     const field = event.target.closest('[data-editor-field]')?.dataset.editorField;
@@ -27,7 +38,10 @@ export default function ContentPanel() {
   const updateName = (index, value) => update((draft) => {
     const names = splitNames(draft.mainNames);
     names[index] = value;
-    draft.mainNames = names.filter(Boolean).join(' & ');
+    draft.mainNames = names.join(' & ');
+  });
+  const updateTemplateText = (key, value) => update((draft) => {
+    draft.templateTextOverrides = { ...(draft.templateTextOverrides || {}), [key]: value };
   });
   const updateTextStyle = (patch) => update((draft) => {
     draft.textStyles.names = { ...(draft.textStyles.names || {}), ...patch };
@@ -66,19 +80,33 @@ export default function ContentPanel() {
   });
 
   return (
-    <div className="invite-editor-panel" onFocusCapture={handleFieldFocus}>
+    <div ref={panelRef} className="invite-editor-panel" onFocusCapture={handleFieldFocus} onInputCapture={(event) => autoGrowTextarea(event.target)}>
       <PanelHeader title="Հրավերի խմբագրում" subtitle="Փոփոխությունները անմիջապես երևում են նախադիտման մեջ։" />
 
       <CollapsibleSection {...sectionProps('hero', 'Գլխավոր էկրան', Heart, 'heroVisible')}>
         <div className="invite-editor-grid-two">
-          <Field label="Առաջին անունը" editorField="mainNames"><input value={firstName} onChange={(event) => updateName(0, event.target.value)} /></Field>
-          <Field label="Երկրորդ անունը" editorField="mainNames"><input value={secondName} onChange={(event) => updateName(1, event.target.value)} /></Field>
+          <Field label="Առաջին անունը" editorField="mainName.0"><input value={firstName} onChange={(event) => updateName(0, event.target.value)} /></Field>
+          <Field label="Երկրորդ անունը" editorField="mainName.1"><input value={secondName} onChange={(event) => updateName(1, event.target.value)} /></Field>
         </div>
         <Field label="Անունների տեսքը" editorField="mainNames" action={<TypographyEditor value={data.textStyles.names || {}} onChange={updateTextStyle} />}>
           <input value={data.mainNames || ''} onChange={(event) => setField('mainNames', event.target.value)} />
         </Field>
         <Field label="Հրավերի հիմնական տեքստ" editorField="eventMessage"><textarea rows="4" value={data.eventMessage || ''} onChange={(event) => setField('eventMessage', event.target.value)} /></Field>
       </CollapsibleSection>
+
+      {editableContent.texts.length > 0 && (
+        <CollapsibleSection {...sectionProps('templateContent', 'Շաբլոնի բոլոր տեքստերը', MessageSquare)}>
+          {editableContent.texts.map((item, index) => {
+            const overrides = data.templateTextOverrides || {};
+            const value = Object.prototype.hasOwnProperty.call(overrides, item.key) ? overrides[item.key] : item.defaultValue;
+            return (
+              <Field key={item.key} label={`Տեքստ ${index + 1}`} hint={item.defaultValue.slice(0, 54)} editorField={`templateTextOverrides.${item.key}`}>
+                <textarea rows={value.length > 70 ? 3 : 2} value={value} onChange={(event) => updateTemplateText(item.key, event.target.value)} />
+              </Field>
+            );
+          })}
+        </CollapsibleSection>
+      )}
 
       <CollapsibleSection {...sectionProps('family', 'Ընտանեկան տվյալներ', Users, 'familyVisible')}>
         <Field label="Առաջին ընտանիքը" editorField="groomFamilyTitle"><input value={data.groomFamilyTitle || ''} onChange={(event) => setField('groomFamilyTitle', event.target.value)} /></Field>

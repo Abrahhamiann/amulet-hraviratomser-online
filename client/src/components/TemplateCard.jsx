@@ -58,7 +58,7 @@ export default function TemplateCard({ template }) {
           openQr();
         }
       }}
-      aria-label={`${template.title}. ${t('scanQr')}`}
+      aria-label={`${template.code || template.title}. ${t('scanQr')}`}
     >
       <div className="template-image catalog-template-preview">
         {pagePreview ? (
@@ -89,8 +89,8 @@ export default function TemplateCard({ template }) {
         <span className="catalog-new-badge">{t('new')}</span>
       </div>
       <div className="template-body catalog-template-caption">
-        <h3>{template.title}</h3>
-        <p>{template.description || t('templateDefaultDescription')}</p>
+        <h3>{template.code ? `${t('templateCodeLabel')} ${template.code}` : template.title}</h3>
+        <p>{Number(template.price).toLocaleString()} AMD</p>
       </div>
       {qrOpen && createPortal(
         <div className="template-qr-backdrop" role="dialog" aria-modal="true" aria-labelledby={`template-qr-${template._id}`} onClick={closeQr}>
@@ -110,8 +110,8 @@ export default function TemplateCard({ template }) {
               )}
             </div>
             <div className="template-qr-content">
-              <h2 id={`template-qr-${template._id}`}>{template.title}</h2>
-              <p className="template-qr-info">{template.description || t('templateDefaultDescription')}</p>
+              <h2 id={`template-qr-${template._id}`}>{template.code ? `${t('templateCodeLabel')} ${template.code}` : template.title}</h2>
+              <p className="template-qr-info">{Number(template.price).toLocaleString()} AMD</p>
               <div className="template-qr-tags">
                 <span>{t(template.category)}</span>
                 <span>{t('customDesign')}</span>

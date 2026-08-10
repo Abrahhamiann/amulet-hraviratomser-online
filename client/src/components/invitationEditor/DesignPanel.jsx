@@ -10,16 +10,25 @@ const sameColors = (left = {}, right = {}) => ['accent', 'text', 'overlay']
 export default function DesignPanel() {
   const { data, template, update } = useEditor();
   const palettes = getTemplateColorPalettes(template);
-  const selectedPalette = palettes.find((palette) => sameColors(data.colors, palette.colors));
-  const applyPalette = (palette) => update((draft) => { draft.colors = { ...palette.colors }; });
+  const selectedPalette = data.colorPaletteId
+    ? palettes.find((palette) => palette.id === data.colorPaletteId)
+    : palettes.find((palette) => sameColors(data.colors, palette.colors));
+  const applyPalette = (palette) => update((draft) => {
+    draft.colors = { ...palette.colors };
+    draft.colorPaletteId = palette.id;
+  });
+  const restoreTemplateColors = () => update((draft) => {
+    draft.colors = {};
+    draft.colorPaletteId = '';
+  });
 
   return (
     <div className="invite-editor-panel">
-      <PanelHeader title="Ձևավորում" subtitle="Ընտրեք այս հրավերի համար պատրաստված 5 ներդաշնակ գունային համակարգերից մեկը։"><Palette size={18} /></PanelHeader>
+      <PanelHeader title="Ձևավորում" subtitle={`Ընտրեք այս հրավերի համար պատրաստված ${palettes.length} ներդաշնակ գունային համակարգերից մեկը։`}><Palette size={18} /></PanelHeader>
       <section className="invite-editor-card">
         <div className="invite-editor-card-title">
           <strong>Գունային համակարգ</strong>
-          <button type="button" onClick={() => applyPalette(palettes[0])}><RotateCcw size={14} /> Վերականգնել</button>
+          <button type="button" onClick={restoreTemplateColors}><RotateCcw size={14} /> Վերականգնել</button>
         </div>
         <div className="invite-editor-palette-list" role="radiogroup" aria-label="Գունային համակարգ">
           {palettes.map((palette) => {

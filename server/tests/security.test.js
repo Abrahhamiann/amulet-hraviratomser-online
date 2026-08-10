@@ -91,6 +91,21 @@ test('editor design, RSVP, and venue settings are normalized without scriptable 
   assert.equal(draft.mapLinks[0].visible, false);
 });
 
+test('editor preserves intentional blanks and sanitizes template-wide overrides', () => {
+  const template = { title: 'Fallback title', description: 'Fallback description', mainImage: '/safe.webp', gallery: [] };
+  const draft = normalizeDraft({
+    mainNames: '',
+    eventMessage: '',
+    templateTextOverrides: { 'text-12': '', 'text-13': 'Custom copy', unsafe: 'ignored' },
+    templateImageOverrides: { 'image-2': '', 'image-3': '/replacement.webp', 'image-4': 'javascript:alert(1)' }
+  }, template);
+
+  assert.equal(draft.mainNames, '');
+  assert.equal(draft.eventMessage, '');
+  assert.deepEqual(draft.templateTextOverrides, { 'text-12': '', 'text-13': 'Custom copy' });
+  assert.deepEqual(draft.templateImageOverrides, { 'image-2': '', 'image-3': '/replacement.webp' });
+});
+
 test('account validation normalizes Armenian phone numbers and rejects weak passwords', () => {
   assert.equal(normalizePhone('041 401415'), '+37441401415');
   assert.equal(normalizePhone('+374 (41) 401-415'), '+37441401415');

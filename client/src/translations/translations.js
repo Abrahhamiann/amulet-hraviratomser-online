@@ -42,6 +42,8 @@ const en = {
   featured: 'Featured invitations',
   faq: 'FAQ',
   faqTitle: 'Frequently Asked Questions',
+  faqSubtitle: 'Everything you need to know about creating, personalizing, and sharing your invitation.',
+  templateCodeLabel: 'Code',
   eventTestimonials: [
     { name: 'Wedding and engagement', designation: 'Wedding / Engagement', quote: 'Wedding, engagement, and love stories begin with a carefully chosen invitation.', image: 'wedding' },
     { name: 'Baptism', designation: 'Baptism', quote: 'A warm digital invitation for a sacred day that family and guests will remember.', image: 'baptism' },
@@ -161,9 +163,17 @@ const en = {
   rsvpSaved: 'Thank you. Your RSVP was saved.',
   faqItems: [
     ['What is included in the price?', 'Photos, event schedule, addresses, map, RSVP form, countdown, and all required texts.'],
-    ['How many days does preparation take?', 'Usually 3-4 days. Custom designs may take longer depending on complexity.'],
+    ['How long does preparation take?', 'Usually 3-4 days. A custom design may take longer depending on its complexity.'],
     ['How can I send the web invitation?', 'You can share it via WhatsApp, Instagram, Viber, Telegram, Email, SMS, or any other platform.'],
-    ['What languages are available?', 'Invitations can be prepared in Armenian, English, Russian, and other languages.']
+    ['What languages are available?', 'Invitations can be prepared in Armenian, English, Russian, Spanish, French, German, Italian, and other languages.'],
+    ['Can I edit the invitation after purchase?', 'Yes. From your account, you can update the texts, photos, date, time, location, and other editable details.'],
+    ['Does the invitation work on every device?', 'Yes. Every invitation is responsive and adapts to phones, tablets, laptops, and desktop screens.'],
+    ['How does RSVP confirmation work?', 'Guests submit the RSVP form in the invitation, and you can view their responses and guest counts in your account.'],
+    ['Can I add a location and map?', 'Yes. You can add one or more event addresses and Google Maps links so guests can easily find each venue.'],
+    ['Can I replace the photos?', 'Yes. You can upload your own cover and gallery photos, replace them, or remove them whenever the template allows.'],
+    ['How long will my invitation link remain active?', 'The link remains active for the period included in your selected service or package.'],
+    ['Who can view my invitation?', 'Anyone who has the private link can open it, so share the link only with the guests you intend to invite.'],
+    ['Can I order a fully custom design?', 'Yes. Contact our team and we will create a personalized invitation based on your event and preferences.']
   ]
 };
 
@@ -189,6 +199,8 @@ const hy = {
   featured: 'Ընտրված հրավերներ',
   faq: 'Հարցեր',
   faqTitle: 'Հաճախ տրվող հարցեր',
+  faqSubtitle: 'Այստեղ կգտնեք հրավերի ստեղծման, անհատականացման և տարածման ամենակարևոր պատասխանները։',
+  templateCodeLabel: 'Կոդ',
   eventTestimonials: [
     { name: 'Հարսանեկան եւ նշանադրության', designation: 'Հարսանիք / Նշանադրություն', quote: 'Հարսանիք, նշանադրություն եւ սիրո պատմություն՝ ամենաթանկ ակնթարթները սկսվում են հրավերից։', image: 'wedding' },
     { name: 'Մկրտության', designation: 'Մկրտություն', quote: 'Սուրբ օրվա համար ջերմ թվային հրավեր, որը կմնա ընտանիքի եւ հյուրերի հիշողության մեջ։', image: 'baptism' },
@@ -306,10 +318,18 @@ const hy = {
   daysToGo: 'օր մնաց',
   rsvpSaved: 'Շնորհակալություն։ Ձեր RSVP-ն պահպանվեց։',
   faqItems: [
-    ['Ինչ է ներառված արժեքի մեջ', 'Լուսանկարներ, միջոցառման ծրագիր, հասցեներ, քարտեզ, RSVP ձեւ, հետհաշվարկ եւ բոլոր անհրաժեշտ տեքստերը։'],
-    ['Քանի օր է տեւում պատրաստումը', 'Սովորաբար 3-4 օր։ Անհատական դիզայնի դեպքում ժամկետը կախված է բարդությունից։'],
-    ['Ինչպես կարող եմ ուղարկել վեբ հրավերը', 'Կարող եք կիսվել WhatsApp-ով, Instagram-ով, Viber-ով, Telegram-ով, Email-ով, SMS-ով կամ ցանկացած այլ հարթակով։'],
-    ['Ինչ լեզուներ են հասանելի', 'Հրավերները կարող են պատրաստվել հայերեն, անգլերեն, ռուսերեն եւ այլ լեզուներով։']
+    ['Ի՞նչ է ներառված արժեքի մեջ', 'Լուսանկարներ, միջոցառման ծրագիր, հասցեներ, քարտեզ, RSVP ձև, հետհաշվարկ և բոլոր անհրաժեշտ տեքստերը։'],
+    ['Որքա՞ն է տևում հրավերի պատրաստումը', 'Սովորաբար 3-4 օր։ Անհատական դիզայնը կարող է ավելի երկար տևել՝ կախված բարդությունից։'],
+    ['Ինչպե՞ս կարող եմ ուղարկել վեբ հրավերը', 'Կարող եք այն տարածել WhatsApp-ով, Instagram-ով, Viber-ով, Telegram-ով, էլ․ փոստով, SMS-ով կամ ցանկացած այլ հարթակով։'],
+    ['Ի՞նչ լեզուներ են հասանելի', 'Հրավերները կարող են պատրաստվել հայերեն, անգլերեն, ռուսերեն, իսպաներեն, ֆրանսերեն, գերմաներեն, իտալերեն և այլ լեզուներով։'],
+    ['Կարո՞ղ եմ գնելուց հետո խմբագրել հրավերը', 'Այո։ Ձեր անձնական էջից կարող եք փոխել տեքստերը, լուսանկարները, ամսաթիվը, ժամը, վայրը և մյուս խմբագրվող տվյալները։'],
+    ['Հրավերն աշխատո՞ւմ է բոլոր սարքերում', 'Այո։ Յուրաքանչյուր հրավեր responsive է և հարմարեցվում է հեռախոսներին, պլանշետներին, նոթբուքերին ու մեծ էկրաններին։'],
+    ['Ինչպե՞ս է աշխատում RSVP հաստատումը', 'Հյուրերը լրացնում են հրավերի RSVP ձևը, իսկ դուք անձնական էջում տեսնում եք պատասխաններն ու հյուրերի քանակը։'],
+    ['Կարո՞ղ եմ ավելացնել վայր և քարտեզ', 'Այո։ Կարող եք ավելացնել մեկ կամ մի քանի հասցե և Google Maps-ի հղումներ, որպեսզի հյուրերը հեշտությամբ գտնեն յուրաքանչյուր վայրը։'],
+    ['Կարո՞ղ եմ փոխարինել լուսանկարները', 'Այո։ Կարող եք վերբեռնել ձեր գլխավոր և պատկերասրահի լուսանկարները, փոխարինել կամ ջնջել դրանք, եթե շաբլոնը թույլ է տալիս։'],
+    ['Որքա՞ն ժամանակ է ակտիվ մնում հրավերի հղումը', 'Հղումն ակտիվ է մնում ձեր ընտրած ծառայության կամ փաթեթի մեջ ներառված ժամանակահատվածում։'],
+    ['Ո՞վ կարող է տեսնել իմ հրավերը', 'Հրավերը կարող է բացել յուրաքանչյուր ոք, ով ունի անձնական հղումը, ուստի այն տարածեք միայն նախատեսված հյուրերի շրջանում։'],
+    ['Կարո՞ղ եմ պատվիրել լիովին անհատական դիզայն', 'Այո։ Կապվեք մեր թիմի հետ, և մենք կստեղծենք ձեր միջոցառմանն ու նախասիրություններին համապատասխան անհատական հրավեր։']
   ]
 };
 
@@ -335,6 +355,8 @@ const ru = {
   featured: 'Избранные приглашения',
   faq: 'Вопросы',
   faqTitle: 'Частые вопросы',
+  faqSubtitle: 'Всё важное о создании, персонализации и отправке приглашения — в одном месте.',
+  templateCodeLabel: 'Код',
   eventTestimonials: [
     { name: 'Свадьба и помолвка', designation: 'Свадьба / Помолвка', quote: 'Свадьба, помолвка и история любви начинаются с продуманного приглашения.', image: 'wedding' },
     { name: 'Крещение', designation: 'Крещение', quote: 'Теплое цифровое приглашение для святого дня, который запомнят семья и гости.', image: 'baptism' },
@@ -387,6 +409,8 @@ const es = {
   featured: 'Invitaciones destacadas',
   faq: 'Preguntas',
   faqTitle: 'Preguntas frecuentes',
+  faqSubtitle: 'Todo lo que necesitas saber para crear, personalizar y compartir tu invitación.',
+  templateCodeLabel: 'Código',
   chooseInvitation: 'Elegir invitación',
   menuPartners: 'Para socios',
   menuPrivacy: 'Política de privacidad',
@@ -425,6 +449,8 @@ const fr = {
   featured: 'Invitations sélectionnées',
   faq: 'Questions',
   faqTitle: 'Questions fréquentes',
+  faqSubtitle: 'Tout ce qu’il faut savoir pour créer, personnaliser et partager votre invitation.',
+  templateCodeLabel: 'Code',
   chooseInvitation: 'Choisir une invitation',
   menuPartners: 'Pour les partenaires',
   menuPrivacy: 'Politique de confidentialité',
@@ -463,6 +489,8 @@ const de = {
   featured: 'Ausgewählte Einladungen',
   faq: 'Fragen',
   faqTitle: 'Häufige Fragen',
+  faqSubtitle: 'Alles Wichtige zum Erstellen, Personalisieren und Teilen Ihrer Einladung.',
+  templateCodeLabel: 'Code',
   chooseInvitation: 'Einladung wählen',
   menuPartners: 'Für Partner',
   menuPrivacy: 'Datenschutz',
@@ -501,6 +529,8 @@ const it = {
   featured: 'Inviti in evidenza',
   faq: 'Domande',
   faqTitle: 'Domande frequenti',
+  faqSubtitle: 'Tutto ciò che serve per creare, personalizzare e condividere il tuo invito.',
+  templateCodeLabel: 'Codice',
   chooseInvitation: 'Scegli invito',
   menuPartners: 'Per partner',
   menuPrivacy: 'Privacy policy',
@@ -602,9 +632,17 @@ Object.assign(ru, {
   rsvpSaved: 'Спасибо. Ваш RSVP сохранен.',
   faqItems: [
     ['Что входит в стоимость?', 'Фотографии, программа события, адреса, карта, RSVP-форма, таймер и все нужные тексты.'],
-    ['Сколько дней занимает подготовка?', 'Обычно 3-4 дня. Индивидуальный дизайн может занять больше времени.'],
+    ['Сколько времени занимает подготовка?', 'Обычно 3-4 дня. Индивидуальный дизайн может занять больше времени в зависимости от сложности.'],
     ['Как отправить веб-приглашение?', 'Им можно поделиться через WhatsApp, Instagram, Viber, Telegram, Email, SMS или любую другую платформу.'],
-    ['Какие языки доступны?', 'Приглашения можно подготовить на армянском, английском, русском и других языках.']
+    ['Какие языки доступны?', 'Приглашения можно подготовить на армянском, английском, русском, испанском, французском, немецком, итальянском и других языках.'],
+    ['Можно ли редактировать приглашение после покупки?', 'Да. В личном кабинете можно изменить тексты, фотографии, дату, время, место и другие редактируемые данные.'],
+    ['Работает ли приглашение на всех устройствах?', 'Да. Каждое приглашение адаптируется к телефонам, планшетам, ноутбукам и большим экранам.'],
+    ['Как работает подтверждение RSVP?', 'Гости заполняют RSVP-форму в приглашении, а вы видите их ответы и количество гостей в личном кабинете.'],
+    ['Можно ли добавить место и карту?', 'Да. Можно добавить один или несколько адресов и ссылки Google Maps, чтобы гости легко нашли каждое место.'],
+    ['Можно ли заменить фотографии?', 'Да. Можно загрузить свои обложку и фотографии галереи, заменить или удалить их, если это предусмотрено шаблоном.'],
+    ['Как долго ссылка на приглашение остается активной?', 'Ссылка остается активной в течение срока, включенного в выбранную услугу или пакет.'],
+    ['Кто может посмотреть мое приглашение?', 'Приглашение может открыть любой, у кого есть приватная ссылка, поэтому делитесь ею только с нужными гостями.'],
+    ['Можно ли заказать полностью индивидуальный дизайн?', 'Да. Свяжитесь с нашей командой, и мы создадим персональное приглашение с учетом вашего события и пожеланий.']
   ]
 });
 
@@ -654,9 +692,17 @@ Object.assign(es, {
   daysToGo: 'días restantes', rsvpSaved: 'Gracias. Tu RSVP fue guardado.',
   faqItems: [
     ['¿Qué incluye el precio?', 'Fotos, programa, direcciones, mapa, formulario RSVP, cuenta regresiva y textos necesarios.'],
-    ['¿Cuántos días tarda?', 'Normalmente 3-4 días. Los diseños personalizados pueden tardar más.'],
+    ['¿Cuánto tarda la preparación?', 'Normalmente 3-4 días. Un diseño personalizado puede tardar más según su complejidad.'],
     ['¿Cómo envío la invitación web?', 'Puedes compartirla por WhatsApp, Instagram, Viber, Telegram, Email, SMS u otra plataforma.'],
-    ['¿Qué idiomas están disponibles?', 'Las invitaciones pueden prepararse en armenio, inglés, ruso y otros idiomas.']
+    ['¿Qué idiomas están disponibles?', 'Las invitaciones pueden prepararse en armenio, inglés, ruso, español, francés, alemán, italiano y otros idiomas.'],
+    ['¿Puedo editar la invitación después de comprarla?', 'Sí. Desde tu cuenta puedes cambiar los textos, fotos, fecha, hora, lugar y otros datos editables.'],
+    ['¿La invitación funciona en todos los dispositivos?', 'Sí. Cada invitación es responsive y se adapta a teléfonos, tabletas, portátiles y pantallas de escritorio.'],
+    ['¿Cómo funciona la confirmación RSVP?', 'Los invitados completan el formulario RSVP y tú puedes ver sus respuestas y el número de asistentes en tu cuenta.'],
+    ['¿Puedo añadir una ubicación y un mapa?', 'Sí. Puedes añadir una o varias direcciones y enlaces de Google Maps para que los invitados encuentren cada lugar fácilmente.'],
+    ['¿Puedo reemplazar las fotos?', 'Sí. Puedes subir tus fotos de portada y galería, sustituirlas o eliminarlas cuando la plantilla lo permita.'],
+    ['¿Cuánto tiempo permanece activo el enlace?', 'El enlace permanece activo durante el período incluido en el servicio o paquete elegido.'],
+    ['¿Quién puede ver mi invitación?', 'Cualquier persona con el enlace privado puede abrirla, así que compártelo solo con los invitados previstos.'],
+    ['¿Puedo encargar un diseño totalmente personalizado?', 'Sí. Contacta con nuestro equipo y crearemos una invitación adaptada a tu evento y preferencias.']
   ]
 });
 
@@ -706,9 +752,17 @@ Object.assign(fr, {
   daysToGo: 'jours restants', rsvpSaved: 'Merci. Votre RSVP a été enregistré.',
   faqItems: [
     ['Que comprend le prix ?', 'Photos, programme, adresses, carte, formulaire RSVP, compte à rebours et textes nécessaires.'],
-    ['Combien de jours faut-il ?', 'Généralement 3-4 jours. Les designs sur mesure peuvent prendre plus de temps.'],
+    ['Combien de temps faut-il pour la préparation ?', 'Généralement 3-4 jours. Un design sur mesure peut demander plus de temps selon sa complexité.'],
     ['Comment envoyer l’invitation web ?', 'Vous pouvez la partager via WhatsApp, Instagram, Viber, Telegram, Email, SMS ou toute autre plateforme.'],
-    ['Quelles langues sont disponibles ?', 'Les invitations peuvent être préparées en arménien, anglais, russe et autres langues.']
+    ['Quelles langues sont disponibles ?', 'Les invitations peuvent être préparées en arménien, anglais, russe, espagnol, français, allemand, italien et dans d’autres langues.'],
+    ['Puis-je modifier l’invitation après l’achat ?', 'Oui. Depuis votre compte, vous pouvez modifier les textes, photos, date, heure, lieu et autres informations éditables.'],
+    ['L’invitation fonctionne-t-elle sur tous les appareils ?', 'Oui. Chaque invitation est responsive et s’adapte aux téléphones, tablettes, ordinateurs portables et écrans de bureau.'],
+    ['Comment fonctionne la confirmation RSVP ?', 'Les invités remplissent le formulaire RSVP et vous consultez leurs réponses ainsi que le nombre de participants dans votre compte.'],
+    ['Puis-je ajouter un lieu et une carte ?', 'Oui. Vous pouvez ajouter une ou plusieurs adresses et des liens Google Maps pour aider les invités à trouver chaque lieu.'],
+    ['Puis-je remplacer les photos ?', 'Oui. Vous pouvez importer vos photos de couverture et de galerie, les remplacer ou les supprimer lorsque le modèle le permet.'],
+    ['Combien de temps le lien reste-t-il actif ?', 'Le lien reste actif pendant la durée incluse dans le service ou le forfait choisi.'],
+    ['Qui peut voir mon invitation ?', 'Toute personne disposant du lien privé peut l’ouvrir. Partagez-le donc uniquement avec les invités concernés.'],
+    ['Puis-je commander un design entièrement personnalisé ?', 'Oui. Contactez notre équipe et nous créerons une invitation adaptée à votre événement et à vos préférences.']
   ]
 });
 
@@ -758,9 +812,17 @@ Object.assign(de, {
   daysToGo: 'Tage übrig', rsvpSaved: 'Danke. Dein RSVP wurde gespeichert.',
   faqItems: [
     ['Was ist im Preis enthalten?', 'Fotos, Ablauf, Adressen, Karte, RSVP-Formular, Countdown und alle nötigen Texte.'],
-    ['Wie viele Tage dauert die Vorbereitung?', 'Meist 3-4 Tage. Individuelle Designs können länger dauern.'],
+    ['Wie lange dauert die Vorbereitung?', 'Meist 3-4 Tage. Ein individuelles Design kann je nach Aufwand länger dauern.'],
     ['Wie sende ich die Web-Einladung?', 'Du kannst sie über WhatsApp, Instagram, Viber, Telegram, E-Mail, SMS oder andere Plattformen teilen.'],
-    ['Welche Sprachen sind verfügbar?', 'Einladungen können auf Armenisch, Englisch, Russisch und weiteren Sprachen erstellt werden.']
+    ['Welche Sprachen sind verfügbar?', 'Einladungen können auf Armenisch, Englisch, Russisch, Spanisch, Französisch, Deutsch, Italienisch und weiteren Sprachen erstellt werden.'],
+    ['Kann ich die Einladung nach dem Kauf bearbeiten?', 'Ja. In deinem Konto kannst du Texte, Fotos, Datum, Uhrzeit, Ort und weitere bearbeitbare Angaben ändern.'],
+    ['Funktioniert die Einladung auf allen Geräten?', 'Ja. Jede Einladung ist responsiv und passt sich Smartphones, Tablets, Laptops und Desktop-Bildschirmen an.'],
+    ['Wie funktioniert die RSVP-Bestätigung?', 'Gäste füllen das RSVP-Formular aus. Ihre Antworten und die Gästezahl kannst du anschließend in deinem Konto sehen.'],
+    ['Kann ich einen Ort und eine Karte hinzufügen?', 'Ja. Du kannst eine oder mehrere Adressen und Google-Maps-Links hinzufügen, damit Gäste jeden Ort leicht finden.'],
+    ['Kann ich die Fotos austauschen?', 'Ja. Du kannst eigene Titel- und Galeriefotos hochladen, ersetzen oder löschen, sofern die Vorlage dies unterstützt.'],
+    ['Wie lange bleibt der Einladungslink aktiv?', 'Der Link bleibt für den Zeitraum aktiv, der im gewählten Service oder Paket enthalten ist.'],
+    ['Wer kann meine Einladung sehen?', 'Jeder mit dem privaten Link kann sie öffnen. Teile ihn deshalb nur mit den vorgesehenen Gästen.'],
+    ['Kann ich ein vollständig individuelles Design bestellen?', 'Ja. Kontaktiere unser Team und wir erstellen eine persönliche Einladung passend zu deinem Event und deinen Wünschen.']
   ]
 });
 
@@ -810,9 +872,17 @@ Object.assign(it, {
   daysToGo: 'giorni rimasti', rsvpSaved: 'Grazie. Il tuo RSVP è stato salvato.',
   faqItems: [
     ['Cosa include il prezzo?', 'Foto, programma, indirizzi, mappa, modulo RSVP, conto alla rovescia e testi necessari.'],
-    ['Quanti giorni servono?', 'Di solito 3-4 giorni. I design personalizzati possono richiedere più tempo.'],
+    ['Quanto tempo richiede la preparazione?', 'Di solito 3-4 giorni. Un design personalizzato può richiedere più tempo in base alla complessità.'],
     ['Come invio l’invito web?', 'Puoi condividerlo via WhatsApp, Instagram, Viber, Telegram, Email, SMS o altra piattaforma.'],
-    ['Quali lingue sono disponibili?', 'Gli inviti possono essere preparati in armeno, inglese, russo e altre lingue.']
+    ['Quali lingue sono disponibili?', 'Gli inviti possono essere preparati in armeno, inglese, russo, spagnolo, francese, tedesco, italiano e altre lingue.'],
+    ['Posso modificare l’invito dopo l’acquisto?', 'Sì. Dal tuo account puoi cambiare testi, foto, data, ora, luogo e altri dettagli modificabili.'],
+    ['L’invito funziona su tutti i dispositivi?', 'Sì. Ogni invito è responsive e si adatta a telefoni, tablet, laptop e schermi desktop.'],
+    ['Come funziona la conferma RSVP?', 'Gli ospiti compilano il modulo RSVP e tu puoi vedere le risposte e il numero dei partecipanti nel tuo account.'],
+    ['Posso aggiungere un luogo e una mappa?', 'Sì. Puoi aggiungere uno o più indirizzi e link Google Maps per aiutare gli ospiti a trovare facilmente ogni luogo.'],
+    ['Posso sostituire le foto?', 'Sì. Puoi caricare le tue foto di copertina e della galleria, sostituirle o eliminarle quando il modello lo consente.'],
+    ['Per quanto tempo rimane attivo il link?', 'Il link rimane attivo per il periodo incluso nel servizio o pacchetto scelto.'],
+    ['Chi può vedere il mio invito?', 'Chiunque abbia il link privato può aprirlo, quindi condividilo solo con gli ospiti desiderati.'],
+    ['Posso ordinare un design completamente personalizzato?', 'Sì. Contatta il nostro team e creeremo un invito personalizzato in base al tuo evento e alle tue preferenze.']
   ]
 });
 
@@ -1988,6 +2058,11 @@ Object.assign(ru, {
   promoQuestionKicker: 'Небольшой подарок', promoQuestion: 'У вас есть промокод?', promoQuestionText: 'Введите его, чтобы открыть подарок Amulet до оплаты.', promoCodeLabel: 'Промокод', promoApply: 'Открыть подарок', promoNoCode: 'У меня нет промокода', promoInvalid: 'Промокод недействителен или истёк.', promoGiftUnlocked: 'Ваш подарок открыт', promoDiscountApplied: 'скидка применена', promoContinue: 'Перейти к оплате',
   addReview: 'Добавить отзыв', addReviewHint: 'Расскажите о вашем приглашении', reviewSubmitted: 'Отзыв отправлен', reviewPendingApproval: 'Спасибо — он ожидает проверки', reviewThankYou: 'Спасибо за отзыв!', reviewRating: 'Ваша оценка', reviewText: 'Ваши впечатления', submitReview: 'Отправить отзыв', reviewSubmitError: 'Не удалось отправить отзыв.', cancel: 'Отмена'
 });
+
+Object.assign(es, { promoInvalid: 'Este código promocional no es válido o ha caducado.' });
+Object.assign(fr, { promoInvalid: 'Ce code promotionnel est invalide ou a expiré.' });
+Object.assign(de, { promoInvalid: 'Dieser Aktionscode ist ungültig oder abgelaufen.' });
+Object.assign(it, { promoInvalid: 'Questo codice promozionale non è valido o è scaduto.' });
 
 Object.assign(en, {
   authIdentifier: 'Email or phone number', authIdentifierPlaceholder: 'name@example.com or 041 401415', authRepeatPassword: 'Repeat password', authForgotPassword: 'Forgot password?',

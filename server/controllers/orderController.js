@@ -4,6 +4,7 @@ import Invitation from '../models/Invitation.js';
 import Order from '../models/Order.js';
 import RSVP from '../models/RSVP.js';
 import { notifyAdminsOfOrder } from '../utils/adminTelegram.js';
+import { ensureSecureInvitationSlug } from '../utils/invitationSlug.js';
 
 const normalizeDateValue = (value) => {
   if (!value) return value;
@@ -16,7 +17,7 @@ export const createOrder = asyncHandler(async (req, res) => {
   const required = ['fullName', 'phone', 'email', 'eventType', 'eventDate', 'eventTime', 'eventLocation', 'mainNames'];
   const allowed = new Set([
     ...required,
-    'templateId', 'mapLink', 'mapLinks', 'eventMessage', 'colors', 'preferredLanguage', 'notes',
+    'templateId', 'mapLink', 'mapLinks', 'eventMessage', 'colors', 'colorPaletteId', 'preferredLanguage', 'notes',
     'requestType', 'inspirationLink', 'budgetRange'
   ]);
   const payload = Object.fromEntries(
@@ -55,6 +56,7 @@ export const getMyOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find({
     $or: [{ userId: req.user._id }, { userId: null, email: req.user.email }]
   }).populate('templateId invitationId').sort({ createdAt: -1 });
+  await Promise.all(orders.map((order) => ensureSecureInvitationSlug(order.invitationId)));
   res.json(orders);
 });
 

@@ -6,6 +6,13 @@ export const normalizePromoCode = (code) => String(code || '')
   .replace(/[^A-Z0-9_-]/g, '')
   .slice(0, 32);
 
+export const isPromoUsable = (promo, now = new Date()) => Boolean(
+  promo
+  && promo.isActive === true
+  && (!promo.expiresAt || new Date(promo.expiresAt).getTime() > now.getTime())
+  && (!promo.maxUses || Number(promo.usageCount) < Number(promo.maxUses))
+);
+
 export const resolvePromo = async (rawCode, originalAmount) => {
   const code = normalizePromoCode(rawCode);
   if (!code) return null;
@@ -19,7 +26,7 @@ export const resolvePromo = async (rawCode, originalAmount) => {
       { $or: [{ maxUses: 0 }, { $expr: { $lt: ['$usageCount', '$maxUses'] } }] }
     ]
   });
-  if (!promo) return null;
+  if (!isPromoUsable(promo, now)) return null;
 
   const amount = Math.max(0, Number(originalAmount) || 0);
   const rawDiscount = promo.discountType === 'percent'

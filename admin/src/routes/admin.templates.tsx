@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, type CSSProperties } from "react";
-import { Copy, Edit, Eye, LayoutGrid, List, MoreHorizontal, Plus, Star, Trash2, Upload } from "lucide-react";
+import { Copy, Edit, Eye, LayoutGrid, List, MoreHorizontal, Plus, Search, Star, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -208,9 +208,16 @@ function TemplatesPage() {
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
   const visibleTemplates = useMemo(
-    () => (templates || []).filter((template: any) => isKnownDesignKey(template.designKey)),
-    [templates]
+    () => {
+      const query = search.trim().toUpperCase();
+      return (templates || []).filter((template: any) => (
+        isKnownDesignKey(template.designKey)
+        && (!query || String(template.code || "").toUpperCase().includes(query))
+      ));
+    },
+    [templates, search]
   );
 
   const subtitle = error ? error.message : isLoading ? t("loading") : t("templates");
@@ -324,6 +331,17 @@ function TemplatesPage() {
         }
       />
 
+      <div className="relative mb-5 max-w-sm">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder={t("searchTemplatesByCode")}
+          aria-label={t("searchTemplatesByCode")}
+          className="pl-9"
+        />
+      </div>
+
       <Tabs value={view}>
         <TabsContent value="cards">
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -341,7 +359,7 @@ function TemplatesPage() {
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <h3 className="font-display text-lg truncate">{template.name}</h3>
+                      <h3 className="font-display text-lg truncate">{template.code || template.name}</h3>
                       <p className="text-xs text-muted-foreground">{formatAdminCategory(template.category, lang)} · {template.designKey}</p>
                     </div>
                     <div className="font-display text-lg text-[color:var(--gold)]">{currency(template.price)}</div>
@@ -362,7 +380,7 @@ function TemplatesPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-secondary/20 hover:bg-secondary/20 border-border/60">
-                    <TableHead>{t("templates")}</TableHead>
+                    <TableHead>{t("templateCode")}</TableHead>
                     <TableHead>{t("category")}</TableHead>
                     <TableHead>{t("design")}</TableHead>
                     <TableHead>{t("price")}</TableHead>
@@ -377,7 +395,7 @@ function TemplatesPage() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           {template.cover ? <img src={getPreviewImage(template.cover)} className="h-10 w-10 object-cover rounded-lg" style={getImageStyle(template.imagePosition)} alt={template.name} /> : <div className="h-10 w-10 rounded-lg bg-secondary" />}
-                          <span className="font-medium">{template.name}</span>
+                          <span className="font-medium">{template.code || template.name}</span>
                         </div>
                       </TableCell>
                       <TableCell>{formatAdminCategory(template.category, lang)}</TableCell>

@@ -1,19 +1,25 @@
 import asyncHandler from 'express-async-handler';
-import mongoose from 'mongoose';
 import Invitation from '../models/Invitation.js';
 import Order from '../models/Order.js';
 import Template from '../models/Template.js';
-import { makeSlug } from '../utils/slug.js';
+import { createSecureInvitationSlug, isSecureInvitationSlug } from '../utils/invitationSlug.js';
+
+const CURRENT_DESIGN_KEYS = new Set(['sacred-beginnings', 'birthday-sparkle', 'ivory-vows']);
 
 export const getInvitationBySlug = asyncHandler(async (req, res) => {
   const identifier = req.params.slug;
-  const lookup = mongoose.Types.ObjectId.isValid(identifier)
-    ? { $or: [{ slug: identifier }, { _id: identifier }], isPublished: true }
-    : { slug: identifier, isPublished: true };
-  const invitation = await Invitation.findOne(lookup).populate('templateId');
+  if (!isSecureInvitationSlug(identifier)) {
+    res.status(404);
+    throw new Error('Invitation not found');
+  }
+  const invitation = await Invitation.findOne({ slug: identifier, isPublished: true }).populate('templateId');
   if (!invitation) {
     res.status(404);
     throw new Error('Invitation not found');
+  }
+  if (!invitation.templateId || !CURRENT_DESIGN_KEYS.has(invitation.templateId.designKey)) {
+    res.status(410);
+    throw new Error('Invitation template is no longer available');
   }
   res.json(invitation);
 });
@@ -39,6 +45,7 @@ export const createInvitation = asyncHandler(async (req, res) => {
       message: order.eventMessage,
       gallery: order.templateId?.gallery || [],
       colors: order.colors,
+      colorPaletteId: order.colorPaletteId || '',
       language: order.preferredLanguage,
       isPublished: true,
       ...req.body
@@ -48,7 +55,7 @@ export const createInvitation = asyncHandler(async (req, res) => {
     const template = await Template.findById(payload.templateId);
     payload.gallery = template?.gallery || [];
   }
-  payload.slug = payload.slug || makeSlug(`${payload.names}-${Date.now()}`);
+  payload.slug = await createSecureInvitationSlug();
   const invitation = await Invitation.create(payload);
   res.status(201).json(invitation);
 });

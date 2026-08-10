@@ -238,9 +238,9 @@ function PromoCodesPage() {
                   <div className="flex items-center gap-2">
                     <strong className="font-mono text-lg tracking-wider">{item.code}</strong>
                     <span
-                      className={`rounded-full px-2 py-1 text-[10px] ${item.isActive ? "bg-emerald-100 text-emerald-700" : "bg-secondary text-muted-foreground"}`}
+                      className={`rounded-full px-2 py-1 text-[10px] ${item.isActive && (!item.expiresAt || new Date(item.expiresAt).getTime() > Date.now()) ? "bg-emerald-100 text-emerald-700" : "bg-secondary text-muted-foreground"}`}
                     >
-                      {item.isActive ? t("active") : t("inactive")}
+                      {item.isActive && (!item.expiresAt || new Date(item.expiresAt).getTime() > Date.now()) ? t("active") : t("inactive")}
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">

@@ -76,6 +76,7 @@ function getYouTubeEmbedUrl(rawUrl) {
 export default function HomePage() {
   const { language, t } = useLanguage();
   const creationFlowRef = useRef(null);
+  const faqRef = useRef(null);
   const [activeFaqIndex, setActiveFaqIndex] = useState(null);
   const [activeEventIndex, setActiveEventIndex] = useState(0);
 
@@ -112,6 +113,22 @@ export default function HomePage() {
       observer.disconnect();
       timers.forEach((timer) => window.clearTimeout(timer));
     };
+  }, [language]);
+
+  useEffect(() => {
+    const section = faqRef.current;
+    if (!section) return undefined;
+    if (!('IntersectionObserver' in window)) {
+      section.classList.add('is-visible');
+      return undefined;
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      section.classList.add('is-visible');
+      observer.disconnect();
+    }, { threshold: 0.12, rootMargin: '0px 0px -12% 0px' });
+    observer.observe(section);
+    return () => observer.disconnect();
   }, [language]);
 
   const staticFaqItems = t('faqItems');
@@ -236,14 +253,19 @@ export default function HomePage() {
 
       <TestimonialV2 />
 
-      <section className="faq-amulet" id="faq">
-        <h2 className="home-section-heading">{t('faqTitle')}</h2>
+      <section className="faq-amulet" id="faq" ref={faqRef} aria-labelledby="faq-title">
+        <header className="faq-amulet-heading faq-reveal">
+          <span>{t('faq')}</span>
+          <h2 className="home-section-heading" id="faq-title">{t('faqTitle')}</h2>
+          <p>{t('faqSubtitle')}</p>
+        </header>
         <div className="faq-stack">
           {staticFaqItems.map(([question, answer], index) => (
             <FAQItem
               key={question}
               question={question}
               answer={answer}
+              index={index}
               open={activeFaqIndex === index}
               onToggle={() => setActiveFaqIndex((current) => (current === index ? null : index))}
             />

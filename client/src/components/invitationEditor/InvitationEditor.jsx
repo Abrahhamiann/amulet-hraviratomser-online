@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Camera, CheckCircle2, ChevronDown, ChevronUp, LayoutGrid, Monitor, PanelLeftClose, PanelLeftOpen, Pencil, Redo2, Save, ShoppingBag, Smartphone, Sparkles, Tablet, Undo2, X } from 'lucide-react';
+import { ArrowLeft, Camera, CheckCircle2, ChevronDown, LayoutGrid, Monitor, PanelLeftClose, PanelLeftOpen, Pencil, Redo2, Save, ShoppingBag, Smartphone, Sparkles, Tablet, Undo2, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import iphoneDeviceFrame from '../../assets/editor-devices/iphone-device-frame-clean.png';
 import ipadDeviceFrame from '../../assets/editor-devices/ipad-device-frame-clean.png';
@@ -11,6 +11,7 @@ import MediaPanel from './MediaPanel.jsx';
 import BuyPanel from './BuyPanel.jsx';
 import { splitNames } from './editorData.js';
 import { resolveTemplateImage } from '../../occasionTemplates/templateAssets.js';
+import { prepareImage } from './mediaUtils.js';
 import './invitationEditor.css';
 
 const previewSectionSelectors = {
@@ -36,10 +37,31 @@ const previewSectionSelectors = {
 
 const normalizePreviewText = (value) => String(value || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('hy');
 
+export const updateDraftTextField = (draft, field, value) => {
+  if (!field) return;
+  if (field === 'mainName.0' || field === 'mainName.1') {
+    const names = splitNames(draft.mainNames);
+    names[field.endsWith('.1') ? 1 : 0] = value;
+    draft.mainNames = names.join(' & ');
+    return;
+  }
+  const parts = field.split('.');
+  let target = draft;
+  for (let index = 0; index < parts.length - 1; index += 1) {
+    const part = parts[index];
+    const nextPart = parts[index + 1];
+    if (target[part] == null) target[part] = /^\d+$/.test(nextPart) ? [] : {};
+    target = target[part];
+  }
+  target[parts.at(-1)] = value;
+};
+
 const getPreviewFields = (data) => {
   const [firstName, secondName] = splitNames(data.mainNames);
   const fields = [
-    ['mainNames', 'hero', [data.mainNames, firstName, secondName]],
+    ['mainName.0', 'hero', [firstName]],
+    ['mainName.1', 'hero', [secondName]],
+    ['mainNames', 'hero', [data.mainNames]],
     ['eventMessage', 'hero', [data.eventMessage]],
     ['groomFamilyTitle', 'family', [data.groomFamilyTitle]],
     ['brideFamilyTitle', 'family', [data.brideFamilyTitle]],
@@ -71,14 +93,22 @@ const getPreviewFields = (data) => {
 
 const shadowHotspotStyles = `
   [data-editor-kind]{position:relative;cursor:pointer;touch-action:manipulation;outline:2px solid transparent;outline-offset:5px;transition:outline-color .2s ease,background-color .2s ease}
+  [data-editor-kind="text"][contenteditable]{border:0!important;outline:0!important;box-shadow:none!important;cursor:text;caret-color:#d07d4f;user-select:text;-webkit-user-select:text}
+  [data-editor-kind="text"]::after{pointer-events:auto}
+  [data-editor-kind="text"].is-editor-inline-editing{outline-color:#d07d4f;background-color:rgba(208,125,79,.055)}
+  [data-editor-kind="text"].is-editor-inline-editing::after{opacity:0!important}
   [data-editor-kind]::after{content:attr(data-editor-label);position:absolute;z-index:999;top:-13px;right:-7px;min-height:30px;display:flex;align-items:center;padding:0 10px 0 31px;border:1px solid rgba(255,255,255,.86);border-radius:5px;background-color:#d07d4f;background-position:9px center;background-repeat:no-repeat;background-size:14px;color:#fff;font:700 11px/1.1 Arial,sans-serif;letter-spacing:.01em;white-space:nowrap;box-shadow:0 6px 18px rgba(50,28,14,.22);opacity:0;transform:translateY(4px);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
   [data-editor-kind="text"]::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E")}
   [data-editor-kind="image"]::after{top:12px;right:12px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.5 4h-5L7.8 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.8z'/%3E%3Ccircle cx='12' cy='13' r='3'/%3E%3C/svg%3E")}
   [data-editor-kind="map"]::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E")}
   [data-editor-kind]:is(:hover,:focus-visible){outline-color:#d07d4f;background-color:rgba(208,125,79,.035)}
   [data-editor-kind]:is(:hover,:focus-visible)::after{opacity:1;transform:translateY(0)}
-  @media (hover:none){[data-editor-kind]::after{content:"";width:34px;min-height:34px;padding:0;background-position:center;opacity:.92;transform:none}}
+  @media (hover:none){[data-editor-kind]::after{content:"";width:34px;min-height:34px;padding:0;background-position:center;opacity:0;transform:none}[data-editor-kind]:is(:focus,.is-editor-active)::after{opacity:.92}}
   @media (prefers-reduced-motion:reduce){[data-editor-kind],[data-editor-kind]::after{transition:none}}
+`;
+
+const studioMotionStyles = `
+  .original-template-document *, .original-template-document *::before, .original-template-document *::after{animation-delay:0s!important;animation-duration:.001ms!important;transition-delay:0s!important}
 `;
 
 const makeEditorHotspot = (element, { kind, section, field = '', tab }) => {
@@ -87,11 +117,24 @@ const makeEditorHotspot = (element, { kind, section, field = '', tab }) => {
   element.dataset.editorTab = tab;
   element.dataset.editorLabel = kind === 'image' ? 'Նկար' : kind === 'map' ? 'Քարտեզ' : 'Խմբագրել';
   if (field) element.dataset.editorField = field;
-  if (!element.hasAttribute('tabindex')) {
+  if (kind === 'text' && field) {
+    element.contentEditable = 'plaintext-only';
+    element.spellcheck = true;
+    element.dataset.editorOwnedContenteditable = '';
+    if (!element.hasAttribute('role')) {
+      element.setAttribute('role', 'textbox');
+      element.dataset.editorOwnedRole = '';
+    }
+    element.setAttribute('aria-multiline', element.matches('p, blockquote, figcaption') ? 'true' : 'false');
+    element.addEventListener('focus', forwardEditorInlineFocus);
+    element.addEventListener('blur', forwardEditorInlineBlur);
+    element.addEventListener('keydown', forwardEditorInlineKeyDown);
+    element.dataset.editorOwnedInlineEvents = '';
+  } else if (!element.hasAttribute('tabindex')) {
     element.tabIndex = 0;
     element.dataset.editorOwnedTabindex = '';
   }
-  if (!element.hasAttribute('role')) {
+  if (kind !== 'text' && !element.hasAttribute('role')) {
     element.setAttribute('role', 'button');
     element.dataset.editorOwnedRole = '';
   }
@@ -99,7 +142,52 @@ const makeEditorHotspot = (element, { kind, section, field = '', tab }) => {
     element.setAttribute('aria-label', kind === 'image' ? 'Փոխել նկարը' : kind === 'map' ? 'Խմբագրել քարտեզը' : 'Խմբագրել այս հատվածը');
     element.dataset.editorOwnedLabel = '';
   }
+  if (!element.hasAttribute('data-editor-owned-click')) {
+    element.addEventListener('click', forwardEditorHotspotClick);
+    element.dataset.editorOwnedClick = '';
+  }
 };
+
+function forwardEditorInlineFocus(event) {
+  const target = event.currentTarget;
+  target.dataset.editorOriginalText = target.innerText;
+  target.classList.add('is-editor-inline-editing');
+}
+
+function forwardEditorInlineBlur(event) {
+  const target = event.currentTarget;
+  target.classList.remove('is-editor-inline-editing');
+  const value = target.innerText.replace(/\u00a0/g, ' ');
+  delete target.dataset.editorOriginalText;
+  target.ownerDocument.__amuletEditorInlineCommitHandler?.({
+    field: target.dataset.editorField || '',
+    value
+  });
+}
+
+function forwardEditorInlineKeyDown(event) {
+  const target = event.currentTarget;
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    target.innerText = target.dataset.editorOriginalText ?? target.innerText;
+    target.blur();
+  }
+  if (event.key === 'Enter' && target.getAttribute('aria-multiline') !== 'true') {
+    event.preventDefault();
+    target.blur();
+  }
+}
+
+function forwardEditorHotspotClick(event) {
+  if (event.currentTarget.dataset.editorKind === 'image') {
+    const picker = event.currentTarget.ownerDocument.querySelector('[data-direct-image-picker]');
+    if (picker) {
+      picker.dataset.targetField = event.currentTarget.dataset.editorField || '';
+      picker.click();
+    }
+  }
+  event.currentTarget.ownerDocument.__amuletEditorHotspotHandler?.(event);
+}
 
 const getPreviewRoots = (root) => {
   const roots = [root];
@@ -108,7 +196,10 @@ const getPreviewRoots = (root) => {
       if (element.shadowRoot && !roots.includes(element.shadowRoot)) roots.push(element.shadowRoot);
     });
   }
-  return roots;
+  const templateShadowRoots = roots.filter((scope) => (
+    scope.nodeType === 11 && scope.host?.classList?.contains('original-ts-template-host')
+  ));
+  return templateShadowRoots.length ? templateShadowRoots : [root];
 };
 
 const findPreviewElement = (root, selector) => {
@@ -119,31 +210,51 @@ const findPreviewElement = (root, selector) => {
   return null;
 };
 
-export const decoratePreview = (root, data) => {
+export const clearPreviewDecorations = (root, { removeStyles = false } = {}) => {
   if (!root) return;
+  getPreviewRoots(root).forEach((scope) => {
+    scope.querySelectorAll('[data-editor-kind], [data-editor-section]').forEach((element) => {
+      if (element.hasAttribute('data-editor-owned-tabindex')) element.removeAttribute('tabindex');
+      if (element.hasAttribute('data-editor-owned-role')) element.removeAttribute('role');
+      if (element.hasAttribute('data-editor-owned-label')) element.removeAttribute('aria-label');
+      if (element.hasAttribute('data-editor-owned-click')) element.removeEventListener('click', forwardEditorHotspotClick);
+      if (element.hasAttribute('data-editor-owned-inline-events')) {
+        element.removeEventListener('focus', forwardEditorInlineFocus);
+        element.removeEventListener('blur', forwardEditorInlineBlur);
+        element.removeEventListener('keydown', forwardEditorInlineKeyDown);
+      }
+      if (element.hasAttribute('data-editor-owned-contenteditable')) {
+        element.removeAttribute('contenteditable');
+        element.removeAttribute('spellcheck');
+        element.removeAttribute('aria-multiline');
+      }
+      element.classList.remove('is-editor-active', 'is-editor-section-active', 'is-editor-inline-editing');
+      [
+        'data-editor-kind', 'data-editor-field', 'data-editor-tab', 'data-editor-section',
+        'data-editor-label', 'data-editor-owned-tabindex', 'data-editor-owned-role',
+        'data-editor-owned-label', 'data-editor-owned-click', 'data-editor-owned-contenteditable',
+        'data-editor-owned-inline-events', 'data-editor-original-text'
+      ].forEach((attribute) => element.removeAttribute(attribute));
+    });
+    if (removeStyles) scope.querySelector('style[data-amulet-edit-hotspots]')?.remove();
+  });
+};
+
+export const decoratePreview = (root, data, { suppressMotion = false } = {}) => {
+  if (!root) return { texts: [], images: [] };
   const fields = getPreviewFields(data);
+  const editableTexts = new Map();
+  const editableImages = new Map();
 
   getPreviewRoots(root).forEach((scope) => {
     if (scope.nodeType === 11 && scope.host && !scope.querySelector('style[data-amulet-edit-hotspots]')) {
       const style = scope.ownerDocument.createElement('style');
       style.dataset.amuletEditHotspots = '';
-      style.textContent = shadowHotspotStyles;
+      style.textContent = `${suppressMotion ? studioMotionStyles : ''}${shadowHotspotStyles}`;
       scope.append(style);
     }
 
-    scope.querySelectorAll('[data-editor-kind], [data-editor-section]').forEach((element) => {
-      if (element.hasAttribute('data-editor-owned-tabindex')) element.removeAttribute('tabindex');
-      if (element.hasAttribute('data-editor-owned-role')) element.removeAttribute('role');
-      if (element.hasAttribute('data-editor-owned-label')) element.removeAttribute('aria-label');
-      element.removeAttribute('data-editor-kind');
-      element.removeAttribute('data-editor-field');
-      element.removeAttribute('data-editor-tab');
-      element.removeAttribute('data-editor-section');
-      element.removeAttribute('data-editor-label');
-      element.removeAttribute('data-editor-owned-tabindex');
-      element.removeAttribute('data-editor-owned-role');
-      element.removeAttribute('data-editor-owned-label');
-    });
+    clearPreviewDecorations(scope);
 
     Object.entries(previewSectionSelectors).forEach(([section, selectors]) => {
       selectors.forEach((selector) => scope.querySelectorAll(selector).forEach((element) => {
@@ -157,14 +268,21 @@ export const decoratePreview = (root, data) => {
     });
 
     const textCandidatesByBlock = new Map();
-    scope.querySelectorAll('h1, h2, h3, p, span, strong, b, em, legend, blockquote').forEach((element) => {
+    scope.querySelectorAll('h1, h2, h3, p, span, strong, b, em, legend, blockquote, label, button, li, figcaption, small').forEach((element) => {
       if (element.closest('[aria-hidden="true"]')) return;
-      if (element.querySelector('h1, h2, h3, p, span, strong, b, em, legend, blockquote')) return;
+      if (!element.dataset.templateTextKey && element.querySelector('h1, h2, h3, p, span, strong, b, em, legend, blockquote, label, button, li, figcaption, small')) return;
       const text = normalizePreviewText(element.textContent);
-      if (!text) return;
-      const match = fields.find((item) => item.values.some((value) => text === value || (value.length > 4 && text.includes(value))));
-      const section = match?.section || element.closest('[data-editor-section]')?.dataset.editorSection || 'hero';
-      if (element.closest('button, a, input, textarea, select, label, .original-template-preview-actions')) return;
+      const templateTextKey = element.dataset.templateTextKey;
+      if (!text && !templateTextKey) return;
+      let match = fields.find((item) => item.values.some((value) => text === value || (value.length > 4 && text.includes(value))));
+      let section = match?.section || element.closest('[data-editor-section]')?.dataset.editorSection || 'hero';
+      if (!templateTextKey && element.closest('button, a, input, textarea, select, label, .original-template-preview-actions')) return;
+      if (!match && templateTextKey) {
+        const defaultValue = element.dataset.templateTextDefault || element.textContent || '';
+        editableTexts.set(templateTextKey, { key: templateTextKey, defaultValue });
+        match = { field: `templateTextOverrides.${templateTextKey}`, section: 'templateContent' };
+        section = 'templateContent';
+      }
       const block = element.closest('section, article, blockquote') || section;
       const score = (match ? 100 : 0)
         + (element.matches('h1') ? 35 : element.matches('h2') ? 30 : element.matches('h3') ? 25 : 0)
@@ -188,11 +306,24 @@ export const decoratePreview = (root, data) => {
 
     scope.querySelectorAll('img:not([aria-hidden="true"])').forEach((image) => {
       if (image.closest('.engagement-week, .baptism-envelope-button')) return;
-      const target = image.closest('picture') || image.parentElement;
+      const target = image.closest('picture') || image;
       if (!target) return;
       const source = image.currentSrc || image.src;
       const imageIndex = orderedImages.findIndex((item) => absoluteImageSource(item) === source);
-      makeEditorHotspot(target, { kind: 'image', section: 'media', field: imageIndex >= 0 ? `gallery.${imageIndex}` : '', tab: 'media' });
+      const templateImageKey = image.dataset.templateImageKey;
+      if (templateImageKey) {
+        editableImages.set(templateImageKey, {
+          key: templateImageKey,
+          defaultValue: image.dataset.templateImageDefault || source,
+          alt: image.alt || `Նկար ${editableImages.size + 1}`
+        });
+      }
+      makeEditorHotspot(target, {
+        kind: 'image',
+        section: 'media',
+        field: templateImageKey ? `templateImageOverrides.${templateImageKey}` : (imageIndex >= 0 ? `gallery.${imageIndex}` : ''),
+        tab: 'media'
+      });
     });
 
     let fallbackMapIndex = 0;
@@ -205,6 +336,7 @@ export const decoratePreview = (root, data) => {
     });
 
     scope.querySelectorAll('.midnight-cover, .engagement-cover, .baptism-hero, .sacred-hero, .birthday-hero, .ivory-hero').forEach((target) => {
+      if (target.querySelector('[data-template-image-key]')) return;
       target.querySelectorAll('[data-editor-kind="image"]').forEach((child) => {
         child.removeAttribute('data-editor-kind');
         child.removeAttribute('data-editor-section');
@@ -213,6 +345,8 @@ export const decoratePreview = (root, data) => {
       makeEditorHotspot(target, { kind: 'image', section: 'media', tab: 'media' });
     });
   });
+
+  return { texts: [...editableTexts.values()], images: [...editableImages.values()] };
 };
 
 function PreviewViewport({ children, data, device, onReady }) {
@@ -222,8 +356,9 @@ function PreviewViewport({ children, data, device, onReady }) {
   useEffect(() => {
     if (!mountNode) return undefined;
     const run = () => {
-      decoratePreview(mountNode, data);
-      onReady?.(mountNode);
+      if (findPreviewElement(mountNode, '.is-editor-inline-editing')) return;
+      const catalog = decoratePreview(mountNode, data, { suppressMotion: true });
+      onReady?.(mountNode, catalog);
     };
     const frame = window.requestAnimationFrame(run);
     const timers = [120, 420, 900].map((delay) => window.setTimeout(run, delay));
@@ -329,43 +464,80 @@ function PreviewWorkspace({ PreviewComponent }) {
     focusEditorTarget,
     mobileSheet,
     previewFocusRequest,
+    registerEditableContent,
     setMobileSheet,
-    template
+    template,
+    update
   } = useEditor();
   const previewRootRef = useRef(null);
+  const directImageInputRef = useRef(null);
+  const directImageFieldRef = useRef('');
   const [previewReady, setPreviewReady] = useState(0);
 
-  const handlePreviewReady = useCallback((root) => {
+  const handlePreviewReady = useCallback((root, catalog) => {
+    registerEditableContent(catalog);
     if (previewRootRef.current === root) return;
     previewRootRef.current = root;
     setPreviewReady((value) => value + 1);
-  }, []);
+  }, [registerEditableContent]);
 
   useEffect(() => {
-    decoratePreview(previewRootRef.current, data);
-  }, [data, previewReady]);
+    registerEditableContent(decoratePreview(previewRootRef.current, data, { suppressMotion: true }));
+  }, [data, previewReady, registerEditableContent]);
 
   useEffect(() => {
     const root = previewRootRef.current;
     if (!root) return;
-    getPreviewRoots(root).forEach((scope) => scope.querySelectorAll('.is-editor-active').forEach((element) => element.classList.remove('is-editor-active')));
+    getPreviewRoots(root).forEach((scope) => scope.querySelectorAll('.is-editor-active, .is-editor-section-active').forEach((element) => {
+      element.classList.remove('is-editor-active', 'is-editor-section-active');
+    }));
     let target = activeField ? findPreviewElement(root, `[data-editor-field="${activeField}"]`) : null;
     if (!target && activeSection === 'media') target = findPreviewElement(root, '[data-editor-kind="image"]');
     if (!target && activeSection) target = findPreviewElement(root, `[data-editor-section="${activeSection}"]`);
     if (!target) return;
     const activeBlock = target.closest('[data-editor-section]') || target;
-    activeBlock.classList.add('is-editor-active');
+    target.classList.add('is-editor-active');
+    if (activeBlock !== target) activeBlock.classList.add('is-editor-section-active');
     target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
   }, [activeField, activeSection, previewFocusRequest, previewReady]);
 
   const handlePreviewClick = (event) => {
-    const path = event.nativeEvent.composedPath();
+    if (event.amuletEditorHandled) return;
+    const path = (event.nativeEvent || event).composedPath();
     const target = path.find((node) => ['map', 'image'].includes(node?.dataset?.editorKind))
       || path.find((node) => node?.dataset?.editorKind)
       || event.target.closest?.('[data-editor-kind]');
     if (!target) return;
+    event.amuletEditorHandled = true;
+    if (target.dataset.editorKind === 'text' && target.dataset.editorField) {
+      const rect = target.getBoundingClientRect();
+      const compactBadge = target.ownerDocument.defaultView?.matchMedia?.('(hover: none)').matches;
+      const panelButtonWidth = compactBadge ? 44 : 118;
+      const clickedPanelButton = event.clientX >= rect.right - panelButtonWidth
+        && event.clientX <= rect.right + 12
+        && event.clientY >= rect.top - 22
+        && event.clientY <= rect.top + 28;
+      if (clickedPanelButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        focusEditorTarget({
+          section: target.dataset.editorSection || 'hero',
+          field: target.dataset.editorField || '',
+          targetTab: target.dataset.editorTab || 'content',
+          scrollPreview: false
+        });
+        return;
+      }
+      target.classList.add('is-editor-inline-editing');
+      return;
+    }
     event.preventDefault();
     event.stopPropagation();
+    if (target.dataset.editorKind === 'image') {
+      directImageFieldRef.current = target.dataset.editorField || '';
+      directImageInputRef.current?.click();
+      return;
+    }
     focusEditorTarget({
       section: target.dataset.editorSection || (target.dataset.editorKind === 'image' ? 'media' : 'hero'),
       field: target.dataset.editorField || '',
@@ -374,10 +546,43 @@ function PreviewWorkspace({ PreviewComponent }) {
     });
   };
 
+  const replaceDirectImage = async (file) => {
+    if (!file) return;
+    const image = await prepareImage(file);
+    const prefix = 'templateImageOverrides.';
+    const field = directImageFieldRef.current;
+    update((draft) => {
+      if (field.startsWith(prefix)) {
+        draft.templateImageOverrides = { ...(draft.templateImageOverrides || {}), [field.slice(prefix.length)]: image };
+      } else {
+        draft.image = image;
+        draft.gallery = [image, ...(draft.gallery || []).filter((item) => item !== image)];
+      }
+    });
+  };
+
   const handlePreviewKeyDown = (event) => {
     if (!['Enter', ' '].includes(event.key)) return;
     handlePreviewClick(event);
   };
+
+  useEffect(() => {
+    const root = previewRootRef.current;
+    if (!root) return undefined;
+    root.ownerDocument.__amuletEditorHotspotHandler = handlePreviewClick;
+    root.ownerDocument.__amuletEditorInlineCommitHandler = ({ field, value }) => {
+      if (!field) return;
+      update((draft) => updateDraftTextField(draft, field, value));
+    };
+    root.addEventListener('click', handlePreviewClick, true);
+    root.addEventListener('keydown', handlePreviewKeyDown, true);
+    return () => {
+      delete root.ownerDocument.__amuletEditorHotspotHandler;
+      delete root.ownerDocument.__amuletEditorInlineCommitHandler;
+      root.removeEventListener('click', handlePreviewClick, true);
+      root.removeEventListener('keydown', handlePreviewKeyDown, true);
+    };
+  }, [previewReady]);
 
   const frameImage = device === 'mobile' ? iphoneDeviceFrame : device === 'tablet' ? ipadDeviceFrame : null;
   return (
@@ -385,13 +590,14 @@ function PreviewWorkspace({ PreviewComponent }) {
       <div className={`invite-editor-device is-${device}`}>
         <div className="invite-editor-device-screen">
           <PreviewViewport data={data} device={device} onReady={handlePreviewReady}>
-            <div className="invite-editor-preview-scroll" data-preview-device={device} onClickCapture={handlePreviewClick} onKeyDownCapture={handlePreviewKeyDown}>
+            <div className="invite-editor-preview-scroll" data-preview-device={device}>
+              <input ref={directImageInputRef} data-direct-image-picker type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => { directImageFieldRef.current = event.currentTarget.dataset.targetField || ''; void replaceDirectImage(event.target.files?.[0]); event.target.value = ''; }} />
               <PreviewComponent draft={data} price={template.price} mode="studio" loading={actions.saving} onHome={() => {}} onEdit={() => {}} onOrder={() => actions.onBuy?.(data)} />
               <button
                 type="button"
                 className="invite-editor-preview-camera"
                 aria-label="Փոխել հրավերի նկարը"
-                onClick={() => focusEditorTarget({ section: 'media', targetTab: 'media', scrollPreview: false })}
+                onClick={() => { directImageFieldRef.current = ''; directImageInputRef.current?.click(); focusEditorTarget({ section: 'media', targetTab: 'media', scrollPreview: false }); }}
               >
                 <Camera size={16} />
               </button>
@@ -408,12 +614,44 @@ function PreviewWorkspace({ PreviewComponent }) {
 function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
   const { activeField, activeSection, actions, canRedo, canUndo, data, device, dirty, mobileSheet, redo, save, saveStatus, setMobileSheet, setSidebarOpen, setTab, sidebarOpen, tab, undo } = useEditor();
   const [confirmClose, setConfirmClose] = useState(false);
+  const [closePending, setClosePending] = useState(false);
+  const [compactViewport, setCompactViewport] = useState(() => window.matchMedia('(max-width: 820px)').matches);
   const sheetStart = useRef(null);
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 820px)');
+    const updateViewport = (event) => setCompactViewport(event.matches);
+    query.addEventListener('change', updateViewport);
+    return () => query.removeEventListener('change', updateViewport);
+  }, []);
 
   const requestClose = useCallback(() => {
     if (dirty) setConfirmClose(true);
     else actions.onClose?.();
   }, [actions, dirty]);
+
+  const continueEditing = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setConfirmClose(false);
+  };
+
+  const saveAndClose = async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (closePending) return;
+    setClosePending(true);
+    const saved = await save();
+    if (saved !== false) actions.onClose?.();
+    else setClosePending(false);
+  };
+
+  const closeWithoutSaving = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setConfirmClose(false);
+    actions.onClose?.();
+  };
 
   useEffect(() => {
     const previousBodyOverflow = document.body.style.overflow;
@@ -452,11 +690,17 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
     setMobileSheet('medium');
   };
 
+  const panelOpen = compactViewport ? mobileSheet !== 'collapsed' : sidebarOpen;
+  const toggleEditorPanel = () => {
+    if (compactViewport) setMobileSheet((current) => current === 'collapsed' ? 'medium' : 'collapsed');
+    else setSidebarOpen((current) => !current);
+  };
+
   return (
     <section className={`amulet-invite-editor${sidebarOpen ? '' : ' is-sidebar-collapsed'} is-device-${device}`} data-active-section={activeSection} data-active-field={activeField || undefined} role="dialog" aria-modal="true" aria-label="Amulet հրավերի խմբագրիչ">
       <header className="invite-editor-topbar">
         <div className="invite-editor-top-left">
-          <button type="button" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label={sidebarOpen ? 'Փակել վահանակը' : 'Բացել վահանակը'}>{sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}</button>
+          <button type="button" onClick={toggleEditorPanel} aria-expanded={panelOpen} aria-controls="invite-editor-sidebar" aria-label={panelOpen ? 'Փակել խմբագրման վահանակը' : 'Բացել խմբագրման վահանակը'}>{panelOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}</button>
           <button type="button" onClick={undo} disabled={!canUndo} aria-label="Հետարկել"><Undo2 size={17} /></button>
           <button type="button" onClick={redo} disabled={!canRedo} aria-label="Կրկնել"><Redo2 size={17} /></button>
           <span>Amulet Studio</span>
@@ -475,21 +719,23 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
         <button type="button" className="invite-editor-back" onClick={requestClose} aria-label="Ետ" title="Ետ"><ArrowLeft size={19} /></button>
       </nav>
 
-      <aside className={`invite-editor-sidebar is-${mobileSheet}`}>
+      <aside id="invite-editor-sidebar" className={`invite-editor-sidebar is-${mobileSheet}`}>
+        <div className="invite-editor-sidebar-scroll">
         <div className="invite-editor-sheet-handle" onPointerDown={(event) => { sheetStart.current = event.clientY; }} onPointerUp={(event) => {
           if (sheetStart.current === null) return;
           const delta = event.clientY - sheetStart.current;
           sheetStart.current = null;
           if (delta < -35) setMobileSheet('expanded');
           if (delta > 35) setMobileSheet('collapsed');
-        }}><i /><button type="button" onClick={() => setMobileSheet(mobileSheet === 'expanded' ? 'medium' : 'expanded')} aria-label="Փոխել վահանակի բարձրությունը">{mobileSheet === 'expanded' ? <ChevronDown size={16} /> : <ChevronUp size={16} />}</button></div>
-        <div className="invite-editor-sidebar-scroll"><EditorPanel isSingleImageTemplate={isSingleImageTemplate} /></div>
+        }}><i /><button type="button" onClick={() => setMobileSheet('collapsed')} aria-label="Փակել խմբագրման վահանակը"><ChevronDown size={17} /></button></div>
+        <EditorPanel isSingleImageTemplate={isSingleImageTemplate} />
+        </div>
         <footer><button type="button" onClick={() => void save()} disabled={actions.saving}><Save size={16} /> Պահպանել preview-ը</button><button type="button" onClick={() => actions.onBuy?.(data)} disabled={actions.saving}><ShoppingBag size={16} /> Գնել</button></footer>
       </aside>
 
       <PreviewWorkspace PreviewComponent={PreviewComponent} />
 
-      {confirmClose && <div className="invite-editor-confirm" role="dialog" aria-modal="true" aria-labelledby="invite-editor-close-title"><section><span><Save size={20} /></span><h2 id="invite-editor-close-title">Փակե՞լ խմբագրիչը</h2><p>Վերջին փոփոխությունները դեռ չեն պահպանվել private preview-ում։</p><div><button type="button" onClick={() => setConfirmClose(false)}>Շարունակել խմբագրումը</button><button type="button" onClick={async () => { const saved = await save(); if (saved !== false) actions.onClose?.(); }}>Պահպանել և փակել</button><button type="button" className="is-danger" onClick={() => actions.onClose?.()}>Փակել առանց պահպանելու</button></div></section></div>}
+      {confirmClose && <div className="invite-editor-confirm" role="dialog" aria-modal="true" aria-labelledby="invite-editor-close-title"><section><span><Save size={20} /></span><h2 id="invite-editor-close-title">Փակե՞լ խմբագրիչը</h2><p>Վերջին փոփոխությունները դեռ չեն պահպանվել private preview-ում։</p><div><button type="button" onClick={continueEditing} disabled={closePending}>Շարունակել խմբագրումը</button><button type="button" onClick={saveAndClose} disabled={closePending}>{closePending ? 'Պահպանվում է...' : 'Պահպանել և փակել'}</button><button type="button" className="is-danger" onClick={closeWithoutSaving} disabled={closePending}>Փակել առանց պահպանելու</button></div></section></div>}
     </section>
   );
 }

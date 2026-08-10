@@ -19,7 +19,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import api from '../api/axios.js';
 import ErrorState from '../components/ErrorState.jsx';
-import InvitationEditor, { decoratePreview } from '../components/invitationEditor/InvitationEditor.jsx';
+import InvitationEditor, { clearPreviewDecorations, decoratePreview, updateDraftTextField } from '../components/invitationEditor/InvitationEditor.jsx';
+import { cloneEditorDraft } from '../components/invitationEditor/editorData.js';
+import { prepareImage } from '../components/invitationEditor/mediaUtils.js';
 import Loading from '../components/Loading.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
@@ -43,11 +45,11 @@ const defaultColors = {
 
 const cleanVenueLinks = (links = []) => links
   .map((item, index) => ({
-    label: String(item?.label || `Վայր ${index + 1}`).trim(),
-    time: String(item?.time || '').trim(),
-    address: String(item?.address || '').trim(),
-    url: String(item?.url || '').trim(),
-    subtitle: String(item?.subtitle || '').trim(),
+    label: String(item?.label ?? `Վայր ${index + 1}`).trim(),
+    time: String(item?.time ?? '').trim(),
+    address: String(item?.address ?? '').trim(),
+    url: String(item?.url ?? '').trim(),
+    subtitle: String(item?.subtitle ?? '').trim(),
     icon: String(item?.icon || 'location').trim(),
     visible: item?.visible !== false
   }))
@@ -72,7 +74,7 @@ const createInitialDraft = (template) => {
       brideFamilyTitle: draft.brideFamilyTitle || '',
       rsvpQuestion: draft.rsvpQuestion || '',
       dressCode: draft.dressCode || '',
-      closingMessage: draft.closingMessage || 'Սիրով սպասում ենք Ձեզ։',
+      closingMessage: draft.closingMessage ?? 'Սիրով սպասում ենք Ձեզ։',
       musicEnabled: draft.musicEnabled !== false,
       musicUrl: draft.musicUrl || '',
       musicTitle: draft.musicTitle || '',
@@ -210,6 +212,8 @@ export default function TemplateLivePreviewPage() {
   const autoEditorOpenedRef = useRef(false);
   const autoBuyOpenedRef = useRef(false);
   const livePreviewRootRef = useRef(null);
+  const directImageInputRef = useRef(null);
+  const directImageFieldRef = useRef('');
 
   useEffect(() => {
     const request = previewToken ? api.get(`/previews/${previewToken}`) : api.get(`/templates/${id}`);
@@ -260,8 +264,16 @@ export default function TemplateLivePreviewPage() {
         || path.find((node) => node?.dataset?.editorKind);
       if (!target) return;
       event.amuletEditorHandled = true;
+      if (target.dataset.editorKind === 'text' && target.dataset.editorField) {
+        return;
+      }
       event.preventDefault();
       event.stopPropagation();
+      if (target.dataset.editorKind === 'image') {
+        directImageFieldRef.current = target.dataset.editorField || '';
+        directImageInputRef.current?.click();
+        return;
+      }
       setEditorInitialTarget({
         section: target.dataset.editorSection || (target.dataset.editorKind === 'image' ? 'media' : 'hero'),
         field: target.dataset.editorField || '',
@@ -291,6 +303,15 @@ export default function TemplateLivePreviewPage() {
       decoratePreview(root, draft);
       registerEventRoots();
     };
+    root.ownerDocument.__amuletEditorInlineCommitHandler = ({ field, value }) => {
+      if (!field) return;
+      setDraft((current) => {
+        const next = cloneEditorDraft(current);
+        updateDraftTextField(next, field, value);
+        return next;
+      });
+      setIsEdited(true);
+    };
     const frame = window.requestAnimationFrame(decorate);
     const timers = [120, 420, 900].map((delay) => window.setTimeout(decorate, delay));
     const observer = new MutationObserver(decorate);
@@ -300,10 +321,12 @@ export default function TemplateLivePreviewPage() {
       window.cancelAnimationFrame(frame);
       timers.forEach((timer) => window.clearTimeout(timer));
       observer.disconnect();
+      delete root.ownerDocument.__amuletEditorInlineCommitHandler;
       eventRoots.forEach((scope) => {
         scope.removeEventListener('click', activateEditorTarget, true);
         scope.removeEventListener('keydown', activateEditorTargetFromKeyboard, true);
       });
+      clearPreviewDecorations(root, { removeStyles: true });
     };
   }, [draft, editing, state]);
 
@@ -430,10 +453,27 @@ export default function TemplateLivePreviewPage() {
         window.location.replace('/login');
         return;
       }
-      setPromoError(error.response?.data?.message || t('promoInvalid'));
+      setPromoError(t('promoInvalid'));
     } finally {
       setPromoChecking(false);
     }
+  };
+
+  const replaceDirectImage = async (file) => {
+    if (!file) return;
+    const imageValue = await prepareImage(file);
+    const prefix = 'templateImageOverrides.';
+    const field = directImageFieldRef.current;
+    setDraft((current) => {
+      if (field.startsWith(prefix)) {
+        return {
+          ...current,
+          templateImageOverrides: { ...(current.templateImageOverrides || {}), [field.slice(prefix.length)]: imageValue }
+        };
+      }
+      return { ...current, image: imageValue, gallery: [imageValue, ...(current.gallery || []).filter((item) => item !== imageValue)] };
+    });
+    setIsEdited(true);
   };
 
   if (state === 'loading') return <Loading text={t('loading')} />;
@@ -450,6 +490,7 @@ export default function TemplateLivePreviewPage() {
       ref={livePreviewRootRef}
       className={`${LivePreview ? 'template-live-page test-wedding-page' : 'template-live-page'}${editing ? ' is-editing' : ''}`}
     >
+      <input ref={directImageInputRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => { void replaceDirectImage(event.target.files?.[0]); event.target.value = ''; }} />
       {LivePreview ? (
         <>
           <LivePreview
@@ -465,11 +506,11 @@ export default function TemplateLivePreviewPage() {
       ) : (
       <article className="template-live-card">
         <section className="template-live-hero">
-          {image && <img src={image} alt={draft?.mainNames || template.title} />}
+          {image && <img src={image} alt={draft?.mainNames ?? template.title} />}
           <div className="template-live-scrim" />
           <div className="template-live-copy">
             <span><Sparkles size={16} /> {t(template.category)}</span>
-            <h1>{draft?.mainNames || template.title}</h1>
+            <h1>{draft?.mainNames ?? template.title}</h1>
             <p>{draft?.eventMessage || template.description}</p>
           </div>
         </section>

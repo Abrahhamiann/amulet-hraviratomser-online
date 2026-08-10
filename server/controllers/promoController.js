@@ -3,6 +3,15 @@ import PromoCode from '../models/PromoCode.js';
 import Template from '../models/Template.js';
 import { normalizePromoCode, resolvePromo } from '../utils/promo.js';
 
+export const normalizePromoExpiry = (value) => {
+  if (!value) return null;
+  const dateOnly = String(value).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const date = dateOnly
+    ? new Date(`${dateOnly[1]}-${dateOnly[2]}-${dateOnly[3]}T23:59:59.999+04:00`)
+    : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
 const cleanPromoPayload = (body = {}) => {
   const discountType = body.discountType === 'fixed' ? 'fixed' : 'percent';
   const value = Math.max(0, Number(body.value) || 0);
@@ -14,7 +23,7 @@ const cleanPromoPayload = (body = {}) => {
     value: discountType === 'percent' ? Math.min(90, value) : value,
     maxUses: Math.max(0, Math.floor(Number(body.maxUses) || 0)),
     isActive: body.isActive !== false,
-    expiresAt: body.expiresAt ? new Date(body.expiresAt) : null
+    expiresAt: normalizePromoExpiry(body.expiresAt)
   };
 };
 

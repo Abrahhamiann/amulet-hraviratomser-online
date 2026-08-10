@@ -6,7 +6,7 @@ const invitationSchema = new mongoose.Schema(
     orderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
     templateId: { type: mongoose.Schema.Types.ObjectId, ref: 'Template' },
     eventType: { type: String, required: true },
-    names: { type: String, required: true },
+    names: { type: String, default: '' },
     date: { type: Date, required: true },
     time: { type: String, required: true },
     location: { type: String, required: true },
@@ -24,6 +24,7 @@ const invitationSchema = new mongoose.Schema(
       text: { type: String, default: '#ffffff' },
       overlay: { type: String, default: '#202020' }
     },
+    colorPaletteId: { type: String, default: '' },
     language: { type: String, default: 'hy' },
     customization: { type: mongoose.Schema.Types.Mixed, default: {} },
     isPublished: { type: Boolean, default: false }

@@ -19,6 +19,7 @@ import {
 } from '../utils/invitationDraft.js';
 import { hashPreviewToken } from '../utils/previewToken.js';
 import { normalizePromoCode, resolvePromo } from '../utils/promo.js';
+import { createSecureInvitationSlug } from '../utils/invitationSlug.js';
 
 let stripeClient = null;
 
@@ -114,18 +115,6 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
   res.json({ url: session.url });
 });
 
-const nextInviteSlug = async () => {
-  let next = await Invitation.countDocuments() + 1;
-  let slug = String(next);
-
-  while (await Invitation.exists({ slug })) {
-    next += 1;
-    slug = String(next);
-  }
-
-  return slug;
-};
-
 export const confirmCheckoutSession = asyncHandler(async (req, res) => {
   const stripe = getStripe();
 
@@ -195,6 +184,7 @@ export const confirmCheckoutSession = asyncHandler(async (req, res) => {
   const mapLinks = normalizeMapLinks(draftData);
   const mapLink = mapLinks[0]?.url || '';
   const colors = normalizeColors(draftData.colors);
+  const colorPaletteId = metadataText(draftData.colorPaletteId, '', 80);
   const draftGallery = Array.isArray(draftData.gallery) ? draftData.gallery : [];
   const gallery = uniqueImages([
     draftData.image,
@@ -218,6 +208,7 @@ export const confirmCheckoutSession = asyncHandler(async (req, res) => {
     mainNames,
     eventMessage,
     colors,
+    colorPaletteId,
     preferredLanguage: 'hy',
     amount: Number(session.amount_total || 0) / 100,
     originalAmount: Number(session.metadata?.originalAmount) || Number(template.price) || 0,
@@ -230,7 +221,7 @@ export const confirmCheckoutSession = asyncHandler(async (req, res) => {
   });
 
   const invitation = await Invitation.create({
-    slug: await nextInviteSlug(),
+    slug: await createSecureInvitationSlug(),
     orderId: order._id,
     templateId: template._id,
     eventType: template.category,
@@ -243,6 +234,7 @@ export const confirmCheckoutSession = asyncHandler(async (req, res) => {
     message: eventMessage,
     gallery,
     colors,
+    colorPaletteId,
     language: 'hy',
     customization: invitationCustomization(draftData),
     isPublished: true

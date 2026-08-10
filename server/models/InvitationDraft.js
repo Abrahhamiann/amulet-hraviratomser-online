@@ -19,11 +19,14 @@ const invitationDraftSchema = new mongoose.Schema(
       eventMessage: { type: String, default: '' },
       image: { type: String, default: '' },
       gallery: [{ type: String }],
+      templateTextOverrides: { type: mongoose.Schema.Types.Mixed, default: {} },
+      templateImageOverrides: { type: mongoose.Schema.Types.Mixed, default: {} },
       colors: {
         accent: { type: String, default: '#d8b98e' },
         text: { type: String, default: '#ffffff' },
         overlay: { type: String, default: '#202020' }
-      }
+      },
+      colorPaletteId: { type: String, default: '' }
     },
     expiresAt: { type: Date, required: true }
   },

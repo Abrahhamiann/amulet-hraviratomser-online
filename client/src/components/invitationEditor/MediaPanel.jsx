@@ -7,7 +7,7 @@ import { builtInTracks, MAX_AUDIO_BYTES, MAX_CUSTOM_TRACKS, MAX_GALLERY_IMAGES }
 import { ACCEPTED_AUDIO_TYPES, prepareImage, readFileAsDataUrl } from './mediaUtils.js';
 
 export default function MediaPanel({ isSingleImageTemplate }) {
-  const { data, update } = useEditor();
+  const { data, editableContent, update } = useEditor();
   const [query, setQuery] = useState('');
   const [customTracks, setCustomTracks] = useState(() => data.musicUrl?.startsWith('data:audio/') ? [{ id: 'saved-custom', title: data.musicTitle || 'Իմ երգը', meta: 'Վերբեռնված երգ', src: data.musicUrl }] : []);
   const [playing, setPlaying] = useState('');
@@ -23,6 +23,7 @@ export default function MediaPanel({ isSingleImageTemplate }) {
     [data.image, gallery]
   );
   const visibleTracks = useMemo(() => [...builtInTracks, ...customTracks].filter((track) => `${track.title} ${track.artist || ''}`.toLowerCase().includes(query.trim().toLowerCase())), [customTracks, query]);
+
 
   const selectTrack = (track) => update((draft) => {
     draft.musicEnabled = true;
@@ -84,6 +85,19 @@ export default function MediaPanel({ isSingleImageTemplate }) {
     }
   };
 
+  const replaceTemplateImage = async (key, file) => {
+    if (!file) return;
+    setError('');
+    try {
+      const image = await prepareImage(file);
+      update((draft) => {
+        draft.templateImageOverrides = { ...(draft.templateImageOverrides || {}), [key]: image };
+      });
+    } catch (uploadError) {
+      setError(uploadError.message || 'Նկարը չհաջողվեց վերբեռնել։');
+    }
+  };
+
   return (
     <div className="invite-editor-panel">
       <audio ref={audioRef} onEnded={() => setPlaying('')} />
@@ -107,6 +121,24 @@ export default function MediaPanel({ isSingleImageTemplate }) {
         <input ref={galleryInput} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onChange={(event) => { void addImages(event.target.files); event.target.value = ''; }} />
         {imageProgress !== null && <div className="invite-editor-progress"><i style={{ width: `${imageProgress}%` }} /></div>}
         <small className="invite-editor-hint">JPG, PNG կամ WEBP · մինչև 5 MB · հնարավոր է միանգամից ընտրել մի քանի նկար</small>
+      </section>}
+
+      {editableContent.images.length > 0 && <section className="invite-editor-card">
+        <div className="invite-editor-card-title"><strong>Շաբլոնի բոլոր նկարները</strong><small>{editableContent.images.length}</small></div>
+        <div className="invite-editor-gallery-grid">
+          {editableContent.images.map((item, index) => {
+            const overrides = data.templateImageOverrides || {};
+            const value = Object.prototype.hasOwnProperty.call(overrides, item.key) ? overrides[item.key] : item.defaultValue;
+            return <article key={item.key} data-editor-field={`templateImageOverrides.${item.key}`}>
+              <label>
+                {value ? <img src={resolveTemplateImage(value)} alt={item.alt || `Նկար ${index + 1}`} /> : <span><ImageIcon size={20} /></span>}
+                <input type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => { void replaceTemplateImage(item.key, event.target.files?.[0]); event.target.value = ''; }} />
+              </label>
+              <button type="button" onClick={() => update((draft) => { draft.templateImageOverrides = { ...(draft.templateImageOverrides || {}), [item.key]: '' }; })} aria-label={`Ջնջել նկար ${index + 1}`}><Trash2 size={13} /></button>
+            </article>;
+          })}
+        </div>
+        <small className="invite-editor-hint">Սեղմեք նկարի վրա՝ այն փոխարինելու համար։ Ջնջված նկարը դատարկ կմնա։</small>
       </section>}
 
       <section className="invite-editor-card">
