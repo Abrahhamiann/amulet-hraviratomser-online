@@ -3,11 +3,11 @@ import { Check, FileAudio, Image as ImageIcon, ImagePlus, Music2, Pause, Play, S
 import { resolveTemplateImage } from '../../occasionTemplates/templateAssets.js';
 import { useEditor } from './EditorContext.jsx';
 import { EmptyState, Field, PanelHeader, Toggle } from './EditorControls.jsx';
-import { builtInTracks, MAX_AUDIO_BYTES, MAX_CUSTOM_TRACKS, MAX_GALLERY_IMAGES } from './editorData.js';
+import { builtInTracks, MAX_AUDIO_BYTES, MAX_CUSTOM_TRACKS, MAX_GALLERY_IMAGES, normalizeInvitationGallery } from './editorData.js';
 import { ACCEPTED_AUDIO_TYPES, prepareImage, readFileAsDataUrl } from './mediaUtils.js';
 
 export default function MediaPanel({ isSingleImageTemplate }) {
-  const { data, editableContent, update } = useEditor();
+  const { activeField, data, editableContent, focusEditorTarget, update } = useEditor();
   const [query, setQuery] = useState('');
   const [customTracks, setCustomTracks] = useState(() => data.musicUrl?.startsWith('data:audio/') ? [{ id: 'saved-custom', title: data.musicTitle || 'Իմ երգը', meta: 'Վերբեռնված երգ', src: data.musicUrl }] : []);
   const [playing, setPlaying] = useState('');
@@ -19,7 +19,7 @@ export default function MediaPanel({ isSingleImageTemplate }) {
   const audioInput = useRef(null);
   const gallery = data.gallery || [];
   const orderedGallery = useMemo(
-    () => [data.image, ...gallery].filter((image, index, images) => image && images.indexOf(image) === index),
+    () => normalizeInvitationGallery(data.image, gallery),
     [data.image, gallery]
   );
   const visibleTracks = useMemo(() => [...builtInTracks, ...customTracks].filter((track) => `${track.title} ${track.artist || ''}`.toLowerCase().includes(query.trim().toLowerCase())), [customTracks, query]);
@@ -56,9 +56,9 @@ export default function MediaPanel({ isSingleImageTemplate }) {
       update((draft) => {
         if (heroOnly || isSingleImageTemplate) {
           draft.image = images[0];
-          draft.gallery = isSingleImageTemplate ? [images[0]] : [images[0], ...draft.gallery.filter((image) => image !== images[0])].slice(0, MAX_GALLERY_IMAGES);
+          draft.gallery = isSingleImageTemplate ? [images[0]] : normalizeInvitationGallery(images[0], draft.gallery);
         } else {
-          draft.gallery = [...draft.gallery, ...images].filter((image, index, all) => all.indexOf(image) === index).slice(0, MAX_GALLERY_IMAGES);
+          draft.gallery = normalizeInvitationGallery(draft.image, [...draft.gallery, ...images]);
           if (!draft.image) draft.image = images[0];
         }
       });
@@ -99,7 +99,10 @@ export default function MediaPanel({ isSingleImageTemplate }) {
   };
 
   return (
-    <div className="invite-editor-panel">
+    <div className="invite-editor-panel" onFocusCapture={(event) => {
+      const field = event.target.closest('[data-editor-field]')?.dataset.editorField;
+      if (field && field !== activeField) focusEditorTarget({ section: 'media', field, targetTab: 'media', scrollPreview: true });
+    }}>
       <audio ref={audioRef} onEnded={() => setPlaying('')} />
       <PanelHeader title="Մեդիա և երաժշտություն" subtitle="Վերբեռնեք լուսանկարներ և ընտրեք ֆոնային երգ։" />
 
@@ -115,7 +118,7 @@ export default function MediaPanel({ isSingleImageTemplate }) {
       {!isSingleImageTemplate && <section className="invite-editor-card">
         <div className="invite-editor-card-title"><strong>Նկարների հերթականություն</strong><small>{orderedGallery.length}/{MAX_GALLERY_IMAGES}</small></div>
         <div className="invite-editor-gallery-grid">
-          {orderedGallery.map((image, index) => <article key={`${String(image).slice(0, 35)}-${index}`} data-editor-field={`gallery.${index}`} className={data.image === image ? 'is-selected' : ''}><button type="button" onClick={() => update((draft) => { draft.image = image; })}><img src={resolveTemplateImage(image)} alt={`Նկար ${index + 1}`} /><span>{index + 1}</span></button><button type="button" onClick={() => update((draft) => { const nextImages = [draft.image, ...draft.gallery].filter((item, itemIndex, items) => item && item !== image && items.indexOf(item) === itemIndex); draft.gallery = nextImages; if (draft.image === image) draft.image = nextImages[0] || ''; })} aria-label={`Ջնջել նկար ${index + 1}`}><Trash2 size={13} /></button></article>)}
+          {orderedGallery.map((image, index) => <article key={`${String(image).slice(0, 35)}-${index}`} data-editor-field={`gallery.${index}`} className={data.image === image ? 'is-selected' : ''}><button type="button" onClick={() => update((draft) => { draft.image = image; draft.gallery = normalizeInvitationGallery(image, draft.gallery); })}><img src={resolveTemplateImage(image)} alt={`Նկար ${index + 1}`} /><span>{index + 1}</span></button><button type="button" onClick={() => update((draft) => { const nextImages = normalizeInvitationGallery('', [draft.image, ...draft.gallery].filter((item) => item !== image)); draft.gallery = nextImages; if (draft.image === image) draft.image = nextImages[0] || ''; })} aria-label={`Ջնջել նկար ${index + 1}`}><Trash2 size={13} /></button></article>)}
           {orderedGallery.length < MAX_GALLERY_IMAGES && <button type="button" className="invite-editor-gallery-add" onClick={() => galleryInput.current?.click()}><ImagePlus size={21} /><span>Ավելացնել</span></button>}
         </div>
         <input ref={galleryInput} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onChange={(event) => { void addImages(event.target.files); event.target.value = ''; }} />
@@ -125,20 +128,29 @@ export default function MediaPanel({ isSingleImageTemplate }) {
 
       {editableContent.images.length > 0 && <section className="invite-editor-card">
         <div className="invite-editor-card-title"><strong>Շաբլոնի բոլոր նկարները</strong><small>{editableContent.images.length}</small></div>
-        <div className="invite-editor-gallery-grid">
+        <div className="invite-editor-template-image-list">
           {editableContent.images.map((item, index) => {
             const overrides = data.templateImageOverrides || {};
             const value = Object.prototype.hasOwnProperty.call(overrides, item.key) ? overrides[item.key] : item.defaultValue;
             return <article key={item.key} data-editor-field={`templateImageOverrides.${item.key}`}>
-              <label>
-                {value ? <img src={resolveTemplateImage(value)} alt={item.alt || `Նկար ${index + 1}`} /> : <span><ImageIcon size={20} /></span>}
+              <strong>{item.label || item.alt || `Հրավերի նկար ${index + 1}`}</strong>
+              <div className="invite-editor-template-image-control">
+              <label tabIndex={0} role="button" aria-label={`${value ? 'Փոխարինել' : 'Վերբեռնել'}՝ ${item.label || item.alt || `հրավերի նկար ${index + 1}`}`} onKeyDown={(event) => {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+                event.preventDefault();
+                event.currentTarget.querySelector('input')?.click();
+              }}>
+                {value
+                  ? <img src={resolveTemplateImage(value)} alt={item.alt || item.label || `Նկար ${index + 1}`} />
+                  : <span className="invite-editor-template-image-empty"><ImagePlus size={24} /><b>Վերբեռնել նոր նկար</b><small>Սեղմեք՝ ջնջված նկարը փոխարինելու համար</small></span>}
                 <input type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => { void replaceTemplateImage(item.key, event.target.files?.[0]); event.target.value = ''; }} />
               </label>
-              <button type="button" onClick={() => update((draft) => { draft.templateImageOverrides = { ...(draft.templateImageOverrides || {}), [item.key]: '' }; })} aria-label={`Ջնջել նկար ${index + 1}`}><Trash2 size={13} /></button>
+              {value && <button type="button" onClick={() => update((draft) => { draft.templateImageOverrides = { ...(draft.templateImageOverrides || {}), [item.key]: '' }; })} aria-label={`Ջնջել՝ ${item.label || item.alt || `նկար ${index + 1}`}`}><Trash2 size={15} /></button>}
+              </div>
             </article>;
           })}
         </div>
-        <small className="invite-editor-hint">Սեղմեք նկարի վրա՝ այն փոխարինելու համար։ Ջնջված նկարը դատարկ կմնա։</small>
+        <small className="invite-editor-hint">Նկարները ցուցադրված են հրավերի հերթականությամբ։ Սեղմեք նկարի կամ դատարկ տեղի վրա՝ այն անմիջապես փոխարինելու համար։</small>
       </section>}
 
       <section className="invite-editor-card">

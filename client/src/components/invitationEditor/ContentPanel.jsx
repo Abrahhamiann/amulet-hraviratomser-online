@@ -13,7 +13,7 @@ const autoGrowTextarea = (textarea) => {
 };
 
 export default function ContentPanel() {
-  const { activeSection, data, editableContent, focusEditorTarget, update } = useEditor();
+  const { activeField, activeSection, data, editableContent, focusEditorTarget, update } = useEditor();
   const [openSections, setOpenSections] = useState(['hero', 'schedule']);
   const panelRef = useRef(null);
   const [firstName, secondName] = splitNames(data.mainNames);
@@ -31,7 +31,9 @@ export default function ContentPanel() {
   const handleFieldFocus = (event) => {
     const field = event.target.closest('[data-editor-field]')?.dataset.editorField;
     const section = event.target.closest('[data-editor-section-id]')?.dataset.editorSectionId;
-    if (section) focusEditorTarget({ section, field: field || '', scrollPreview: true });
+    if (section && (section !== activeSection || (field || '') !== activeField)) {
+      focusEditorTarget({ section, field: field || '', scrollPreview: true });
+    }
   };
   const setVisible = (field, value) => update((draft) => { draft[field] = value; });
   const setField = (field, value) => update((draft) => { draft[field] = value; });

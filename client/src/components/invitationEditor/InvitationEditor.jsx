@@ -9,7 +9,7 @@ import ContentPanel from './ContentPanel.jsx';
 import DesignPanel from './DesignPanel.jsx';
 import MediaPanel from './MediaPanel.jsx';
 import BuyPanel from './BuyPanel.jsx';
-import { splitNames } from './editorData.js';
+import { normalizeInvitationGallery, splitNames } from './editorData.js';
 import { resolveTemplateImage } from '../../occasionTemplates/templateAssets.js';
 import { prepareImage } from './mediaUtils.js';
 import './invitationEditor.css';
@@ -36,6 +36,23 @@ const previewSectionSelectors = {
 };
 
 const normalizePreviewText = (value) => String(value || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('hy');
+
+const getTemplateImageLabel = (image, index) => {
+  const alt = String(image.alt || '').trim();
+  if (alt) return alt;
+
+  const context = [
+    image.className,
+    image.closest?.('section, article, figure, div')?.className
+  ].filter((value) => typeof value === 'string').join(' ').toLowerCase();
+
+  if (/hero|cover|intro/.test(context)) return 'Գլխավոր բաժնի նկար';
+  if (/gallery|carousel|slider/.test(context)) return `Պատկերասրահի նկար ${index + 1}`;
+  if (/bride|groom|couple|portrait|person|child|family/.test(context)) return 'Մասնակցի կամ ընտանիքի նկար';
+  if (/venue|location|church|party|event|place/.test(context)) return 'Միջոցառման վայրի նկար';
+  if (/closing|final|footer/.test(context)) return 'Եզրափակիչ բաժնի նկար';
+  return `Հրավերի նկար ${index + 1}`;
+};
 
 export const updateDraftTextField = (draft, field, value) => {
   if (!field) return;
@@ -92,7 +109,7 @@ const getPreviewFields = (data) => {
 };
 
 const shadowHotspotStyles = `
-  [data-editor-kind]{position:relative;cursor:pointer;touch-action:manipulation;outline:2px solid transparent;outline-offset:5px;transition:outline-color .2s ease,background-color .2s ease}
+  [data-editor-kind]{position:relative;cursor:pointer;touch-action:manipulation;outline:2px solid transparent;outline-offset:5px;transition:outline-color .24s ease,background-color .24s ease,box-shadow .24s ease}
   [data-editor-kind="text"][contenteditable]{border:0!important;outline:0!important;box-shadow:none!important;cursor:text;caret-color:#d07d4f;user-select:text;-webkit-user-select:text}
   [data-editor-kind="text"]::after{pointer-events:auto}
   [data-editor-kind="text"].is-editor-inline-editing{outline-color:#d07d4f;background-color:rgba(208,125,79,.055)}
@@ -103,6 +120,9 @@ const shadowHotspotStyles = `
   [data-editor-kind="map"]::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E")}
   [data-editor-kind]:is(:hover,:focus-visible){outline-color:#d07d4f;background-color:rgba(208,125,79,.035)}
   [data-editor-kind]:is(:hover,:focus-visible)::after{opacity:1;transform:translateY(0)}
+  [data-editor-kind].is-editor-active{outline:3px solid #d07d4f!important;outline-offset:7px!important;background-color:rgba(208,125,79,.08)!important;box-shadow:0 0 0 7px rgba(208,125,79,.16),0 12px 34px rgba(73,39,20,.18)!important;animation:amuletEditorFocusPulse .72s cubic-bezier(.2,.8,.2,1) both}
+  [data-editor-kind].is-editor-active::after{opacity:1;transform:translateY(0)}
+  @keyframes amuletEditorFocusPulse{0%{box-shadow:0 0 0 0 rgba(208,125,79,.42),0 4px 12px rgba(73,39,20,.08)}55%{box-shadow:0 0 0 12px rgba(208,125,79,.12),0 14px 38px rgba(73,39,20,.2)}100%{box-shadow:0 0 0 7px rgba(208,125,79,.16),0 12px 34px rgba(73,39,20,.18)}}
   @media (hover:none){[data-editor-kind]::after{content:"";width:34px;min-height:34px;padding:0;background-position:center;opacity:0;transform:none}[data-editor-kind]:is(:focus,.is-editor-active)::after{opacity:.92}}
   @media (prefers-reduced-motion:reduce){[data-editor-kind],[data-editor-kind]::after{transition:none}}
 `;
@@ -315,7 +335,8 @@ export const decoratePreview = (root, data, { suppressMotion = false } = {}) => 
         editableImages.set(templateImageKey, {
           key: templateImageKey,
           defaultValue: image.dataset.templateImageDefault || source,
-          alt: image.alt || `Նկար ${editableImages.size + 1}`
+          alt: image.alt || `Նկար ${editableImages.size + 1}`,
+          label: getTemplateImageLabel(image, editableImages.size)
         });
       }
       makeEditorHotspot(target, {
@@ -472,6 +493,7 @@ function PreviewWorkspace({ PreviewComponent }) {
   const previewRootRef = useRef(null);
   const directImageInputRef = useRef(null);
   const directImageFieldRef = useRef('');
+  const handledPreviewFocusRequestRef = useRef(previewFocusRequest);
   const [previewReady, setPreviewReady] = useState(0);
 
   const handlePreviewReady = useCallback((root, catalog) => {
@@ -488,6 +510,8 @@ function PreviewWorkspace({ PreviewComponent }) {
   useEffect(() => {
     const root = previewRootRef.current;
     if (!root) return;
+    const shouldScrollPreview = handledPreviewFocusRequestRef.current !== previewFocusRequest;
+    handledPreviewFocusRequestRef.current = previewFocusRequest;
     getPreviewRoots(root).forEach((scope) => scope.querySelectorAll('.is-editor-active, .is-editor-section-active').forEach((element) => {
       element.classList.remove('is-editor-active', 'is-editor-section-active');
     }));
@@ -496,9 +520,10 @@ function PreviewWorkspace({ PreviewComponent }) {
     if (!target && activeSection) target = findPreviewElement(root, `[data-editor-section="${activeSection}"]`);
     if (!target) return;
     const activeBlock = target.closest('[data-editor-section]') || target;
+    void target.offsetWidth;
     target.classList.add('is-editor-active');
     if (activeBlock !== target) activeBlock.classList.add('is-editor-section-active');
-    target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    if (shouldScrollPreview) target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
   }, [activeField, activeSection, previewFocusRequest, previewReady]);
 
   const handlePreviewClick = (event) => {
@@ -510,32 +535,25 @@ function PreviewWorkspace({ PreviewComponent }) {
     if (!target) return;
     event.amuletEditorHandled = true;
     if (target.dataset.editorKind === 'text' && target.dataset.editorField) {
-      const rect = target.getBoundingClientRect();
-      const compactBadge = target.ownerDocument.defaultView?.matchMedia?.('(hover: none)').matches;
-      const panelButtonWidth = compactBadge ? 44 : 118;
-      const clickedPanelButton = event.clientX >= rect.right - panelButtonWidth
-        && event.clientX <= rect.right + 12
-        && event.clientY >= rect.top - 22
-        && event.clientY <= rect.top + 28;
-      if (clickedPanelButton) {
-        event.preventDefault();
-        event.stopPropagation();
-        focusEditorTarget({
-          section: target.dataset.editorSection || 'hero',
-          field: target.dataset.editorField || '',
-          targetTab: target.dataset.editorTab || 'content',
-          scrollPreview: false
-        });
-        return;
-      }
-      target.classList.add('is-editor-inline-editing');
+      event.preventDefault();
+      event.stopPropagation();
+      focusEditorTarget({
+        section: target.dataset.editorSection || 'hero',
+        field: target.dataset.editorField || '',
+        targetTab: target.dataset.editorTab || 'content',
+        scrollPreview: false
+      });
       return;
     }
     event.preventDefault();
     event.stopPropagation();
     if (target.dataset.editorKind === 'image') {
-      directImageFieldRef.current = target.dataset.editorField || '';
-      directImageInputRef.current?.click();
+      focusEditorTarget({
+        section: 'media',
+        field: target.dataset.editorField || '',
+        targetTab: 'media',
+        scrollPreview: false
+      });
       return;
     }
     focusEditorTarget({
@@ -556,7 +574,7 @@ function PreviewWorkspace({ PreviewComponent }) {
         draft.templateImageOverrides = { ...(draft.templateImageOverrides || {}), [field.slice(prefix.length)]: image };
       } else {
         draft.image = image;
-        draft.gallery = [image, ...(draft.gallery || []).filter((item) => item !== image)];
+        draft.gallery = normalizeInvitationGallery(image, draft.gallery);
       }
     });
   };
@@ -612,18 +630,22 @@ function PreviewWorkspace({ PreviewComponent }) {
 }
 
 function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
-  const { activeField, activeSection, actions, canRedo, canUndo, data, device, dirty, mobileSheet, redo, save, saveStatus, setMobileSheet, setSidebarOpen, setTab, sidebarOpen, tab, undo } = useEditor();
+  const { activeField, activeSection, actions, canRedo, canUndo, data, device, dirty, mobileSheet, redo, save, saveStatus, setDevice, setMobileSheet, setSidebarOpen, setTab, sidebarOpen, tab, undo } = useEditor();
   const [confirmClose, setConfirmClose] = useState(false);
   const [closePending, setClosePending] = useState(false);
-  const [compactViewport, setCompactViewport] = useState(() => window.matchMedia('(max-width: 820px)').matches);
+  const [compactViewport, setCompactViewport] = useState(() => window.matchMedia('(max-width: 1024px)').matches);
   const sheetStart = useRef(null);
 
   useEffect(() => {
-    const query = window.matchMedia('(max-width: 820px)');
-    const updateViewport = (event) => setCompactViewport(event.matches);
+    const query = window.matchMedia('(max-width: 1024px)');
+    const updateViewport = (event) => {
+      setCompactViewport(event.matches);
+      if (event.matches) setDevice('mobile');
+    };
+    if (query.matches) setDevice('mobile');
     query.addEventListener('change', updateViewport);
     return () => query.removeEventListener('change', updateViewport);
-  }, []);
+  }, [setDevice]);
 
   const requestClose = useCallback(() => {
     if (dirty) setConfirmClose(true);

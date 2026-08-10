@@ -12,6 +12,10 @@ export const builtInTracks = [
   { id: 'river-flows', title: 'River Flows in You', artist: 'Yiruma', meta: 'Amulet ընտրանի', src: baptismSong }
 ];
 
+export const normalizeInvitationGallery = (image, gallery = []) => [image, ...(Array.isArray(gallery) ? gallery : [])]
+  .filter((item, index, items) => item && items.indexOf(item) === index)
+  .slice(0, MAX_GALLERY_IMAGES);
+
 export const buttonPresets = [
   { id: '01', label: 'Մուգ', style: { background: '#181716', color: '#fff', border: '1px solid #181716' } },
   { id: '02', label: 'Ոսկեգույն', style: { background: '#d8b98e', color: '#241f19', border: '1px solid #d8b98e' } },
@@ -136,7 +140,7 @@ export const cloneEditorDraft = (value) => {
 export const prepareEditorDraft = (draft = {}) => ({
   ...cloneEditorDraft(draft),
   colors: { accent: '#d8b98e', text: '#ffffff', overlay: '#202020', ...(draft.colors || {}) },
-  gallery: Array.isArray(draft.gallery) ? [...draft.gallery] : [],
+  gallery: normalizeInvitationGallery(draft.image, draft.gallery),
   mapLinks: Array.isArray(draft.mapLinks) && draft.mapLinks.length
     ? draft.mapLinks.map((item, index) => ({
       label: item?.label ?? `Վայր ${index + 1}`,
@@ -163,6 +167,8 @@ export const prepareEditorDraft = (draft = {}) => ({
   },
   buttonDesign: { preset: '01', radius: 'pill', ...(draft.buttonDesign || {}) },
   musicEnabled: draft.musicEnabled !== false,
+  musicUrl: draft.musicUrl || weddingSong,
+  musicTitle: draft.musicTitle || 'Ed Sheeran — Perfect',
   musicStart: Number(draft.musicStart) || 0,
   musicEnd: Number(draft.musicEnd) || 0,
   heroVisible: draft.heroVisible !== false,

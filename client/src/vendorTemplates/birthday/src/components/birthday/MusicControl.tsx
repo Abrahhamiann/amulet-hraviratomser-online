@@ -13,14 +13,13 @@ export function MusicControl({ src }: { src?: string | undefined }) {
     const el = audioRef.current;
     if (!el) return;
     el.volume = 0.35;
-  }, []);
+    el.load();
+    setPlaying(false);
+  }, [src]);
 
   const toggle = async () => {
     const el = audioRef.current;
-    if (!el || !src) {
-      setPlaying((p) => !p);
-      return;
-    }
+    if (!el || !src) return;
     try {
       if (playing) {
         el.pause();
@@ -33,6 +32,8 @@ export function MusicControl({ src }: { src?: string | undefined }) {
       setPlaying(false);
     }
   };
+
+  if (!src) return null;
 
   return (
     <>

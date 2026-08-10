@@ -41,6 +41,7 @@ import { WeddingSchedule } from '../vendorTemplates/ivory/src/components/wedding
 import { wedding } from '../vendorTemplates/ivory/src/data/wedding';
 import ivoryStyles from '../vendorTemplates/ivory/src/styles.css?inline';
 import ivoryHero from '../vendorTemplates/ivory/src/assets/hero.jpg';
+import defaultInvitationSong from '../assets/audio/ed-sheeran-perfect.mp3';
 import { resolveTemplateImage, templateDefaultGalleryIds } from './templateAssets.js';
 
 import './originalTypeScriptTemplates.css';
@@ -344,6 +345,7 @@ function TemplateShell({ children, props }: { children: ReactNode; props: Templa
 
 function SacredBeginningsTemplate(props: TemplateProps) {
   const { draft = {} } = props;
+  const musicSource = draft.musicEnabled === false ? undefined : (draft.musicUrl || defaultInvitationSong);
   const data = useMemo<InvitationData>(() => {
     const image = resolveTemplateImage(draft.image) || sacredInvitation.child.portrait.src;
     const gallery = (draft.gallery || []).map(resolveTemplateImage).filter(Boolean);
@@ -364,12 +366,14 @@ function SacredBeginningsTemplate(props: TemplateProps) {
       label="Սուրբ սկիզբ մկրտության հրավեր"
     >
       <BaptismInvitation data={data} />
+      <MusicControl src={musicSource} />
     </OriginalTemplateSurface></TemplateShell>
   );
 }
 
 function BirthdaySparkleTemplate(props: TemplateProps) {
   const { draft = {} } = props;
+  const musicSource = draft.musicEnabled === false ? undefined : (draft.musicUrl || defaultInvitationSong);
   const [revealed, setRevealed] = useState(false);
   const onIntroDone = useCallback(() => setRevealed(true), []);
   const handleRsvp = useCallback((_data: RsvpData) => undefined, []);
@@ -409,7 +413,7 @@ function BirthdaySparkleTemplate(props: TemplateProps) {
         <LocationSection data={data} />
         <RSVPSection onSubmit={handleRsvp} />
         <FinalCelebration data={data} />
-        <MusicControl src={data.musicSrc} />
+        <MusicControl src={musicSource} />
       </main>
     </OriginalTemplateSurface></TemplateShell>
   );
@@ -417,6 +421,7 @@ function BirthdaySparkleTemplate(props: TemplateProps) {
 
 function IvoryVowsTemplate(props: TemplateProps) {
   const { draft = {} } = props;
+  const musicSource = draft.musicEnabled === false ? undefined : (draft.musicUrl || defaultInvitationSong);
   const [ceremony, reception] = wedding.venues;
   const customize = useCallback((root: HTMLDivElement) => {
     const explicitNames = String(draft.mainNames ?? '').split(/\s*[&+,·]\s*/, 2);
@@ -469,6 +474,7 @@ function IvoryVowsTemplate(props: TemplateProps) {
         <ClosingSection />
         <WeddingFooter />
         <FloatingActions />
+        <MusicControl src={musicSource} />
       </main>
     </OriginalTemplateSurface></TemplateShell>
   );

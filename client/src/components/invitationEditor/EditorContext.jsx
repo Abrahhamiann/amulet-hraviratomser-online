@@ -5,14 +5,14 @@ const EditorContext = createContext(null);
 const MAX_HISTORY = 60;
 const getInitialPreviewDevice = () => {
   if (typeof window === 'undefined') return 'desktop';
-  if (window.matchMedia('(max-width: 820px)').matches) return 'mobile';
+  if (window.matchMedia('(max-width: 1024px)').matches) return 'mobile';
   if (window.matchMedia('(max-width: 1180px)').matches) return 'tablet';
   return 'desktop';
 };
 
 const getInitialMobileSheet = () => {
   if (typeof window === 'undefined') return 'medium';
-  return window.matchMedia('(max-width: 820px)').matches ? 'collapsed' : 'medium';
+  return window.matchMedia('(max-width: 1024px)').matches ? 'collapsed' : 'medium';
 };
 
 const createHistory = (draft) => ({ past: [], present: prepareEditorDraft(draft), future: [] });
