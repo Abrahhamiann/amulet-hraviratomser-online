@@ -80,19 +80,8 @@ const getPreviewFields = (data) => {
     ['mainName.1', 'hero', [secondName]],
     ['mainNames', 'hero', [data.mainNames]],
     ['eventMessage', 'hero', [data.eventMessage]],
-    ['groomFamilyTitle', 'family', [data.groomFamilyTitle]],
-    ['brideFamilyTitle', 'family', [data.brideFamilyTitle]],
     ['eventTime', 'schedule', [data.eventTime]],
-    ['eventLocation', 'schedule', [data.eventLocation]],
-    ['rsvpSettings.title', 'rsvp', [data.rsvpSettings?.title]],
-    ['rsvpSettings.description', 'rsvp', [data.rsvpSettings?.description]],
-    ['rsvpSettings.guestPlaceholder', 'rsvp', [data.rsvpSettings?.guestPlaceholder]],
-    ['rsvpSettings.attendingLabel', 'rsvp', [data.rsvpSettings?.attendingLabel]],
-    ['rsvpSettings.notAttendingLabel', 'rsvp', [data.rsvpSettings?.notAttendingLabel]],
-    ['rsvpSettings.submitLabel', 'rsvp', [data.rsvpSettings?.submitLabel]],
-    ['rsvpQuestion', 'rsvp', [data.rsvpQuestion]],
-    ['dressCode', 'dress', [data.dressCode]],
-    ['closingMessage', 'closing', [data.closingMessage]]
+    ['eventLocation', 'schedule', [data.eventLocation]]
   ];
 
   (data.mapLinks || []).forEach((item, index) => {
@@ -303,6 +292,7 @@ export const decoratePreview = (root, data, { suppressMotion = false } = {}) => 
         match = { field: `templateTextOverrides.${templateTextKey}`, section: 'templateContent' };
         section = 'templateContent';
       }
+      if (!match) return;
       const block = element.closest('section, article, blockquote') || section;
       const score = (match ? 100 : 0)
         + (element.matches('h1') ? 35 : element.matches('h2') ? 30 : element.matches('h3') ? 25 : 0)

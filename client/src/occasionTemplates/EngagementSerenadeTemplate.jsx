@@ -103,9 +103,10 @@ const normalizeMapLinks = (draft) => {
       label: String(item?.label || `Քարտեզ ${index + 1}`).trim(),
       time: String(item?.time || '').trim(),
       address: String(item?.address || '').trim(),
-      url: String(item?.url || '').trim()
+      url: String(item?.url || '').trim(),
+      visible: item?.visible !== false
     }))
-    .filter((item) => item.label || item.time || item.address || item.url);
+    .filter((item) => item.visible && (item.label || item.time || item.address || item.url));
 
   if (draft?.mapLink && !normalized.some((item) => item.url === draft.mapLink)) {
     normalized.unshift({ label: 'Քարտեզ', url: draft.mapLink });
@@ -121,9 +122,10 @@ const normalizeEventPlaces = (draft) => {
       label: String(item?.label || `Վայր ${index + 1}`).trim(),
       time: String(item?.time || '').trim(),
       address: String(item?.address || '').trim(),
-      url: String(item?.url || '').trim()
+      url: String(item?.url || '').trim(),
+      visible: item?.visible !== false
     }))
-    .filter((item) => item.label || item.time || item.address || item.url);
+    .filter((item) => item.visible && (item.label || item.time || item.address || item.url));
 
   if (!places.length) {
     return [{

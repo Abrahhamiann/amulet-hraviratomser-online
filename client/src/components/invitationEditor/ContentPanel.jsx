@@ -1,10 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { CalendarDays, ChevronDown, ChevronUp, ClipboardList, Heart, MapPin, MessageSquare, Plus, Sparkles, Trash2, Users } from 'lucide-react';
+import { CalendarDays, ChevronDown, ChevronUp, Heart, MapPin, MessageSquare, Plus, Trash2 } from 'lucide-react';
 import { useEditor } from './EditorContext.jsx';
 import { CollapsibleSection, Field, PanelHeader, Toggle, TypographyEditor } from './EditorControls.jsx';
 import { splitNames } from './editorData.js';
 
 const newVenue = (index) => ({ id: `venue-${Date.now()}-${index}`, label: `Վայր ${index + 1}`, time: '18:00', address: '', url: '', subtitle: '', icon: 'location', visible: true });
+
+const createGoogleMapsUrl = (address) => {
+  const query = String(address || '').trim();
+  return query ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}` : '';
+};
 
 const autoGrowTextarea = (textarea) => {
   if (!(textarea instanceof HTMLTextAreaElement)) return;
@@ -50,11 +55,17 @@ export default function ContentPanel() {
   });
 
   const updateVenue = (index, field, value) => update((draft) => {
-    draft.mapLinks[index] = { ...draft.mapLinks[index], [field]: value };
+    const current = draft.mapLinks[index] || newVenue(index);
+    const next = { ...current, [field]: value };
+    if (field === 'address') {
+      const previousAutoUrl = createGoogleMapsUrl(current.address);
+      if (!current.url || current.url === previousAutoUrl) next.url = createGoogleMapsUrl(value);
+    }
+    draft.mapLinks[index] = next;
     if (index === 0) {
-      if (field === 'time') draft.eventTime = value;
-      if (field === 'address') draft.eventLocation = value;
-      if (field === 'url') draft.mapLink = value;
+      draft.eventTime = next.time || draft.eventTime;
+      draft.eventLocation = next.address || '';
+      draft.mapLink = next.url || '';
     }
   });
 
@@ -110,11 +121,6 @@ export default function ContentPanel() {
         </CollapsibleSection>
       )}
 
-      <CollapsibleSection {...sectionProps('family', 'Ընտանեկան տվյալներ', Users, 'familyVisible')}>
-        <Field label="Առաջին ընտանիքը" editorField="groomFamilyTitle"><input value={data.groomFamilyTitle || ''} onChange={(event) => setField('groomFamilyTitle', event.target.value)} /></Field>
-        <Field label="Երկրորդ ընտանիքը" editorField="brideFamilyTitle"><input value={data.brideFamilyTitle || ''} onChange={(event) => setField('brideFamilyTitle', event.target.value)} /></Field>
-      </CollapsibleSection>
-
       <CollapsibleSection {...sectionProps('schedule', 'Օր, ժամ և ծրագիր', CalendarDays, 'receptionVisible')}>
         <div className="invite-editor-grid-two">
           <Field label="Ամսաթիվ" editorField="eventDate"><input type="date" value={data.eventDate || ''} onChange={(event) => setField('eventDate', event.target.value)} /></Field>
@@ -146,25 +152,6 @@ export default function ContentPanel() {
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection {...sectionProps('rsvp', 'Հյուրերի պատասխաններ', ClipboardList, 'questionsVisible')}>
-        <Field label="Վերնագիր" editorField="rsvpSettings.title"><input value={data.rsvpSettings.title} onChange={(event) => update((draft) => { draft.rsvpSettings.title = event.target.value; })} /></Field>
-        <Field label="Բացատրություն" editorField="rsvpSettings.description"><textarea rows="3" value={data.rsvpSettings.description} onChange={(event) => update((draft) => { draft.rsvpSettings.description = event.target.value; })} /></Field>
-        <Field label="Անվան դաշտ" editorField="rsvpSettings.guestPlaceholder"><input value={data.rsvpSettings.guestPlaceholder} onChange={(event) => update((draft) => { draft.rsvpSettings.guestPlaceholder = event.target.value; })} /></Field>
-        <div className="invite-editor-grid-two"><Field label="Կգամ" editorField="rsvpSettings.attendingLabel"><input value={data.rsvpSettings.attendingLabel} onChange={(event) => update((draft) => { draft.rsvpSettings.attendingLabel = event.target.value; })} /></Field><Field label="Չեմ գա" editorField="rsvpSettings.notAttendingLabel"><input value={data.rsvpSettings.notAttendingLabel} onChange={(event) => update((draft) => { draft.rsvpSettings.notAttendingLabel = event.target.value; })} /></Field></div>
-        <Field label="Ուղարկելու կոճակ" editorField="rsvpSettings.submitLabel"><input value={data.rsvpSettings.submitLabel} onChange={(event) => update((draft) => { draft.rsvpSettings.submitLabel = event.target.value; })} /></Field>
-        <Field label="Վերջնաժամկետ"><input type="date" value={data.rsvpSettings.deadline || ''} onChange={(event) => update((draft) => { draft.rsvpSettings.deadline = event.target.value; })} /></Field>
-        <div className="invite-editor-toggle-row"><span>Հյուրերի քանակ</span><Toggle checked={data.rsvpSettings.askGuestCount !== false} onChange={(value) => update((draft) => { draft.rsvpSettings.askGuestCount = value; })} label="Հյուրերի քանակ" /></div>
-        <div className="invite-editor-toggle-row"><span>Սննդի նախընտրություն</span><Toggle checked={data.rsvpSettings.askMeal === true} onChange={(value) => update((draft) => { draft.rsvpSettings.askMeal = value; })} label="Սննդի նախընտրություն" /></div>
-        <Field label="Լրացուցիչ հարց" editorField="rsvpQuestion"><input value={data.rsvpQuestion || ''} onChange={(event) => setField('rsvpQuestion', event.target.value)} /></Field>
-      </CollapsibleSection>
-
-      <CollapsibleSection {...sectionProps('dress', 'Հագուստի կանոնակարգ', Sparkles, 'dressCodeVisible')}>
-        <Field label="Dress code" editorField="dressCode"><textarea rows="4" value={data.dressCode || ''} onChange={(event) => setField('dressCode', event.target.value)} /></Field>
-      </CollapsibleSection>
-
-      <CollapsibleSection {...sectionProps('closing', 'Վերջնական խոսք', MessageSquare, 'finalMessageVisible')}>
-        <Field label="Շնորհակալական հաղորդագրություն" editorField="closingMessage"><textarea rows="4" value={data.closingMessage || ''} onChange={(event) => setField('closingMessage', event.target.value)} /></Field>
-      </CollapsibleSection>
     </div>
   );
 }

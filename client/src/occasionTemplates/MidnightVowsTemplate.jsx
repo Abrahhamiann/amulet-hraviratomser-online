@@ -33,12 +33,15 @@ const normalizeMapLinks = (draft) => {
   const normalized = links
     .map((item, index) => ({
       label: String(item?.label || `Քարտեզ ${index + 1}`).trim(),
-      url: String(item?.url || '').trim()
+      time: String(item?.time || '').trim(),
+      address: String(item?.address || '').trim(),
+      url: String(item?.url || '').trim(),
+      visible: item?.visible !== false
     }))
-    .filter((item) => item.url);
+    .filter((item) => item.visible && (item.label || item.time || item.address || item.url));
 
   if (draft?.mapLink && !normalized.some((item) => item.url === draft.mapLink)) {
-    normalized.unshift({ label: 'Քարտեզ', url: draft.mapLink });
+    normalized.unshift({ label: 'Քարտեզ', time: draft?.eventTime || '', address: draft?.eventLocation || '', url: draft.mapLink, visible: true });
   }
 
   return normalized;
@@ -248,19 +251,16 @@ function MidnightVowsLayout({ draft, price, onHome, onEdit, onOrder, loading, ac
 
       {draft?.receptionVisible !== false && <section className="midnight-schedule">
         <div className="midnight-section-overlay">
-          <EventBlock
-            title="Պսակադրություն"
-            time={draft?.eventTime || '15:00'}
-            location={draft?.eventLocation || 'Սուրբ Հռիփսիմե եկեղեցի'}
-            mapLink={mapLinks[0]?.url}
-          />
-          <EventBlock
-            title="Հարսանյաց հանդիսություն"
-            time="17:30"
-            location="Ռեստորանային համալիր"
-            mapLink={mapLinks[1]?.url || mapLinks[0]?.url}
-            delay={0.12}
-          />
+          {mapLinks.map((place, index) => (
+            <EventBlock
+              key={`${place.label}-${place.time}-${place.address}-${place.url}-${index}`}
+              title={place.label || `Վայր ${index + 1}`}
+              time={place.time || (index === 0 ? draft?.eventTime || '15:00' : '')}
+              location={place.address || (index === 0 ? draft?.eventLocation || 'Սուրբ Հռիփսիմե եկեղեցի' : '')}
+              mapLink={place.url}
+              delay={Math.min(index * .08, .32)}
+            />
+          ))}
         </div>
       </section>}
 

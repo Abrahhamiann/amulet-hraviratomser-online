@@ -113,12 +113,15 @@ const normalizeMapLinks = (draft) => {
   const normalized = links
     .map((item, index) => ({
       label: String(item?.label || `Քարտեզ ${index + 1}`).trim(),
-      url: String(item?.url || '').trim()
+      time: String(item?.time || '').trim(),
+      address: String(item?.address || '').trim(),
+      url: String(item?.url || '').trim(),
+      visible: item?.visible !== false
     }))
-    .filter((item) => item.url);
+    .filter((item) => item.visible && (item.label || item.time || item.address || item.url));
 
   if (draft?.mapLink && !normalized.some((item) => item.url === draft.mapLink)) {
-    normalized.unshift({ label: 'Քարտեզ', url: draft.mapLink });
+    normalized.unshift({ label: 'Քարտեզ', time: draft?.eventTime || '', address: draft?.eventLocation || '', url: draft.mapLink, visible: true });
   }
 
   return normalized;
@@ -367,25 +370,24 @@ function BaptismLayout({ draft, price, onHome, onEdit, onOrder, loading, actions
           </div>
         </motion.section>
 
-        {draft?.receptionVisible !== false && <motion.section className="baptism-event-section baptism-photo-screen" {...scrollRevealProps}>
-          <div className="baptism-event-row">
-            <img className="baptism-location-photo" src={ceremonyPhoto} alt="" loading="lazy" decoding="async" />
-            <span>Մկրտություն</span>
-            <strong>{draft?.eventTime || '15:00'}</strong>
-            <b>{draft?.eventLocation}</b>
-            <MapButton url={mapLinks[0]?.url} />
-          </div>
-        </motion.section>}
-
-        {draft?.receptionVisible !== false && <motion.section className="baptism-party-section baptism-photo-screen" {...scrollRevealProps}>
-          <div className="baptism-party-content">
-            <img className="baptism-location-photo" src={partyPhoto} alt="" loading="lazy" decoding="async" />
-            <span>Խնջույք</span>
-            <strong>17:00</strong>
-            <b>{mapLinks[1]?.label || 'Տոնական հանդիպում'}</b>
-            <MapButton url={mapLinks[1]?.url} />
-          </div>
-        </motion.section>}
+        {draft?.receptionVisible !== false && mapLinks.map((place, index) => {
+          const isPrimary = index % 2 === 0;
+          return (
+            <motion.section
+              className={`${isPrimary ? 'baptism-event-section' : 'baptism-party-section'} baptism-photo-screen`}
+              {...scrollRevealProps}
+              key={`${place.label}-${place.time}-${place.address}-${place.url}-${index}`}
+            >
+              <div className={isPrimary ? 'baptism-event-row' : 'baptism-party-content'}>
+                <img className="baptism-location-photo" src={isPrimary ? ceremonyPhoto : partyPhoto} alt="" loading="lazy" decoding="async" />
+                <span>{place.label || `Վայր ${index + 1}`}</span>
+                {place.time && <strong>{place.time}</strong>}
+                {place.address && <b>{place.address}</b>}
+                <MapButton url={place.url} />
+              </div>
+            </motion.section>
+          );
+        })}
 
         {draft?.questionsVisible !== false && <motion.section className="baptism-rsvp-section baptism-photo-screen" {...scrollRevealProps}>
           <div className="baptism-rsvp-shell">
