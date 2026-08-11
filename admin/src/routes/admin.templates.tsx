@@ -110,6 +110,7 @@ const emptyForm = {
   title: "",
   slug: "",
   category: "wedding",
+  editorType: "wedding",
   price: "29000",
   designKey: "ivory-vows",
   description: "",
@@ -186,6 +187,7 @@ function toForm(template?: any) {
     title: template.name || "",
     slug: template.slug || "",
     category: String(template.category || "wedding").toLowerCase(),
+    editorType: String(template.editorType || template.category || "wedding").toLowerCase(),
     price: String(template.price || 0),
     designKey,
     description: template.description || "",
@@ -238,6 +240,7 @@ function TemplatesPage() {
     title: form.title,
     slug: form.slug || undefined,
     category: form.category,
+    editorType: form.editorType,
     price: Number(form.price || 0),
     designKey: isKnownDesignKey(form.designKey) ? form.designKey : "ivory-vows",
     description: form.description,
@@ -513,8 +516,9 @@ function TemplateForm({ form, setForm }: any) {
     <div className="grid gap-4 sm:grid-cols-2 py-2">
       <div className="space-y-2"><Label>{t("title")}</Label><Input value={form.title} onChange={(event) => set("title", event.target.value)} /></div>
       <div className="space-y-2"><Label>{t("slug")}</Label><Input value={form.slug} onChange={(event) => set("slug", event.target.value)} /></div>
-      <div className="space-y-2"><Label>{t("category")}</Label><Input value={form.category} onChange={(event) => set("category", event.target.value)} /></div>
+      <div className="space-y-2"><Label>{t("category")}</Label><select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={form.category} onChange={(event) => set("category", event.target.value)}>{[['wedding', 'Հարսանիք'], ['baptism', 'Մկրտություն'], ['engagement', 'Նշանադրություն'], ['birth', 'Ծնունդ'], ['corporate', 'Կորպորատիվ']].map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
       <div className="space-y-2"><Label>{t("price")}</Label><Input type="number" value={form.price} onChange={(event) => set("price", event.target.value)} /></div>
+      <div className="space-y-2 sm:col-span-2"><Label>Խմբագրման բաժին</Label><select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={form.editorType} onChange={(event) => set("editorType", event.target.value)}>{[['wedding', 'Հարսանիքի խմբագրում'], ['baptism', 'Մկրտության խմբագրում'], ['engagement', 'Նշանադրության խմբագրում'], ['birth', 'Ծնունդի խմբագրում'], ['corporate', 'Կորպորատիվ խմբագրում']].map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><p className="text-xs text-muted-foreground">Ընտրում է տվյալ առիթին համապատասխան դաշտերը՝ անկախ դիզայնից։</p></div>
       <div className="space-y-2 sm:col-span-2">
         <Label>{t("invitationDesign")}</Label>
         <select

@@ -17,15 +17,22 @@ export const Route = createFileRoute("/admin/faq")({ component: FaqPage });
 
 type FaqItem = {
   id: string;
-  question: string;
-  answer: string;
+  translations: Record<FaqLanguage, { question: string; answer: string }>;
   active: boolean;
 };
 
+const faqLanguages = ["hy", "en", "ru", "es", "fr", "de", "it"] as const;
+type FaqLanguage = (typeof faqLanguages)[number];
+const faqLanguageLabels: Record<FaqLanguage, string> = {
+  hy: "Հայերեն", en: "English", ru: "Русский", es: "Español", fr: "Français", de: "Deutsch", it: "Italiano",
+};
+const emptyTranslations = () => Object.fromEntries(
+  faqLanguages.map((language) => [language, { question: "", answer: "" }]),
+) as FaqItem["translations"];
+
 const createFaqItem = (): FaqItem => ({
   id: `faq-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-  question: "",
-  answer: "",
+  translations: emptyTranslations(),
   active: true,
 });
 
@@ -35,14 +42,28 @@ function FaqPage() {
   const { data, isLoading, error } = useFaq();
   const [items, setItems] = useState<FaqItem[]>([]);
   const [saving, setSaving] = useState(false);
+  const [contentLanguage, setContentLanguage] = useState<FaqLanguage>("hy");
 
   useEffect(() => {
-    const nextItems = Array.isArray(data?.items) ? data.items : [];
+    const nextItems = Array.isArray(data?.items) ? data.items.map((item: FaqItem) => ({
+      ...item,
+      translations: { ...emptyTranslations(), ...(item.translations || {}) },
+    })) : [];
     setItems(nextItems.length ? nextItems : [createFaqItem()]);
   }, [data]);
 
   const updateItem = (id: string, patch: Partial<FaqItem>) => {
     setItems((current) => current.map((item) => (item.id === id ? { ...item, ...patch } : item)));
+  };
+
+  const updateTranslation = (id: string, language: FaqLanguage, patch: Partial<{ question: string; answer: string }>) => {
+    setItems((current) => current.map((item) => item.id === id ? {
+      ...item,
+      translations: {
+        ...item.translations,
+        [language]: { ...item.translations[language], ...patch },
+      },
+    } : item));
   };
 
   const addItem = () => {
@@ -57,10 +78,12 @@ function FaqPage() {
     const cleanItems = items
       .map((item) => ({
         ...item,
-        question: item.question.trim(),
-        answer: item.answer.trim(),
+        translations: Object.fromEntries(faqLanguages.map((language) => [language, {
+          question: item.translations[language].question.trim(),
+          answer: item.translations[language].answer.trim(),
+        }])) as FaqItem["translations"],
       }))
-      .filter((item) => item.question && item.answer);
+      .filter((item) => Object.values(item.translations).some((translation) => translation.question && translation.answer));
 
     setSaving(true);
     try {
@@ -79,7 +102,7 @@ function FaqPage() {
     <div>
       <PageHeader
         title="FAQ"
-        subtitle={error ? error.message : isLoading ? t("loading") : t("questionsCount").replace("{count}", String(items.filter((item) => item.question && item.answer).length))}
+        subtitle={error ? error.message : isLoading ? t("loading") : t("questionsCount").replace("{count}", String(items.length))}
         actions={
           <>
             <Button variant="outline" className="rounded-full border-border/60" onClick={addItem}>
@@ -93,6 +116,22 @@ function FaqPage() {
           </>
         }
       />
+
+      <div className="mb-4 flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="FAQ content language">
+        {faqLanguages.map((language) => (
+          <Button
+            key={language}
+            type="button"
+            role="tab"
+            aria-selected={contentLanguage === language}
+            variant={contentLanguage === language ? "default" : "outline"}
+            className={contentLanguage === language ? "shrink-0 rounded-full text-white gold-gradient" : "shrink-0 rounded-full border-border/60"}
+            onClick={() => setContentLanguage(language)}
+          >
+            {faqLanguageLabels[language]}
+          </Button>
+        ))}
+      </div>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="grid gap-3">
@@ -126,8 +165,8 @@ function FaqPage() {
                 <label className="grid gap-2 text-sm font-medium">
                   {t("question")}
                   <Input
-                    value={item.question}
-                    onChange={(event) => updateItem(item.id, { question: event.target.value })}
+                    value={item.translations[contentLanguage].question}
+                    onChange={(event) => updateTranslation(item.id, contentLanguage, { question: event.target.value })}
                     placeholder={t("questionPlaceholder")}
                     className="h-11 bg-background"
                   />
@@ -135,8 +174,8 @@ function FaqPage() {
                 <label className="grid gap-2 text-sm font-medium">
                   {t("answer")}
                   <Textarea
-                    value={item.answer}
-                    onChange={(event) => updateItem(item.id, { answer: event.target.value })}
+                    value={item.translations[contentLanguage].answer}
+                    onChange={(event) => updateTranslation(item.id, contentLanguage, { answer: event.target.value })}
                     placeholder={t("answerPlaceholder")}
                     className="min-h-[110px] resize-y bg-background"
                   />
@@ -158,9 +197,9 @@ function FaqPage() {
               </div>
             </div>
             <div className="grid gap-2">
-              {items.filter((item) => item.active && item.question && item.answer).slice(0, 4).map((item) => (
+              {items.filter((item) => item.active && item.translations[contentLanguage].question && item.translations[contentLanguage].answer).slice(0, 4).map((item) => (
                 <div key={item.id} className="rounded-full border border-border/60 bg-background px-3 py-2 text-sm font-medium">
-                  {item.question}
+                  {item.translations[contentLanguage].question}
                 </div>
               ))}
             </div>

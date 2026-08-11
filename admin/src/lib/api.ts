@@ -89,15 +89,14 @@ export const adminApi = {
   me: () => request<AdminUser>("/auth/me"),
   dashboard: (period = "all") =>
     request<any>(`/admin/dashboard?period=${encodeURIComponent(period)}`),
+  resetRevenue: () => request<any>("/admin/dashboard/reset-revenue", { method: "POST" }),
   orders: () => request<any[]>("/admin/orders"),
   templates: () => request<any[]>("/admin/templates"),
-  invitations: () => request<any[]>("/admin/invitations"),
   customers: () => request<any[]>("/admin/customers"),
   customer: (id: string) => request<any>(`/admin/customers/${id}`),
   payments: () => request<any[]>("/admin/payments"),
   messages: () => request<any[]>("/admin/messages"),
   administrators: () => request<any[]>("/admin/administrators"),
-  notifications: () => request<any[]>("/admin/notifications"),
   faq: () => request<any>("/admin/faq"),
   promocodes: () => request<any[]>("/admin/promocodes"),
   reviews: () => request<any[]>("/admin/reviews"),
@@ -108,11 +107,6 @@ export const adminApi = {
   deleteTemplate: (id: string) => request<any>(`/admin/templates/${id}`, { method: "DELETE" }),
   deleteOrder: (id: string) => request<any>(`/admin/orders/${id}`, { method: "DELETE" }),
   deleteAllOrders: () => request<any>("/admin/orders", { method: "DELETE" }),
-  createInvitation: (data: any) =>
-    request<any>("/admin/invitations", { method: "POST", body: JSON.stringify(data) }),
-  updateInvitation: (id: string, data: any) =>
-    request<any>(`/admin/invitations/${id}`, { method: "PUT", body: JSON.stringify(data) }),
-  deleteInvitation: (id: string) => request<any>(`/admin/invitations/${id}`, { method: "DELETE" }),
   deleteMessage: (id: string) => request<any>(`/admin/messages/${id}`, { method: "DELETE" }),
   replyMessage: (id: string, data: any) =>
     request<any>(`/admin/messages/${id}/reply`, { method: "POST", body: JSON.stringify(data) }),

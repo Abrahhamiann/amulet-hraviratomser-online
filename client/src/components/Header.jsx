@@ -29,7 +29,7 @@ export default function Header() {
     ['/contact', t('menuPartners')],
     ['/privacy', t('menuPrivacy')]
   ];
-  const mobileOverlayLinks = links;
+  const mobileOverlayLinks = [...links, ['/privacy', t('menuPrivacy')]];
 
   useEffect(() => {
     let frame = 0;

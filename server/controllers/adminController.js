@@ -3,7 +3,6 @@ import ContactMessage from '../models/ContactMessage.js';
 import Invitation from '../models/Invitation.js';
 import Order from '../models/Order.js';
 import RSVP from '../models/RSVP.js';
-import Review from '../models/Review.js';
 import Setting from '../models/Setting.js';
 import Template from '../models/Template.js';
 import User from '../models/User.js';
@@ -13,6 +12,7 @@ import { makeSlug } from '../utils/slug.js';
 import { normalizePhone } from '../utils/accountValidation.js';
 import { ensureTemplateCodes, nextTemplateCode } from '../utils/templateCode.js';
 import { createSecureInvitationSlug } from '../utils/invitationSlug.js';
+import { translations as clientTranslations } from '../../client/src/translations/translations.js';
 
 const categoryLabels = {
   wedding: 'Wedding',
@@ -31,32 +31,21 @@ const PUBLIC_DESIGN_KEYS = [
   'ivory-vows'
 ];
 const FAQ_SETTING_KEY = 'faqItems';
-const DEFAULT_FAQ_ITEMS = [
-  {
-    id: 'faq-price-includes',
-    question: 'Ինչ է ներառված արժեքի մեջ',
-    answer: 'Լուսանկարներ, միջոցառման ծրագիր, հասցեներ, քարտեզ, RSVP ձև, հետհաշվարկ և բոլոր անհրաժեշտ տեքստերը։',
-    active: true
-  },
-  {
-    id: 'faq-production-time',
-    question: 'Քանի օր է տևում պատրաստումը',
-    answer: 'Սովորաբար 3-4 օր։ Անհատական դիզայնի դեպքում ժամկետը կախված է բարդությունից։',
-    active: true
-  },
-  {
-    id: 'faq-sharing',
-    question: 'Ինչպես կարող եմ ուղարկել վեբ հրավերը',
-    answer: 'Կարող եք կիսվել WhatsApp-ով, Instagram-ով, Viber-ով, Telegram-ով, Email-ով, SMS-ով կամ ցանկացած այլ հարթակով։',
-    active: true
-  },
-  {
-    id: 'faq-languages',
-    question: 'Ինչ լեզուներ են հասանելի',
-    answer: 'Հրավերները կարող են պատրաստվել հայերեն, անգլերեն, ռուսերեն և այլ լեզուներով։',
-    active: true
-  }
+const REVENUE_RESET_SETTING_KEY = 'revenueResetAt';
+const FAQ_LANGUAGES = ['hy', 'en', 'ru', 'es', 'fr', 'de', 'it'];
+const FAQ_IDS = [
+  'faq-price-includes', 'faq-production-time', 'faq-sharing', 'faq-languages',
+  'faq-edit-after-purchase', 'faq-responsive', 'faq-rsvp', 'faq-location-map',
+  'faq-replace-photos', 'faq-link-duration', 'faq-privacy', 'faq-custom-design'
 ];
+const DEFAULT_FAQ_ITEMS = FAQ_IDS.map((id, index) => ({
+  id,
+  translations: Object.fromEntries(FAQ_LANGUAGES.map((language) => {
+    const [question = '', answer = ''] = clientTranslations[language]?.faqItems?.[index] || [];
+    return [language, { question, answer }];
+  })),
+  active: true
+}));
 
 const isSuperAdmin = (user) => user?.role === 'super_admin';
 
@@ -161,7 +150,8 @@ const mapTemplate = (template, usage = 0) => ({
   code: template.code || '',
   name: template.title,
   slug: template.slug,
-  category: categoryLabels[template.category] || template.category,
+  category: template.category,
+  editorType: template.editorType || template.category,
   price: template.price,
   designKey: template.designKey || DEFAULT_DESIGN_KEY,
   cover: template.mainImage || template.gallery?.[0] || '',
@@ -193,82 +183,84 @@ const mapInvitation = (invitation) => ({
   createdAt: invitation.createdAt
 });
 
-const buildNotifications = ({ orders, messages, invitations, reviews = [] }) => {
-  const orderItems = orders.slice(0, 4).map((order) => ({
-    id: `order-${order._id}`,
-    customer: order.fullName,
-    invitation: order.mainNames,
-    time: order.createdAt,
-    read: order.paymentStatus === 'paid',
-    type: 'order'
-  }));
-  const messageItems = messages.slice(0, 4).map((message) => ({
-    id: `message-${message._id}`,
-    customer: message.name,
-    message: message.message,
-    time: message.createdAt,
-    read: Boolean(message.repliedAt),
-    type: 'message'
-  }));
-  const invitationItems = invitations.slice(0, 4).map((invitation) => ({
-    id: `invitation-${invitation._id}`,
-    invitation: invitation.names,
-    published: invitation.isPublished,
-    time: invitation.createdAt,
-    read: invitation.isPublished,
-    type: 'invitation'
-  }));
-  const reviewItems = reviews.slice(0, 6).map((review) => ({
-    id: `review-${review._id}`,
-    customer: review.customer,
-    invitation: review.target,
-    message: review.text,
-    rating: review.rating,
-    time: review.createdAt,
-    read: review.status !== 'pending',
-    type: 'review'
-  }));
-  return [...reviewItems, ...messageItems, ...orderItems, ...invitationItems]
-    .sort((a, b) => new Date(b.time) - new Date(a.time))
-    .slice(0, 10);
-};
-
 const normalizeFaqItems = (items) => {
   if (!Array.isArray(items)) return [];
   return items
-    .map((item, index) => ({
-      id: String(item.id || `faq-${Date.now()}-${index}`),
-      question: String(item.question || '').trim(),
-      answer: String(item.answer || '').trim(),
-      active: item.active !== false
-    }))
-    .filter((item) => item.question && item.answer);
+    .map((item, index) => {
+      const localized = Object.fromEntries(FAQ_LANGUAGES.map((language) => {
+        const source = item.translations?.[language] || {};
+        return [language, {
+          question: String(source.question || '').trim(),
+          answer: String(source.answer || '').trim()
+        }];
+      }));
+      if (item.question || item.answer) {
+        localized.hy = {
+          question: String(item.question || '').trim(),
+          answer: String(item.answer || '').trim()
+        };
+      }
+      return {
+        id: String(item.id || `faq-${Date.now()}-${index}`),
+        translations: localized,
+        active: item.active !== false
+      };
+    })
+    .filter((item) => Object.values(item.translations).some((value) => value.question && value.answer));
 };
 
 const resolveFaqItems = (saved) => {
   const savedItems = normalizeFaqItems(saved?.value?.items);
-  const isManaged = saved?.value?.initialized === true || savedItems.length > 0;
-  return isManaged ? savedItems : DEFAULT_FAQ_ITEMS;
+  if (saved?.value?.version === 2) return savedItems;
+  if (!savedItems.length) return DEFAULT_FAQ_ITEMS;
+
+  const savedById = new Map(savedItems.map((item) => [item.id, item]));
+  const migratedDefaults = DEFAULT_FAQ_ITEMS.map((item) => {
+    const savedItem = savedById.get(item.id);
+    if (!savedItem) return item;
+    savedById.delete(item.id);
+    return {
+      ...item,
+      ...savedItem,
+      translations: Object.fromEntries(FAQ_LANGUAGES.map((language) => [language, {
+        ...item.translations[language],
+        ...(savedItem.translations[language]?.question && savedItem.translations[language]?.answer
+          ? savedItem.translations[language]
+          : {})
+      }]))
+    };
+  });
+  return [...migratedDefaults, ...savedById.values()];
 };
 
 export const getPublicFaq = asyncHandler(async (req, res) => {
   const saved = await Setting.findOne({ key: FAQ_SETTING_KEY });
   const items = resolveFaqItems(saved);
-  res.json({ items: items.filter((item) => item.active) });
+  const language = FAQ_LANGUAGES.includes(req.query.language) ? req.query.language : 'hy';
+  res.json({ items: items.filter((item) => item.active).map((item) => {
+    const localized = item.translations[language];
+    const fallback = item.translations.hy || item.translations.en || Object.values(item.translations).find((value) => value.question && value.answer);
+    return { id: item.id, active: item.active, ...(localized?.question && localized?.answer ? localized : fallback) };
+  }) });
 });
 
 export const getAdminDashboard = asyncHandler(async (req, res) => {
   const period = ['today', 'week', 'year', 'all'].includes(req.query.period) ? req.query.period : 'all';
-  const [templates, orders, invitations, rsvps, messages, users, reviews] = await Promise.all([
+  const [templates, orders, invitations, rsvps, messages, users, revenueResetSetting] = await Promise.all([
     Template.find({ designKey: { $in: PUBLIC_DESIGN_KEYS } }).sort({ createdAt: -1 }),
     Order.find().populate('templateId').sort({ createdAt: -1 }),
     Invitation.find().populate('orderId templateId').sort({ createdAt: -1 }),
     RSVP.find().sort({ createdAt: -1 }),
     ContactMessage.find().sort({ createdAt: -1 }),
     User.find({ role: 'user' }).sort({ createdAt: -1 }),
-    Review.find().sort({ createdAt: -1 }).limit(12)
+    Setting.findOne({ key: REVENUE_RESET_SETTING_KEY })
   ]);
-  const periodOrders = filterByPeriod(orders, period);
+  const revenueResetAt = revenueResetSetting?.value?.at ? new Date(revenueResetSetting.value.at) : null;
+  const ordersAfterRevenueReset = revenueResetAt && !Number.isNaN(revenueResetAt.getTime())
+    ? orders.filter((order) => new Date(order.createdAt) > revenueResetAt)
+    : orders;
+  const periodAllOrders = filterByPeriod(orders, period);
+  const periodOrders = filterByPeriod(ordersAfterRevenueReset, period);
   const periodInvitations = filterByPeriod(invitations, period);
   const periodMessages = filterByPeriod(messages, period);
   const periodRsvps = filterByPeriod(rsvps, period);
@@ -277,8 +269,8 @@ export const getAdminDashboard = asyncHandler(async (req, res) => {
 
   const paidPeriodOrders = periodOrders.filter((order) => order.paymentStatus === 'paid');
   const revenue = paidPeriodOrders.reduce((sum, order) => sum + orderAmount(order), 0);
-  const pendingOrders = periodOrders.filter((order) => order.paymentStatus !== 'paid').length;
-  const templateUsage = periodOrders.reduce((map, order) => {
+  const pendingOrders = periodAllOrders.filter((order) => order.paymentStatus !== 'paid').length;
+  const templateUsage = periodAllOrders.reduce((map, order) => {
     const id = order.templateId?._id ? String(order.templateId._id) : null;
     if (id) map.set(id, (map.get(id) || 0) + 1);
     return map;
@@ -302,6 +294,7 @@ export const getAdminDashboard = asyncHandler(async (req, res) => {
       rsvps: periodRsvps.length
     },
     period,
+    revenueResetAt,
     revenueByMonth: buildMonthlyData(paidPeriodOrders),
     categoryDistribution: Array.from(categoryCounts, ([name, count]) => ({
       name,
@@ -311,13 +304,22 @@ export const getAdminDashboard = asyncHandler(async (req, res) => {
       name,
       value: periodOrders.filter((order) => paymentMethod(order) === name).length
     })).filter((item) => item.value > 0),
-    latestOrders: periodOrders.slice(0, 6).map(mapOrder),
+    latestOrders: periodAllOrders.slice(0, 6).map(mapOrder),
     topTemplates: visibleTemplates
       .map((template) => mapTemplate(template, templateUsage.get(String(template._id)) || 0))
       .sort((a, b) => b.usage - a.usage)
-      .slice(0, 5),
-    notifications: buildNotifications({ orders: periodOrders, messages: periodMessages, invitations: periodInvitations, reviews })
+      .slice(0, 5)
   });
+});
+
+export const resetAdminRevenue = asyncHandler(async (req, res) => {
+  const at = new Date();
+  await Setting.findOneAndUpdate(
+    { key: REVENUE_RESET_SETTING_KEY },
+    { value: { at, resetBy: String(req.user._id) } },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
+  res.json({ success: true, resetAt: at });
 });
 
 export const getAdminOrders = asyncHandler(async (req, res) => {
@@ -438,16 +440,6 @@ export const getAdminAdministrators = asyncHandler(async (req, res) => {
   })));
 });
 
-export const getAdminNotifications = asyncHandler(async (req, res) => {
-  const [orders, messages, invitations, reviews] = await Promise.all([
-    Order.find().sort({ createdAt: -1 }).limit(10),
-    ContactMessage.find().sort({ createdAt: -1 }).limit(10),
-    Invitation.find().sort({ createdAt: -1 }).limit(10),
-    Review.find().sort({ createdAt: -1 }).limit(10)
-  ]);
-  res.json(buildNotifications({ orders, messages, invitations, reviews }));
-});
-
 export const getAdminFaq = asyncHandler(async (req, res) => {
   const saved = await Setting.findOne({ key: FAQ_SETTING_KEY });
   res.json({ items: resolveFaqItems(saved) });
@@ -457,7 +449,7 @@ export const updateAdminFaq = asyncHandler(async (req, res) => {
   const items = normalizeFaqItems(req.body?.items);
   const setting = await Setting.findOneAndUpdate(
     { key: FAQ_SETTING_KEY },
-    { value: { items, initialized: true } },
+    { value: { items, initialized: true, version: 2 } },
     { new: true, upsert: true, setDefaultsOnInsert: true }
   );
   res.json({ items: normalizeFaqItems(setting.value?.items) });
@@ -475,6 +467,7 @@ export const createAdminTemplate = asyncHandler(async (req, res) => {
     galleryConfigured: Boolean(data.galleryConfigured),
     imagePosition: normalizeImagePosition(data.imagePosition),
     designKey: PUBLIC_DESIGN_KEYS.includes(data.designKey) ? data.designKey : DEFAULT_DESIGN_KEY,
+    editorType: ['wedding', 'baptism', 'birth', 'corporate', 'engagement'].includes(data.editorType) ? data.editorType : data.category,
     isActive: data.isActive !== false
   });
   res.status(201).json(mapTemplate(template));
@@ -488,6 +481,7 @@ export const updateAdminTemplate = asyncHandler(async (req, res) => {
   }
   const { code: _ignoredCode, ...data } = req.body;
   data.designKey = PUBLIC_DESIGN_KEYS.includes(data.designKey) ? data.designKey : DEFAULT_DESIGN_KEY;
+  data.editorType = ['wedding', 'baptism', 'birth', 'corporate', 'engagement'].includes(data.editorType) ? data.editorType : (data.category || template.category);
   if (typeof data.features === 'string') data.features = data.features.split('\n').filter(Boolean);
   if (typeof data.gallery === 'string') data.gallery = data.gallery.split('\n').filter(Boolean);
   data.galleryConfigured = Boolean(data.galleryConfigured);

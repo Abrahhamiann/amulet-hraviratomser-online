@@ -52,11 +52,12 @@ export function EditorProvider({ initialDraft, initialTarget = {}, template, act
   const [mobileSheet, setMobileSheet] = useState(getInitialMobileSheet);
   const [activeSection, setActiveSection] = useState(initialTarget.section || 'hero');
   const [activeField, setActiveField] = useState(initialTarget.field || (initialTarget.section ? '' : 'mainNames'));
-  const [previewFocusRequest, setPreviewFocusRequest] = useState(0);
+  const [previewFocusRequest, setPreviewFocusRequest] = useState({ id: 0, scroll: false });
   const [editableContent, setEditableContent] = useState({ texts: [], images: [] });
   const [saveStatus, setSaveStatus] = useState('idle');
   const baselineRef = useRef(JSON.stringify(prepareEditorDraft(initialDraft)));
   const actionsRef = useRef(actions);
+  const autosaveVersionRef = useRef(0);
 
   useEffect(() => {
     actionsRef.current = actions;
@@ -65,7 +66,22 @@ export function EditorProvider({ initialDraft, initialTarget = {}, template, act
   useEffect(() => {
     actionsRef.current.onDraftChange?.(history.present);
     setSaveStatus('saving');
-    const timer = window.setTimeout(() => setSaveStatus('ready'), 450);
+    const version = ++autosaveVersionRef.current;
+    const snapshot = cloneEditorDraft(history.present);
+    const timer = window.setTimeout(async () => {
+      try {
+        const saved = await actionsRef.current.onSave?.(snapshot, { autosave: true });
+        if (version !== autosaveVersionRef.current) return;
+        if (saved === false) {
+          setSaveStatus('error');
+          return;
+        }
+        baselineRef.current = JSON.stringify(snapshot);
+        setSaveStatus('saved');
+      } catch {
+        if (version === autosaveVersionRef.current) setSaveStatus('error');
+      }
+    }, 800);
     return () => window.clearTimeout(timer);
   }, [history.present]);
 
@@ -79,7 +95,7 @@ export function EditorProvider({ initialDraft, initialTarget = {}, template, act
     setTab(targetTab);
     setSidebarOpen(true);
     setMobileSheet('medium');
-    if (scrollPreview) setPreviewFocusRequest((value) => value + 1);
+    setPreviewFocusRequest((request) => ({ id: request.id + 1, scroll: scrollPreview }));
   }, []);
   const registerEditableContent = useCallback((catalog = {}) => {
     setEditableContent((current) => {
@@ -90,7 +106,7 @@ export function EditorProvider({ initialDraft, initialTarget = {}, template, act
 
   const save = useCallback(async () => {
     setSaveStatus('saving');
-    const saved = await actionsRef.current.onSave?.(history.present);
+    const saved = await actionsRef.current.onSave?.(history.present, { autosave: true });
     if (saved !== false) {
       baselineRef.current = JSON.stringify(history.present);
       setSaveStatus('saved');

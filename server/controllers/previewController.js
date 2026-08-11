@@ -11,6 +11,23 @@ export const createPreview = asyncHandler(async (req, res) => {
     throw new Error('Template not found');
   }
 
+  const requestedToken = String(req.body.previewToken || '').trim();
+  if (requestedToken) {
+    const existing = await PreviewSession.findOne({
+      tokenHash: hashPreviewToken(requestedToken),
+      userId: req.user._id,
+      templateId: template._id,
+      isPurchased: false
+    }).select('+tokenHash');
+    if (existing) {
+      existing.data = normalizeDraft(req.body.draft, template);
+      existing.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await existing.save();
+      res.json({ token: requestedToken, path: `/preview/${requestedToken}`, expiresAt: existing.expiresAt });
+      return;
+    }
+  }
+
   const token = createPreviewToken();
   const preview = await PreviewSession.create({
     tokenHash: hashPreviewToken(token),

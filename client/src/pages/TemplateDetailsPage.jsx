@@ -40,7 +40,6 @@ export default function TemplateDetailsPage() {
         <span className="eyebrow">{t(template.category)}</span>
         <h1>{template.title}</h1>
         <strong className="price">{Number(template.price).toLocaleString()} AMD</strong>
-        <p>{template.description}</p>
         <h3>{t('features')}</h3>
         <ul className="feature-list">{template.features?.map((item) => <li key={item}>{item}</li>)}</ul>
         <div className="hero-actions">

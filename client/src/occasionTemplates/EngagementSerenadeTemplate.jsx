@@ -206,7 +206,7 @@ export const getEngagementSerenadeDraft = (template = {}) => {
     eventDate: '2026-09-26',
     eventTime: '17:00',
     eventLocation: 'Latar Hall, Հասցե՝ Երևան, Միկոյան 58 փող. 5',
-    eventMessage: template.description || 'Հարգելի բարեկամներ և ընկերներ, սիրով հրավիրում ենք Ձեզ կիսելու մեզ համար կարևոր նշանադրության օրը։',
+    eventMessage: 'Հարգելի բարեկամներ և ընկերներ, սիրով հրավիրում ենք Ձեզ կիսելու մեզ համար կարևոր նշանադրության օրը։',
     mapLink: '',
     mapLinks: [],
     image: gallery[0] || weddingSunset,
@@ -335,7 +335,7 @@ function EngagementLayout({ draft, price, onHome, onEdit, onOrder, loading, acti
         </motion.div>
       )}
 
-      <section className="engagement-cover engagement-photo-screen">
+      <section className="engagement-cover engagement-photo-screen" hidden={draft?.heroVisible === false}>
         <motion.div
           className="engagement-cover-copy"
           initial="hidden"
@@ -373,7 +373,7 @@ function EngagementLayout({ draft, price, onHome, onEdit, onOrder, loading, acti
         style={{ '--engagement-place-count': eventPlaces.length }}
         {...revealProps}
       >
-        <motion.div className="engagement-message-copy" initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.45 }} variants={textRevealContainer}>
+        <motion.div className="engagement-message-copy" hidden={draft?.heroVisible === false} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.45 }} variants={textRevealContainer}>
           <motion.h2 variants={textRevealItem}>Հարգելի բարեկամներ<br />և ընկերներ,</motion.h2>
           {draft?.openingVisible !== false && <motion.p variants={textRevealItem}>{draft?.eventMessage}</motion.p>}
           {draft?.familyVisible !== false && familyItems.length > 0 && (

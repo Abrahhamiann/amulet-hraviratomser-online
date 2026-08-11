@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Camera, CheckCircle2, ChevronDown, LayoutGrid, Monitor, PanelLeftClose, PanelLeftOpen, Pencil, Redo2, Save, ShoppingBag, Smartphone, Sparkles, Tablet, Undo2, X } from 'lucide-react';
+import { ArrowLeft, Camera, CheckCircle2, ChevronDown, Eye, Images, LayoutGrid, Monitor, PanelLeftClose, PanelLeftOpen, Pencil, Redo2, ShoppingBag, Smartphone, Sparkles, Tablet, Undo2, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import iphoneDeviceFrame from '../../assets/editor-devices/iphone-device-frame-clean.png';
 import ipadDeviceFrame from '../../assets/editor-devices/ipad-device-frame-clean.png';
@@ -219,7 +219,7 @@ const findPreviewElement = (root, selector) => {
   return null;
 };
 
-export const clearPreviewDecorations = (root, { removeStyles = false } = {}) => {
+export const clearPreviewDecorations = (root, { removeStyles = false, preserveActive = false } = {}) => {
   if (!root) return;
   getPreviewRoots(root).forEach((scope) => {
     scope.querySelectorAll('[data-editor-kind], [data-editor-section]').forEach((element) => {
@@ -237,7 +237,8 @@ export const clearPreviewDecorations = (root, { removeStyles = false } = {}) => 
         element.removeAttribute('spellcheck');
         element.removeAttribute('aria-multiline');
       }
-      element.classList.remove('is-editor-active', 'is-editor-section-active', 'is-editor-inline-editing');
+      element.classList.remove('is-editor-inline-editing');
+      if (!preserveActive) element.classList.remove('is-editor-active', 'is-editor-section-active');
       [
         'data-editor-kind', 'data-editor-field', 'data-editor-tab', 'data-editor-section',
         'data-editor-label', 'data-editor-owned-tabindex', 'data-editor-owned-role',
@@ -263,7 +264,7 @@ export const decoratePreview = (root, data, { suppressMotion = false } = {}) => 
       scope.append(style);
     }
 
-    clearPreviewDecorations(scope);
+    clearPreviewDecorations(scope, { preserveActive: true });
 
     Object.entries(previewSectionSelectors).forEach(([section, selectors]) => {
       selectors.forEach((selector) => scope.querySelectorAll(selector).forEach((element) => {
@@ -443,7 +444,7 @@ const navItems = [
   ['templates', LayoutGrid, 'Ձևանմուշներ'],
   ['content', Pencil, 'Խմբագրել'],
   ['design', Sparkles, 'Ձևավորում'],
-  ['media', Save, 'Մեդիա'],
+  ['media', Images, 'Մեդիա'],
   ['buy', CheckCircle2, 'Գնել']
 ];
 
@@ -483,7 +484,7 @@ function PreviewWorkspace({ PreviewComponent }) {
   const previewRootRef = useRef(null);
   const directImageInputRef = useRef(null);
   const directImageFieldRef = useRef('');
-  const handledPreviewFocusRequestRef = useRef(previewFocusRequest);
+  const handledPreviewFocusRequestRef = useRef(previewFocusRequest.id);
   const [previewReady, setPreviewReady] = useState(0);
 
   const handlePreviewReady = useCallback((root, catalog) => {
@@ -500,8 +501,9 @@ function PreviewWorkspace({ PreviewComponent }) {
   useEffect(() => {
     const root = previewRootRef.current;
     if (!root) return;
-    const shouldScrollPreview = handledPreviewFocusRequestRef.current !== previewFocusRequest;
-    handledPreviewFocusRequestRef.current = previewFocusRequest;
+    const isNewFocusRequest = handledPreviewFocusRequestRef.current !== previewFocusRequest.id;
+    const shouldScrollPreview = isNewFocusRequest && previewFocusRequest.scroll;
+    handledPreviewFocusRequestRef.current = previewFocusRequest.id;
     getPreviewRoots(root).forEach((scope) => scope.querySelectorAll('.is-editor-active, .is-editor-section-active').forEach((element) => {
       element.classList.remove('is-editor-active', 'is-editor-section-active');
     }));
@@ -514,7 +516,7 @@ function PreviewWorkspace({ PreviewComponent }) {
     target.classList.add('is-editor-active');
     if (activeBlock !== target) activeBlock.classList.add('is-editor-section-active');
     if (shouldScrollPreview) target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-  }, [activeField, activeSection, previewFocusRequest, previewReady]);
+  }, [activeField, activeSection, data, previewFocusRequest, previewReady]);
 
   const handlePreviewClick = (event) => {
     if (event.amuletEditorHandled) return;
@@ -621,8 +623,6 @@ function PreviewWorkspace({ PreviewComponent }) {
 
 function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
   const { activeField, activeSection, actions, canRedo, canUndo, data, device, dirty, mobileSheet, redo, save, saveStatus, setDevice, setMobileSheet, setSidebarOpen, setTab, sidebarOpen, tab, undo } = useEditor();
-  const [confirmClose, setConfirmClose] = useState(false);
-  const [closePending, setClosePending] = useState(false);
   const [compactViewport, setCompactViewport] = useState(() => window.matchMedia('(max-width: 1024px)').matches);
   const sheetStart = useRef(null);
 
@@ -637,33 +637,10 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
     return () => query.removeEventListener('change', updateViewport);
   }, [setDevice]);
 
-  const requestClose = useCallback(() => {
-    if (dirty) setConfirmClose(true);
-    else actions.onClose?.();
-  }, [actions, dirty]);
-
-  const continueEditing = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setConfirmClose(false);
-  };
-
-  const saveAndClose = async (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (closePending) return;
-    setClosePending(true);
-    const saved = await save();
-    if (saved !== false) actions.onClose?.();
-    else setClosePending(false);
-  };
-
-  const closeWithoutSaving = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setConfirmClose(false);
+  const requestClose = useCallback(async () => {
+    if (dirty) await save();
     actions.onClose?.();
-  };
+  }, [actions, dirty, save]);
 
   useEffect(() => {
     const previousBodyOverflow = document.body.style.overflow;
@@ -719,16 +696,16 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
         </div>
         <DeviceSwitcher />
         <div className="invite-editor-top-actions">
-          <small>{saveStatus === 'saving' ? 'Պահպանվում է...' : saveStatus === 'saved' ? 'Պահպանված է' : dirty ? 'Չպահպանված փոփոխություններ' : 'Պատրաստ է'}</small>
-          <button type="button" onClick={() => void save()} disabled={actions.saving}><Save size={17} /><span>Պահպանել</span></button>
-          <button type="button" onClick={requestClose} aria-label="Փակել խմբագրիչը"><X size={24} /></button>
+          <small aria-live="polite">{saveStatus === 'saving' ? 'Ավտոմատ պահպանվում է...' : saveStatus === 'saved' ? 'Ավտոմատ պահպանված է' : saveStatus === 'error' ? 'Պահվել է այս սարքում' : 'Պատրաստ է'}</small>
+          <button type="button" onClick={() => void requestClose()} disabled={actions.saving}><Eye size={17} /><span>Դիտել փոփոխվածը</span></button>
+          <button type="button" onClick={() => void requestClose()} aria-label="Փակել խմբագրիչը"><X size={24} /></button>
         </div>
       </header>
 
       <nav className="invite-editor-rail" aria-label="Խմբագրիչի բաժիններ">
         <strong aria-hidden="true">A</strong>
         {navItems.map(([value, Icon, label]) => <button key={value} type="button" className={tab === value ? 'is-active' : ''} onClick={() => selectTab(value)} aria-current={tab === value ? 'page' : undefined} aria-label={label} title={label}><Icon size={20} /></button>)}
-        <button type="button" className="invite-editor-back" onClick={requestClose} aria-label="Ետ" title="Ետ"><ArrowLeft size={19} /></button>
+        <button type="button" className="invite-editor-back" onClick={() => void requestClose()} aria-label="Ետ" title="Ետ"><ArrowLeft size={19} /></button>
       </nav>
 
       <aside id="invite-editor-sidebar" className={`invite-editor-sidebar is-${mobileSheet}`}>
@@ -742,25 +719,26 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
         }}><i /><button type="button" onClick={() => setMobileSheet('collapsed')} aria-label="Փակել խմբագրման վահանակը"><ChevronDown size={17} /></button></div>
         <EditorPanel isSingleImageTemplate={isSingleImageTemplate} />
         </div>
-        <footer><button type="button" onClick={() => void save()} disabled={actions.saving}><Save size={16} /> Պահպանել preview-ը</button><button type="button" onClick={() => actions.onBuy?.(data)} disabled={actions.saving}><ShoppingBag size={16} /> Գնել</button></footer>
+        <footer><button type="button" onClick={() => actions.onBuy?.(data)} disabled={actions.saving}><ShoppingBag size={16} /> Գնել</button></footer>
       </aside>
 
       <PreviewWorkspace PreviewComponent={PreviewComponent} />
 
-      {confirmClose && <div className="invite-editor-confirm" role="dialog" aria-modal="true" aria-labelledby="invite-editor-close-title"><section><span><Save size={20} /></span><h2 id="invite-editor-close-title">Փակե՞լ խմբագրիչը</h2><p>Վերջին փոփոխությունները դեռ չեն պահպանվել private preview-ում։</p><div><button type="button" onClick={continueEditing} disabled={closePending}>Շարունակել խմբագրումը</button><button type="button" onClick={saveAndClose} disabled={closePending}>{closePending ? 'Պահպանվում է...' : 'Պահպանել և փակել'}</button><button type="button" className="is-danger" onClick={closeWithoutSaving} disabled={closePending}>Փակել առանց պահպանելու</button></div></section></div>}
     </section>
   );
 }
 
-export default function InvitationEditor({ draft, initialTarget, template, PreviewComponent, isSingleImageTemplate, saving, onClose, onSave, onBuy, onDraftChange, onSelectTemplate }) {
+export default function InvitationEditor({ draft, initialTarget, template, PreviewComponent, isSingleImageTemplate, saving, onClose, onSave, onPreview, previewPath, onBuy, onDraftChange, onSelectTemplate }) {
   const actions = useMemo(() => ({
     saving,
     onClose,
     onDraftChange,
     onSelectTemplate,
-    onSave: async (nextDraft) => onSave?.(nextDraft),
+    previewPath,
+    onSave: async (nextDraft, options) => onSave?.(nextDraft, options),
+    onPreview: async (nextDraft) => onPreview?.(nextDraft),
     onBuy: (nextDraft) => onBuy?.(nextDraft)
-  }), [onBuy, onClose, onDraftChange, onSave, onSelectTemplate, saving]);
+  }), [onBuy, onClose, onDraftChange, onPreview, onSave, onSelectTemplate, previewPath, saving]);
 
   return <EditorProvider initialDraft={draft} initialTarget={initialTarget} template={template} actions={actions}><EditorBody PreviewComponent={PreviewComponent} isSingleImageTemplate={isSingleImageTemplate} /></EditorProvider>;
 }

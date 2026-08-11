@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import PromoCode from '../models/PromoCode.js';
+import Order from '../models/Order.js';
 import Template from '../models/Template.js';
 import { normalizePromoCode, resolvePromo } from '../utils/promo.js';
 
@@ -51,7 +52,18 @@ export const validatePromoCode = asyncHandler(async (req, res) => {
 });
 
 export const getAdminPromoCodes = asyncHandler(async (req, res) => {
-  res.json(await PromoCode.find().sort({ createdAt: -1 }));
+  const [promos, usageRows] = await Promise.all([
+    PromoCode.find().sort({ createdAt: -1 }).lean(),
+    Order.aggregate([
+      { $match: { paymentStatus: 'paid', promoCode: { $nin: ['', null] } } },
+      { $group: { _id: { $toUpper: '$promoCode' }, count: { $sum: 1 } } }
+    ])
+  ]);
+  const usageByCode = new Map(usageRows.map((item) => [item._id, item.count]));
+  res.json(promos.map((promo) => ({
+    ...promo,
+    usageCount: usageByCode.get(normalizePromoCode(promo.code)) || 0
+  })));
 });
 
 export const createAdminPromoCode = asyncHandler(async (req, res) => {

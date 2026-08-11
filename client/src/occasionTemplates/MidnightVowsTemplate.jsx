@@ -83,7 +83,7 @@ export const getMidnightVowsDraft = (template = {}) => {
     eventDate: '2026-08-15',
     eventTime: '15:00',
     eventLocation: 'Սուրբ Հռիփսիմե եկեղեցի',
-    eventMessage: template.description || 'Սիրով հրավիրում ենք Ձեզ կիսել մեր կյանքի ամենագեղեցիկ օրը և Ձեր ներկայությամբ ջերմացնել մեր հարսանիքը։',
+    eventMessage: 'Սիրով հրավիրում ենք Ձեզ կիսել մեր կյանքի ամենագեղեցիկ օրը և Ձեր ներկայությամբ ջերմացնել մեր հարսանիքը։',
     mapLink: '',
     mapLinks: [],
     image: gallery[0] || weddingForest,
@@ -181,7 +181,7 @@ function MidnightVowsLayout({ draft, price, onHome, onEdit, onOrder, loading, ac
         ))}
       </div>
 
-      <section className="midnight-cover">
+      <section className="midnight-cover" hidden={draft?.heroVisible === false}>
         {mode === 'preview' && (
           <motion.div
             className="midnight-floating-actions"
@@ -230,7 +230,7 @@ function MidnightVowsLayout({ draft, price, onHome, onEdit, onOrder, loading, ac
         </motion.div>
       </section>
 
-      <section className="midnight-message-section">
+      <section className="midnight-message-section" hidden={draft?.heroVisible === false}>
         <motion.div
           className="midnight-message-card"
           initial={{ opacity: 0, y: 34 }}

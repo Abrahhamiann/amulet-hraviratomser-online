@@ -1,5 +1,5 @@
 import React from 'react';
-import { CalendarDays, CalendarPlus, CheckCircle2, Clock, MapPin, Share2, Sparkles, X } from 'lucide-react';
+import { CalendarDays, CheckCircle2, Clock, MapPin, Share2, Sparkles, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../api/axios.js';
@@ -81,8 +81,6 @@ export default function InvitationPage() {
   if (state === 'error') return <ErrorState text={t('error')} />;
 
   const eventDate = new Date(invitation.date);
-  const calendarDate = eventDate.toISOString().slice(0, 10).replaceAll('-', '');
-  const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(invitation.names)}&dates=${calendarDate}/${calendarDate}&location=${encodeURIComponent(invitation.location)}`;
   const heroImage = invitation.gallery?.[0];
   const secondaryGallery = invitation.gallery?.slice(1) || [];
   const occasionTemplate = getOccasionTemplate(invitation.templateId);
@@ -90,7 +88,6 @@ export default function InvitationPage() {
   const isBaptismTemplate = occasionTemplate?.key === 'sacred-beginnings';
   const isEngagementTemplate = false;
   const mapLinks = normalizeMapLinks(invitation);
-  const mapActionLinks = mapLinks.filter((item) => item.url);
   const gallery = (invitation.gallery || []).filter((image) => {
     if (typeof image !== 'string' || !image.trim()) return false;
     if (!PublicView) return true;
@@ -117,16 +114,7 @@ export default function InvitationPage() {
     </form>
   );
   const inviteActions = (
-    <>
-      {mapActionLinks.map((item, index) => (
-        <Button key={`${item.url}-${index}`} to={item.url} variant="secondary">
-          <MapPin size={18} />
-          {item.label || t('openMap')}
-        </Button>
-      ))}
-      <Button type="button" onClick={share}><Share2 size={18} />{t('share')}</Button>
-      <Button to={calendarUrl} variant="ghost"><CalendarPlus size={18} />{t('addCalendar')}</Button>
-    </>
+    <Button type="button" onClick={share}><Share2 size={18} />{t('share')}</Button>
   );
   const successModal = successOpen && (
     <div className="rsvp-success-backdrop" role="dialog" aria-modal="true" aria-labelledby="rsvp-success-title">
@@ -161,7 +149,6 @@ export default function InvitationPage() {
           draft={publicDraft}
           daysLeftText={`${daysLeft ?? 0} ${t('daysToGo')}`}
           actions={inviteActions}
-          rsvpForm={rsvpForm}
         />
         {successModal}
       </main>
@@ -193,14 +180,7 @@ export default function InvitationPage() {
             <strong>{invitation.location}</strong>
           </div>
           <div className="invite-actions">
-            {mapActionLinks.map((item, index) => (
-              <Button key={`${item.url}-${index}`} to={item.url} variant="secondary">
-                <MapPin size={18} />
-                {item.label || t('openMap')}
-              </Button>
-            ))}
-            <Button type="button" onClick={share}><Share2 size={18} />{t('share')}</Button>
-            <Button to={calendarUrl} variant="ghost"><CalendarPlus size={18} />{t('addCalendar')}</Button>
+            {inviteActions}
           </div>
         </section>
       </article>

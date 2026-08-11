@@ -10,6 +10,8 @@ import { getTemplatePagePreview } from '../occasionTemplates/templatePagePreview
 export default function TemplateCard({ template }) {
   const { t } = useLanguage();
   const [qrOpen, setQrOpen] = useState(false);
+  const [catalogWalkthroughComplete, setCatalogWalkthroughComplete] = useState(false);
+  const [modalWalkthroughComplete, setModalWalkthroughComplete] = useState(false);
   const occasionTemplate = getOccasionTemplate(template);
   const CardPreview = occasionTemplate?.CardPreview;
   const imagePosition = template.imagePosition || {};
@@ -25,8 +27,14 @@ export default function TemplateCard({ template }) {
     return new URL(previewPath, window.location.origin).toString();
   }, [previewPath]);
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=12&data=${encodeURIComponent(previewUrl)}`;
-  const openQr = () => setQrOpen(true);
-  const closeQr = () => setQrOpen(false);
+  const openQr = () => {
+    setModalWalkthroughComplete(false);
+    setQrOpen(true);
+  };
+  const closeQr = () => {
+    setModalWalkthroughComplete(false);
+    setQrOpen(false);
+  };
 
   useEffect(() => {
     if (!qrOpen) return undefined;
@@ -52,6 +60,11 @@ export default function TemplateCard({ template }) {
       role="button"
       tabIndex={0}
       onClick={openQr}
+      onMouseEnter={() => setCatalogWalkthroughComplete(false)}
+      onMouseLeave={() => setCatalogWalkthroughComplete(false)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setCatalogWalkthroughComplete(false);
+      }}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
@@ -69,6 +82,9 @@ export default function TemplateCard({ template }) {
             width="630"
             height="16384"
             loading="lazy"
+            onTransitionEnd={(event) => {
+              if (event.propertyName === 'transform') setCatalogWalkthroughComplete(true);
+            }}
           />
         ) : mainImage ? (
           <img
@@ -86,6 +102,15 @@ export default function TemplateCard({ template }) {
         ) : (
           <span>{template.title}</span>
         )}
+        {pagePreview && mainImage && (
+          <img
+            className={`catalog-template-final-cover${catalogWalkthroughComplete ? ' is-visible' : ''}`}
+            src={mainImage}
+            alt={template.title}
+            loading="lazy"
+            style={{ objectPosition, transformOrigin: objectPosition }}
+          />
+        )}
         <span className="catalog-new-badge">{t('new')}</span>
       </div>
       <div className="template-body catalog-template-caption">
@@ -100,13 +125,28 @@ export default function TemplateCard({ template }) {
             </button>
             <div className="template-qr-preview">
               {pagePreview ? (
-                <img className="template-qr-auto-scroll" src={pagePreview} alt={`${template.title} — ամբողջական էջ`} width="630" height="16384" />
+                <img
+                  className={`template-qr-auto-scroll${modalWalkthroughComplete ? ' is-complete' : ''}`}
+                  src={pagePreview}
+                  alt={`${template.title} — ամբողջական էջ`}
+                  width="630"
+                  height="16384"
+                  onAnimationEnd={() => setModalWalkthroughComplete(true)}
+                />
               ) : mainImage ? (
                 <img src={mainImage} alt={template.title} />
               ) : CardPreview ? (
                 <CardPreview template={template} />
               ) : (
                 <span>{template.title}</span>
+              )}
+              {pagePreview && mainImage && (
+                <img
+                  className={`template-qr-final-cover${modalWalkthroughComplete ? ' is-visible' : ''}`}
+                  src={mainImage}
+                  alt={template.title}
+                  style={{ objectPosition }}
+                />
               )}
             </div>
             <div className="template-qr-content">
@@ -117,6 +157,7 @@ export default function TemplateCard({ template }) {
                 <span>{t('customDesign')}</span>
                 <span>{Number(template.price).toLocaleString()} AMD</span>
               </div>
+              {template.description && <p className="template-qr-description">{template.description}</p>}
               <div className="template-qr-scan">
                 <img src={qrUrl} alt={t('scanQr')} />
                 <p>{t('scanQrText')}</p>

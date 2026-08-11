@@ -69,6 +69,12 @@ type Draft = {
   templateImageOverrides?: Record<string, string>;
   colors?: { accent?: string; text?: string; overlay?: string };
   colorPaletteId?: string;
+  heroVisible?: boolean;
+  familyVisible?: boolean;
+  openingVisible?: boolean;
+  receptionVisible?: boolean;
+  questionsVisible?: boolean;
+  finalMessageVisible?: boolean;
 };
 
 type TemplateProps = {
@@ -179,6 +185,16 @@ const applyTemplateOverrides = (root: HTMLDivElement, draft: Draft = {}) => {
     image.hidden = !nextSource;
     if (nextSource && image.src !== nextSource) image.src = nextSource;
   });
+
+  const visibilityRules: Array<[string, boolean]> = [
+    ['.sacred-hero, .sacred-message, .birthday-hero, .birthday-message, .ivory-hero, .ivory-message', draft.heroVisible !== false],
+    ['.sacred-schedule, .birthday-schedule, .ivory-schedule', draft.receptionVisible !== false],
+    ['.sacred-rsvp, .birthday-rsvp, .ivory-rsvp', draft.questionsVisible !== false],
+    ['.sacred-closing, .birthday-closing, .ivory-closing', draft.finalMessageVisible !== false]
+  ];
+  visibilityRules.forEach(([selector, visible]) => {
+    root.querySelectorAll<HTMLElement>(selector).forEach((element) => { element.hidden = !visible; });
+  });
 };
 
 const formatArmenianDate = (value?: string) => {
@@ -282,6 +298,7 @@ function OriginalTemplateSurface({ children, css, fontImport, label, draft, cust
     style.textContent = `${fontImport}\n${isolatedCss}\n
       :host { display: block; width: 100%; color: var(--foreground); background: var(--background); }
       .original-template-document { width: 100%; min-height: 100vh; overflow-x: hidden; color: var(--foreground); background: var(--background); font-family: var(--font-body, var(--font-sans, ui-sans-serif, system-ui, sans-serif)); -webkit-font-smoothing: antialiased; }
+      .original-template-document [hidden] { display: none !important; }
       .original-template-document h1, .original-template-document h2, .original-template-document h3 { font-family: var(--font-display, ui-serif, Georgia, serif); }
     `;
     shadow.replaceChildren(style, root);
@@ -365,7 +382,7 @@ function SacredBeginningsTemplate(props: TemplateProps) {
       fontImport={'@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap");'}
       label="Սուրբ սկիզբ մկրտության հրավեր"
     >
-      <BaptismInvitation data={data} />
+      <BaptismInvitation data={data} visibility={draft} />
       <MusicControl src={musicSource} />
     </OriginalTemplateSurface></TemplateShell>
   );
@@ -402,17 +419,21 @@ function BirthdaySparkleTemplate(props: TemplateProps) {
       label="Փայլուն տարեդարձի հրավեր"
     >
       <main className="relative w-full overflow-x-hidden">
-        <BirthdayIntro onDone={onIntroDone} />
-        <BirthdayHeroSection data={data} start={revealed} />
+        <div className="birthday-hero" hidden={draft.heroVisible === false}>
+          <BirthdayIntro onDone={onIntroDone} />
+          <BirthdayHeroSection data={data} start={revealed} />
+        </div>
         <BirthdayPersonSection data={data} />
         <BirthdayCountdown dateISO={data.eventDateISO} />
-        <BirthdayEventDetails data={data} />
-        <PartyTimeline schedule={data.schedule} />
+        <div className="birthday-schedule" hidden={draft.receptionVisible === false}>
+          <BirthdayEventDetails data={data} />
+          <PartyTimeline schedule={data.schedule} />
+        </div>
         <BirthdayGallery photos={data.photos} />
-        <BirthdayMessage data={data} />
-        <LocationSection data={data} />
-        <RSVPSection onSubmit={handleRsvp} />
-        <FinalCelebration data={data} />
+        <div className="birthday-message" hidden={draft.heroVisible === false}><BirthdayMessage data={data} /></div>
+        <div className="birthday-schedule" hidden={draft.receptionVisible === false}><LocationSection data={data} /></div>
+        <div className="birthday-rsvp" hidden={draft.questionsVisible === false}><RSVPSection onSubmit={handleRsvp} /></div>
+        <div className="birthday-closing" hidden={draft.finalMessageVisible === false}><FinalCelebration data={data} /></div>
         <MusicControl src={musicSource} />
       </main>
     </OriginalTemplateSurface></TemplateShell>
@@ -458,21 +479,22 @@ function IvoryVowsTemplate(props: TemplateProps) {
       customize={customize}
     >
       <main className="overflow-x-hidden">
-        <WeddingHeroSection />
-        <InvitationMessage />
+        <div className="ivory-hero" hidden={draft.heroVisible === false}><WeddingHeroSection /></div>
+        <div className="ivory-message" hidden={draft.heroVisible === false}><InvitationMessage /></div>
         <CoupleSection />
         <StoryTimeline />
-        <WeddingCountdown />
-        <WeddingSchedule />
-        {ceremony ? <VenueSection venue={ceremony} /> : null}
-        {reception ? <VenueSection venue={reception} reverse /> : null}
+        <div className="ivory-schedule" hidden={draft.receptionVisible === false}>
+          <WeddingCountdown />
+          <WeddingSchedule />
+          {ceremony ? <VenueSection venue={ceremony} /> : null}
+          {reception ? <VenueSection venue={reception} reverse /> : null}
+        </div>
         <WeddingGallery />
         <DressCode />
         <ImportantInfo />
-        <RSVPForm />
+        <div className="ivory-rsvp" hidden={draft.questionsVisible === false}><RSVPForm /></div>
         <ContactSection />
-        <ClosingSection />
-        <WeddingFooter />
+        <div className="ivory-closing" hidden={draft.finalMessageVisible === false}><ClosingSection /><WeddingFooter /></div>
         <FloatingActions />
         <MusicControl src={musicSource} />
       </main>

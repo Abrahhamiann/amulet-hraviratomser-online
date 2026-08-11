@@ -147,7 +147,7 @@ export const getBaptismBlessingDraft = (template = {}) => {
     eventDate: '2026-10-22',
     eventTime: '15:00',
     eventLocation: 'Սուրբ Գրիգոր Լուսավորիչ եկեղեցի, Երևան',
-    eventMessage: template.description || 'Սիրով հրավիրում ենք Ձեզ կիսելու մեր փոքրիկի մկրտության լուսավոր օրը։ Ձեր ներկայությունը մեզ համար մեծ օրհնություն կլինի։',
+    eventMessage: 'Սիրով հրավիրում ենք Ձեզ կիսելու մեր փոքրիկի մկրտության լուսավոր օրը։ Ձեր ներկայությունը մեզ համար մեծ օրհնություն կլինի։',
     mapLink: '',
     mapLinks: [],
     image: gallery[1] || gallery[0] || familyImage,
@@ -338,7 +338,7 @@ function BaptismLayout({ draft, price, onHome, onEdit, onOrder, loading, actions
         </div>
         <div className="baptism-global-scrim" aria-hidden="true" />
 
-        <motion.section className="baptism-hero baptism-photo-screen" variants={revealVariants}>
+        <motion.section className="baptism-hero baptism-photo-screen" hidden={draft?.heroVisible === false} variants={revealVariants}>
           <div className="baptism-hero-copy">
             <span>ՄԿՐՏՈՒԹՅԱՆ ՀՐԱՎԵՐ</span>
             <h1>{name}</h1>
@@ -347,7 +347,7 @@ function BaptismLayout({ draft, price, onHome, onEdit, onOrder, loading, actions
           </div>
         </motion.section>
 
-        <motion.section className="baptism-countdown-section baptism-photo-screen" {...scrollRevealProps}>
+        <motion.section className="baptism-countdown-section baptism-photo-screen" hidden={draft?.heroVisible === false} {...scrollRevealProps}>
           <div className="baptism-countdown-card">
             <span>Մնաց</span>
             <div className="baptism-countdown-grid">

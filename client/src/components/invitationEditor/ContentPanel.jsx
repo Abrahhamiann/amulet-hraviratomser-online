@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { CalendarDays, ChevronDown, ChevronUp, Heart, MapPin, MessageSquare, Plus, Trash2 } from 'lucide-react';
 import { useEditor } from './EditorContext.jsx';
-import { CollapsibleSection, Field, PanelHeader, Toggle, TypographyEditor } from './EditorControls.jsx';
+import { CollapsibleSection, Field, PanelHeader, Toggle } from './EditorControls.jsx';
 import { splitNames } from './editorData.js';
 
 const newVenue = (index) => ({ id: `venue-${Date.now()}-${index}`, label: `Վայր ${index + 1}`, time: '18:00', address: '', url: '', subtitle: '', icon: 'location', visible: true });
@@ -17,11 +17,35 @@ const autoGrowTextarea = (textarea) => {
   textarea.style.height = `${Math.max(textarea.scrollHeight, 46)}px`;
 };
 
+const editorProfiles = {
+  wedding: {
+    title: 'Հարսանիքի հրավերի խմբագրում', dualNames: true, firstName: 'Հարսի անունը', secondName: 'Փեսայի անունը', namesLabel: 'Զույգի անունների տեսքը', messageLabel: 'Հարսանեկան հրավերի տեքստ', venueTypes: ['church', 'home', 'party', 'photo', 'location']
+  },
+  engagement: {
+    title: 'Նշանադրության հրավերի խմբագրում', dualNames: true, firstName: 'Առաջին անունը', secondName: 'Երկրորդ անունը', namesLabel: 'Զույգի անունների տեսքը', messageLabel: 'Նշանադրության հրավերի տեքստ', venueTypes: ['home', 'party', 'photo', 'location']
+  },
+  baptism: {
+    title: 'Մկրտության հրավերի խմբագրում', dualNames: false, nameLabel: 'Երեխայի անունը', messageLabel: 'Մկրտության հրավերի տեքստ', venueTypes: ['church', 'home', 'party', 'location']
+  },
+  birth: {
+    title: 'Ծնունդի հրավերի խմբագրում', dualNames: false, nameLabel: 'Հոբելյարի անունը', messageLabel: 'Ծնունդի հրավերի տեքստ', venueTypes: ['home', 'party', 'location']
+  },
+  corporate: {
+    title: 'Կորպորատիվ հրավերի խմբագրում', dualNames: false, nameLabel: 'Միջոցառման անվանումը', messageLabel: 'Կորպորատիվ հրավերի տեքստ', venueTypes: ['party', 'location']
+  }
+};
+
+const venueTypeLabels = {
+  location: 'Վայր', church: 'Եկեղեցի', home: 'Տուն', party: 'Հանդիսություն', photo: 'Ֆոտոսեսիա'
+};
+
 export default function ContentPanel() {
-  const { activeField, activeSection, data, editableContent, focusEditorTarget, update } = useEditor();
+  const { activeSection, data, editableContent, focusEditorTarget, template, update } = useEditor();
   const [openSections, setOpenSections] = useState(['hero', 'schedule']);
   const panelRef = useRef(null);
   const [firstName, secondName] = splitNames(data.mainNames);
+  const editorType = String(template?.editorType || template?.category || 'wedding').toLowerCase();
+  const profile = editorProfiles[editorType] || editorProfiles.wedding;
   const toggleOpen = (id) => setOpenSections((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]);
 
   useEffect(() => {
@@ -36,9 +60,7 @@ export default function ContentPanel() {
   const handleFieldFocus = (event) => {
     const field = event.target.closest('[data-editor-field]')?.dataset.editorField;
     const section = event.target.closest('[data-editor-section-id]')?.dataset.editorSectionId;
-    if (section && (section !== activeSection || (field || '') !== activeField)) {
-      focusEditorTarget({ section, field: field || '', scrollPreview: true });
-    }
+    if (section) focusEditorTarget({ section, field: field || '', scrollPreview: true });
   };
   const setVisible = (field, value) => update((draft) => { draft[field] = value; });
   const setField = (field, value) => update((draft) => { draft[field] = value; });
@@ -50,10 +72,6 @@ export default function ContentPanel() {
   const updateTemplateText = (key, value) => update((draft) => {
     draft.templateTextOverrides = { ...(draft.templateTextOverrides || {}), [key]: value };
   });
-  const updateTextStyle = (patch) => update((draft) => {
-    draft.textStyles.names = { ...(draft.textStyles.names || {}), ...patch };
-  });
-
   const updateVenue = (index, field, value) => update((draft) => {
     const current = draft.mapLinks[index] || newVenue(index);
     const next = { ...current, [field]: value };
@@ -93,18 +111,26 @@ export default function ContentPanel() {
   });
 
   return (
-    <div ref={panelRef} className="invite-editor-panel" onFocusCapture={handleFieldFocus} onInputCapture={(event) => autoGrowTextarea(event.target)}>
-      <PanelHeader title="Հրավերի խմբագրում" subtitle="Փոփոխությունները անմիջապես երևում են նախադիտման մեջ։" />
+    <div ref={panelRef} className="invite-editor-panel" onFocusCapture={handleFieldFocus} onPointerDownCapture={handleFieldFocus} onInputCapture={(event) => autoGrowTextarea(event.target)}>
+      <PanelHeader title={profile.title} subtitle="Փոփոխությունները ավտոմատ պահպանվում և անմիջապես երևում են նախադիտման մեջ։" />
 
       <CollapsibleSection {...sectionProps('hero', 'Գլխավոր էկրան', Heart, 'heroVisible')}>
-        <div className="invite-editor-grid-two">
-          <Field label="Առաջին անունը" editorField="mainName.0"><input value={firstName} onChange={(event) => updateName(0, event.target.value)} /></Field>
-          <Field label="Երկրորդ անունը" editorField="mainName.1"><input value={secondName} onChange={(event) => updateName(1, event.target.value)} /></Field>
-        </div>
-        <Field label="Անունների տեսքը" editorField="mainNames" action={<TypographyEditor value={data.textStyles.names || {}} onChange={updateTextStyle} />}>
-          <input value={data.mainNames || ''} onChange={(event) => setField('mainNames', event.target.value)} />
-        </Field>
-        <Field label="Հրավերի հիմնական տեքստ" editorField="eventMessage"><textarea rows="4" value={data.eventMessage || ''} onChange={(event) => setField('eventMessage', event.target.value)} /></Field>
+        {profile.dualNames ? (
+          <>
+            <div className="invite-editor-grid-two">
+              <Field label={profile.firstName} editorField="mainName.0"><input value={firstName} onChange={(event) => updateName(0, event.target.value)} /></Field>
+              <Field label={profile.secondName} editorField="mainName.1"><input value={secondName} onChange={(event) => updateName(1, event.target.value)} /></Field>
+            </div>
+            <Field label={profile.namesLabel} editorField="mainNames">
+              <input value={data.mainNames || ''} onChange={(event) => setField('mainNames', event.target.value)} />
+            </Field>
+          </>
+        ) : (
+          <Field label={profile.nameLabel} editorField="mainNames">
+            <input value={data.mainNames || ''} onChange={(event) => setField('mainNames', event.target.value)} />
+          </Field>
+        )}
+        <Field label={profile.messageLabel} editorField="eventMessage"><textarea rows="4" value={data.eventMessage || ''} onChange={(event) => setField('eventMessage', event.target.value)} /></Field>
       </CollapsibleSection>
 
       {editableContent.texts.length > 0 && (
@@ -143,7 +169,7 @@ export default function ContentPanel() {
                 })} aria-label="Ջնջել վայրը"><Trash2 size={14} /></button>
               </div></header>
               <Field label="Անվանում" editorField={`mapLinks.${index}.label`}><input value={item.label || ''} onChange={(event) => updateVenue(index, 'label', event.target.value)} /></Field>
-              <div className="invite-editor-grid-two"><Field label="Ժամ" editorField={`mapLinks.${index}.time`}><input type="time" value={item.time || ''} onChange={(event) => updateVenue(index, 'time', event.target.value)} /></Field><Field label="Տեսակ"><select value={item.icon || 'location'} onChange={(event) => updateVenue(index, 'icon', event.target.value)}><option value="location">Վայր</option><option value="church">Եկեղեցի</option><option value="home">Տուն</option><option value="party">Հանդիսություն</option><option value="photo">Ֆոտոսեսիա</option></select></Field></div>
+              <div className="invite-editor-grid-two"><Field label="Ժամ" editorField={`mapLinks.${index}.time`}><input type="time" value={item.time || ''} onChange={(event) => updateVenue(index, 'time', event.target.value)} /></Field><Field label="Տեսակ"><select value={profile.venueTypes.includes(item.icon) ? item.icon : profile.venueTypes[0]} onChange={(event) => updateVenue(index, 'icon', event.target.value)}>{profile.venueTypes.map((value) => <option key={value} value={value}>{venueTypeLabels[value]}</option>)}</select></Field></div>
               <Field label="Ենթավերնագիր" hint="ըստ ցանկության" editorField={`mapLinks.${index}.subtitle`}><input value={item.subtitle || ''} onChange={(event) => updateVenue(index, 'subtitle', event.target.value)} /></Field>
               <Field label="Հասցե" editorField={`mapLinks.${index}.address`}><textarea rows="2" value={item.address || ''} onChange={(event) => updateVenue(index, 'address', event.target.value)} /></Field>
               <Field label="Google Maps հղում" editorField={`mapLinks.${index}.url`}><input inputMode="url" value={item.url || ''} onChange={(event) => updateVenue(index, 'url', event.target.value)} /></Field>

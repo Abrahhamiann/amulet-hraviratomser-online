@@ -10,6 +10,7 @@ import engagementSmile from '../assets/morph/engagement-smile.jpg';
 import weddingForest from '../assets/morph/wedding-forest-optimized.jpg';
 import weddingTemple from '../assets/morph/wedding-temple.jpg';
 import homeDeviceSuite from '../assets/home/amulet-device-suite.png';
+import api from '../api/axios.js';
 import Button from '../components/Button.jsx';
 import FAQItem from '../components/FAQItem.jsx';
 import TestimonialV2 from '../components/ui/TestimonialV2.jsx';
@@ -79,6 +80,19 @@ export default function HomePage() {
   const faqRef = useRef(null);
   const [activeFaqIndex, setActiveFaqIndex] = useState(null);
   const [activeEventIndex, setActiveEventIndex] = useState(0);
+  const [managedFaqItems, setManagedFaqItems] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    api.get('/faq', { params: { language } })
+      .then(({ data }) => {
+        if (active && Array.isArray(data?.items)) setManagedFaqItems(data.items);
+      })
+      .catch(() => {
+        if (active) setManagedFaqItems(null);
+      });
+    return () => { active = false; };
+  }, [language]);
 
   useEffect(() => {
     const section = creationFlowRef.current;
@@ -131,7 +145,9 @@ export default function HomePage() {
     return () => observer.disconnect();
   }, [language]);
 
-  const staticFaqItems = t('faqItems');
+  const staticFaqItems = managedFaqItems?.length
+    ? managedFaqItems.map((item) => [item.question, item.answer])
+    : t('faqItems');
   const creationSteps = t('creationSteps');
   const eventTestimonials = t('eventTestimonials').map((item) => ({
     ...item,
@@ -260,15 +276,21 @@ export default function HomePage() {
           <p>{t('faqSubtitle')}</p>
         </header>
         <div className="faq-stack">
-          {staticFaqItems.map(([question, answer], index) => (
-            <FAQItem
-              key={question}
-              question={question}
-              answer={answer}
-              index={index}
-              open={activeFaqIndex === index}
-              onToggle={() => setActiveFaqIndex((current) => (current === index ? null : index))}
-            />
+          {[0, 1].map((column) => (
+            <div className="faq-column" key={column}>
+              {staticFaqItems.map(([question, answer], index) => (
+                index % 2 === column ? (
+                  <FAQItem
+                    key={question}
+                    question={question}
+                    answer={answer}
+                    index={index}
+                    open={activeFaqIndex === index}
+                    onToggle={() => setActiveFaqIndex((current) => (current === index ? null : index))}
+                  />
+                ) : null
+              ))}
+            </div>
           ))}
         </div>
       </section>

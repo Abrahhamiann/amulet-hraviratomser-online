@@ -17,11 +17,10 @@ export function useAdminData<T>(key: unknown, fetcher: () => Promise<T>, fallbac
 export const useDashboard = (period = "all") => useAdminData(["dashboard", period], () => adminApi.dashboard(period), null);
 export const useOrders = () => useAdminData("orders", adminApi.orders, []);
 export const useTemplates = () => useAdminData("templates", adminApi.templates, []);
-export const useInvitations = () => useAdminData("invitations", adminApi.invitations, []);
 export const useCustomers = () => useAdminData("customers", adminApi.customers, []);
 export const usePayments = () => useAdminData("payments", adminApi.payments, []);
 export const useMessages = () => useAdminData("messages", adminApi.messages, []);
 export const useAdministrators = () => useAdminData("administrators", adminApi.administrators, []);
-export const useNotifications = () => useAdminData("notifications", adminApi.notifications, []);
-export const useFaq = () => useAdminData("faq", adminApi.faq, { items: [] });
+const EMPTY_FAQ = { items: [] };
+export const useFaq = () => useAdminData("faq", adminApi.faq, EMPTY_FAQ);
 export const useReviews = () => useAdminData("reviews", adminApi.reviews, []);

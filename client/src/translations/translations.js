@@ -110,6 +110,9 @@ const en = {
   paymentSuccessText: 'Your online invitation is ready and saved in your profile.',
   paymentSuccessErrorTitle: 'Payment confirmation failed',
   paymentSuccessErrorText: 'We could not confirm this payment. Please open your profile or try again.',
+  paymentInvitationLink: 'Your invitation link',
+  copyInvitationLink: 'Copy invitation link',
+  invitationQrCode: 'Invitation QR code',
   successContact: 'Your message was sent successfully.',
   successContactDetails: 'Thank you for reaching out. We will review your request and reply to your email soon.',
   rsvp: 'RSVP',
@@ -267,6 +270,9 @@ const hy = {
   paymentSuccessText: 'Ձեր օնլայն հրավերը պատրաստ է և պահպանվել է ձեր profile-ում։',
   paymentSuccessErrorTitle: 'Չհաջողվեց հաստատել վճարումը',
   paymentSuccessErrorText: 'Չկարողացանք հաստատել այս վճարումը։ Խնդրում ենք բացել profile-ը կամ կրկին փորձել։',
+  paymentInvitationLink: 'Ձեր հրավերի հղումը',
+  copyInvitationLink: 'Պատճենել հրավերի հղումը',
+  invitationQrCode: 'Հրավերի QR կոդ',
   successContact: 'Ձեր նամակը հաջողությամբ ուղարկվեց։',
   successContactDetails: 'Շնորհակալություն կապ հաստատելու համար։ Մենք կկարդանք ձեր նամակը և շուտով կպատասխանենք ձեր email-ին։',
   guestName: 'Հյուրի անունը',
@@ -2045,17 +2051,17 @@ Object.assign(it, {
 });
 
 Object.assign(en, {
-  promoQuestionKicker: 'A little gift', promoQuestion: 'Do you have a promo code?', promoQuestionText: 'Enter it now to reveal your Amulet gift before payment.', promoCodeLabel: 'Promo code', promoApply: 'Reveal gift', promoNoCode: 'I do not have a promo code', promoInvalid: 'This promo code is invalid or expired.', promoGiftUnlocked: 'Your gift is unlocked', promoDiscountApplied: 'discount applied', promoContinue: 'Continue to payment',
+  promoQuestionKicker: 'A little gift', promoQuestion: 'Do you have a promo code?', promoQuestionText: 'Enter it now to reveal your Amulet gift before payment.', promoCodeLabel: 'Promo code', promoApply: 'Reveal gift', promoNoCode: 'Continue without a promo code', promoInvalid: 'This promo code is invalid or expired.', promoGiftUnlocked: 'Your gift is unlocked', promoDiscountApplied: 'discount applied', promoContinue: 'Continue to payment',
   addReview: 'Add a review', addReviewHint: 'Tell us about your invitation', reviewSubmitted: 'Review submitted', reviewPendingApproval: 'Thank you — it is awaiting approval', reviewThankYou: 'Thank you for your review!', reviewRating: 'Your rating', reviewText: 'Your experience', submitReview: 'Submit review', reviewSubmitError: 'The review could not be submitted.', cancel: 'Cancel'
 });
 
 Object.assign(hy, {
-  promoQuestionKicker: 'Փոքրիկ նվեր', promoQuestion: 'Ունե՞ք պրոմոկոդ', promoQuestionText: 'Մուտքագրեք այն և բացահայտեք Ձեր Amulet նվերը վճարումից առաջ։', promoCodeLabel: 'Պրոմոկոդ', promoApply: 'Բացել նվերը', promoNoCode: 'Չունեմ պրոմոկոդ', promoInvalid: 'Պրոմոկոդը սխալ է կամ ժամկետանց։', promoGiftUnlocked: 'Ձեր նվերը բացված է', promoDiscountApplied: 'զեղչ կիրառվեց', promoContinue: 'Շարունակել վճարումը',
+  promoQuestionKicker: 'Փոքրիկ նվեր', promoQuestion: 'Ունե՞ք պրոմոկոդ', promoQuestionText: 'Մուտքագրեք այն և բացահայտեք Ձեր Amulet նվերը վճարումից առաջ։', promoCodeLabel: 'Պրոմոկոդ', promoApply: 'Բացել նվերը', promoNoCode: 'Շարունակել առանց պրոմոկոդի', promoInvalid: 'Պրոմոկոդը սխալ է կամ ժամկետանց։', promoGiftUnlocked: 'Ձեր նվերը բացված է', promoDiscountApplied: 'զեղչ կիրառվեց', promoContinue: 'Շարունակել վճարումը',
   addReview: 'Ավելացնել կարծիք', addReviewHint: 'Պատմեք Ձեր հրավերի փորձի մասին', reviewSubmitted: 'Կարծիքն ուղարկված է', reviewPendingApproval: 'Շնորհակալություն․ այն սպասում է հաստատման', reviewThankYou: 'Շնորհակալություն կարծիքի համար', reviewRating: 'Ձեր գնահատականը', reviewText: 'Ձեր տպավորությունը', submitReview: 'Ուղարկել կարծիքը', reviewSubmitError: 'Չհաջողվեց ուղարկել կարծիքը։', cancel: 'Չեղարկել'
 });
 
 Object.assign(ru, {
-  promoQuestionKicker: 'Небольшой подарок', promoQuestion: 'У вас есть промокод?', promoQuestionText: 'Введите его, чтобы открыть подарок Amulet до оплаты.', promoCodeLabel: 'Промокод', promoApply: 'Открыть подарок', promoNoCode: 'У меня нет промокода', promoInvalid: 'Промокод недействителен или истёк.', promoGiftUnlocked: 'Ваш подарок открыт', promoDiscountApplied: 'скидка применена', promoContinue: 'Перейти к оплате',
+  promoQuestionKicker: 'Небольшой подарок', promoQuestion: 'У вас есть промокод?', promoQuestionText: 'Введите его, чтобы открыть подарок Amulet до оплаты.', promoCodeLabel: 'Промокод', promoApply: 'Открыть подарок', promoNoCode: 'Продолжить без промокода', promoInvalid: 'Промокод недействителен или истёк.', promoGiftUnlocked: 'Ваш подарок открыт', promoDiscountApplied: 'скидка применена', promoContinue: 'Перейти к оплате',
   addReview: 'Добавить отзыв', addReviewHint: 'Расскажите о вашем приглашении', reviewSubmitted: 'Отзыв отправлен', reviewPendingApproval: 'Спасибо — он ожидает проверки', reviewThankYou: 'Спасибо за отзыв!', reviewRating: 'Ваша оценка', reviewText: 'Ваши впечатления', submitReview: 'Отправить отзыв', reviewSubmitError: 'Не удалось отправить отзыв.', cancel: 'Отмена'
 });
 
@@ -2084,5 +2090,13 @@ Object.assign(ru, {
   authResetTitle: 'Восстановить пароль', authResetIntro: 'Введите email аккаунта, и мы отправим защищённый 6-значный код.', authSendResetCode: 'Отправить код', authResetCodeTitle: 'Введите код из письма', authResetCodeIntro: 'Мы отправили 6-значный код на {email}.', authNewPasswordTitle: 'Создайте новый пароль', authNewPasswordIntro: 'Выберите надёжный пароль, который раньше не использовали.', authNewPassword: 'Новый пароль', authSavePassword: 'Сохранить пароль', authResetCompleteTitle: 'Пароль обновлён', authResetCompleteIntro: 'Пароль безопасно изменён. Переходим на страницу входа.',
   customDesignCtaKicker: 'Только для вашей истории', customDesignCtaTitle: 'Нужно полностью индивидуальное приглашение?', customDesignCtaText: 'Отправьте данные события и примеры стиля. Дизайнер свяжется с вами с персональным предложением.', customDesignCtaButton: 'Заказать индивидуальный дизайн', inspirationLink: 'Ссылка на стиль или пример', budgetRange: 'Планируемый бюджет', customRequestNote: 'Опишите желаемый стиль, цвета, разделы и особые идеи.'
 });
+
+Object.assign(hy, { promoCongratulations: 'Շնորհավորում ենք դուք ստացել եք' });
+Object.assign(en, { promoCongratulations: 'Congratulations, you received' });
+Object.assign(ru, { promoCongratulations: 'Поздравляем, вы получили' });
+Object.assign(es, { promoCongratulations: 'Enhorabuena, has recibido' });
+Object.assign(fr, { promoCongratulations: 'Félicitations, vous avez reçu' });
+Object.assign(de, { promoCongratulations: 'Herzlichen Glückwunsch, Sie haben erhalten' });
+Object.assign(it, { promoCongratulations: 'Congratulazioni, hai ricevuto' });
 
 export const translations = { hy, en, ru, es, fr, de, it };

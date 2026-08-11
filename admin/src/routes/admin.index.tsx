@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   AlertCircle,
   Clock,
@@ -7,6 +8,7 @@ import {
   FileText,
   MessageSquare,
   ShoppingBag,
+  RotateCcw,
   TrendingUp,
   Users,
 } from "lucide-react";
@@ -25,6 +27,7 @@ import {
   YAxis,
 } from "recharts";
 import { Badge } from "@/components/ui/badge";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,7 +35,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatCard } from "@/components/admin/StatCard";
 import { StatusBadge } from "@/components/admin/StatusBadge";
-import { currency } from "@/lib/api";
+import { adminApi, currency } from "@/lib/api";
+import { resolveAdminTemplateCover } from "@/lib/template-images";
 import { formatAdminCategory, formatAdminMonth, useAdminI18n } from "@/lib/i18n";
 import { useDashboard } from "@/hooks/useAdminData";
 
@@ -45,7 +49,8 @@ const CHART_COLORS = ["#C99A3D", "#8B6F3D", "#D4B26A", "#A67C3D", "#E5C88A"];
 function Dashboard() {
   const { lang, t } = useAdminI18n();
   const [period, setPeriod] = useState("all");
-  const { data: dashboard, isLoading, error } = useDashboard(period);
+  const [resettingRevenue, setResettingRevenue] = useState(false);
+  const { data: dashboard, isLoading, error, refetch } = useDashboard(period);
   const stats = dashboard?.stats ?? {};
   const revenueByMonth = (dashboard?.revenueByMonth ?? []).map((item: any) => ({ ...item, month: formatAdminMonth(item.monthIndex, lang) }));
   const categoryDistribution = (dashboard?.categoryDistribution ?? []).map((item: any) => ({ ...item, name: formatAdminCategory(item.name, lang) }));
@@ -242,7 +247,7 @@ function Dashboard() {
             {topTemplates.map((template: any, index: number) => (
               <li key={template.id} className="flex items-center gap-3">
                 <div className="h-12 w-12 shrink-0 rounded-xl bg-secondary overflow-hidden">
-                  {template.cover ? <img src={template.cover} alt={template.name} className="h-full w-full object-cover" /> : null}
+                  {resolveAdminTemplateCover(template.cover, template.designKey) ? <img src={resolveAdminTemplateCover(template.cover, template.designKey)} alt={template.name} className="h-full w-full object-cover" /> : null}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{template.name}</div>
@@ -254,6 +259,45 @@ function Dashboard() {
           </ul>
         </Card>
       </div>
+
+      <Card className="flex flex-col gap-4 rounded-2xl border-destructive/30 bg-destructive/5 p-5 shadow-[var(--shadow-soft)] sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 className="font-medium text-destructive">{t("resetRevenue")}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{t("resetRevenueHelp")}</p>
+        </div>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" className="shrink-0 rounded-full"><RotateCcw className="mr-2 h-4 w-4" />{t("resetRevenue")}</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t("resetRevenueQuestion")}</AlertDialogTitle>
+              <AlertDialogDescription>{t("resetRevenueWarning")}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={resettingRevenue}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={async () => {
+                  setResettingRevenue(true);
+                  try {
+                    await adminApi.resetRevenue();
+                    await refetch();
+                    toast.success(t("revenueResetDone"));
+                  } catch (resetError) {
+                    toast.error(resetError instanceof Error ? resetError.message : t("failed"));
+                  } finally {
+                    setResettingRevenue(false);
+                  }
+                }}
+              >
+                {resettingRevenue ? t("saving") : t("confirmReset")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </Card>
     </div>
   );
 }

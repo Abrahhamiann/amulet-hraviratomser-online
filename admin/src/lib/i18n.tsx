@@ -255,6 +255,12 @@ const dict = {
     galleryHelp: "Add, replace, remove images, or select the card cover.",
     imagePlaceholder: "Image URL or select a file",
     toggleSidebar: "Toggle sidebar",
+    resetRevenue: "Reset revenue",
+    resetRevenueHelp: "Starts sales and revenue analytics from zero without deleting orders or invitations.",
+    resetRevenueQuestion: "Do you want to reset revenue?",
+    resetRevenueWarning: "Revenue, sales totals, charts, and dashboard order counters will restart from zero. Database records will remain intact.",
+    confirmReset: "Yes, reset",
+    revenueResetDone: "Revenue analytics were reset.",
   },
   hy: {
     dashboard: "Վահանակ",
@@ -506,6 +512,12 @@ const dict = {
     galleryHelp: "Ավելացրեք, փոխարինեք, հեռացրեք նկարները կամ ընտրեք քարտի գլխավոր նկարը։",
     imagePlaceholder: "Նկարի հղում կամ ընտրեք ֆայլ",
     toggleSidebar: "Բացել կամ փակել կողային ցանկը",
+    resetRevenue: "Զրոյացնել եկամուտը",
+    resetRevenueHelp: "Վաճառքի և եկամտի հաշվարկը սկսում է զրոյից՝ առանց պատվերներն ու հրավերները ջնջելու։",
+    resetRevenueQuestion: "Արդյո՞ք ցանկանում եք զրոյացնել եկամուտը։",
+    resetRevenueWarning: "Եկամուտը, վաճառքի գումարները, գրաֆիկները և վահանակի պատվերների հաշվիչը կսկսվեն զրոյից։ Բազայի գրառումները չեն ջնջվի։",
+    confirmReset: "Այո, զրոյացնել",
+    revenueResetDone: "Եկամտի հաշվարկը զրոյացվեց։",
   },
   ru: {
     dashboard: "Панель",
@@ -757,6 +769,12 @@ const dict = {
     galleryHelp: "Добавляйте, заменяйте, удаляйте изображения или выбирайте обложку карточки.",
     imagePlaceholder: "Ссылка на изображение или выберите файл",
     toggleSidebar: "Открыть или закрыть боковое меню",
+    resetRevenue: "Обнулить доход",
+    resetRevenueHelp: "Начинает аналитику продаж и дохода с нуля, не удаляя заказы и приглашения.",
+    resetRevenueQuestion: "Вы хотите обнулить доход?",
+    resetRevenueWarning: "Доход, суммы продаж, графики и счетчик заказов на панели начнутся с нуля. Записи базы данных сохранятся.",
+    confirmReset: "Да, обнулить",
+    revenueResetDone: "Аналитика дохода обнулена.",
   },
 } as const;
 

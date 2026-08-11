@@ -19,9 +19,7 @@ import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
 import { Route as AdminPromocodesRouteImport } from './routes/admin.promocodes'
 import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
-import { Route as AdminNotificationsRouteImport } from './routes/admin.notifications'
 import { Route as AdminMessagesRouteImport } from './routes/admin.messages'
-import { Route as AdminInvitationsRouteImport } from './routes/admin.invitations'
 import { Route as AdminFaqRouteImport } from './routes/admin.faq'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
 import { Route as AdminAdministratorsRouteImport } from './routes/admin.administrators'
@@ -76,19 +74,9 @@ const AdminOrdersRoute = AdminOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminNotificationsRoute = AdminNotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminMessagesRoute = AdminMessagesRouteImport.update({
   id: '/messages',
   path: '/messages',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminInvitationsRoute = AdminInvitationsRouteImport.update({
-  id: '/invitations',
-  path: '/invitations',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminFaqRoute = AdminFaqRouteImport.update({
@@ -115,9 +103,7 @@ export interface FileRoutesByFullPath {
   '/admin/administrators': typeof AdminAdministratorsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/faq': typeof AdminFaqRoute
-  '/admin/invitations': typeof AdminInvitationsRoute
   '/admin/messages': typeof AdminMessagesRoute
-  '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/promocodes': typeof AdminPromocodesRoute
@@ -132,9 +118,7 @@ export interface FileRoutesByTo {
   '/admin/administrators': typeof AdminAdministratorsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/faq': typeof AdminFaqRoute
-  '/admin/invitations': typeof AdminInvitationsRoute
   '/admin/messages': typeof AdminMessagesRoute
-  '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/promocodes': typeof AdminPromocodesRoute
@@ -151,9 +135,7 @@ export interface FileRoutesById {
   '/admin/administrators': typeof AdminAdministratorsRoute
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/faq': typeof AdminFaqRoute
-  '/admin/invitations': typeof AdminInvitationsRoute
   '/admin/messages': typeof AdminMessagesRoute
-  '/admin/notifications': typeof AdminNotificationsRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/promocodes': typeof AdminPromocodesRoute
@@ -171,9 +153,7 @@ export interface FileRouteTypes {
     | '/admin/administrators'
     | '/admin/customers'
     | '/admin/faq'
-    | '/admin/invitations'
     | '/admin/messages'
-    | '/admin/notifications'
     | '/admin/orders'
     | '/admin/payments'
     | '/admin/promocodes'
@@ -188,9 +168,7 @@ export interface FileRouteTypes {
     | '/admin/administrators'
     | '/admin/customers'
     | '/admin/faq'
-    | '/admin/invitations'
     | '/admin/messages'
-    | '/admin/notifications'
     | '/admin/orders'
     | '/admin/payments'
     | '/admin/promocodes'
@@ -206,9 +184,7 @@ export interface FileRouteTypes {
     | '/admin/administrators'
     | '/admin/customers'
     | '/admin/faq'
-    | '/admin/invitations'
     | '/admin/messages'
-    | '/admin/notifications'
     | '/admin/orders'
     | '/admin/payments'
     | '/admin/promocodes'
@@ -296,25 +272,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOrdersRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/notifications': {
-      id: '/admin/notifications'
-      path: '/notifications'
-      fullPath: '/admin/notifications'
-      preLoaderRoute: typeof AdminNotificationsRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/messages': {
       id: '/admin/messages'
       path: '/messages'
       fullPath: '/admin/messages'
       preLoaderRoute: typeof AdminMessagesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/invitations': {
-      id: '/admin/invitations'
-      path: '/invitations'
-      fullPath: '/admin/invitations'
-      preLoaderRoute: typeof AdminInvitationsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/faq': {
@@ -345,9 +307,7 @@ interface AdminRouteChildren {
   AdminAdministratorsRoute: typeof AdminAdministratorsRoute
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminFaqRoute: typeof AdminFaqRoute
-  AdminInvitationsRoute: typeof AdminInvitationsRoute
   AdminMessagesRoute: typeof AdminMessagesRoute
-  AdminNotificationsRoute: typeof AdminNotificationsRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
   AdminPromocodesRoute: typeof AdminPromocodesRoute
@@ -360,9 +320,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminAdministratorsRoute: AdminAdministratorsRoute,
   AdminCustomersRoute: AdminCustomersRoute,
   AdminFaqRoute: AdminFaqRoute,
-  AdminInvitationsRoute: AdminInvitationsRoute,
   AdminMessagesRoute: AdminMessagesRoute,
-  AdminNotificationsRoute: AdminNotificationsRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
   AdminPromocodesRoute: AdminPromocodesRoute,

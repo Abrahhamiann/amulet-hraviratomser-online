@@ -1,13 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
-  FileText,
   LayoutTemplate,
   ShoppingBag,
   Users,
   CreditCard,
   MessageSquare,
-  Bell,
   ShieldCheck,
   LogOut,
   MessageCircleQuestion,
@@ -33,7 +31,6 @@ import { useAdminI18n } from "@/lib/i18n";
 
 const mainNav = [
   { title: "dashboard", url: "/admin", icon: LayoutDashboard, exact: true },
-  { title: "invitations", url: "/admin/invitations", icon: FileText },
   { title: "templates", url: "/admin/templates", icon: LayoutTemplate },
   { title: "orders", url: "/admin/orders", icon: ShoppingBag },
   { title: "customers", url: "/admin/customers", icon: Users },
@@ -45,7 +42,6 @@ const mainNav = [
 
 const configNav = [
   { title: "FAQ", url: "/admin/faq", icon: MessageCircleQuestion },
-  { title: "notifications", url: "/admin/notifications", icon: Bell },
   { title: "administrators", url: "/admin/administrators", icon: ShieldCheck },
 ];
 

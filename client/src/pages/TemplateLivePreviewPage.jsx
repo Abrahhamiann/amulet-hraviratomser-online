@@ -1,10 +1,10 @@
 import React from 'react';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import {
   CalendarDays,
   ClipboardList,
   Clock,
   Home,
-  Gift,
   MapPin,
   Megaphone,
   MessageSquare,
@@ -23,10 +23,13 @@ import InvitationEditor, { clearPreviewDecorations, decoratePreview, updateDraft
 import { cloneEditorDraft } from '../components/invitationEditor/editorData.js';
 import { prepareImage } from '../components/invitationEditor/mediaUtils.js';
 import Loading from '../components/Loading.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import giftPremiumAnimation from '../assets/animations/gift-premium.lottie?url';
 import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
 import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
 import { startStripeCheckout } from '../utils/checkout.js';
+import { promoStorageKey, readRememberedPromo } from '../utils/promoStorage.js';
 
 const previewDate = new Date();
 previewDate.setMonth(previewDate.getMonth() + 1);
@@ -36,7 +39,6 @@ const toDateInputValue = (date) => date.toISOString().slice(0, 10);
 const uniqueImages = (images) => [...new Set(images.filter(Boolean))];
 const isEnvelopeImage = (image) => /baptism-envelope(?:[.-])/.test(String(image || ''));
 const withoutEnvelopeImages = (images = []) => images.filter((image) => !isEnvelopeImage(resolveTemplateImage(image)));
-
 const defaultColors = {
   accent: '#d8b98e',
   text: '#ffffff',
@@ -98,7 +100,7 @@ const createInitialDraft = (template) => {
     eventLocation: 'Yerevan, Armenia',
     mapLink: '',
     mapLinks: [],
-    eventMessage: template.description,
+    eventMessage: '',
     image: gallery[0] || '',
     gallery,
     colors: defaultColors,
@@ -195,7 +197,10 @@ export default function TemplateLivePreviewPage() {
   const navigate = useNavigate();
   const { id, previewToken } = useParams();
   const [searchParams] = useSearchParams();
+  const isStandalonePreview = Boolean(previewToken && searchParams.get('standalone') === '1');
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const [template, setTemplate] = useState(null);
   const [draft, setDraft] = useState(null);
   const [isEdited, setIsEdited] = useState(false);
@@ -209,11 +214,13 @@ export default function TemplateLivePreviewPage() {
   const [promoError, setPromoError] = useState('');
   const [promoResult, setPromoResult] = useState(null);
   const [promoChecking, setPromoChecking] = useState(false);
+  const [privatePreviewPath, setPrivatePreviewPath] = useState(previewToken ? `/preview/${previewToken}?standalone=1` : '');
   const autoEditorOpenedRef = useRef(false);
   const autoBuyOpenedRef = useRef(false);
   const livePreviewRootRef = useRef(null);
   const directImageInputRef = useRef(null);
   const directImageFieldRef = useRef('');
+  const autosaveTokenRef = useRef(previewToken || '');
 
   useEffect(() => {
     const request = previewToken ? api.get(`/previews/${previewToken}`) : api.get(`/templates/${id}`);
@@ -224,7 +231,15 @@ export default function TemplateLivePreviewPage() {
           return;
         }
         const nextTemplate = previewToken ? data.template : data;
-        const initialDraft = previewToken ? data.draft : createInitialDraft(nextTemplate);
+        let initialDraft = previewToken ? data.draft : createInitialDraft(nextTemplate);
+        if (!previewToken) {
+          try {
+            const locallySavedDraft = localStorage.getItem(`amulet_autosave_${nextTemplate._id}`);
+            if (locallySavedDraft) initialDraft = JSON.parse(locallySavedDraft);
+          } catch {
+            localStorage.removeItem(`amulet_autosave_${nextTemplate._id}`);
+          }
+        }
         setTemplate(nextTemplate);
         setDraft(initialDraft);
         setIsEdited(Boolean(previewToken));
@@ -247,14 +262,13 @@ export default function TemplateLivePreviewPage() {
     if (!autoBuyOpenedRef.current && state === 'ready' && draft && searchParams.get('buy') === '1') {
       autoBuyOpenedRef.current = true;
       setIsEdited(true);
-      setPromoError('');
-      setPromoOpen(true);
+      void openPromoOrResumeCheckout();
     }
   }, [state, draft, searchParams]);
 
   useEffect(() => {
     const root = livePreviewRootRef.current;
-    if (!root || state !== 'ready' || !draft || editing) return undefined;
+    if (!root || state !== 'ready' || !draft || editing || isStandalonePreview) return undefined;
 
     const eventRoots = new Set();
     const activateEditorTarget = (event) => {
@@ -328,7 +342,7 @@ export default function TemplateLivePreviewPage() {
       });
       clearPreviewDecorations(root, { removeStyles: true });
     };
-  }, [draft, editing, state]);
+  }, [draft, editing, isStandalonePreview, state]);
 
   const cleanDraft = (sourceDraft = draft) => {
     const cleanGallery = uniqueImages([sourceDraft.image, ...(sourceDraft.gallery || [])])
@@ -343,22 +357,35 @@ export default function TemplateLivePreviewPage() {
     };
   };
 
-  const saveDraft = async (event, sourceDraft = draft) => {
+  const saveDraft = async (event, sourceDraft = draft, options = {}) => {
     event?.preventDefault?.();
-    setCheckoutState('loading');
+    const autosave = options.autosave === true;
+    if (!autosave) setCheckoutState('loading');
     const nextDraft = cleanDraft(sourceDraft);
+    localStorage.setItem(`amulet_autosave_${template._id}`, JSON.stringify(nextDraft));
     try {
-      const { data } = await api.post('/previews', { templateId: template._id, draft: nextDraft });
+      const { data } = await api.post('/previews', {
+        templateId: template._id,
+        draft: nextDraft,
+        previewToken: autosaveTokenRef.current || undefined
+      });
+      autosaveTokenRef.current = data.token;
+      setPrivatePreviewPath(`${data.path}?standalone=1`);
       setDraft(nextDraft);
       setIsEdited(true);
-      setEditing(false);
       setCheckoutState('idle');
-      navigate(data.path, { replace: true });
+      if (!autosave) navigate(data.path, { replace: true });
       return true;
     } catch (error) {
       if (error.response?.status === 401) {
         localStorage.setItem('amulet_pending_template', template._id);
         localStorage.setItem('amulet_pending_draft', JSON.stringify(nextDraft));
+        if (autosave) {
+          setDraft(nextDraft);
+          setIsEdited(true);
+          setCheckoutState('idle');
+          return true;
+        }
         localStorage.setItem('amulet_pending_action', 'preview');
         window.location.replace('/login');
         return false;
@@ -368,18 +395,38 @@ export default function TemplateLivePreviewPage() {
     }
   };
 
+  const openPrivatePreview = async (sourceDraft = draft) => {
+    const nextDraft = cleanDraft(sourceDraft);
+    try {
+      const { data } = await api.post('/previews', {
+        templateId: template._id,
+        draft: nextDraft,
+        previewToken: autosaveTokenRef.current || undefined
+      });
+      autosaveTokenRef.current = data.token;
+      setPrivatePreviewPath(`${data.path}?standalone=1`);
+      localStorage.setItem(`amulet_autosave_${template._id}`, JSON.stringify(nextDraft));
+      setDraft(nextDraft);
+      setIsEdited(true);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const buyFromEditor = async (sourceDraft = draft) => {
     setCheckoutState('loading');
     const nextDraft = cleanDraft(sourceDraft);
     try {
-      const { data } = await api.post('/previews', { templateId: template._id, draft: nextDraft });
+      const { data } = await api.post('/previews', { templateId: template._id, draft: nextDraft, previewToken: autosaveTokenRef.current || undefined });
+      autosaveTokenRef.current = data.token;
       setDraft(nextDraft);
       setIsEdited(true);
       setEditing(false);
       setCheckoutState('idle');
       setPromoError('');
       setPromoResult(null);
-      setPromoOpen(true);
+      void openPromoOrResumeCheckout();
       navigate(data.path, { replace: true });
       return true;
     } catch (error) {
@@ -403,13 +450,12 @@ export default function TemplateLivePreviewPage() {
     setEditing(true);
   };
 
-  const orderTemplate = () => {
+  const orderTemplate = async () => {
     if (!isEdited) {
       setEditRequiredOpen(true);
       return;
     }
-    setPromoOpen(true);
-    setPromoError('');
+    await openPromoOrResumeCheckout();
   };
 
   const performCheckout = async (appliedPromoCode = '') => {
@@ -417,10 +463,11 @@ export default function TemplateLivePreviewPage() {
     setCheckoutState('loading');
     const nextDraft = cleanDraft();
     try {
-      let checkoutPreviewToken = previewToken;
+      let checkoutPreviewToken = autosaveTokenRef.current || previewToken;
       if (!checkoutPreviewToken) {
         const { data } = await api.post('/previews', { templateId: template._id, draft: nextDraft });
         checkoutPreviewToken = data.token;
+        autosaveTokenRef.current = data.token;
       }
       await startStripeCheckout(template._id, nextDraft, {
         previewToken: checkoutPreviewToken,
@@ -435,6 +482,32 @@ export default function TemplateLivePreviewPage() {
     }
   };
 
+  const openPromoOrResumeCheckout = async () => {
+    const storageKey = promoStorageKey(user, template?._id);
+    const remembered = readRememberedPromo(storageKey);
+    if (remembered?.code) {
+      setPromoChecking(true);
+      setPromoError('');
+      try {
+        const { data } = await api.post('/promocodes/validate', { code: remembered.code, templateId: template._id });
+        const confirmed = { ...data, code: data.code || remembered.code };
+        localStorage.setItem(storageKey, JSON.stringify(confirmed));
+        setPromoCode(confirmed.code);
+        setPromoResult(confirmed);
+        await performCheckout(confirmed.code);
+        return;
+      } catch {
+        localStorage.removeItem(storageKey);
+      } finally {
+        setPromoChecking(false);
+      }
+    }
+    setPromoCode('');
+    setPromoResult(null);
+    setPromoError('');
+    setPromoOpen(true);
+  };
+
   const validatePromo = async (event) => {
     event.preventDefault();
     if (!promoCode.trim()) return;
@@ -443,7 +516,10 @@ export default function TemplateLivePreviewPage() {
     setPromoResult(null);
     try {
       const { data } = await api.post('/promocodes/validate', { code: promoCode, templateId: template._id });
-      setPromoResult(data);
+      const confirmed = { ...data, code: data.code || promoCode.trim() };
+      setPromoResult(confirmed);
+      const storageKey = promoStorageKey(user, template._id);
+      if (storageKey) localStorage.setItem(storageKey, JSON.stringify(confirmed));
     } catch (error) {
       if (error.response?.status === 401) {
         localStorage.setItem('amulet_pending_template', template._id);
@@ -488,15 +564,16 @@ export default function TemplateLivePreviewPage() {
   return (
     <main
       ref={livePreviewRootRef}
-      className={`${LivePreview ? 'template-live-page test-wedding-page' : 'template-live-page'}${editing ? ' is-editing' : ''}`}
+      className={`${LivePreview ? 'template-live-page test-wedding-page' : 'template-live-page'}${editing ? ' is-editing' : ''}${isStandalonePreview ? ' is-standalone-preview' : ''}`}
     >
-      <input ref={directImageInputRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => { void replaceDirectImage(event.target.files?.[0]); event.target.value = ''; }} />
+      {!isStandalonePreview && <input ref={directImageInputRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => { void replaceDirectImage(event.target.files?.[0]); event.target.value = ''; }} />}
       {LivePreview ? (
         <>
           <LivePreview
             draft={draft}
             price={template.price}
             loading={checkoutState === 'loading'}
+            mode={isStandalonePreview ? 'studio' : undefined}
             onHome={() => navigate('/')}
             onEdit={openEditor}
             onOrder={orderTemplate}
@@ -511,7 +588,7 @@ export default function TemplateLivePreviewPage() {
           <div className="template-live-copy">
             <span><Sparkles size={16} /> {t(template.category)}</span>
             <h1>{draft?.mainNames ?? template.title}</h1>
-            <p>{draft?.eventMessage || template.description}</p>
+            {draft?.eventMessage && <p>{draft.eventMessage}</p>}
           </div>
         </section>
 
@@ -557,7 +634,7 @@ export default function TemplateLivePreviewPage() {
           )}
         </section>
 
-        <section className="template-live-footer">
+        {!isStandalonePreview && <section className="template-live-footer">
           <div>
             <span>{t('invitationPrice')}</span>
             <strong>{Number(template.price).toLocaleString()} AMD</strong>
@@ -575,12 +652,12 @@ export default function TemplateLivePreviewPage() {
               {checkoutState === 'loading' ? t('loading') : t('orderThis')}
             </button>
           </div>
-        </section>
+        </section>}
         {checkoutState === 'error' && <p className="template-live-error">{t('checkoutError')}</p>}
       </article>
       )}
 
-      {editRequiredOpen && (
+      {!isStandalonePreview && editRequiredOpen && (
         <EditRequiredModal
           t={t}
           onClose={() => setEditRequiredOpen(false)}
@@ -588,25 +665,25 @@ export default function TemplateLivePreviewPage() {
         />
       )}
 
-      {promoOpen && (
+      {!isStandalonePreview && promoOpen && (
         <div className="promo-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="promo-modal-title">
           <section className="promo-modal">
             <button className="promo-modal-close" type="button" onClick={() => setPromoOpen(false)} aria-label={t('close')}><X size={20} /></button>
-            <div className="promo-modal-icon"><Gift size={28} /></div>
+            <div className="promo-modal-animation" aria-hidden="true">
+              <DotLottieReact src={giftPremiumAnimation} autoplay={!prefersReducedMotion} loop={!prefersReducedMotion} />
+            </div>
             <span className="promo-modal-kicker">{t('promoQuestionKicker')}</span>
-            <h2 id="promo-modal-title">{t('promoQuestion')}</h2>
-            <p>{t('promoQuestionText')}</p>
+            <h2 id="promo-modal-title">{promoResult ? t('promoCongratulations') : t('promoQuestion')}</h2>
+            {!promoResult && <p>{t('promoQuestionText')}</p>}
             {!promoResult ? (
               <form onSubmit={validatePromo} className="promo-modal-form">
                 <label htmlFor="checkout-promo">{t('promoCodeLabel')}</label>
-                <div><input id="checkout-promo" value={promoCode} onChange={(event) => setPromoCode(event.target.value.toUpperCase())} placeholder="AMULET20" maxLength={32} /><button type="submit" disabled={promoChecking || !promoCode.trim()}>{promoChecking ? t('loading') : t('promoApply')}</button></div>
+                <div><input id="checkout-promo" value={promoCode} onChange={(event) => setPromoCode(event.target.value.toUpperCase())} autoComplete="off" maxLength={32} /><button type="submit" disabled={promoChecking || !promoCode.trim()}>{promoChecking ? t('loading') : t('promoApply')}</button></div>
                 {promoError && <span className="promo-modal-error" role="alert">{promoError}</span>}
                 <button className="promo-skip-button" type="button" onClick={() => performCheckout('')}>{t('promoNoCode')}</button>
               </form>
             ) : (
               <div className="promo-gift-reveal" aria-live="polite">
-                <span><Gift size={24} /></span>
-                <strong>{promoResult.giftLabel || promoResult.description || t('promoGiftUnlocked')}</strong>
                 <p>{Number(promoResult.discountAmount).toLocaleString()} AMD {t('promoDiscountApplied')}</p>
                 <div><del>{Number(promoResult.originalAmount).toLocaleString()} AMD</del><b>{Number(promoResult.finalAmount).toLocaleString()} AMD</b></div>
                 <button type="button" onClick={() => performCheckout(promoResult.code)}>{t('promoContinue')}</button>
@@ -616,7 +693,7 @@ export default function TemplateLivePreviewPage() {
         </div>
       )}
 
-      {editing && draft && LivePreview && (
+      {!isStandalonePreview && editing && draft && LivePreview && (
         <InvitationEditor
           key={template._id}
           draft={draft}
@@ -626,7 +703,9 @@ export default function TemplateLivePreviewPage() {
           isSingleImageTemplate={isSingleImageTemplate}
           saving={checkoutState === 'loading'}
           onClose={() => setEditing(false)}
-          onSave={(nextDraft) => saveDraft(null, nextDraft)}
+          onSave={(nextDraft, options) => saveDraft(null, nextDraft, options)}
+          onPreview={openPrivatePreview}
+          previewPath={privatePreviewPath}
           onBuy={buyFromEditor}
           onDraftChange={setDraft}
           onSelectTemplate={(templateId) => navigate(`/templates/${templateId}/live?edit=1`)}

@@ -18,8 +18,8 @@
 
 .original-template-public-extras {
   display: grid;
-  gap: 24px;
-  padding: clamp(36px, 7vw, 72px) max(18px, calc((100vw - 760px) / 2));
+  gap: 0;
+  padding: 16px max(18px, calc((100vw - 760px) / 2));
   background: #fbf7ef;
 }
 
@@ -37,6 +37,15 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.original-template-public-actions .btn {
+  width: min(100%, 360px);
 }
 
 .original-template-card-preview {

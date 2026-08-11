@@ -1,12 +1,14 @@
-import React, { useId, useState } from 'react';
-import { ChevronDown, Settings2, X } from 'lucide-react';
+import React, { useId } from 'react';
+import { ChevronDown } from 'lucide-react';
+import { useEditor } from './EditorContext.jsx';
 
 export function PanelHeader({ title, subtitle, children }) {
   return <header className="invite-editor-panel-header"><div><h2>{title}</h2>{subtitle && <p>{subtitle}</p>}</div>{children}</header>;
 }
 
 export function Field({ label, hint, action, editorField, children }) {
-  return <label className="invite-editor-field" data-editor-field={editorField || undefined}><span><b>{label}</b>{hint && <small>{hint}</small>}</span><div>{children}{action}</div></label>;
+  const { activeField } = useEditor();
+  return <label className={`invite-editor-field${editorField && activeField === editorField ? ' is-editor-active' : ''}`} data-editor-field={editorField || undefined}><span><b>{label}</b>{hint && <small>{hint}</small>}</span><div>{children}{action}</div></label>;
 }
 
 export function Toggle({ checked, onChange, label }) {
@@ -29,33 +31,6 @@ export function CollapsibleSection({ id, title, icon: Icon, open, onToggle, enab
       </header>
       {open && <div id={`invite-editor-${id}`} className="invite-editor-section-body">{children}</div>}
     </section>
-  );
-}
-
-export function TypographyEditor({ value, onChange }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="invite-editor-typography">
-      <button type="button" onClick={() => setOpen((current) => !current)} aria-expanded={open} aria-label="Տեքստի ոճ"><Settings2 size={15} /></button>
-      {open && (
-        <div className="invite-editor-popover" role="dialog" aria-label="Տեքստի ոճ">
-          <header><strong>Տեքստի ոճ</strong><button type="button" onClick={() => setOpen(false)} aria-label="Փակել"><X size={15} /></button></header>
-          <Field label="Տառատեսակ"><select value={value.fontFamily || 'inherit'} onChange={(event) => onChange({ fontFamily: event.target.value })}><option value="inherit">Կայքի հիմնական</option><option value="Arial Armenian, Arial, sans-serif">Հայերեն դասական</option><option value="Georgia, Times New Roman, serif">Նրբագեղ Serif</option><option value="SHK Dzeragir, cursive">Ձեռագիր</option></select></Field>
-          <div className="invite-editor-grid-two">
-            <Field label="Չափ"><input type="number" min="0" max="120" value={value.fontSize || 0} onChange={(event) => onChange({ fontSize: Number(event.target.value) })} /></Field>
-            <Field label="Հաստություն"><select value={value.fontWeight || 400} onChange={(event) => onChange({ fontWeight: Number(event.target.value) })}>{[300, 400, 500, 600, 700].map((weight) => <option key={weight}>{weight}</option>)}</select></Field>
-            <Field label="Տողերի բարձրություն"><input type="number" min=".7" max="2" step=".05" value={value.lineHeight || 1.05} onChange={(event) => onChange({ lineHeight: Number(event.target.value) })} /></Field>
-            <Field label="Տառամիջոց"><input type="number" min="-4" max="16" step=".5" value={value.letterSpacing || 0} onChange={(event) => onChange({ letterSpacing: Number(event.target.value) })} /></Field>
-          </div>
-          <Field label="Գույն"><div className="invite-editor-color-line"><input type="color" value={value.color || '#ffffff'} onChange={(event) => onChange({ color: event.target.value })} /><input value={value.color || ''} placeholder="Template default" onChange={(event) => onChange({ color: event.target.value })} /></div></Field>
-          <div className="invite-editor-text-options">
-            {['left', 'center', 'right'].map((align) => <button key={align} type="button" className={value.align === align ? 'is-active' : ''} onClick={() => onChange({ align })}>{align === 'left' ? 'Ձախ' : align === 'right' ? 'Աջ' : 'Կենտրոն'}</button>)}
-            <button type="button" className={value.italic ? 'is-active' : ''} onClick={() => onChange({ italic: !value.italic })}>Շեղ</button>
-            <button type="button" className={value.uppercase ? 'is-active' : ''} onClick={() => onChange({ uppercase: !value.uppercase })}>ՄԵԾԱՏԱՌ</button>
-          </div>
-        </div>
-      )}
-    </div>
   );
 }
 

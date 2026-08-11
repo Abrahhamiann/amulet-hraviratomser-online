@@ -1,27 +1,19 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Check, FileAudio, Image as ImageIcon, ImagePlus, Music2, Pause, Play, Search, Trash2, Upload } from 'lucide-react';
+import { Check, FileAudio, ImagePlus, Music2, Pause, Play, Search, Trash2 } from 'lucide-react';
 import { resolveTemplateImage } from '../../occasionTemplates/templateAssets.js';
 import { useEditor } from './EditorContext.jsx';
 import { EmptyState, Field, PanelHeader, Toggle } from './EditorControls.jsx';
-import { builtInTracks, MAX_AUDIO_BYTES, MAX_CUSTOM_TRACKS, MAX_GALLERY_IMAGES, normalizeInvitationGallery } from './editorData.js';
+import { builtInTracks, MAX_AUDIO_BYTES, MAX_CUSTOM_TRACKS } from './editorData.js';
 import { ACCEPTED_AUDIO_TYPES, prepareImage, readFileAsDataUrl } from './mediaUtils.js';
 
-export default function MediaPanel({ isSingleImageTemplate }) {
-  const { activeField, data, editableContent, focusEditorTarget, update } = useEditor();
+export default function MediaPanel() {
+  const { data, editableContent, focusEditorTarget, update } = useEditor();
   const [query, setQuery] = useState('');
   const [customTracks, setCustomTracks] = useState(() => data.musicUrl?.startsWith('data:audio/') ? [{ id: 'saved-custom', title: data.musicTitle || 'Իմ երգը', meta: 'Վերբեռնված երգ', src: data.musicUrl }] : []);
   const [playing, setPlaying] = useState('');
   const [error, setError] = useState('');
-  const [imageProgress, setImageProgress] = useState(null);
   const audioRef = useRef(null);
-  const heroInput = useRef(null);
-  const galleryInput = useRef(null);
   const audioInput = useRef(null);
-  const gallery = data.gallery || [];
-  const orderedGallery = useMemo(
-    () => normalizeInvitationGallery(data.image, gallery),
-    [data.image, gallery]
-  );
   const visibleTracks = useMemo(() => [...builtInTracks, ...customTracks].filter((track) => `${track.title} ${track.artist || ''}`.toLowerCase().includes(query.trim().toLowerCase())), [customTracks, query]);
 
 
@@ -38,35 +30,6 @@ export default function MediaPanel({ isSingleImageTemplate }) {
     audio.src = track.src;
     audio.currentTime = Math.max(0, Number(data.musicStart) || 0);
     audio.play().then(() => setPlaying(track.id)).catch(() => setError('Երգը չհաջողվեց նվագարկել։'));
-  };
-
-  const addImages = async (files, heroOnly = false) => {
-    setError('');
-    const source = Array.from(files || []);
-    if (!source.length) return;
-    const room = heroOnly || isSingleImageTemplate ? 1 : MAX_GALLERY_IMAGES - orderedGallery.length;
-    if (room <= 0) { setError(`Կարելի է ավելացնել առավելագույնը ${MAX_GALLERY_IMAGES} նկար։`); return; }
-    try {
-      const list = source.slice(0, room);
-      const images = [];
-      for (let index = 0; index < list.length; index += 1) {
-        images.push(await prepareImage(list[index]));
-        setImageProgress(Math.round(((index + 1) / list.length) * 100));
-      }
-      update((draft) => {
-        if (heroOnly || isSingleImageTemplate) {
-          draft.image = images[0];
-          draft.gallery = isSingleImageTemplate ? [images[0]] : normalizeInvitationGallery(images[0], draft.gallery);
-        } else {
-          draft.gallery = normalizeInvitationGallery(draft.image, [...draft.gallery, ...images]);
-          if (!draft.image) draft.image = images[0];
-        }
-      });
-    } catch (uploadError) {
-      setError(uploadError.message || 'Նկարները չհաջողվեց վերբեռնել։');
-    } finally {
-      setImageProgress(null);
-    }
   };
 
   const uploadTrack = async (files) => {
@@ -98,36 +61,18 @@ export default function MediaPanel({ isSingleImageTemplate }) {
     }
   };
 
+  const focusMediaField = (event) => {
+    const field = event.target.closest('[data-editor-field]')?.dataset.editorField;
+    if (field) focusEditorTarget({ section: 'media', field, targetTab: 'media', scrollPreview: true });
+  };
+
   return (
-    <div className="invite-editor-panel" onFocusCapture={(event) => {
-      const field = event.target.closest('[data-editor-field]')?.dataset.editorField;
-      if (field && field !== activeField) focusEditorTarget({ section: 'media', field, targetTab: 'media', scrollPreview: true });
-    }}>
+    <div className="invite-editor-panel" onFocusCapture={focusMediaField} onPointerDownCapture={focusMediaField}>
       <audio ref={audioRef} onEnded={() => setPlaying('')} />
       <PanelHeader title="Մեդիա և երաժշտություն" subtitle="Վերբեռնեք լուսանկարներ և ընտրեք ֆոնային երգ։" />
 
-      <section className="invite-editor-card">
-        <div className="invite-editor-card-title"><strong>Հիմնական նկար</strong><small>{orderedGallery.length}/{isSingleImageTemplate ? 1 : MAX_GALLERY_IMAGES}</small></div>
-        <button type="button" className="invite-editor-main-image" onClick={() => heroInput.current?.click()}>
-          {data.image ? <img src={resolveTemplateImage(data.image)} alt="Ընտրված գլխավոր նկար" /> : <ImageIcon size={30} />}
-          <span><Upload size={16} /> Փոխարինել նկարը</span>
-        </button>
-        <input ref={heroInput} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => { void addImages(event.target.files, true); event.target.value = ''; }} />
-      </section>
-
-      {!isSingleImageTemplate && <section className="invite-editor-card">
-        <div className="invite-editor-card-title"><strong>Նկարների հերթականություն</strong><small>{orderedGallery.length}/{MAX_GALLERY_IMAGES}</small></div>
-        <div className="invite-editor-gallery-grid">
-          {orderedGallery.map((image, index) => <article key={`${String(image).slice(0, 35)}-${index}`} data-editor-field={`gallery.${index}`} className={data.image === image ? 'is-selected' : ''}><button type="button" onClick={() => update((draft) => { draft.image = image; draft.gallery = normalizeInvitationGallery(image, draft.gallery); })}><img src={resolveTemplateImage(image)} alt={`Նկար ${index + 1}`} /><span>{index + 1}</span></button><button type="button" onClick={() => update((draft) => { const nextImages = normalizeInvitationGallery('', [draft.image, ...draft.gallery].filter((item) => item !== image)); draft.gallery = nextImages; if (draft.image === image) draft.image = nextImages[0] || ''; })} aria-label={`Ջնջել նկար ${index + 1}`}><Trash2 size={13} /></button></article>)}
-          {orderedGallery.length < MAX_GALLERY_IMAGES && <button type="button" className="invite-editor-gallery-add" onClick={() => galleryInput.current?.click()}><ImagePlus size={21} /><span>Ավելացնել</span></button>}
-        </div>
-        <input ref={galleryInput} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onChange={(event) => { void addImages(event.target.files); event.target.value = ''; }} />
-        {imageProgress !== null && <div className="invite-editor-progress"><i style={{ width: `${imageProgress}%` }} /></div>}
-        <small className="invite-editor-hint">JPG, PNG կամ WEBP · մինչև 5 MB · հնարավոր է միանգամից ընտրել մի քանի նկար</small>
-      </section>}
-
       {editableContent.images.length > 0 && <section className="invite-editor-card">
-        <div className="invite-editor-card-title"><strong>Շաբլոնի բոլոր նկարները</strong><small>{editableContent.images.length}</small></div>
+        <div className="invite-editor-card-title"><strong>Նկարների հերթականություն</strong><small>{editableContent.images.length}</small></div>
         <div className="invite-editor-template-image-list">
           {editableContent.images.map((item, index) => {
             const overrides = data.templateImageOverrides || {};

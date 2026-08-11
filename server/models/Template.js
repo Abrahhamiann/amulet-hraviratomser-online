@@ -10,6 +10,10 @@ const templateSchema = new mongoose.Schema(
       enum: ['wedding', 'baptism', 'birth', 'corporate', 'engagement'],
       required: true
     },
+    editorType: {
+      type: String,
+      enum: ['wedding', 'baptism', 'birth', 'corporate', 'engagement']
+    },
     price: { type: Number, required: true },
     description: { type: String, required: true },
     features: [{ type: String }],
