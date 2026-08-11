@@ -16,6 +16,16 @@ export default function MediaPanel() {
   const audioInput = useRef(null);
   const visibleTracks = useMemo(() => [...builtInTracks, ...customTracks].filter((track) => `${track.title} ${track.artist || ''}`.toLowerCase().includes(query.trim().toLowerCase())), [customTracks, query]);
 
+  const setMusicEnabled = (enabled) => {
+    if (!enabled) {
+      audioRef.current?.pause();
+      setPlaying('');
+    }
+    update((draft) => {
+      draft.musicEnabled = enabled;
+    });
+  };
+
 
   const selectTrack = (track) => update((draft) => {
     draft.musicEnabled = true;
@@ -99,7 +109,7 @@ export default function MediaPanel() {
       </section>}
 
       <section className="invite-editor-card">
-        <div className="invite-editor-card-title"><strong>Երաժշտություն</strong><Toggle checked={data.musicEnabled !== false} onChange={(value) => update((draft) => { draft.musicEnabled = value; })} label="Երաժշտություն" /></div>
+        <div className="invite-editor-card-title"><strong>Երաժշտություն</strong><Toggle checked={data.musicEnabled !== false} onChange={setMusicEnabled} label={`Երաժշտություն՝ ${data.musicEnabled !== false ? 'միացված' : 'անջատված'}`} /></div>
         <Field label="Որոնել երաժշտություն"><div className="invite-editor-search"><Search size={15} /><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Գրել երգի կամ կատարողի անունը..." /></div></Field>
         <div className="invite-editor-track-list">
           {visibleTracks.map((track) => {

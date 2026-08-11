@@ -61,6 +61,10 @@ export const useInvitationMusic = (draft, fallbackSource, volume = .68) => {
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return undefined;
+    if (!source) {
+      audio.pause();
+      setIsMusicPlaying(false);
+    }
     const segmentEnd = () => requestedEnd > start ? Math.min(requestedEnd, audio.duration || requestedEnd) : (audio.duration || 0);
     const resetToStart = () => {
       if (Number.isFinite(audio.duration) && start < audio.duration) audio.currentTime = start;

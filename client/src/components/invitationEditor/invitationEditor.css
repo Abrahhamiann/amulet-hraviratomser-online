@@ -164,10 +164,11 @@
 .invite-editor-section > header strong { overflow: hidden; font-size: .78rem; text-overflow: ellipsis; white-space: nowrap; }
 .invite-editor-section-body { display: grid; gap: 11px; padding: 2px 11px 13px; animation: inviteEditorReveal .18s ease both; }
 
-.invite-editor-toggle { width: 38px; height: 22px; position: relative; flex: 0 0 38px; padding: 0; border: 0; border-radius: 99px; background: #d7d4cf; }
-.invite-editor-toggle i { width: 18px; height: 18px; position: absolute; top: 2px; left: 2px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.22); transition: transform .18s ease; }
-.invite-editor-toggle.is-on { background: var(--editor-ink); }
+.invite-editor-toggle { width: 44px; min-width: 44px; height: 28px; min-height: 28px; position: relative; flex: 0 0 44px; overflow: hidden; padding: 0; border: 0; border-radius: 99px; background: #cbc7c1; box-shadow: inset 0 0 0 1px rgba(25,24,23,.08); cursor: pointer; touch-action: manipulation; transition: background-color .18s ease, box-shadow .18s ease; }
+.invite-editor-toggle i { width: 22px; height: 22px; position: absolute; top: 3px; left: 3px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.24); pointer-events: none; transition: transform .18s ease; }
+.invite-editor-toggle.is-on { background: var(--editor-ink); box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
 .invite-editor-toggle.is-on i { transform: translateX(16px); }
+.invite-editor-toggle:focus-visible { outline: 3px solid color-mix(in srgb, var(--editor-accent) 36%, transparent); outline-offset: 2px; }
 .invite-editor-toggle-row { min-height: 42px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 2px; font-size: .72rem; font-weight: 750; }
 
 .invite-editor-field { min-width: 0; display: grid; gap: 6px; }
@@ -218,7 +219,7 @@
 .invite-editor-list-heading strong,
 .invite-editor-card-title strong { font-size: .75rem; }
 .invite-editor-list-heading button,
-.invite-editor-card-title button { min-height: 34px; display: inline-flex; align-items: center; gap: 5px; padding: 0 9px; border: 1px solid var(--editor-line); border-radius: 8px; background: #fff; color: var(--editor-ink); font-size: .64rem; font-weight: 750; }
+.invite-editor-card-title button:not(.invite-editor-toggle) { min-height: 34px; display: inline-flex; align-items: center; gap: 5px; padding: 0 9px; border: 1px solid var(--editor-line); border-radius: 8px; background: #fff; color: var(--editor-ink); font-size: .64rem; font-weight: 750; }
 .invite-editor-card-title small,
 .invite-editor-upload-heading b { color: var(--editor-muted); font-size: .61rem; }
 .invite-editor-card { min-width: 0; display: grid; gap: 12px; padding: 12px; }
@@ -450,26 +451,6 @@
 }
 .invite-editor-preview-scroll .is-editor-active { outline: 2px solid #d07d4f !important; outline-offset: -2px; box-shadow: inset 0 0 0 9999px rgba(208,125,79,.035); }
 .invite-editor-preview-scroll .is-editor-section-active { box-shadow: inset 0 0 0 1px rgba(208,125,79,.18); }
-.invite-editor-preview-camera {
-  width: 38px;
-  height: 38px;
-  position: fixed;
-  z-index: 120;
-  top: 12px;
-  right: 12px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 1px solid rgba(255,255,255,.72);
-  border-radius: 50%;
-  background: rgba(25,24,23,.88);
-  color: #fff;
-  box-shadow: 0 6px 18px rgba(0,0,0,.28);
-  cursor: pointer;
-  touch-action: manipulation;
-}
-.invite-editor-preview-camera:hover { background: #191817; transform: translateY(-1px); }
-.invite-editor-preview-camera:focus-visible { outline: 3px solid #e2b27c; outline-offset: 2px; }
 .invite-editor-open-sheet { display: none; }
 
 .invite-editor-confirm { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 20px; background: rgba(20,18,16,.58); backdrop-filter: blur(8px); pointer-events: auto; }

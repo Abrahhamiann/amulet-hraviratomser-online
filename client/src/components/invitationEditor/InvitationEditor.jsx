@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, Camera, CheckCircle2, ChevronDown, Eye, Images, LayoutGrid, Monitor, PanelLeftClose, PanelLeftOpen, Pencil, Redo2, ShoppingBag, Smartphone, Sparkles, Tablet, Undo2, X } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, ChevronDown, Eye, Images, LayoutGrid, Monitor, PanelLeftClose, PanelLeftOpen, Pencil, Redo2, ShoppingBag, Smartphone, Sparkles, Tablet, Undo2, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import iphoneDeviceFrame from '../../assets/editor-devices/iphone-device-frame-clean.png';
 import ipadDeviceFrame from '../../assets/editor-devices/ipad-device-frame-clean.png';
@@ -9,9 +9,8 @@ import ContentPanel from './ContentPanel.jsx';
 import DesignPanel from './DesignPanel.jsx';
 import MediaPanel from './MediaPanel.jsx';
 import BuyPanel from './BuyPanel.jsx';
-import { normalizeInvitationGallery, splitNames } from './editorData.js';
+import { splitNames } from './editorData.js';
 import { resolveTemplateImage } from '../../occasionTemplates/templateAssets.js';
-import { prepareImage } from './mediaUtils.js';
 import './invitationEditor.css';
 
 const previewSectionSelectors = {
@@ -482,8 +481,6 @@ function PreviewWorkspace({ PreviewComponent }) {
     update
   } = useEditor();
   const previewRootRef = useRef(null);
-  const directImageInputRef = useRef(null);
-  const directImageFieldRef = useRef('');
   const handledPreviewFocusRequestRef = useRef(previewFocusRequest.id);
   const [previewReady, setPreviewReady] = useState(0);
 
@@ -556,21 +553,6 @@ function PreviewWorkspace({ PreviewComponent }) {
     });
   };
 
-  const replaceDirectImage = async (file) => {
-    if (!file) return;
-    const image = await prepareImage(file);
-    const prefix = 'templateImageOverrides.';
-    const field = directImageFieldRef.current;
-    update((draft) => {
-      if (field.startsWith(prefix)) {
-        draft.templateImageOverrides = { ...(draft.templateImageOverrides || {}), [field.slice(prefix.length)]: image };
-      } else {
-        draft.image = image;
-        draft.gallery = normalizeInvitationGallery(image, draft.gallery);
-      }
-    });
-  };
-
   const handlePreviewKeyDown = (event) => {
     if (!['Enter', ' '].includes(event.key)) return;
     handlePreviewClick(event);
@@ -601,16 +583,7 @@ function PreviewWorkspace({ PreviewComponent }) {
         <div className="invite-editor-device-screen">
           <PreviewViewport data={data} device={device} onReady={handlePreviewReady}>
             <div className="invite-editor-preview-scroll" data-preview-device={device}>
-              <input ref={directImageInputRef} data-direct-image-picker type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => { directImageFieldRef.current = event.currentTarget.dataset.targetField || ''; void replaceDirectImage(event.target.files?.[0]); event.target.value = ''; }} />
               <PreviewComponent draft={data} price={template.price} mode="studio" loading={actions.saving} onHome={() => {}} onEdit={() => {}} onOrder={() => actions.onBuy?.(data)} />
-              <button
-                type="button"
-                className="invite-editor-preview-camera"
-                aria-label="Փոխել հրավերի նկարը"
-                onClick={() => { directImageFieldRef.current = ''; directImageInputRef.current?.click(); focusEditorTarget({ section: 'media', targetTab: 'media', scrollPreview: false }); }}
-              >
-                <Camera size={16} />
-              </button>
             </div>
           </PreviewViewport>
         </div>
