@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, CheckCircle2, ChevronDown, Eye, Images, LayoutGrid, Monitor, PanelLeftClose, PanelLeftOpen, Pencil, Redo2, ShoppingBag, Smartphone, Sparkles, Tablet, Undo2, X } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, ChevronDown, Eye, Images, LayoutGrid, Monitor, PanelLeftClose, PanelLeftOpen, Pencil, Redo2, RotateCcw, ShoppingBag, Smartphone, Sparkles, Tablet, Undo2, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import iphoneDeviceFrame from '../../assets/editor-devices/iphone-device-frame-clean.png';
 import ipadDeviceFrame from '../../assets/editor-devices/ipad-device-frame-clean.png';
@@ -11,6 +11,7 @@ import MediaPanel from './MediaPanel.jsx';
 import BuyPanel from './BuyPanel.jsx';
 import { splitNames } from './editorData.js';
 import { resolveTemplateImage } from '../../occasionTemplates/templateAssets.js';
+import { useLanguage } from '../../context/LanguageContext.jsx';
 import './invitationEditor.css';
 
 const previewSectionSelectors = {
@@ -31,12 +32,30 @@ const previewSectionSelectors = {
   ],
   rsvp: ['.midnight-rsvp-section', '.engagement-rsvp-section', '.baptism-rsvp-section', '.sacred-rsvp', '.birthday-rsvp', '.ivory-rsvp'],
   closing: ['.midnight-signature', '.engagement-final', '.baptism-signature', '.sacred-closing', '.birthday-closing', '.ivory-closing'],
-  dress: ['.curated-dress']
+  dress: ['.curated-dress', '.ivory-dress']
 };
 
 const normalizePreviewText = (value) => String(value || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('hy');
 
-const getTemplateImageLabel = (image, index) => {
+const TEMPLATE_TEXT_SELECTOR = 'h1, h2, h3, h4, h5, h6, p, span, strong, b, em, legend, blockquote, label, button, a, li, figcaption, small, time, address, dt, dd, th, td';
+const EDITOR_TEXT_SECTIONS = new Set(['hero', 'family', 'schedule', 'rsvp', 'dress', 'closing', 'templateContent']);
+
+const getEditableTextSection = (element, fallback = 'templateContent') => {
+  const section = element.closest('[data-editor-section]')?.dataset.editorSection || fallback;
+  return EDITOR_TEXT_SECTIONS.has(section) ? section : 'templateContent';
+};
+
+const getDatePreviewValues = (value) => {
+  if (!value) return [];
+  const date = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return [value];
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const armenianMonths = ['հունվարի', 'փետրվարի', 'մարտի', 'ապրիլի', 'մայիսի', 'հունիսի', 'հուլիսի', 'օգոստոսի', 'սեպտեմբերի', 'հոկտեմբերի', 'նոյեմբերի', 'դեկտեմբերի'];
+  return [value, `${day}.${month}.${date.getFullYear()}`, `${date.getDate()} ${armenianMonths[date.getMonth()]}, ${date.getFullYear()}`, `${date.getDate()} ${armenianMonths[date.getMonth()]} ${date.getFullYear()}`];
+};
+
+const getTemplateImageLabel = (image, index, labels = {}) => {
   const alt = String(image.alt || '').trim();
   if (alt) return alt;
 
@@ -45,12 +64,12 @@ const getTemplateImageLabel = (image, index) => {
     image.closest?.('section, article, figure, div')?.className
   ].filter((value) => typeof value === 'string').join(' ').toLowerCase();
 
-  if (/hero|cover|intro/.test(context)) return 'Գլխավոր բաժնի նկար';
-  if (/gallery|carousel|slider/.test(context)) return `Պատկերասրահի նկար ${index + 1}`;
-  if (/bride|groom|couple|portrait|person|child|family/.test(context)) return 'Մասնակցի կամ ընտանիքի նկար';
-  if (/venue|location|church|party|event|place/.test(context)) return 'Միջոցառման վայրի նկար';
-  if (/closing|final|footer/.test(context)) return 'Եզրափակիչ բաժնի նկար';
-  return `Հրավերի նկար ${index + 1}`;
+  if (/hero|cover|intro/.test(context)) return labels.heroImage || 'Main section image';
+  if (/gallery|carousel|slider/.test(context)) return `${labels.galleryImage || 'Gallery image'} ${index + 1}`;
+  if (/bride|groom|couple|portrait|person|child|family/.test(context)) return labels.participantImage || 'Participant or family image';
+  if (/venue|location|church|party|event|place/.test(context)) return labels.venueImage || 'Event venue image';
+  if (/closing|final|footer/.test(context)) return labels.closingImage || 'Closing section image';
+  return `${labels.invitationImage || 'Invitation image'} ${index + 1}`;
 };
 
 export const updateDraftTextField = (draft, field, value) => {
@@ -74,31 +93,50 @@ export const updateDraftTextField = (draft, field, value) => {
 
 const getPreviewFields = (data) => {
   const [firstName, secondName] = splitNames(data.mainNames);
-  const fields = [
-    ['mainName.0', 'hero', [firstName]],
-    ['mainName.1', 'hero', [secondName]],
-    ['mainNames', 'hero', [data.mainNames]],
-    ['eventMessage', 'hero', [data.eventMessage]],
-    ['eventTime', 'schedule', [data.eventTime]],
-    ['eventLocation', 'schedule', [data.eventLocation]]
-  ];
+  const fields = [];
 
   (data.mapLinks || []).forEach((item, index) => {
-    ['label', 'time', 'subtitle', 'address'].forEach((key) => {
-      fields.push([`mapLinks.${index}.${key}`, 'schedule', [item?.[key]]]);
+    ['label', 'subtitle', 'address'].forEach((key) => {
+      fields.push([`mapLinks.${index}.${key}`, 'schedule', [item?.[key]], true]);
     });
+    fields.push([`mapLinks.${index}.time`, 'schedule', [item?.time], false]);
   });
 
-  return fields.map(([field, section, values]) => ({
+  fields.push(
+    ['mainNames', 'hero', [data.mainNames]],
+    ['mainName.0', 'hero', [firstName]],
+    ['mainName.1', 'hero', [secondName]],
+    ['eventMessage', 'hero', [data.eventMessage]],
+    ['groomFamilyTitle', 'family', [data.groomFamilyTitle]],
+    ['brideFamilyTitle', 'family', [data.brideFamilyTitle]],
+    ['eventDate', 'schedule', getDatePreviewValues(data.eventDate), false],
+    ['eventTime', 'schedule', [data.eventTime], false],
+    ['eventLocation', 'schedule', [data.eventLocation]],
+    ['rsvpSettings.title', 'rsvp', [data.rsvpSettings?.title]],
+    ['rsvpSettings.description', 'rsvp', [data.rsvpSettings?.description]],
+    ['rsvpSettings.deadline', 'rsvp', [data.rsvpSettings?.deadline]],
+    ['rsvpSettings.guestPlaceholder', 'rsvp', [data.rsvpSettings?.guestPlaceholder]],
+    ['rsvpSettings.attendingLabel', 'rsvp', [data.rsvpSettings?.attendingLabel]],
+    ['rsvpSettings.notAttendingLabel', 'rsvp', [data.rsvpSettings?.notAttendingLabel]],
+    ['rsvpSettings.submitLabel', 'rsvp', [data.rsvpSettings?.submitLabel]],
+    ['rsvpQuestion', 'rsvp', [data.rsvpQuestion]],
+    ['dressCode', 'dress', [data.dressCode]],
+    ['closingMessage', 'closing', [data.closingMessage]]
+  );
+
+  return fields.map(([field, section, values, inline = true]) => ({
     field,
     section,
+    inline,
     values: values.map(normalizePreviewText).filter((value) => value.length > 1)
   }));
 };
 
 const shadowHotspotStyles = `
-  [data-editor-kind]{position:relative;cursor:pointer;touch-action:manipulation;outline:2px solid transparent;outline-offset:5px;transition:outline-color .24s ease,background-color .24s ease,box-shadow .24s ease}
-  [data-editor-kind="text"][contenteditable]{border:0!important;outline:0!important;box-shadow:none!important;cursor:text;caret-color:#d07d4f;user-select:text;-webkit-user-select:text}
+  [data-editor-kind]{position:relative;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;outline:2px solid transparent;outline-offset:5px;transition:background-color .24s ease,box-shadow .24s ease}
+  [data-editor-kind="text"][contenteditable]{appearance:none!important;-webkit-appearance:none!important;border:0!important;border-radius:0!important;outline:0!important;box-shadow:none!important;cursor:text;caret-color:#d07d4f;user-select:text;-webkit-user-select:text}
+  [data-editor-kind="text"][contenteditable]:focus:not(.is-editor-active),[data-editor-kind="text"][contenteditable]:focus-visible:not(.is-editor-active){border:0!important;outline:0!important;box-shadow:none!important}
+  [data-editor-kind="text"][contenteditable]:empty{display:inline-block;min-width:2ch;min-height:1.25em}
   [data-editor-kind="text"]::after{pointer-events:auto}
   [data-editor-kind="text"].is-editor-inline-editing{outline-color:#d07d4f;background-color:rgba(208,125,79,.055)}
   [data-editor-kind="text"].is-editor-inline-editing::after{opacity:0!important}
@@ -108,9 +146,9 @@ const shadowHotspotStyles = `
   [data-editor-kind="map"]::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E")}
   [data-editor-kind]:is(:hover,:focus-visible){outline-color:#d07d4f;background-color:rgba(208,125,79,.035)}
   [data-editor-kind]:is(:hover,:focus-visible)::after{opacity:1;transform:translateY(0)}
-  [data-editor-kind].is-editor-active{outline:3px solid #d07d4f!important;outline-offset:7px!important;background-color:rgba(208,125,79,.08)!important;box-shadow:0 0 0 7px rgba(208,125,79,.16),0 12px 34px rgba(73,39,20,.18)!important;animation:amuletEditorFocusPulse .72s cubic-bezier(.2,.8,.2,1) both}
+  [data-editor-kind].is-editor-active{outline:3px solid #d07d4f!important;outline-offset:7px!important;background-color:rgba(208,125,79,.055)!important;box-shadow:0 0 0 5px rgba(208,125,79,.14)!important;animation:amuletEditorFocusPulse .72s cubic-bezier(.2,.8,.2,1) both}
   [data-editor-kind].is-editor-active::after{opacity:1;transform:translateY(0)}
-  @keyframes amuletEditorFocusPulse{0%{box-shadow:0 0 0 0 rgba(208,125,79,.42),0 4px 12px rgba(73,39,20,.08)}55%{box-shadow:0 0 0 12px rgba(208,125,79,.12),0 14px 38px rgba(73,39,20,.2)}100%{box-shadow:0 0 0 7px rgba(208,125,79,.16),0 12px 34px rgba(73,39,20,.18)}}
+  @keyframes amuletEditorFocusPulse{0%{box-shadow:0 0 0 0 rgba(208,125,79,.34)}55%{box-shadow:0 0 0 10px rgba(208,125,79,.1)}100%{box-shadow:0 0 0 5px rgba(208,125,79,.14)}}
   @media (hover:none){[data-editor-kind]::after{content:"";width:34px;min-height:34px;padding:0;background-position:center;opacity:0;transform:none}[data-editor-kind]:is(:focus,.is-editor-active)::after{opacity:.92}}
   @media (prefers-reduced-motion:reduce){[data-editor-kind],[data-editor-kind]::after{transition:none}}
 `;
@@ -119,14 +157,15 @@ const studioMotionStyles = `
   .original-template-document *, .original-template-document *::before, .original-template-document *::after{animation-delay:0s!important;animation-duration:.001ms!important;transition-delay:0s!important}
 `;
 
-const makeEditorHotspot = (element, { kind, section, field = '', tab }) => {
+const makeEditorHotspot = (element, { kind, section, field = '', tab, inline = true, labels = {} }) => {
   element.dataset.editorKind = kind;
   element.dataset.editorSection = section;
   element.dataset.editorTab = tab;
-  element.dataset.editorLabel = kind === 'image' ? 'Նկար' : kind === 'map' ? 'Քարտեզ' : 'Խմբագրել';
+  element.dataset.editorLabel = kind === 'image' ? labels.image : kind === 'map' ? labels.map : labels.edit;
   if (field) element.dataset.editorField = field;
-  if (kind === 'text' && field) {
+  if (kind === 'text' && field && inline) {
     element.contentEditable = 'plaintext-only';
+    if (!element.isContentEditable) element.contentEditable = 'true';
     element.spellcheck = true;
     element.dataset.editorOwnedContenteditable = '';
     if (!element.hasAttribute('role')) {
@@ -142,12 +181,13 @@ const makeEditorHotspot = (element, { kind, section, field = '', tab }) => {
     element.tabIndex = 0;
     element.dataset.editorOwnedTabindex = '';
   }
+  if (kind === 'text' && field && inline) element.dataset.editorInline = 'true';
   if (kind !== 'text' && !element.hasAttribute('role')) {
     element.setAttribute('role', 'button');
     element.dataset.editorOwnedRole = '';
   }
   if (!element.hasAttribute('aria-label')) {
-    element.setAttribute('aria-label', kind === 'image' ? 'Փոխել նկարը' : kind === 'map' ? 'Խմբագրել քարտեզը' : 'Խմբագրել այս հատվածը');
+    element.setAttribute('aria-label', kind === 'image' ? labels.changeImage : kind === 'map' ? labels.editMap : labels.editSection);
     element.dataset.editorOwnedLabel = '';
   }
   if (!element.hasAttribute('data-editor-owned-click')) {
@@ -160,6 +200,7 @@ function forwardEditorInlineFocus(event) {
   const target = event.currentTarget;
   target.dataset.editorOriginalText = target.innerText;
   target.classList.add('is-editor-inline-editing');
+  target.ownerDocument.__amuletEditorHotspotFocusHandler?.(target);
 }
 
 function forwardEditorInlineBlur(event) {
@@ -187,13 +228,6 @@ function forwardEditorInlineKeyDown(event) {
 }
 
 function forwardEditorHotspotClick(event) {
-  if (event.currentTarget.dataset.editorKind === 'image') {
-    const picker = event.currentTarget.ownerDocument.querySelector('[data-direct-image-picker]');
-    if (picker) {
-      picker.dataset.targetField = event.currentTarget.dataset.editorField || '';
-      picker.click();
-    }
-  }
   event.currentTarget.ownerDocument.__amuletEditorHotspotHandler?.(event);
 }
 
@@ -242,15 +276,16 @@ export const clearPreviewDecorations = (root, { removeStyles = false, preserveAc
         'data-editor-kind', 'data-editor-field', 'data-editor-tab', 'data-editor-section',
         'data-editor-label', 'data-editor-owned-tabindex', 'data-editor-owned-role',
         'data-editor-owned-label', 'data-editor-owned-click', 'data-editor-owned-contenteditable',
-        'data-editor-owned-inline-events', 'data-editor-original-text'
+        'data-editor-owned-inline-events', 'data-editor-original-text', 'data-editor-inline'
       ].forEach((attribute) => element.removeAttribute(attribute));
     });
     if (removeStyles) scope.querySelector('style[data-amulet-edit-hotspots]')?.remove();
   });
 };
 
-export const decoratePreview = (root, data, { suppressMotion = false } = {}) => {
+export const decoratePreview = (root, data, { suppressMotion = false, labels: suppliedLabels = {} } = {}) => {
   if (!root) return { texts: [], images: [] };
+  const labels = { image: 'Image', map: 'Map', edit: 'Edit', changeImage: 'Change image', editMap: 'Edit map', editSection: 'Edit this section', ...suppliedLabels };
   const fields = getPreviewFields(data);
   const editableTexts = new Map();
   const editableImages = new Map();
@@ -273,26 +308,40 @@ export const decoratePreview = (root, data, { suppressMotion = false } = {}) => 
 
     const genericSections = ['hero', 'hero', 'family', 'schedule', 'schedule', 'schedule', 'media', 'closing', 'schedule', 'rsvp', 'closing'];
     scope.querySelectorAll('section').forEach((element, index) => {
-      if (!element.dataset.editorSection) element.dataset.editorSection = genericSections[index] || 'closing';
+      if (!element.dataset.editorSection && !element.parentElement?.closest('[data-editor-section]')) {
+        element.dataset.editorSection = genericSections[index] || 'closing';
+      }
     });
 
     const textCandidatesByBlock = new Map();
-    scope.querySelectorAll('h1, h2, h3, p, span, strong, b, em, legend, blockquote, label, button, li, figcaption, small').forEach((element) => {
+    scope.querySelectorAll(TEMPLATE_TEXT_SELECTOR).forEach((element, candidateIndex) => {
       if (element.closest('[aria-hidden="true"]')) return;
-      if (!element.dataset.templateTextKey && element.querySelector('h1, h2, h3, p, span, strong, b, em, legend, blockquote, label, button, li, figcaption, small')) return;
+      if (element.closest('.original-template-preview-actions, [data-editor-ignore]')) return;
+      if (!element.dataset.templateTextKey && element.querySelector(TEMPLATE_TEXT_SELECTOR)) return;
       const text = normalizePreviewText(element.textContent);
-      const templateTextKey = element.dataset.templateTextKey;
-      if (!text && !templateTextKey) return;
+      if (!text && !element.dataset.templateTextKey) return;
+
+      // Every visible template string receives a stable positional key. Imported
+      // templates already provide these keys; this fallback makes new JSX/TSX
+      // templates editable without adding editor-specific markup by hand.
+      const templateTextKey = element.dataset.templateTextKey || `text-${candidateIndex}`;
+      if (!element.dataset.templateTextKey) element.dataset.templateTextKey = templateTextKey;
+      if (element.dataset.templateTextDefault === undefined) element.dataset.templateTextDefault = element.textContent || '';
+
       let match = fields.find((item) => item.values.some((value) => text === value || (value.length > 4 && text.includes(value))));
-      let section = match?.section || element.closest('[data-editor-section]')?.dataset.editorSection || 'hero';
-      if (!templateTextKey && element.closest('button, a, input, textarea, select, label, .original-template-preview-actions')) return;
-      if (!match && templateTextKey) {
-        const defaultValue = element.dataset.templateTextDefault || element.textContent || '';
-        editableTexts.set(templateTextKey, { key: templateTextKey, defaultValue });
-        match = { field: `templateTextOverrides.${templateTextKey}`, section: 'templateContent' };
-        section = 'templateContent';
+      let section = match?.section || getEditableTextSection(element);
+      if (!match) {
+        const defaultValue = element.dataset.templateTextDefault ?? element.textContent ?? '';
+        const semanticSection = getEditableTextSection(element);
+        editableTexts.set(templateTextKey, { key: templateTextKey, defaultValue, section: semanticSection });
+        match = { field: `templateTextOverrides.${templateTextKey}`, section: semanticSection };
+        section = semanticSection;
+
+        if (Object.prototype.hasOwnProperty.call(data.templateTextOverrides || {}, templateTextKey)) {
+          const overriddenValue = String(data.templateTextOverrides[templateTextKey] ?? '');
+          if (element.textContent !== overriddenValue) element.textContent = overriddenValue;
+        }
       }
-      if (!match) return;
       const block = element.closest('section, article, blockquote') || section;
       const score = (match ? 100 : 0)
         + (element.matches('h1') ? 35 : element.matches('h2') ? 30 : element.matches('h3') ? 25 : 0)
@@ -304,36 +353,49 @@ export const decoratePreview = (root, data, { suppressMotion = false } = {}) => 
 
     textCandidatesByBlock.forEach((candidates) => {
       candidates.forEach(({ element, match, section }) => {
-        makeEditorHotspot(element, { kind: 'text', section, field: match?.field, tab: 'content' });
+        const isInteractiveCopy = element.matches('button, a, label') || Boolean(element.closest('button, a, label'));
+        makeEditorHotspot(element, { kind: 'text', section, field: match?.field, tab: 'content', inline: match?.inline !== false && !isInteractiveCopy, labels });
       });
     });
 
-    const orderedImages = [data.image, ...(data.gallery || [])]
-      .filter((image, index, images) => image && images.indexOf(image) === index);
+    const galleryImages = Array.isArray(data.gallery) ? data.gallery : [];
     const absoluteImageSource = (value) => {
       try { return new URL(resolveTemplateImage(value), document.baseURI).href; } catch { return resolveTemplateImage(value); }
     };
 
-    scope.querySelectorAll('img:not([aria-hidden="true"])').forEach((image) => {
-      if (image.closest('.engagement-week, .baptism-envelope-button')) return;
+    scope.querySelectorAll('img:not([aria-hidden="true"])').forEach((image, imageOrder) => {
+      if (image.closest('.original-template-preview-actions, [data-editor-ignore]')) return;
       const target = image.closest('picture') || image;
       if (!target) return;
       const source = image.currentSrc || image.src;
-      const imageIndex = orderedImages.findIndex((item) => absoluteImageSource(item) === source);
-      const templateImageKey = image.dataset.templateImageKey;
-      if (templateImageKey) {
-        editableImages.set(templateImageKey, {
-          key: templateImageKey,
-          defaultValue: image.dataset.templateImageDefault || source,
-          alt: image.alt || `Նկար ${editableImages.size + 1}`,
-          label: getTemplateImageLabel(image, editableImages.size)
-        });
+      const galleryIndex = galleryImages.findIndex((item) => absoluteImageSource(item) === source);
+      const galleryContext = image.closest('[class*="gallery" i], [class*="carousel" i], [class*="slider" i], [class*="photos" i], [class*="fixed-photo" i], [class*="moments" i], [data-gallery], [data-carousel]');
+      const isGalleryImage = galleryIndex >= 0 && Boolean(galleryContext);
+      const templateImageKey = image.dataset.templateImageKey || `image-${imageOrder}`;
+      if (!image.dataset.templateImageKey) image.dataset.templateImageKey = templateImageKey;
+      if (!image.dataset.templateImageDefault) image.dataset.templateImageDefault = source;
+
+      const overrideExists = Object.prototype.hasOwnProperty.call(data.templateImageOverrides || {}, templateImageKey);
+      if (overrideExists) {
+        const nextSource = String(data.templateImageOverrides[templateImageKey] ?? '');
+        image.hidden = !nextSource;
+        if (nextSource && image.src !== resolveTemplateImage(nextSource)) image.src = resolveTemplateImage(nextSource);
       }
+
+      editableImages.set(templateImageKey, {
+        key: templateImageKey,
+        defaultValue: image.dataset.templateImageDefault || source,
+        alt: image.alt || `${labels.image} ${editableImages.size + 1}`,
+        label: getTemplateImageLabel(image, editableImages.size, labels),
+        sourceField: isGalleryImage ? `gallery.${galleryIndex}` : '',
+        group: isGalleryImage ? 'gallery' : 'other'
+      });
       makeEditorHotspot(target, {
         kind: 'image',
         section: 'media',
-        field: templateImageKey ? `templateImageOverrides.${templateImageKey}` : (imageIndex >= 0 ? `gallery.${imageIndex}` : ''),
-        tab: 'media'
+        field: isGalleryImage ? `gallery.${galleryIndex}` : `templateImageOverrides.${templateImageKey}`,
+        tab: 'media',
+        labels
       });
     });
 
@@ -343,24 +405,15 @@ export const decoratePreview = (root, data, { suppressMotion = false } = {}) => 
       const matchedIndex = (data.mapLinks || []).findIndex((item) => item?.url && href.includes(item.url));
       const mapIndex = matchedIndex >= 0 ? matchedIndex : Math.min(fallbackMapIndex, Math.max(0, (data.mapLinks || []).length - 1));
       fallbackMapIndex += 1;
-      makeEditorHotspot(target, { kind: 'map', section: 'schedule', field: `mapLinks.${mapIndex}.url`, tab: 'content' });
+      makeEditorHotspot(target, { kind: 'map', section: 'schedule', field: `mapLinks.${mapIndex}.url`, tab: 'content', labels });
     });
 
-    scope.querySelectorAll('.midnight-cover, .engagement-cover, .baptism-hero, .sacred-hero, .birthday-hero, .ivory-hero').forEach((target) => {
-      if (target.querySelector('[data-template-image-key]')) return;
-      target.querySelectorAll('[data-editor-kind="image"]').forEach((child) => {
-        child.removeAttribute('data-editor-kind');
-        child.removeAttribute('data-editor-section');
-        child.removeAttribute('data-editor-tab');
-      });
-      makeEditorHotspot(target, { kind: 'image', section: 'media', tab: 'media' });
-    });
   });
 
   return { texts: [...editableTexts.values()], images: [...editableImages.values()] };
 };
 
-function PreviewViewport({ children, data, device, onReady }) {
+function PreviewViewport({ children, data, device, labels, onReady }) {
   const [mountNode, setMountNode] = useState(null);
   const iframeRef = useRef(null);
 
@@ -368,7 +421,7 @@ function PreviewViewport({ children, data, device, onReady }) {
     if (!mountNode) return undefined;
     const run = () => {
       if (findPreviewElement(mountNode, '.is-editor-inline-editing')) return;
-      const catalog = decoratePreview(mountNode, data, { suppressMotion: true });
+      const catalog = decoratePreview(mountNode, data, { suppressMotion: true, labels });
       onReady?.(mountNode, catalog);
     };
     const frame = window.requestAnimationFrame(run);
@@ -381,7 +434,7 @@ function PreviewViewport({ children, data, device, onReady }) {
       timers.forEach((timer) => window.clearTimeout(timer));
       observer?.disconnect();
     };
-  }, [data, mountNode, onReady]);
+  }, [data, labels, mountNode, onReady]);
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -430,7 +483,7 @@ function PreviewViewport({ children, data, device, onReady }) {
       <iframe
         ref={iframeRef}
         className="invite-editor-preview-viewport"
-        title="Հրավերի responsive նախադիտում"
+        title={labels.previewTitle}
         srcDoc="<!doctype html><html><head></head><body></body></html>"
         onLoad={(event) => prepareDocument(event.currentTarget)}
       />
@@ -438,14 +491,6 @@ function PreviewViewport({ children, data, device, onReady }) {
     </>
   );
 }
-
-const navItems = [
-  ['templates', LayoutGrid, 'Ձևանմուշներ'],
-  ['content', Pencil, 'Խմբագրել'],
-  ['design', Sparkles, 'Ձևավորում'],
-  ['media', Images, 'Մեդիա'],
-  ['buy', CheckCircle2, 'Գնել']
-];
 
 function EditorPanel({ isSingleImageTemplate }) {
   const { tab } = useEditor();
@@ -458,14 +503,16 @@ function EditorPanel({ isSingleImageTemplate }) {
 
 function DeviceSwitcher() {
   const { device, setDevice } = useEditor();
-  return <div className="invite-editor-devices" role="tablist" aria-label="Նախադիտման սարք">{[
-    ['desktop', Monitor, 'Համակարգիչ'],
-    ['tablet', Tablet, 'Պլանշետ'],
-    ['mobile', Smartphone, 'Հեռախոս']
+  const { t } = useLanguage();
+  return <div className="invite-editor-devices" role="tablist" aria-label={t('editorPreviewDevice')}>{[
+    ['desktop', Monitor, t('editorDesktop')],
+    ['tablet', Tablet, t('editorTablet')],
+    ['mobile', Smartphone, t('editorMobile')]
   ].map(([value, Icon, label]) => <button key={value} role="tab" type="button" aria-selected={device === value} className={device === value ? 'is-active' : ''} onClick={() => setDevice(value)}><Icon size={15} /><span>{label}</span></button>)}</div>;
 }
 
 function PreviewWorkspace({ PreviewComponent }) {
+  const { t } = useLanguage();
   const {
     activeField,
     activeSection,
@@ -483,6 +530,7 @@ function PreviewWorkspace({ PreviewComponent }) {
   const previewRootRef = useRef(null);
   const handledPreviewFocusRequestRef = useRef(previewFocusRequest.id);
   const [previewReady, setPreviewReady] = useState(0);
+  const hotspotLabels = useMemo(() => ({ image: t('image'), map: t('map'), edit: t('editorEdit'), changeImage: t('editorChangeImage'), editMap: t('editorEditMap'), editSection: t('editorEditSection'), heroImage: t('editorHeroImage'), galleryImage: t('editorGalleryImage'), participantImage: t('editorParticipantImage'), venueImage: t('editorVenueImage'), closingImage: t('editorClosingImage'), invitationImage: t('editorInvitationImage'), previewTitle: t('editorResponsivePreview') }), [t]);
 
   const handlePreviewReady = useCallback((root, catalog) => {
     registerEditableContent(catalog);
@@ -492,8 +540,8 @@ function PreviewWorkspace({ PreviewComponent }) {
   }, [registerEditableContent]);
 
   useEffect(() => {
-    registerEditableContent(decoratePreview(previewRootRef.current, data, { suppressMotion: true }));
-  }, [data, previewReady, registerEditableContent]);
+    registerEditableContent(decoratePreview(previewRootRef.current, data, { suppressMotion: true, labels: hotspotLabels }));
+  }, [data, hotspotLabels, previewReady, registerEditableContent]);
 
   useEffect(() => {
     const root = previewRootRef.current;
@@ -518,19 +566,22 @@ function PreviewWorkspace({ PreviewComponent }) {
   const handlePreviewClick = (event) => {
     if (event.amuletEditorHandled) return;
     const path = (event.nativeEvent || event).composedPath();
-    const target = path.find((node) => ['map', 'image'].includes(node?.dataset?.editorKind))
-      || path.find((node) => node?.dataset?.editorKind)
+    const target = path.find((node) => node?.dataset?.editorKind)
       || event.target.closest?.('[data-editor-kind]');
     if (!target) return;
     event.amuletEditorHandled = true;
     if (target.dataset.editorKind === 'text' && target.dataset.editorField) {
-      event.preventDefault();
-      event.stopPropagation();
+      const inline = target.dataset.editorInline === 'true';
+      if (!inline) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
       focusEditorTarget({
         section: target.dataset.editorSection || 'hero',
         field: target.dataset.editorField || '',
         targetTab: target.dataset.editorTab || 'content',
-        scrollPreview: false
+        scrollPreview: false,
+        focusSidebar: !inline
       });
       return;
     }
@@ -541,7 +592,8 @@ function PreviewWorkspace({ PreviewComponent }) {
         section: 'media',
         field: target.dataset.editorField || '',
         targetTab: 'media',
-        scrollPreview: false
+        scrollPreview: false,
+        focusSidebar: true
       });
       return;
     }
@@ -549,7 +601,8 @@ function PreviewWorkspace({ PreviewComponent }) {
       section: target.dataset.editorSection || (target.dataset.editorKind === 'image' ? 'media' : 'hero'),
       field: target.dataset.editorField || '',
       targetTab: target.dataset.editorTab || (target.dataset.editorKind === 'image' ? 'media' : 'content'),
-      scrollPreview: false
+      scrollPreview: false,
+      focusSidebar: true
     });
   };
 
@@ -562,6 +615,15 @@ function PreviewWorkspace({ PreviewComponent }) {
     const root = previewRootRef.current;
     if (!root) return undefined;
     root.ownerDocument.__amuletEditorHotspotHandler = handlePreviewClick;
+    root.ownerDocument.__amuletEditorHotspotFocusHandler = (target) => {
+      focusEditorTarget({
+        section: target.dataset.editorSection || 'hero',
+        field: target.dataset.editorField || '',
+        targetTab: target.dataset.editorTab || 'content',
+        scrollPreview: false,
+        focusSidebar: false
+      });
+    };
     root.ownerDocument.__amuletEditorInlineCommitHandler = ({ field, value }) => {
       if (!field) return;
       update((draft) => updateDraftTextField(draft, field, value));
@@ -570,6 +632,7 @@ function PreviewWorkspace({ PreviewComponent }) {
     root.addEventListener('keydown', handlePreviewKeyDown, true);
     return () => {
       delete root.ownerDocument.__amuletEditorHotspotHandler;
+      delete root.ownerDocument.__amuletEditorHotspotFocusHandler;
       delete root.ownerDocument.__amuletEditorInlineCommitHandler;
       root.removeEventListener('click', handlePreviewClick, true);
       root.removeEventListener('keydown', handlePreviewKeyDown, true);
@@ -581,7 +644,7 @@ function PreviewWorkspace({ PreviewComponent }) {
     <main className="invite-editor-preview">
       <div className={`invite-editor-device is-${device}`}>
         <div className="invite-editor-device-screen">
-          <PreviewViewport data={data} device={device} onReady={handlePreviewReady}>
+          <PreviewViewport data={data} device={device} labels={hotspotLabels} onReady={handlePreviewReady}>
             <div className="invite-editor-preview-scroll" data-preview-device={device}>
               <PreviewComponent draft={data} price={template.price} mode="studio" loading={actions.saving} onHome={() => {}} onEdit={() => {}} onOrder={() => actions.onBuy?.(data)} />
             </div>
@@ -589,45 +652,77 @@ function PreviewWorkspace({ PreviewComponent }) {
         </div>
         {frameImage && <img className="invite-editor-device-frame" src={frameImage} alt="" aria-hidden="true" />}
       </div>
-      {mobileSheet === 'collapsed' && <button type="button" className="invite-editor-open-sheet" onClick={() => setMobileSheet('medium')}><Pencil size={17} /> Խմբագրել</button>}
+      {mobileSheet === 'collapsed' && <button type="button" className="invite-editor-open-sheet" onClick={() => setMobileSheet('medium')}><Pencil size={17} /> {t('editorEdit')}</button>}
     </main>
   );
 }
 
 function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
-  const { activeField, activeSection, actions, canRedo, canUndo, data, device, dirty, mobileSheet, redo, save, saveStatus, setDevice, setMobileSheet, setSidebarOpen, setTab, sidebarOpen, tab, undo } = useEditor();
+  const { activeField, activeSection, actions, canRedo, canUndo, data, device, discardChanges, dirty, mobileSheet, previewFocusRequest, redo, restoreOriginal, saveStatus, setDevice, setMobileSheet, setSidebarOpen, setTab, sidebarOpen, tab, undo } = useEditor();
+  const { t } = useLanguage();
   const [compactViewport, setCompactViewport] = useState(() => window.matchMedia('(max-width: 1024px)').matches);
+  const [restoreOpen, setRestoreOpen] = useState(false);
   const sheetStart = useRef(null);
+  const restoreCancelRef = useRef(null);
+  const navItems = useMemo(() => [
+    ['templates', LayoutGrid, t('editorTemplates')],
+    ['content', Pencil, t('editorEdit')],
+    ['design', Sparkles, t('editorDesign')],
+    ['media', Images, t('editorMedia')],
+    ['buy', CheckCircle2, t('editorBuy')]
+  ], [t]);
 
   useEffect(() => {
     const query = window.matchMedia('(max-width: 1024px)');
-    const updateViewport = (event) => {
-      setCompactViewport(event.matches);
-      if (event.matches) setDevice('mobile');
+    const updateViewport = () => {
+      setCompactViewport(query.matches);
+      if (query.matches) setDevice(window.innerWidth <= 600 ? 'mobile' : 'tablet');
     };
-    if (query.matches) setDevice('mobile');
+    updateViewport();
     query.addEventListener('change', updateViewport);
-    return () => query.removeEventListener('change', updateViewport);
+    window.addEventListener('resize', updateViewport);
+    return () => {
+      query.removeEventListener('change', updateViewport);
+      window.removeEventListener('resize', updateViewport);
+    };
   }, [setDevice]);
 
-  const requestClose = useCallback(async () => {
-    if (dirty) await save();
+  const requestClose = useCallback(() => {
+    discardChanges();
     actions.onClose?.();
-  }, [actions, dirty, save]);
+  }, [actions, discardChanges]);
+
+  const showModifiedPreview = useCallback(async () => {
+    const opened = await actions.onPreview?.(data);
+    if (opened !== false) actions.onClose?.();
+  }, [actions, data]);
+
+  const confirmRestore = useCallback(() => {
+    restoreOriginal();
+    setRestoreOpen(false);
+  }, [restoreOriginal]);
+
+  useEffect(() => {
+    if (restoreOpen) restoreCancelRef.current?.focus();
+  }, [restoreOpen]);
 
   useEffect(() => {
     const previousBodyOverflow = document.body.style.overflow;
     const previousRootOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
-    const onEscape = (event) => { if (event.key === 'Escape') requestClose(); };
+    const onEscape = (event) => {
+      if (event.key !== 'Escape') return;
+      if (restoreOpen) setRestoreOpen(false);
+      else requestClose();
+    };
     window.addEventListener('keydown', onEscape);
     return () => {
       document.body.style.overflow = previousBodyOverflow;
       document.documentElement.style.overflow = previousRootOverflow;
       window.removeEventListener('keydown', onEscape);
     };
-  }, [requestClose]);
+  }, [requestClose, restoreOpen]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -640,11 +735,13 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
         return;
       }
       target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const control = activeField ? target.querySelector('input, textarea, select, button') : null;
-      control?.focus({ preventScroll: true });
+      if (previewFocusRequest.focusSidebar) {
+        const control = activeField ? target.querySelector('input, textarea, select, button, [tabindex="0"]') : null;
+        control?.focus({ preventScroll: true });
+      }
     }, 90);
     return () => window.clearTimeout(timer);
-  }, [activeField, activeSection, tab]);
+  }, [activeField, activeSection, previewFocusRequest, tab]);
 
   const selectTab = (next) => {
     setTab(next);
@@ -659,26 +756,27 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
   };
 
   return (
-    <section className={`amulet-invite-editor${sidebarOpen ? '' : ' is-sidebar-collapsed'} is-device-${device}`} data-active-section={activeSection} data-active-field={activeField || undefined} role="dialog" aria-modal="true" aria-label="Amulet հրավերի խմբագրիչ">
+    <section className={`amulet-invite-editor${sidebarOpen ? '' : ' is-sidebar-collapsed'} is-device-${device}`} data-active-section={activeSection} data-active-field={activeField || undefined} role="dialog" aria-modal="true" aria-label={t('editorDialogLabel')}>
       <header className="invite-editor-topbar">
         <div className="invite-editor-top-left">
-          <button type="button" onClick={toggleEditorPanel} aria-expanded={panelOpen} aria-controls="invite-editor-sidebar" aria-label={panelOpen ? 'Փակել խմբագրման վահանակը' : 'Բացել խմբագրման վահանակը'}>{panelOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}</button>
-          <button type="button" onClick={undo} disabled={!canUndo} aria-label="Հետարկել"><Undo2 size={17} /></button>
-          <button type="button" onClick={redo} disabled={!canRedo} aria-label="Կրկնել"><Redo2 size={17} /></button>
+          <button type="button" onClick={toggleEditorPanel} aria-expanded={panelOpen} aria-controls="invite-editor-sidebar" aria-label={panelOpen ? t('editorClosePanel') : t('editorOpenPanel')}>{panelOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}</button>
+          <button type="button" onClick={undo} disabled={!canUndo} aria-label={t('editorUndo')}><Undo2 size={17} /></button>
+          <button type="button" onClick={redo} disabled={!canRedo} aria-label={t('editorRedo')}><Redo2 size={17} /></button>
           <span>Amulet Studio</span>
         </div>
         <DeviceSwitcher />
         <div className="invite-editor-top-actions">
-          <small aria-live="polite">{saveStatus === 'saving' ? 'Ավտոմատ պահպանվում է...' : saveStatus === 'saved' ? 'Ավտոմատ պահպանված է' : saveStatus === 'error' ? 'Պահվել է այս սարքում' : 'Պատրաստ է'}</small>
-          <button type="button" onClick={() => void requestClose()} disabled={actions.saving}><Eye size={17} /><span>Դիտել փոփոխվածը</span></button>
-          <button type="button" onClick={() => void requestClose()} aria-label="Փակել խմբագրիչը"><X size={24} /></button>
+          <small aria-live="polite">{saveStatus === 'changed' ? t('editorSessionChanges') : t('editorOriginalState')}</small>
+          <button className="invite-editor-restore-trigger" type="button" onClick={() => setRestoreOpen(true)} disabled={!dirty}><RotateCcw size={17} /><span>{t('editorRestore')}</span></button>
+          <button type="button" onClick={() => void showModifiedPreview()} disabled={actions.saving}><Eye size={17} /><span>{t('editorViewChanges')}</span></button>
+          <button type="button" onClick={requestClose} aria-label={t('editorClose')}><X size={24} /></button>
         </div>
       </header>
 
-      <nav className="invite-editor-rail" aria-label="Խմբագրիչի բաժիններ">
+      <nav className="invite-editor-rail" aria-label={t('editorSections')}>
         <strong aria-hidden="true">A</strong>
         {navItems.map(([value, Icon, label]) => <button key={value} type="button" className={tab === value ? 'is-active' : ''} onClick={() => selectTab(value)} aria-current={tab === value ? 'page' : undefined} aria-label={label} title={label}><Icon size={20} /></button>)}
-        <button type="button" className="invite-editor-back" onClick={() => void requestClose()} aria-label="Ետ" title="Ետ"><ArrowLeft size={19} /></button>
+        <button type="button" className="invite-editor-back" onClick={requestClose} aria-label={t('back')} title={t('back')}><ArrowLeft size={19} /></button>
       </nav>
 
       <aside id="invite-editor-sidebar" className={`invite-editor-sidebar is-${mobileSheet}`}>
@@ -689,29 +787,44 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
           sheetStart.current = null;
           if (delta < -35) setMobileSheet('expanded');
           if (delta > 35) setMobileSheet('collapsed');
-        }}><i /><button type="button" onClick={() => setMobileSheet('collapsed')} aria-label="Փակել խմբագրման վահանակը"><ChevronDown size={17} /></button></div>
+        }}><i /><button type="button" onClick={() => setMobileSheet('collapsed')} aria-label={t('editorClosePanel')}><ChevronDown size={17} /></button></div>
         <EditorPanel isSingleImageTemplate={isSingleImageTemplate} />
         </div>
-        <footer><button type="button" onClick={() => actions.onBuy?.(data)} disabled={actions.saving}><ShoppingBag size={16} /> Գնել</button></footer>
+        <footer><button type="button" onClick={() => actions.onBuy?.(data)} disabled={actions.saving}><ShoppingBag size={16} /> {t('editorBuy')}</button></footer>
       </aside>
 
       <PreviewWorkspace PreviewComponent={PreviewComponent} />
+
+      {restoreOpen && (
+        <div className="invite-editor-confirm-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setRestoreOpen(false); }}>
+          <section className="invite-editor-confirm" role="alertdialog" aria-modal="true" aria-labelledby="editor-restore-title" aria-describedby="editor-restore-description">
+            <div className="invite-editor-confirm-icon" aria-hidden="true"><RotateCcw size={22} /></div>
+            <h2 id="editor-restore-title">{t('editorRestoreTitle')}</h2>
+            <p id="editor-restore-description">{t('editorRestoreDescription')}</p>
+            <div>
+              <button ref={restoreCancelRef} type="button" onClick={() => setRestoreOpen(false)}>{t('cancel')}</button>
+              <button className="is-destructive" type="button" onClick={confirmRestore}>{t('editorRestoreConfirm')}</button>
+            </div>
+          </section>
+        </div>
+      )}
 
     </section>
   );
 }
 
-export default function InvitationEditor({ draft, initialTarget, template, PreviewComponent, isSingleImageTemplate, saving, onClose, onSave, onPreview, previewPath, onBuy, onDraftChange, onSelectTemplate }) {
+export default function InvitationEditor({ draft, originalDraft, initialTarget, template, PreviewComponent, isSingleImageTemplate, saving, onClose, onDiscard, onRestore, onPreview, previewPath, onBuy, onDraftChange, onSelectTemplate }) {
   const actions = useMemo(() => ({
     saving,
     onClose,
+    onDiscard,
+    onRestore,
     onDraftChange,
     onSelectTemplate,
     previewPath,
-    onSave: async (nextDraft, options) => onSave?.(nextDraft, options),
     onPreview: async (nextDraft) => onPreview?.(nextDraft),
     onBuy: (nextDraft) => onBuy?.(nextDraft)
-  }), [onBuy, onClose, onDraftChange, onPreview, onSave, onSelectTemplate, previewPath, saving]);
+  }), [onBuy, onClose, onDiscard, onDraftChange, onPreview, onRestore, onSelectTemplate, previewPath, saving]);
 
-  return <EditorProvider initialDraft={draft} initialTarget={initialTarget} template={template} actions={actions}><EditorBody PreviewComponent={PreviewComponent} isSingleImageTemplate={isSingleImageTemplate} /></EditorProvider>;
+  return <EditorProvider initialDraft={draft} originalDraft={originalDraft} initialTarget={initialTarget} template={template} actions={actions}><EditorBody PreviewComponent={PreviewComponent} isSingleImageTemplate={isSingleImageTemplate} /></EditorProvider>;
 }

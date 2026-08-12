@@ -3,12 +3,14 @@ import { Check, Palette, RotateCcw } from 'lucide-react';
 import { useEditor } from './EditorContext.jsx';
 import { PanelHeader } from './EditorControls.jsx';
 import { getTemplateColorPalettes } from './editorData.js';
+import { useLanguage } from '../../context/LanguageContext.jsx';
 
 const sameColors = (left = {}, right = {}) => ['accent', 'text', 'overlay']
   .every((key) => String(left[key] || '').toLowerCase() === String(right[key] || '').toLowerCase());
 
 export default function DesignPanel() {
   const { data, template, update } = useEditor();
+  const { language, t } = useLanguage();
   const palettes = getTemplateColorPalettes(template);
   const selectedPalette = data.colorPaletteId
     ? palettes.find((palette) => palette.id === data.colorPaletteId)
@@ -24,14 +26,14 @@ export default function DesignPanel() {
 
   return (
     <div className="invite-editor-panel">
-      <PanelHeader title="Ձևավորում" subtitle={`Ընտրեք այս հրավերի համար պատրաստված ${palettes.length} ներդաշնակ գունային համակարգերից մեկը։`}><Palette size={18} /></PanelHeader>
+      <PanelHeader title={t('editorDesign')} subtitle={t('editorPaletteSubtitle').replace('{count}', palettes.length)}><Palette size={18} /></PanelHeader>
       <section className="invite-editor-card">
         <div className="invite-editor-card-title">
-          <strong>Գունային համակարգ</strong>
-          <button type="button" onClick={restoreTemplateColors}><RotateCcw size={14} /> Վերականգնել</button>
+          <strong>{t('editorColorSystem')}</strong>
+          <button type="button" onClick={restoreTemplateColors}><RotateCcw size={14} /> {t('editorRestore')}</button>
         </div>
-        <div className="invite-editor-palette-list" role="radiogroup" aria-label="Գունային համակարգ">
-          {palettes.map((palette) => {
+        <div className="invite-editor-palette-list" role="radiogroup" aria-label={t('editorColorSystem')}>
+          {palettes.map((palette, index) => {
             const isSelected = selectedPalette?.id === palette.id;
             return (
               <button
@@ -47,7 +49,7 @@ export default function DesignPanel() {
                   <i style={{ background: palette.colors.accent }} />
                   <i style={{ background: palette.colors.text }} />
                 </span>
-                <span><strong>{palette.name}</strong><small>{palette.description}</small></span>
+                <span><strong>{language === 'hy' ? palette.name : `${t('editorPalette')} ${index + 1}`}</strong><small>{language === 'hy' ? palette.description : t('editorPaletteHint')}</small></span>
                 <i className="invite-editor-palette-check" aria-hidden="true">{isSelected && <Check size={15} />}</i>
               </button>
             );

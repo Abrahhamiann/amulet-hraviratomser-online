@@ -15,7 +15,7 @@ import {
   Users,
   X
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import api from '../api/axios.js';
 import ErrorState from '../components/ErrorState.jsx';
@@ -91,7 +91,7 @@ const createInitialDraft = (template) => {
     };
   }
 
-  const gallery = uniqueImages([template.mainImage, ...(template.gallery || [])]);
+  const gallery = uniqueImages(template.gallery || []);
 
   return {
     mainNames: template.title,
@@ -101,7 +101,7 @@ const createInitialDraft = (template) => {
     mapLink: '',
     mapLinks: [],
     eventMessage: '',
-    image: gallery[0] || '',
+    image: template.mainImage || gallery[0] || '',
     gallery,
     colors: defaultColors,
     groomFamilyTitle: '',
@@ -221,6 +221,7 @@ export default function TemplateLivePreviewPage() {
   const directImageInputRef = useRef(null);
   const directImageFieldRef = useRef('');
   const autosaveTokenRef = useRef(previewToken || '');
+  const editorHotspotLabels = useMemo(() => ({ image: t('image'), map: t('map'), edit: t('editorEdit'), changeImage: t('editorChangeImage'), editMap: t('editorEditMap'), editSection: t('editorEditSection'), heroImage: t('editorHeroImage'), galleryImage: t('editorGalleryImage'), participantImage: t('editorParticipantImage'), venueImage: t('editorVenueImage'), closingImage: t('editorClosingImage'), invitationImage: t('editorInvitationImage') }), [t]);
 
   useEffect(() => {
     const request = previewToken ? api.get(`/previews/${previewToken}`) : api.get(`/templates/${id}`);
@@ -231,15 +232,8 @@ export default function TemplateLivePreviewPage() {
           return;
         }
         const nextTemplate = previewToken ? data.template : data;
-        let initialDraft = previewToken ? data.draft : createInitialDraft(nextTemplate);
-        if (!previewToken) {
-          try {
-            const locallySavedDraft = localStorage.getItem(`amulet_autosave_${nextTemplate._id}`);
-            if (locallySavedDraft) initialDraft = JSON.parse(locallySavedDraft);
-          } catch {
-            localStorage.removeItem(`amulet_autosave_${nextTemplate._id}`);
-          }
-        }
+        const initialDraft = previewToken ? data.draft : createInitialDraft(nextTemplate);
+        if (!previewToken) localStorage.removeItem(`amulet_autosave_${nextTemplate._id}`);
         setTemplate(nextTemplate);
         setDraft(initialDraft);
         setIsEdited(Boolean(previewToken));
@@ -274,8 +268,7 @@ export default function TemplateLivePreviewPage() {
     const activateEditorTarget = (event) => {
       if (event.amuletEditorHandled) return;
       const path = event.composedPath();
-      const target = path.find((node) => ['map', 'image'].includes(node?.dataset?.editorKind))
-        || path.find((node) => node?.dataset?.editorKind);
+      const target = path.find((node) => node?.dataset?.editorKind);
       if (!target) return;
       event.amuletEditorHandled = true;
       if (target.dataset.editorKind === 'text' && target.dataset.editorField) {
@@ -314,7 +307,7 @@ export default function TemplateLivePreviewPage() {
       }
     };
     const decorate = () => {
-      decoratePreview(root, draft);
+      decoratePreview(root, draft, { labels: editorHotspotLabels });
       registerEventRoots();
     };
     root.ownerDocument.__amuletEditorInlineCommitHandler = ({ field, value }) => {
@@ -342,10 +335,10 @@ export default function TemplateLivePreviewPage() {
       });
       clearPreviewDecorations(root, { removeStyles: true });
     };
-  }, [draft, editing, isStandalonePreview, state]);
+  }, [draft, editing, editorHotspotLabels, isStandalonePreview, state]);
 
   const cleanDraft = (sourceDraft = draft) => {
-    const cleanGallery = uniqueImages([sourceDraft.image, ...(sourceDraft.gallery || [])])
+    const cleanGallery = uniqueImages(sourceDraft.gallery || [])
       .filter((image) => !isEnvelopeImage(resolveTemplateImage(image)));
     return {
       ...sourceDraft,
@@ -355,44 +348,6 @@ export default function TemplateLivePreviewPage() {
       colors: { ...defaultColors, ...(sourceDraft.colors || {}) },
       gallery: cleanGallery.slice(0, 10)
     };
-  };
-
-  const saveDraft = async (event, sourceDraft = draft, options = {}) => {
-    event?.preventDefault?.();
-    const autosave = options.autosave === true;
-    if (!autosave) setCheckoutState('loading');
-    const nextDraft = cleanDraft(sourceDraft);
-    localStorage.setItem(`amulet_autosave_${template._id}`, JSON.stringify(nextDraft));
-    try {
-      const { data } = await api.post('/previews', {
-        templateId: template._id,
-        draft: nextDraft,
-        previewToken: autosaveTokenRef.current || undefined
-      });
-      autosaveTokenRef.current = data.token;
-      setPrivatePreviewPath(`${data.path}?standalone=1`);
-      setDraft(nextDraft);
-      setIsEdited(true);
-      setCheckoutState('idle');
-      if (!autosave) navigate(data.path, { replace: true });
-      return true;
-    } catch (error) {
-      if (error.response?.status === 401) {
-        localStorage.setItem('amulet_pending_template', template._id);
-        localStorage.setItem('amulet_pending_draft', JSON.stringify(nextDraft));
-        if (autosave) {
-          setDraft(nextDraft);
-          setIsEdited(true);
-          setCheckoutState('idle');
-          return true;
-        }
-        localStorage.setItem('amulet_pending_action', 'preview');
-        window.location.replace('/login');
-        return false;
-      }
-      setCheckoutState('error');
-      return false;
-    }
   };
 
   const openPrivatePreview = async (sourceDraft = draft) => {
@@ -547,9 +502,36 @@ export default function TemplateLivePreviewPage() {
           templateImageOverrides: { ...(current.templateImageOverrides || {}), [field.slice(prefix.length)]: imageValue }
         };
       }
-      return { ...current, image: imageValue, gallery: [imageValue, ...(current.gallery || []).filter((item) => item !== imageValue)] };
+      if (/^gallery\.\d+$/.test(field)) {
+        const index = Number(field.split('.')[1]);
+        const gallery = [...(current.gallery || [])];
+        gallery[index] = imageValue;
+        return { ...current, gallery };
+      }
+      return { ...current, image: imageValue };
     });
     setIsEdited(true);
+  };
+
+  const clearEditorSession = () => {
+    if (!template?._id) return;
+    localStorage.removeItem(`amulet_autosave_${template._id}`);
+    localStorage.removeItem('amulet_pending_draft');
+    localStorage.removeItem('amulet_pending_action');
+    autosaveTokenRef.current = '';
+    setPrivatePreviewPath('');
+  };
+
+  const restoreEditorDraft = (originalDraft) => {
+    clearEditorSession();
+    setDraft(cloneEditorDraft(originalDraft));
+    setIsEdited(false);
+  };
+
+  const discardEditorDraft = (originalDraft) => {
+    restoreEditorDraft(originalDraft);
+    setEditing(false);
+    if (previewToken) navigate(`/templates/${template._id}/live`, { replace: true });
   };
 
   if (state === 'loading') return <Loading text={t('loading')} />;
@@ -557,6 +539,7 @@ export default function TemplateLivePreviewPage() {
 
   const occasionTemplate = getOccasionTemplate(template);
   const LivePreview = occasionTemplate?.LivePreview;
+  const originalEditorDraft = createInitialDraft(template);
   const isSingleImageTemplate = false;
   const image = resolveTemplateImage(draft?.image || template.mainImage || template.gallery?.[0]);
   const formattedDate = draft?.eventDate ? new Date(draft.eventDate).toLocaleDateString() : previewDate.toLocaleDateString();
@@ -603,32 +586,32 @@ export default function TemplateLivePreviewPage() {
         <section className="template-live-prefill-sections">
           {draft?.familyVisible !== false && (draft?.groomFamilyTitle || draft?.brideFamilyTitle) && (
             <div>
-              <span><Users size={18} /> Ընտանեկան տեղեկատվություն</span>
+              <span><Users size={18} /> {t('familyInformation')}</span>
               {draft.groomFamilyTitle && <p>{draft.groomFamilyTitle}</p>}
               {draft.brideFamilyTitle && <p>{draft.brideFamilyTitle}</p>}
             </div>
           )}
           {draft?.openingVisible !== false && draft?.eventMessage && (
             <div>
-              <span><Megaphone size={18} /> Բացման հաղորդագրություն</span>
+              <span><Megaphone size={18} /> {t('editorOpeningMessage')}</span>
               <p>{draft.eventMessage}</p>
             </div>
           )}
           {draft?.dressCodeVisible === true && draft?.dressCode && (
             <div>
-              <span><Palette size={18} /> Հագուստի կանոնակարգ</span>
+              <span><Palette size={18} /> {t('editorDressCode')}</span>
               <p>{draft.dressCode}</p>
             </div>
           )}
           {draft?.questionsVisible !== false && draft?.rsvpQuestion && (
             <div>
-              <span><ClipboardList size={18} /> Հյուրերի հարց</span>
+              <span><ClipboardList size={18} /> {t('guestQuestion')}</span>
               <p>{draft.rsvpQuestion}</p>
             </div>
           )}
           {draft?.finalMessageVisible !== false && draft?.closingMessage && (
             <div>
-              <span><MessageSquare size={18} /> Շնորհակալական նամակ</span>
+              <span><MessageSquare size={18} /> {t('thankYouMessage')}</span>
               <p>{draft.closingMessage}</p>
             </div>
           )}
@@ -640,12 +623,12 @@ export default function TemplateLivePreviewPage() {
             <strong>{Number(template.price).toLocaleString()} AMD</strong>
           </div>
           <div className="template-live-actions">
-            <button className="btn btn-ghost template-home-action" type="button" onClick={() => navigate('/')} aria-label="Գլխավոր էջ" title="Գլխավոր էջ">
+            <button className="btn btn-ghost template-home-action" type="button" onClick={() => navigate('/')} aria-label={t('home')} title={t('home')}>
               <Home size={19} />
             </button>
             <button className="btn btn-ghost template-live-edit" type="button" onClick={openEditor}>
               <Pencil size={18} />
-              Խմբագրել
+              {t('editorEdit')}
             </button>
             <button className="btn btn-primary template-live-order" type="button" onClick={orderTemplate} disabled={checkoutState === 'loading'}>
               <ShoppingBag size={18} />
@@ -697,13 +680,15 @@ export default function TemplateLivePreviewPage() {
         <InvitationEditor
           key={template._id}
           draft={draft}
+          originalDraft={originalEditorDraft}
           initialTarget={editorInitialTarget}
           template={template}
           PreviewComponent={LivePreview}
           isSingleImageTemplate={isSingleImageTemplate}
           saving={checkoutState === 'loading'}
           onClose={() => setEditing(false)}
-          onSave={(nextDraft, options) => saveDraft(null, nextDraft, options)}
+          onDiscard={discardEditorDraft}
+          onRestore={restoreEditorDraft}
           onPreview={openPrivatePreview}
           previewPath={privatePreviewPath}
           onBuy={buyFromEditor}

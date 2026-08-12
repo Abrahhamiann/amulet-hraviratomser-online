@@ -5,7 +5,7 @@ const EditorContext = createContext(null);
 const MAX_HISTORY = 60;
 const getInitialPreviewDevice = () => {
   if (typeof window === 'undefined') return 'desktop';
-  if (window.matchMedia('(max-width: 1024px)').matches) return 'mobile';
+  if (window.matchMedia('(max-width: 600px)').matches) return 'mobile';
   if (window.matchMedia('(max-width: 1180px)').matches) return 'tablet';
   return 'desktop';
 };
@@ -16,6 +16,42 @@ const getInitialMobileSheet = () => {
 };
 
 const createHistory = (draft) => ({ past: [], present: prepareEditorDraft(draft), future: [] });
+
+const getTemplateRsvpDefaults = (template = {}) => {
+  const key = [template.designKey, template.slug, template.title].filter(Boolean).join(' ').toLowerCase();
+  if (key.includes('birthday-sparkle')) return {
+    title: 'Կմիանա՞ք տոնակատարությանը',
+    description: 'Խնդրում եմ տեղեկացնել՝ կմիանա՞ք մեր տոնին։',
+    guestPlaceholder: 'Ձեր անունը',
+    attendingLabel: '✓ Այո, ներկա կլինեմ',
+    notAttendingLabel: '✕ Ցավոք, չեմ կարող գալ',
+    submitLabel: 'Ուղարկել պատասխանը 🎉'
+  };
+  if (key.includes('ivory-vows')) return {
+    title: 'Կտոնե՞ք մեզ հետ',
+    description: 'Խնդրում ենք նախապես հաստատել Ձեր մասնակցությունը։',
+    guestPlaceholder: 'Ձեր անունը',
+    attendingLabel: 'Այո, մեծ սիրով',
+    notAttendingLabel: 'Ցավոք, չեմ կարող',
+    submitLabel: 'Հաստատել մասնակցությունը',
+    deadline: '1 օգոստոսի, 2026'
+  };
+  if (key.includes('sacred-beginnings')) return {
+    title: 'Կտոնե՞ք մեզ հետ',
+    description: 'Խնդրում ենք տեղեկացնել՝ կկարողանա՞ք մեզ միանալ այս առանձնահատուկ օրը։',
+    guestPlaceholder: 'Ձեր անունը',
+    attendingLabel: 'Այո, մեծ սիրով',
+    notAttendingLabel: 'Ցավոք՝ ոչ',
+    submitLabel: 'Հաստատել մասնակցությունը',
+    deadline: 'Խնդրում ենք պատասխանել մինչև 1 սեպտեմբերի, 2026'
+  };
+  return {};
+};
+
+const prepareTemplateDraft = (draft, template) => ({
+  ...draft,
+  rsvpSettings: { ...getTemplateRsvpDefaults(template), ...(draft?.rsvpSettings || {}) }
+});
 
 function historyReducer(state, action) {
   if (action.type === 'reset') return createHistory(action.draft);
@@ -44,20 +80,20 @@ function historyReducer(state, action) {
   };
 }
 
-export function EditorProvider({ initialDraft, initialTarget = {}, template, actions, children }) {
-  const [history, dispatch] = useReducer(historyReducer, initialDraft, createHistory);
+export function EditorProvider({ initialDraft, originalDraft = initialDraft, initialTarget = {}, template, actions, children }) {
+  const [history, dispatch] = useReducer(historyReducer, { draft: initialDraft, template }, ({ draft, template: sourceTemplate }) => createHistory(prepareTemplateDraft(draft, sourceTemplate)));
   const [tab, setTab] = useState(initialTarget.targetTab || 'content');
   const [device, setDevice] = useState(getInitialPreviewDevice);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSheet, setMobileSheet] = useState(getInitialMobileSheet);
   const [activeSection, setActiveSection] = useState(initialTarget.section || 'hero');
   const [activeField, setActiveField] = useState(initialTarget.field || (initialTarget.section ? '' : 'mainNames'));
-  const [previewFocusRequest, setPreviewFocusRequest] = useState({ id: 0, scroll: false });
+  const [previewFocusRequest, setPreviewFocusRequest] = useState({ id: 0, scroll: false, focusSidebar: false });
   const [editableContent, setEditableContent] = useState({ texts: [], images: [] });
   const [saveStatus, setSaveStatus] = useState('idle');
-  const baselineRef = useRef(JSON.stringify(prepareEditorDraft(initialDraft)));
+  const originalDraftRef = useRef(prepareEditorDraft(prepareTemplateDraft(cloneEditorDraft(originalDraft), template)));
+  const baselineRef = useRef(JSON.stringify(originalDraftRef.current));
   const actionsRef = useRef(actions);
-  const autosaveVersionRef = useRef(0);
 
   useEffect(() => {
     actionsRef.current = actions;
@@ -65,37 +101,20 @@ export function EditorProvider({ initialDraft, initialTarget = {}, template, act
 
   useEffect(() => {
     actionsRef.current.onDraftChange?.(history.present);
-    setSaveStatus('saving');
-    const version = ++autosaveVersionRef.current;
-    const snapshot = cloneEditorDraft(history.present);
-    const timer = window.setTimeout(async () => {
-      try {
-        const saved = await actionsRef.current.onSave?.(snapshot, { autosave: true });
-        if (version !== autosaveVersionRef.current) return;
-        if (saved === false) {
-          setSaveStatus('error');
-          return;
-        }
-        baselineRef.current = JSON.stringify(snapshot);
-        setSaveStatus('saved');
-      } catch {
-        if (version === autosaveVersionRef.current) setSaveStatus('error');
-      }
-    }, 800);
-    return () => window.clearTimeout(timer);
+    setSaveStatus(JSON.stringify(history.present) === baselineRef.current ? 'original' : 'changed');
   }, [history.present]);
 
   const dirty = JSON.stringify(history.present) !== baselineRef.current;
   const update = useCallback((change) => dispatch({ type: 'update', change }), []);
   const undo = useCallback(() => dispatch({ type: 'undo' }), []);
   const redo = useCallback(() => dispatch({ type: 'redo' }), []);
-  const focusEditorTarget = useCallback(({ section = 'hero', field = '', targetTab = 'content', scrollPreview = true } = {}) => {
+  const focusEditorTarget = useCallback(({ section = 'hero', field = '', targetTab = 'content', scrollPreview = true, focusSidebar = true } = {}) => {
     setActiveSection(section);
     setActiveField(field);
     setTab(targetTab);
     setSidebarOpen(true);
     setMobileSheet('medium');
-    setPreviewFocusRequest((request) => ({ id: request.id + 1, scroll: scrollPreview }));
+    setPreviewFocusRequest((request) => ({ id: request.id + 1, scroll: scrollPreview, focusSidebar }));
   }, []);
   const registerEditableContent = useCallback((catalog = {}) => {
     setEditableContent((current) => {
@@ -104,17 +123,19 @@ export function EditorProvider({ initialDraft, initialTarget = {}, template, act
     });
   }, []);
 
-  const save = useCallback(async () => {
-    setSaveStatus('saving');
-    const saved = await actionsRef.current.onSave?.(history.present, { autosave: true });
-    if (saved !== false) {
-      baselineRef.current = JSON.stringify(history.present);
-      setSaveStatus('saved');
-    } else {
-      setSaveStatus('error');
-    }
-    return saved;
-  }, [history.present]);
+  const restoreOriginal = useCallback(() => {
+    const restored = cloneEditorDraft(originalDraftRef.current);
+    dispatch({ type: 'reset', draft: restored });
+    setSaveStatus('original');
+    actionsRef.current.onRestore?.(restored);
+    return restored;
+  }, []);
+
+  const discardChanges = useCallback(() => {
+    const restored = cloneEditorDraft(originalDraftRef.current);
+    actionsRef.current.onDiscard?.(restored);
+    return restored;
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -124,14 +145,10 @@ export function EditorProvider({ initialDraft, initialTarget = {}, template, act
         if (event.shiftKey) redo();
         else undo();
       }
-      if (command && event.key.toLowerCase() === 's') {
-        event.preventDefault();
-        void save();
-      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [redo, save, undo]);
+  }, [redo, undo]);
 
   const value = useMemo(() => ({
     data: history.present,
@@ -143,7 +160,8 @@ export function EditorProvider({ initialDraft, initialTarget = {}, template, act
     canUndo: history.past.length > 0,
     canRedo: history.future.length > 0,
     dirty,
-    save,
+    restoreOriginal,
+    discardChanges,
     saveStatus,
     tab,
     setTab,
@@ -159,7 +177,7 @@ export function EditorProvider({ initialDraft, initialTarget = {}, template, act
     focusEditorTarget,
     editableContent,
     registerEditableContent
-  }), [actions, activeField, activeSection, device, dirty, editableContent, focusEditorTarget, history.future.length, history.past.length, history.present, mobileSheet, previewFocusRequest, redo, registerEditableContent, save, saveStatus, sidebarOpen, tab, template, undo, update]);
+  }), [actions, activeField, activeSection, device, dirty, discardChanges, editableContent, focusEditorTarget, history.future.length, history.past.length, history.present, mobileSheet, previewFocusRequest, redo, registerEditableContent, restoreOriginal, saveStatus, sidebarOpen, tab, template, undo, update]);
 
   return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>;
 }

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { deleteTelegramAdminMessages } from '../controllers/telegramController.js';
+import { connectTelegramBot, deleteTelegramAdminMessages } from '../controllers/telegramController.js';
 import ContactMessage from '../models/ContactMessage.js';
+import User from '../models/User.js';
 import { notifyAdminsOfOrder, notifyAdminsOfUnansweredContactMessage } from '../utils/adminTelegram.js';
 import { getTelegramAdminChatIds, isTelegramAdmin } from '../utils/telegram.js';
 
@@ -13,6 +14,8 @@ const ORIGINAL_ENV = {
 };
 const ORIGINAL_FETCH = global.fetch;
 const ORIGINAL_DELETE_MANY = ContactMessage.deleteMany;
+const ORIGINAL_USER_FIND_ONE = User.findOne;
+const ORIGINAL_USER_FIND_ONE_AND_UPDATE = User.findOneAndUpdate;
 
 const restoreEnv = (key, value) => {
   if (value === undefined) delete process.env[key];
@@ -26,10 +29,13 @@ test.afterEach(() => {
   restoreEnv('TELEGRAM_BOT_TOKEN', ORIGINAL_ENV.token);
   global.fetch = ORIGINAL_FETCH;
   ContactMessage.deleteMany = ORIGINAL_DELETE_MANY;
+  User.findOne = ORIGINAL_USER_FIND_ONE;
+  User.findOneAndUpdate = ORIGINAL_USER_FIND_ONE_AND_UPDATE;
 });
 
 test('deletes every contact message from MongoDB for a Telegram administrator', async () => {
   process.env.TELEGRAM_ADMIN_CHAT_IDS = '111';
+  User.findOne = () => ({ select: async () => ({ _id: 'super-admin-user' }) });
   let receivedFilter;
   ContactMessage.deleteMany = async (filter) => {
     receivedFilter = filter;
@@ -55,6 +61,56 @@ test('deletes every contact message from MongoDB for a Telegram administrator', 
     message: 'Contact messages deleted',
     deleted: 7
   });
+});
+
+test('rejects a configured Telegram chat unless it belongs to a linked super administrator', async () => {
+  process.env.TELEGRAM_ADMIN_CHAT_IDS = '111';
+  User.findOne = () => ({ select: async () => null });
+  let deleteCalled = false;
+  ContactMessage.deleteMany = async () => {
+    deleteCalled = true;
+    return { deletedCount: 1 };
+  };
+  const response = {
+    statusCode: 200,
+    status(value) { this.statusCode = value; return this; },
+    json() { return this; }
+  };
+
+  await assert.rejects(
+    deleteTelegramAdminMessages(
+      { body: { chatId: '111' } },
+      response,
+      (error) => { throw error; }
+    ),
+    /Telegram administrator access required/
+  );
+  assert.equal(response.statusCode, 403);
+  assert.equal(deleteCalled, false);
+});
+
+test('rejects Telegram account linking outside a private user chat', async () => {
+  let tokenLookupCalled = false;
+  User.findOneAndUpdate = () => {
+    tokenLookupCalled = true;
+    return { select: async () => null };
+  };
+  const response = {
+    statusCode: 200,
+    status(value) { this.statusCode = value; return this; },
+    json() { return this; }
+  };
+
+  await assert.rejects(
+    connectTelegramBot(
+      { body: { token: 'valid-looking-token', chatId: '111', telegramUserId: '222' } },
+      response,
+      (error) => { throw error; }
+    ),
+    /private chat/
+  );
+  assert.equal(response.statusCode, 400);
+  assert.equal(tokenLookupCalled, false);
 });
 
 test('normalizes, validates, and deduplicates configured Telegram admin IDs', () => {

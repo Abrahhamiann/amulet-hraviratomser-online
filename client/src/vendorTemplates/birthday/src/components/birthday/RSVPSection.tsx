@@ -10,10 +10,20 @@ export type RsvpData = {
   message: string;
 };
 
+type EditorRsvpSettings = {
+  title?: string;
+  description?: string;
+  guestPlaceholder?: string;
+  attendingLabel?: string;
+  notAttendingLabel?: string;
+  submitLabel?: string;
+  askGuestCount?: boolean;
+};
+
 const fieldClass =
   "mt-2 min-h-12 w-full rounded-2xl border border-input bg-card px-4 py-3 font-sans text-base text-foreground placeholder:text-muted-foreground/70 outline-none transition-colors focus:border-gold";
 
-export function RSVPSection({ onSubmit }: { onSubmit?: (data: RsvpData) => void | Promise<void> }) {
+export function RSVPSection({ onSubmit, settings = {}, question = '' }: { onSubmit?: (data: RsvpData) => void | Promise<void>; settings?: EditorRsvpSettings; question?: string }) {
   const [attending, setAttending] = useState<"yes" | "no">("yes");
   const [sent, setSent] = useState(false);
 
@@ -46,10 +56,10 @@ export function RSVPSection({ onSubmit }: { onSubmit?: (data: RsvpData) => void 
             RSVP
           </p>
           <h2 className="mt-4 font-display text-4xl leading-tight sm:text-5xl">
-            Will You Join the Celebration?
+            {settings.title || "Will You Join the Celebration?"}
           </h2>
           <p className="mt-5 font-sans text-base text-muted-foreground">
-            Please let me know if you&rsquo;ll be celebrating with us.
+            {question || settings.description || "Please let me know if you’ll be celebrating with us."}
           </p>
         </Reveal>
 
@@ -101,12 +111,12 @@ export function RSVPSection({ onSubmit }: { onSubmit?: (data: RsvpData) => void 
                       name="fullName"
                       required
                       autoComplete="name"
-                      placeholder="Your name"
+                      placeholder={settings.guestPlaceholder || "Your name"}
                       className={fieldClass}
                     />
                   </div>
 
-                  <div>
+                  {settings.askGuestCount !== false ? <div>
                     <label
                       htmlFor="guests"
                       className="font-sans text-[0.7rem] uppercase tracking-[0.3em] text-muted-foreground"
@@ -123,7 +133,7 @@ export function RSVPSection({ onSubmit }: { onSubmit?: (data: RsvpData) => void 
                       inputMode="numeric"
                       className={fieldClass}
                     />
-                  </div>
+                  </div> : null}
 
                   <fieldset>
                     <legend className="font-sans text-[0.7rem] uppercase tracking-[0.3em] text-muted-foreground">
@@ -132,8 +142,8 @@ export function RSVPSection({ onSubmit }: { onSubmit?: (data: RsvpData) => void 
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
                       {(
                         [
-                          { value: "yes", label: "✓ Yes, I'll be there" },
-                          { value: "no", label: "✕ Unfortunately, I can't come" },
+                          { value: "yes", label: settings.attendingLabel || "✓ Yes, I'll be there" },
+                          { value: "no", label: settings.notAttendingLabel || "✕ Unfortunately, I can't come" },
                         ] as const
                       ).map((opt) => {
                         const on = attending === opt.value;
@@ -188,7 +198,7 @@ export function RSVPSection({ onSubmit }: { onSubmit?: (data: RsvpData) => void 
                       backgroundSize: "200% 100%",
                     }}
                   >
-                    Send RSVP 🎉
+                    {settings.submitLabel || "Send RSVP 🎉"}
                   </button>
                 </motion.form>
               )}

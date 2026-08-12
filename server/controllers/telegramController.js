@@ -6,7 +6,7 @@ import Order from '../models/Order.js';
 import RSVP from '../models/RSVP.js';
 import User from '../models/User.js';
 import { deliverContactReply } from '../utils/contactReply.js';
-import { getTelegramBotHealth, isTelegramAdmin, normalizeTelegramLanguage } from '../utils/telegram.js';
+import { isTelegramAdmin, normalizeTelegramLanguage } from '../utils/telegram.js';
 
 const tokenHash = (token) => crypto.createHash('sha256').update(token).digest('hex');
 const cleanBotUsername = () => (
@@ -41,8 +41,16 @@ const findTelegramUser = async (chatId, res) => {
   return user;
 };
 
-const requireTelegramAdmin = (chatId, res) => {
-  if (isTelegramAdmin(chatId)) return String(chatId);
+const requireTelegramAdmin = async (chatId, res) => {
+  const normalizedChatId = String(chatId || '').trim();
+  const linkedSuperAdmin = isTelegramAdmin(normalizedChatId)
+    ? await User.findOne({
+        role: 'super_admin',
+        'telegram.chatId': normalizedChatId,
+        'telegram.userId': normalizedChatId
+      }).select('_id')
+    : null;
+  if (linkedSuperAdmin) return normalizedChatId;
   res.status(403);
   throw new Error('Telegram administrator access required');
 };
@@ -118,12 +126,11 @@ const invitationPayload = (order, rsvps = []) => {
 export const getTelegramStatus = asyncHandler(async (req, res) => {
   const connected = Boolean(req.user.telegram?.chatId);
   const configured = isBotConfigured();
-  // A completed database link is authoritative. Avoid delaying the UI with a
-  // Telegram network health request immediately after the user presses Start.
-  const available = connected ? configured : (configured ? await getTelegramBotHealth() : false);
   res.json({
     configured,
-    available,
+    // Do not disable account linking because of a transient getMe/network
+    // request. The one-time /start token remains safe even if Telegram is slow.
+    available: configured,
     connected,
     username: cleanBotUsername(),
     displayName: req.user.telegram?.firstName || req.user.telegram?.username || '',
@@ -135,10 +142,6 @@ export const getTelegramStatus = asyncHandler(async (req, res) => {
 
 export const createTelegramLink = asyncHandler(async (req, res) => {
   requireBotConfiguration(res);
-  if (!(await getTelegramBotHealth())) {
-    res.status(503);
-    throw new Error('Telegram service is temporarily unavailable');
-  }
   const language = normalizeTelegramLanguage(req.body?.language);
   const token = crypto.randomBytes(24).toString('base64url');
 
@@ -176,10 +179,21 @@ export const connectTelegramBot = asyncHandler(async (req, res) => {
     throw new Error('Token, chatId and telegramUserId are required');
   }
 
-  const user = await User.findOne({
-    telegramLinkTokenHash: tokenHash(String(token)),
-    telegramLinkExpires: { $gt: new Date() }
-  }).select('+telegramLinkTokenHash +telegramLinkExpires +telegramLinkLanguage');
+  if (String(chatId) !== String(telegramUserId)) {
+    res.status(400);
+    throw new Error('Telegram connection is only allowed from a private chat');
+  }
+
+  // Consume the token atomically so the same deep link cannot be claimed by
+  // two Telegram accounts during concurrent /start requests.
+  const user = await User.findOneAndUpdate(
+    {
+      telegramLinkTokenHash: tokenHash(String(token)),
+      telegramLinkExpires: { $gt: new Date() }
+    },
+    { $set: { telegramLinkTokenHash: '', telegramLinkExpires: null } },
+    { new: true }
+  ).select('+telegramLinkLanguage');
 
   if (!user) {
     res.status(400);
@@ -212,8 +226,6 @@ export const connectTelegramBot = asyncHandler(async (req, res) => {
     notificationsEnabled: true,
     connectedAt: new Date()
   };
-  user.telegramLinkTokenHash = '';
-  user.telegramLinkExpires = null;
   await user.save();
 
   res.json({
@@ -312,7 +324,7 @@ export const disconnectTelegramBot = asyncHandler(async (req, res) => {
 });
 
 export const getTelegramAdminDashboard = asyncHandler(async (req, res) => {
-  requireTelegramAdmin(req.query.chatId, res);
+  await requireTelegramAdmin(req.query.chatId, res);
   const [orders, paidOrders, unpaidOrders, messages, unansweredMessages] = await Promise.all([
     Order.find().populate('templateId').lean(),
     Order.countDocuments({ paymentStatus: 'paid' }),
@@ -335,7 +347,7 @@ export const getTelegramAdminDashboard = asyncHandler(async (req, res) => {
 });
 
 export const getTelegramAdminOrders = asyncHandler(async (req, res) => {
-  requireTelegramAdmin(req.query.chatId, res);
+  await requireTelegramAdmin(req.query.chatId, res);
   const page = pagination(req.query.page);
   const pageSize = 6;
   const [orders, total] = await Promise.all([
@@ -355,7 +367,7 @@ export const getTelegramAdminOrders = asyncHandler(async (req, res) => {
 });
 
 export const getTelegramAdminOrder = asyncHandler(async (req, res) => {
-  requireTelegramAdmin(req.query.chatId, res);
+  await requireTelegramAdmin(req.query.chatId, res);
   const order = await Order.findById(req.params.orderId).populate('templateId invitationId');
   if (!order) {
     res.status(404);
@@ -365,7 +377,7 @@ export const getTelegramAdminOrder = asyncHandler(async (req, res) => {
 });
 
 export const getTelegramAdminMessages = asyncHandler(async (req, res) => {
-  requireTelegramAdmin(req.query.chatId, res);
+  await requireTelegramAdmin(req.query.chatId, res);
   const page = pagination(req.query.page);
   const pageSize = 6;
   const [messages, total] = await Promise.all([
@@ -381,7 +393,7 @@ export const getTelegramAdminMessages = asyncHandler(async (req, res) => {
 });
 
 export const getTelegramAdminMessage = asyncHandler(async (req, res) => {
-  requireTelegramAdmin(req.query.chatId, res);
+  await requireTelegramAdmin(req.query.chatId, res);
   const message = await ContactMessage.findById(req.params.messageId);
   if (!message) {
     res.status(404);
@@ -391,7 +403,7 @@ export const getTelegramAdminMessage = asyncHandler(async (req, res) => {
 });
 
 export const deleteTelegramAdminMessages = asyncHandler(async (req, res) => {
-  requireTelegramAdmin(req.body?.chatId, res);
+  await requireTelegramAdmin(req.body?.chatId, res);
   const result = await ContactMessage.deleteMany({});
   res.json({
     message: 'Contact messages deleted',
@@ -400,7 +412,7 @@ export const deleteTelegramAdminMessages = asyncHandler(async (req, res) => {
 });
 
 export const replyTelegramAdminMessage = asyncHandler(async (req, res) => {
-  const adminChatId = requireTelegramAdmin(req.body?.chatId, res);
+  const adminChatId = await requireTelegramAdmin(req.body?.chatId, res);
   if (!String(req.body?.message || '').trim()) {
     res.status(400);
     throw new Error('Reply message is required');

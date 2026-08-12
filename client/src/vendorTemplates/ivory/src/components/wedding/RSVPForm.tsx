@@ -16,7 +16,19 @@ const schema = z.object({
 const fieldClass =
   "mt-2 w-full min-h-11 border-0 border-b border-border bg-transparent px-0 py-2 text-[0.95rem] text-foreground outline-none transition-colors duration-500 placeholder:text-muted-foreground/60 focus:border-gold";
 
-export function RSVPForm() {
+type EditorRsvpSettings = {
+  title?: string;
+  description?: string;
+  guestPlaceholder?: string;
+  attendingLabel?: string;
+  notAttendingLabel?: string;
+  submitLabel?: string;
+  deadline?: string;
+  askGuestCount?: boolean;
+  askMeal?: boolean;
+};
+
+export function RSVPForm({ settings = {}, question = '' }: { settings?: EditorRsvpSettings; question?: string }) {
   const { rsvp } = wedding;
   const [attending, setAttending] = useState<"yes" | "no">("yes");
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +56,7 @@ export function RSVPForm() {
   return (
     <section className="surface-warm px-5 py-24 sm:py-32">
       <div className="mx-auto max-w-xl">
-        <SectionHeading eyebrow={`Խնդրում ենք պատասխանել մինչև ${rsvp.deadline}`} title="Կտոնե՞ք մեզ հետ" />
+        <SectionHeading eyebrow={question || settings.description || `Խնդրում ենք պատասխանել մինչև ${settings.deadline || rsvp.deadline}`} title={settings.title || "Կտոնե՞ք մեզ հետ"} />
 
         <Reveal delay={120} className="mt-14">
           {sent ? (
@@ -70,7 +82,7 @@ export function RSVPForm() {
                   maxLength={80}
                   required
                   autoComplete="name"
-                  placeholder="Your name"
+                  placeholder={settings.guestPlaceholder || "Your name"}
                   className={fieldClass}
                 />
               </div>
@@ -79,8 +91,8 @@ export function RSVPForm() {
                 <legend className="eyebrow">Will you attend?</legend>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   {[
-                    { value: "yes", label: "Yes, with pleasure" },
-                    { value: "no", label: "Unfortunately, I cannot" },
+                    { value: "yes", label: settings.attendingLabel || "Yes, with pleasure" },
+                    { value: "no", label: settings.notAttendingLabel || "Unfortunately, I cannot" },
                   ].map((option) => (
                     <button
                       key={option.value}
@@ -100,9 +112,9 @@ export function RSVPForm() {
                 </div>
               </fieldset>
 
-              {attending === "yes" ? (
+              {attending === "yes" && (settings.askGuestCount !== false || settings.askMeal === true) ? (
                 <div className="grid gap-10 sm:grid-cols-2">
-                  <div>
+                  {settings.askGuestCount !== false ? <div>
                     <label htmlFor="guests" className="eyebrow">
                       Number of Guests
                     </label>
@@ -113,8 +125,8 @@ export function RSVPForm() {
                         </option>
                       ))}
                     </select>
-                  </div>
-                  <div>
+                  </div> : null}
+                  {settings.askMeal === true ? <div>
                     <label htmlFor="food" className="eyebrow">
                       Food Preference
                     </label>
@@ -125,7 +137,7 @@ export function RSVPForm() {
                         </option>
                       ))}
                     </select>
-                  </div>
+                  </div> : null}
                 </div>
               ) : null}
 
@@ -149,7 +161,7 @@ export function RSVPForm() {
                 type="submit"
                 className="min-h-12 w-full border border-gold bg-gold/10 px-8 text-[0.7rem] tracking-[0.3em] uppercase text-foreground transition-colors duration-500 hover:bg-gold/20"
               >
-                Confirm Attendance
+                {settings.submitLabel || "Confirm Attendance"}
               </button>
             </form>
           )}

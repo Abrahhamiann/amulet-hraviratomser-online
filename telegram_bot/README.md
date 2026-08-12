@@ -28,7 +28,14 @@ python bot.py
 ```
 
 The Node.js API must be running at `TELEGRAM_BOT_API_URL`. For production,
-use the public HTTPS API URL and the public `CLIENT_URL`.
+use the public HTTPS API URL and the public `CLIENT_URL`. The bot is a required
+long-running service: if neither this polling process nor a Telegram webhook is
+running, `/start` links remain pending and website accounts cannot connect.
+
+Opening the bot directly by username never grants administrator access. Direct
+`/start` shows the linked-account flow; the admin panel requires the explicit
+`/admin` command, a configured Telegram chat ID, and a linked Amulet account
+whose role is `super_admin`.
 
 ## Administrator flow
 

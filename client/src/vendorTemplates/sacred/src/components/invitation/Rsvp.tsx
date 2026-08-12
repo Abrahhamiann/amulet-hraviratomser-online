@@ -47,10 +47,10 @@ export function Rsvp({ data }: { data: InvitationData }) {
                 <label htmlFor="rsvp-name" className="mb-2 block text-[0.65rem] tracking-[0.3em] text-muted-foreground uppercase">
                   Full Name
                 </label>
-                <input id="rsvp-name" name="name" required placeholder="Your name" className={inputClass} />
+                <input id="rsvp-name" name="name" required placeholder={data.rsvp.guestPlaceholder || "Your name"} className={inputClass} />
               </div>
 
-              <div>
+              {data.rsvp.askGuestCount !== false ? <div>
                 <label htmlFor="rsvp-guests" className="mb-2 block text-[0.65rem] tracking-[0.3em] text-muted-foreground uppercase">
                   Number of Guests
                 </label>
@@ -63,7 +63,7 @@ export function Rsvp({ data }: { data: InvitationData }) {
                   defaultValue={1}
                   className={inputClass}
                 />
-              </div>
+              </div> : null}
 
               <fieldset>
                 <legend className="mb-2 block text-[0.65rem] tracking-[0.3em] text-muted-foreground uppercase">
@@ -83,11 +83,22 @@ export function Rsvp({ data }: { data: InvitationData }) {
                           : "border-gold/25 text-muted-foreground hover:border-gold/50",
                       )}
                     >
-                      {value === "yes" ? "Joyfully yes" : "Sadly no"}
+                      {value === "yes" ? (data.rsvp.attendingLabel || "Joyfully yes") : (data.rsvp.notAttendingLabel || "Sadly no")}
                     </button>
                   ))}
                 </div>
               </fieldset>
+
+              {data.rsvp.askMeal === true ? <div>
+                <label htmlFor="rsvp-meal" className="mb-2 block text-[0.65rem] tracking-[0.3em] text-muted-foreground uppercase">
+                  Food Preference
+                </label>
+                <select id="rsvp-meal" name="meal" className={inputClass} defaultValue="">
+                  <option value="" disabled>Choose an option</option>
+                  <option>Standard</option>
+                  <option>Vegetarian</option>
+                </select>
+              </div> : null}
 
               <div>
                 <label htmlFor="rsvp-message" className="mb-2 block text-[0.65rem] tracking-[0.3em] text-muted-foreground uppercase">
@@ -107,7 +118,7 @@ export function Rsvp({ data }: { data: InvitationData }) {
                 className="min-h-13 w-full rounded-full py-4 text-[0.72rem] tracking-[0.34em] text-primary-foreground uppercase transition-all duration-500 hover:shadow-[var(--glow-gold)]"
                 style={{ background: "var(--gradient-gold)" }}
               >
-                Confirm Attendance
+                {data.rsvp.submitLabel || "Confirm Attendance"}
               </button>
 
               <p className="pt-2 text-center text-[0.68rem] tracking-[0.2em] text-muted-foreground">

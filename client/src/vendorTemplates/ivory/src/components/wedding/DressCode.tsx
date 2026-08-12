@@ -2,8 +2,9 @@ import { wedding } from "@/data/wedding";
 import { Reveal } from "./Reveal";
 import { SectionHeading } from "./SectionHeading";
 
-export function DressCode() {
-  const { dressCode } = wedding;
+type DressCodeData = typeof wedding.dressCode;
+
+export function DressCode({ dressCode = wedding.dressCode }: { dressCode?: DressCodeData }) {
   return (
     <section className="px-5 py-24 sm:py-32">
       <div className="mx-auto max-w-2xl text-center">

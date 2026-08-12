@@ -12,9 +12,10 @@ const spans = [
   "sm:col-span-1",
 ];
 
-export function Gallery() {
+type GalleryImage = { src: string; alt: string };
+
+export function Gallery({ images = wedding.gallery }: { images?: GalleryImage[] }) {
   const [active, setActive] = useState<number | null>(null);
-  const images = wedding.gallery;
   const activeImage = active === null ? null : images[active];
 
   useEffect(() => {
@@ -31,7 +32,7 @@ export function Gallery() {
   }, [active]);
 
   return (
-    <section className="surface-warm px-5 py-24 sm:py-32">
+    <section data-gallery className="surface-warm px-5 py-24 sm:py-32">
       <div className="mx-auto max-w-5xl">
         <SectionHeading eyebrow="Պահեր" title="Պատկերասրահ" />
 

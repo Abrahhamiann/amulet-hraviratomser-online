@@ -18,7 +18,7 @@ export function Gallery({ photos }: { photos: GalleryPhoto[] }) {
   }, [open]);
 
   return (
-    <section className="relative px-5 py-20 sm:py-28">
+    <section data-gallery className="relative px-5 py-20 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal className="text-center">
           <p className="font-sans text-xs uppercase tracking-[0.45em] text-muted-foreground">

@@ -226,17 +226,12 @@ export default function AccountPage() {
   const connectTelegram = async () => {
     setTelegramState('linking');
     setTelegramError('');
-    const telegramWindow = window.open('about:blank', 'amulet-telegram-connect');
     try {
       const { data } = await api.post('/telegram/link', { language });
-      if (telegramWindow) {
-        telegramWindow.opener = null;
-        telegramWindow.location.replace(data.botUrl);
-      } else {
-        window.location.assign(data.botUrl);
-      }
+      // A top-level navigation preserves Telegram's /start payload on Safari
+      // and Telegram Desktop. Async popup redirects are commonly blocked on macOS.
+      window.location.assign(data.botUrl);
     } catch {
-      if (telegramWindow) telegramWindow.close();
       setTelegramState('error');
       setTelegramError(t('telegramConnectError'));
     }

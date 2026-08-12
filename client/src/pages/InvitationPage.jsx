@@ -14,11 +14,11 @@ import { required, toForm } from '../utils/forms.js';
 
 const isDisplayableImage = (image) => /^(https?:\/\/|data:image\/|\/|asset:)/.test(image);
 
-const normalizeMapLinks = (invitation) => {
+const normalizeMapLinks = (invitation, mapLabel) => {
   const links = Array.isArray(invitation?.mapLinks) ? invitation.mapLinks : [];
   const normalized = links
     .map((item, index) => ({
-      label: String(item?.label || `Քարտեզ ${index + 1}`).trim(),
+      label: String(item?.label || `${mapLabel} ${index + 1}`).trim(),
       time: String(item?.time || '').trim(),
       address: String(item?.address || '').trim(),
       url: String(item?.url || '').trim()
@@ -26,7 +26,7 @@ const normalizeMapLinks = (invitation) => {
     .filter((item) => item.label || item.time || item.address || item.url);
 
   if (invitation?.mapLink && !normalized.some((item) => item.url === invitation.mapLink)) {
-    normalized.unshift({ label: 'Քարտեզ', url: invitation.mapLink });
+    normalized.unshift({ label: mapLabel, url: invitation.mapLink });
   }
 
   return normalized;
@@ -87,7 +87,7 @@ export default function InvitationPage() {
   const PublicView = occasionTemplate?.PublicView;
   const isBaptismTemplate = occasionTemplate?.key === 'sacred-beginnings';
   const isEngagementTemplate = false;
-  const mapLinks = normalizeMapLinks(invitation);
+  const mapLinks = normalizeMapLinks(invitation, t('map'));
   const gallery = (invitation.gallery || []).filter((image) => {
     if (typeof image !== 'string' || !image.trim()) return false;
     if (!PublicView) return true;
@@ -96,19 +96,19 @@ export default function InvitationPage() {
   const rsvpForm = (
     <form className={`panel-form compact test-wedding-rsvp-form${isBaptismTemplate ? ' baptism-live-rsvp-form' : ''}${isEngagementTemplate ? ' engagement-live-rsvp-form' : ''}`} onSubmit={submit}>
       <fieldset className="rsvp-choice-group">
-        <legend>{isBaptismTemplate ? 'Հյուրի կապը' : 'Հյուրի կողմը'}</legend>
-        <label className="rsvp-radio"><input type="radio" name="guestSide" value="bride" defaultChecked /><span>{isBaptismTemplate ? 'Ընտանիքի հյուր' : 'Հարսի կողմ'}</span></label>
-        <label className="rsvp-radio"><input type="radio" name="guestSide" value="groom" /><span>{isBaptismTemplate ? 'Կնքահոր / կնքամոր հյուր' : 'Փեսայի կողմ'}</span></label>
+        <legend>{isBaptismTemplate ? t('guestRelation') : t('guestSide')}</legend>
+        <label className="rsvp-radio"><input type="radio" name="guestSide" value="bride" defaultChecked /><span>{isBaptismTemplate ? t('familyGuest') : t('brideSide')}</span></label>
+        <label className="rsvp-radio"><input type="radio" name="guestSide" value="groom" /><span>{isBaptismTemplate ? t('godparentGuest') : t('groomSide')}</span></label>
       </fieldset>
       <Input label={t('guestName')} name="guestName" error={errors.guestName} />
       <Input label={t('phone')} name="phone" type="tel" error={errors.phone} />
       <fieldset className="rsvp-choice-group">
         <legend>{t('attendance')}</legend>
-        <label className="rsvp-radio"><input type="radio" name="status" value="attending" defaultChecked /><span>Սիրով կմասնակցենք</span></label>
-        <label className="rsvp-radio"><input type="radio" name="status" value="declined" /><span>Ցավոք, չենք կարող ներկա լինել</span></label>
+        <label className="rsvp-radio"><input type="radio" name="status" value="attending" defaultChecked /><span>{t('gladlyAttending')}</span></label>
+        <label className="rsvp-radio"><input type="radio" name="status" value="declined" /><span>{t('regretfullyDeclining')}</span></label>
       </fieldset>
-      <Input label={isBaptismTemplate ? 'Հյուրերի քանակ' : t('guestCount')} name="guestCount" type="number" min="1" defaultValue="1" />
-      <Input label={isBaptismTemplate ? 'Հաղորդագրություն' : t('message')} name="message" as="textarea" rows="3" />
+      <Input label={t('guestCount')} name="guestCount" type="number" min="1" defaultValue="1" />
+      <Input label={t('message')} name="message" as="textarea" rows="3" />
       <Button disabled={rsvpStatus === 'loading'}>{rsvpStatus === 'loading' ? t('loading') : t('submit')}</Button>
       {rsvpStatus === 'error' && <p className="form-error">{t('error')}</p>}
     </form>
@@ -119,10 +119,10 @@ export default function InvitationPage() {
   const successModal = successOpen && (
     <div className="rsvp-success-backdrop" role="dialog" aria-modal="true" aria-labelledby="rsvp-success-title">
       <div className="rsvp-success-modal">
-        <button type="button" onClick={() => setSuccessOpen(false)} aria-label="Close RSVP message"><X size={20} /></button>
+        <button type="button" onClick={() => setSuccessOpen(false)} aria-label={t('close')}><X size={20} /></button>
         <CheckCircle2 size={44} />
-        <h2 id="rsvp-success-title">Ձեր պատասխանը ուղարկվել է</h2>
-        <p>Շնորհակալություն, հրավիրողը կտեսնի Ձեր անունը, հյուրերի քանակը և մեկնաբանությունը իր էջում։</p>
+        <h2 id="rsvp-success-title">{t('rsvpSentTitle')}</h2>
+        <p>{t('rsvpSentText')}</p>
       </div>
     </div>
   );
@@ -212,10 +212,10 @@ export default function InvitationPage() {
       {successOpen && (
         <div className="rsvp-success-backdrop" role="dialog" aria-modal="true" aria-labelledby="rsvp-success-title">
           <div className="rsvp-success-modal">
-            <button type="button" onClick={() => setSuccessOpen(false)} aria-label="Close RSVP message"><X size={20} /></button>
+            <button type="button" onClick={() => setSuccessOpen(false)} aria-label={t('close')}><X size={20} /></button>
             <CheckCircle2 size={44} />
-            <h2 id="rsvp-success-title">Ձեր պատասխանը ուղարկվել է</h2>
-            <p>Շնորհակալություն, հրավիրողը կտեսնի ձեր անունը, հյուրերի քանակը և մեկնաբանությունը իր էջում։</p>
+            <h2 id="rsvp-success-title">{t('rsvpSentTitle')}</h2>
+            <p>{t('rsvpSentText')}</p>
           </div>
         </div>
       )}

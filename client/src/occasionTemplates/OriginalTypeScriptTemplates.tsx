@@ -75,6 +75,24 @@ type Draft = {
   receptionVisible?: boolean;
   questionsVisible?: boolean;
   finalMessageVisible?: boolean;
+  dressCodeVisible?: boolean;
+  groomFamilyTitle?: string;
+  brideFamilyTitle?: string;
+  rsvpQuestion?: string;
+  dressCode?: string;
+  dressCodeColors?: Array<{ name: string; hex: string }>;
+  closingMessage?: string;
+  rsvpSettings?: {
+    title?: string;
+    description?: string;
+    guestPlaceholder?: string;
+    attendingLabel?: string;
+    notAttendingLabel?: string;
+    submitLabel?: string;
+    deadline?: string;
+    askGuestCount?: boolean;
+    askMeal?: boolean;
+  };
 };
 
 type TemplateProps = {
@@ -170,6 +188,9 @@ const applyTemplateOverrides = (root: HTMLDivElement, draft: Draft = {}) => {
     const key = element.dataset.templateTextKey || `text-${index}`;
     if (!element.dataset.templateTextKey) element.dataset.templateTextKey = key;
     if (element.dataset.templateTextDefault === undefined) element.dataset.templateTextDefault = element.textContent || '';
+    // While the user is typing directly on the preview, the MutationObserver
+    // must not restore the last saved value before blur can commit the new one.
+    if (element.classList.contains('is-editor-inline-editing')) return;
     if (Object.prototype.hasOwnProperty.call(textOverrides, key)) {
       const nextValue = String(textOverrides[key] ?? '');
       if (element.textContent !== nextValue) element.textContent = nextValue;
@@ -372,7 +393,24 @@ function SacredBeginningsTemplate(props: TemplateProps) {
       hero: { ...sacredInvitation.hero, dateLabel: draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : sacredInvitation.hero.dateLabel },
       intro: { ...sacredInvitation.intro, subMessage: draft.eventMessage ?? sacredInvitation.intro.subMessage },
       event: { ...sacredInvitation.event, isoDate: draft.eventDate ? `${draft.eventDate}T${draft.eventTime ?? '14:00'}:00+04:00` : '', dateLabel: draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : sacredInvitation.event.dateLabel, timeLabel: draft.eventTime ?? sacredInvitation.event.timeLabel, venue: draft.eventLocation ?? sacredInvitation.event.venue },
-      gallery: gallery.length ? gallery.map((src, index) => ({ src, alt: `${draft.mainNames || sacredInvitation.child.name} ${index + 1}` })) : sacredInvitation.gallery
+      gallery: gallery.length ? gallery.map((src, index) => ({ src, alt: `${draft.mainNames || sacredInvitation.child.name} ${index + 1}` })) : sacredInvitation.gallery,
+      rsvp: {
+        ...sacredInvitation.rsvp,
+        heading: draft.rsvpSettings?.title || sacredInvitation.rsvp.heading,
+        description: draft.rsvpSettings?.description || draft.rsvpQuestion || sacredInvitation.rsvp.description,
+        deadline: draft.rsvpSettings?.deadline || sacredInvitation.rsvp.deadline,
+        guestPlaceholder: draft.rsvpSettings?.guestPlaceholder,
+        attendingLabel: draft.rsvpSettings?.attendingLabel,
+        notAttendingLabel: draft.rsvpSettings?.notAttendingLabel,
+        submitLabel: draft.rsvpSettings?.submitLabel,
+        askGuestCount: draft.rsvpSettings?.askGuestCount,
+        askMeal: draft.rsvpSettings?.askMeal
+      },
+      closing: {
+        ...sacredInvitation.closing,
+        familyName: draft.groomFamilyTitle || sacredInvitation.closing.familyName,
+        message: draft.closingMessage || sacredInvitation.closing.message
+      }
     };
   }, [draft]);
   return (
@@ -406,6 +444,7 @@ function BirthdaySparkleTemplate(props: TemplateProps) {
       timeLabel: draft.eventTime ?? birthdayInvitation.timeLabel,
       venue: draft.eventLocation ?? birthdayInvitation.venue,
       personalMessage: draft.eventMessage ?? birthdayInvitation.personalMessage,
+      dressCode: draft.dressCode || birthdayInvitation.dressCode,
       portrait: { ...birthdayInvitation.portrait, src: image },
       photos: gallery.length ? gallery.map((src, index) => ({ src, alt: `${draft.mainNames || birthdayInvitation.fullName} ${index + 1}`, width: 900, height: 1100 })) : birthdayInvitation.photos
     };
@@ -432,8 +471,8 @@ function BirthdaySparkleTemplate(props: TemplateProps) {
         <BirthdayGallery photos={data.photos} />
         <div className="birthday-message" hidden={draft.heroVisible === false}><BirthdayMessage data={data} /></div>
         <div className="birthday-schedule" hidden={draft.receptionVisible === false}><LocationSection data={data} /></div>
-        <div className="birthday-rsvp" hidden={draft.questionsVisible === false}><RSVPSection onSubmit={handleRsvp} /></div>
-        <div className="birthday-closing" hidden={draft.finalMessageVisible === false}><FinalCelebration data={data} /></div>
+        <div className="birthday-rsvp" hidden={draft.questionsVisible === false}><RSVPSection onSubmit={handleRsvp} settings={draft.rsvpSettings} question={draft.rsvpQuestion} /></div>
+        <div className="birthday-closing" hidden={draft.finalMessageVisible === false}><FinalCelebration data={data} closingMessage={draft.closingMessage} /></div>
         <MusicControl src={musicSource} />
       </main>
     </OriginalTemplateSurface></TemplateShell>
@@ -444,6 +483,16 @@ function IvoryVowsTemplate(props: TemplateProps) {
   const { draft = {} } = props;
   const musicSource = draft.musicEnabled === false ? undefined : (draft.musicUrl || defaultInvitationSong);
   const [ceremony, reception] = wedding.venues;
+  const gallery = useMemo(() => {
+    const images = (draft.gallery || []).map(resolveTemplateImage).filter(Boolean);
+    return images.length
+      ? images.map((src, index) => ({ src, alt: `${draft.mainNames || wedding.couple.groom.name} ${index + 1}` }))
+      : wedding.gallery;
+  }, [draft.gallery, draft.mainNames]);
+  const dressCodeData = useMemo(() => ({
+    text: draft.dressCode || wedding.dressCode.text,
+    colors: draft.dressCodeColors?.length ? draft.dressCodeColors : wedding.dressCode.colors
+  }), [draft.dressCode, draft.dressCodeColors]);
   const customize = useCallback((root: HTMLDivElement) => {
     const explicitNames = String(draft.mainNames ?? '').split(/\s*[&+,·]\s*/, 2);
     const [groom, bride] = explicitNames.length > 1 ? [explicitNames[0] || '', explicitNames[1] || ''] : splitNames(draft.mainNames);
@@ -452,7 +501,9 @@ function IvoryVowsTemplate(props: TemplateProps) {
       [wedding.couple.bride.name]: draft.mainNames !== undefined ? (bride || '') : wedding.couple.bride.name,
       [wedding.date.long]: draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : wedding.date.long,
       [wedding.invitation.note]: draft.eventMessage ?? wedding.invitation.note,
-      [wedding.venues[0]?.name || '']: draft.eventLocation ?? wedding.venues[0]?.name ?? ''
+      [wedding.venues[0]?.name || '']: draft.eventLocation ?? wedding.venues[0]?.name ?? '',
+      [wedding.dressCode.text]: draft.dressCode || wedding.dressCode.text,
+      [wedding.closing.text]: draft.closingMessage || wedding.closing.text
     };
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
     let node = walker.nextNode();
@@ -489,10 +540,10 @@ function IvoryVowsTemplate(props: TemplateProps) {
           {ceremony ? <VenueSection venue={ceremony} /> : null}
           {reception ? <VenueSection venue={reception} reverse /> : null}
         </div>
-        <WeddingGallery />
-        <DressCode />
+        <WeddingGallery images={gallery} />
+        <div className="ivory-dress" hidden={draft.dressCodeVisible === false}><DressCode dressCode={dressCodeData} /></div>
         <ImportantInfo />
-        <div className="ivory-rsvp" hidden={draft.questionsVisible === false}><RSVPForm /></div>
+        <div className="ivory-rsvp" hidden={draft.questionsVisible === false}><RSVPForm settings={draft.rsvpSettings} question={draft.rsvpQuestion} /></div>
         <ContactSection />
         <div className="ivory-closing" hidden={draft.finalMessageVisible === false}><ClosingSection /><WeddingFooter /></div>
         <FloatingActions />
@@ -532,14 +583,14 @@ export const getBirthdaySparkleDraft = () => makeDraft(
   'birthday-sparkle'
 );
 
-export const getIvoryVowsDraft = () => makeDraft(
+export const getIvoryVowsDraft = () => ({ ...makeDraft(
   `${wedding.couple.groom.name} & ${wedding.couple.bride.name}`,
   wedding.date.iso.slice(0, 10),
   wedding.venues[0]?.time || '',
   wedding.venues[0]?.name || '',
   ivoryHero,
   'ivory-vows'
-);
+), dressCode: wedding.dressCode.text, dressCodeColors: wedding.dressCode.colors.map((color) => ({ ...color })) });
 
 function OriginalTemplateCard({ image, title }: { image: string; title: string }) {
   return (

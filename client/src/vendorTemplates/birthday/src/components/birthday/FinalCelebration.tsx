@@ -2,7 +2,7 @@ import type { InvitationConfig } from "@/config/invitation";
 import { FloatingDecorations } from "./FloatingDecorations";
 import { Reveal, RevealScale } from "./Reveal";
 
-export function FinalCelebration({ data }: { data: InvitationConfig }) {
+export function FinalCelebration({ data, closingMessage }: { data: InvitationConfig; closingMessage?: string }) {
   return (
     <section className="relative overflow-hidden px-5 py-28 text-center sm:py-36">
       <div
@@ -26,7 +26,7 @@ export function FinalCelebration({ data }: { data: InvitationConfig }) {
           </p>
         </Reveal>
         <Reveal delay={0.25}>
-          <p className="mt-10 font-display text-2xl sm:text-3xl">Կհանդիպենք տոնակատարությանը</p>
+          <p className="mt-10 font-display text-2xl sm:text-3xl">{closingMessage || "Կհանդիպենք տոնակատարությանը"}</p>
           <span className="gold-rule mx-auto mt-7 block w-24" />
           <p className="mt-7 font-sans text-xs uppercase tracking-[0.4em] text-muted-foreground">
             Սիրով՝

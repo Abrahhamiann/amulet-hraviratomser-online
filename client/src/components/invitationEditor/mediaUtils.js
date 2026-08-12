@@ -4,21 +4,21 @@ export const ACCEPTED_AUDIO_TYPES = new Set(['audio/mpeg', 'audio/mp3', 'audio/w
 
 export const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
   const reader = new FileReader();
-  reader.onerror = () => reject(new Error('Ֆայլը չհաջողվեց կարդալ։'));
+  reader.onerror = () => reject(new Error('mediaFileReadError'));
   reader.onload = () => resolve(String(reader.result || ''));
   reader.readAsDataURL(file);
 });
 
 export const prepareImage = async (file) => {
-  if (!ACCEPTED_IMAGE_TYPES.has(file.type)) throw new Error('Օգտագործեք JPG, PNG կամ WEBP նկար։');
-  if (file.size > 5 * 1024 * 1024) throw new Error('Նկարի առավելագույն չափը 5 MB է։');
+  if (!ACCEPTED_IMAGE_TYPES.has(file.type)) throw new Error('mediaImageTypeError');
+  if (file.size > 5 * 1024 * 1024) throw new Error('mediaImageSizeError');
   const original = await readFileAsDataUrl(file);
   if (original.length <= MAX_STORED_IMAGE_LENGTH) return original;
 
   const image = await new Promise((resolve, reject) => {
     const node = new Image();
     node.onload = () => resolve(node);
-    node.onerror = () => reject(new Error('Նկարը չհաջողվեց մշակել։'));
+    node.onerror = () => reject(new Error('mediaImageProcessError'));
     node.src = original;
   });
   const canvas = document.createElement('canvas');
@@ -38,6 +38,5 @@ export const prepareImage = async (file) => {
     if (quality > .58) quality -= .1;
     else { maxSize = Math.round(maxSize * .82); quality = .78; }
   }
-  throw new Error('Նկարը չափազանց մեծ է պահպանելու համար։');
+  throw new Error('mediaImageStorageError');
 };
-

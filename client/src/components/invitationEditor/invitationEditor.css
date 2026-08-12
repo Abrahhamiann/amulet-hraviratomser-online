@@ -76,6 +76,8 @@
 .invite-editor-top-actions small { max-width: 170px; overflow: hidden; color: var(--editor-muted); font-size: .67rem; text-overflow: ellipsis; white-space: nowrap; }
 .invite-editor-top-actions button:nth-last-child(2) { border-color: var(--editor-ink); background: var(--editor-ink); color: #fff; font-weight: 800; }
 .invite-editor-top-actions button:last-child { padding: 0; border-color: transparent; background: transparent; }
+.invite-editor-top-actions .invite-editor-restore-trigger { color: #9f3d35; }
+.invite-editor-top-actions .invite-editor-restore-trigger:hover { background: #fff2f0; }
 
 .invite-editor-devices {
   justify-self: center;
@@ -127,6 +129,52 @@
 .invite-editor-rail button:hover { background: #f5f3ef; color: var(--editor-ink); }
 .invite-editor-rail button.is-active { background: var(--editor-ink); color: #fff; }
 .invite-editor-rail .invite-editor-back { margin-top: auto; }
+
+.invite-editor-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(20, 18, 16, .46);
+  backdrop-filter: blur(5px);
+  animation: editor-confirm-fade .18s ease-out both;
+}
+.invite-editor-confirm {
+  width: min(430px, 100%);
+  padding: 28px;
+  border: 1px solid rgba(255, 255, 255, .72);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 28px 80px rgba(24, 19, 15, .28);
+  text-align: center;
+  animation: editor-confirm-rise .22s cubic-bezier(.2,.8,.2,1) both;
+}
+.invite-editor-confirm-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 14px;
+  border-radius: 15px;
+  background: #fff0ee;
+  color: #a43d34;
+}
+.invite-editor-confirm h2 { margin: 0; font-size: 1.25rem; line-height: 1.25; }
+.invite-editor-confirm p { margin: 11px auto 22px; color: var(--editor-muted); line-height: 1.65; }
+.invite-editor-confirm > div:last-child { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.invite-editor-confirm button {
+  min-height: 46px;
+  border: 1px solid var(--editor-line);
+  border-radius: 12px;
+  background: #fff;
+  font-weight: 800;
+}
+.invite-editor-confirm button.is-destructive { border-color: #a43d34; background: #a43d34; color: #fff; }
+.invite-editor-confirm button.is-destructive:hover { background: #873029; }
+@keyframes editor-confirm-fade { from { opacity: 0; } }
+@keyframes editor-confirm-rise { from { opacity: 0; transform: translateY(12px) scale(.98); } }
 
 .invite-editor-sidebar {
   grid-column: 2;
@@ -181,6 +229,7 @@
   background: rgba(208, 125, 79, .055);
   animation: inviteEditorFieldFocus .34s ease-out both;
 }
+.invite-editor-section:has(.invite-editor-field.is-editor-active) { border-color: color-mix(in srgb, var(--editor-accent) 72%, var(--editor-line)); }
 .invite-editor-field.is-editor-active > div > :is(input, textarea, select) { border-color: var(--editor-accent); }
 .invite-editor-field > span { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .invite-editor-field b { font-size: .69rem; }
@@ -212,6 +261,8 @@
 .invite-editor-venue-list textarea:focus,
 .invite-editor-venue-list select:focus { border-color: var(--editor-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--editor-accent) 20%, transparent); }
 .invite-editor-grid-two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.invite-editor-template-text-fields { display: grid; gap: 11px; padding-top: 3px; border-top: 1px dashed var(--editor-line); }
+.invite-editor-template-text-fields > .invite-editor-list-heading { padding-top: 8px; }
 
 .invite-editor-list-heading,
 .invite-editor-card-title,
@@ -300,6 +351,20 @@
 .invite-editor-template-image-empty svg { color: var(--editor-accent); }
 .invite-editor-template-image-empty b { color: var(--editor-ink); font-size: .72rem; }
 .invite-editor-template-image-empty small { max-width: 210px; font-size: .61rem; line-height: 1.45; }
+.invite-editor-dress-colors { display: grid; gap: 10px; }
+.invite-editor-dress-colors > article { display: grid; grid-template-columns: 44px minmax(0,1fr) 40px; align-items: end; gap: 8px; padding: 9px; border: 1px solid var(--editor-line); border-radius: 10px; background: #fff; }
+.invite-editor-dress-colors > article > .is-danger { width: 40px; height: 44px; display: grid; place-items: center; padding: 0; border: 1px solid #f0d5d5; border-radius: 9px; background: #fff7f7; color: #ad4040; }
+.invite-editor-color-picker { width: 44px; height: 44px; position: relative; display: block; overflow: hidden; border: 1px solid #d8d2c9; border-radius: 50%; cursor: pointer; }
+.invite-editor-color-picker input { position: absolute; inset: -8px; width: 60px; height: 60px; opacity: 0; cursor: pointer; }
+.invite-editor-color-picker span { position: absolute; inset: 4px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); pointer-events: none; }
+.invite-editor-color-picker:focus-within { outline: 2px solid var(--editor-accent); outline-offset: 2px; }
+.invite-editor-card-description { margin: -2px 0 0; color: var(--editor-muted); font-size: .64rem; line-height: 1.55; }
+.invite-editor-add-gallery { width: 100%; min-height: 58px; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px dashed #c9c3bb; border-radius: 10px; background: #fff; color: var(--editor-ink); text-align: left; }
+.invite-editor-add-gallery > svg { flex: 0 0 auto; color: var(--editor-accent); }
+.invite-editor-add-gallery > span { display: grid; gap: 2px; }
+.invite-editor-add-gallery strong { font-size: .7rem; }
+.invite-editor-add-gallery small { color: var(--editor-muted); font-size: .59rem; }
+.invite-editor-add-gallery:focus-visible { outline: 2px solid var(--editor-accent); outline-offset: 2px; }
 .invite-editor-progress { height: 5px; overflow: hidden; border-radius: 99px; background: #ebe8e3; }
 .invite-editor-progress i { height: 100%; display: block; border-radius: inherit; background: var(--editor-accent); transition: width .18s ease; }
 .invite-editor-hint { display: block; }
@@ -408,6 +473,7 @@
 .invite-editor-preview-scroll [data-editor-section] { scroll-margin-block: 18%; }
 .invite-editor-preview-scroll [data-editor-kind] { position: relative; cursor: pointer; touch-action: manipulation; outline: 2px solid transparent; outline-offset: 5px; transition: outline-color .2s ease, background-color .2s ease; }
 .invite-editor-preview-scroll [data-editor-kind="text"][contenteditable] { border: 0 !important; outline: 0 !important; box-shadow: none !important; cursor: text; caret-color: #d07d4f; user-select: text; -webkit-user-select: text; }
+.invite-editor-preview-scroll [data-editor-kind="text"][contenteditable]:empty { display: inline-block; min-width: 2ch; min-height: 1.25em; }
 .invite-editor-preview-scroll [data-editor-kind="text"]::after { pointer-events: auto; }
 .invite-editor-preview-scroll [data-editor-kind="text"].is-editor-inline-editing { outline-color: #d07d4f; background-color: rgba(208,125,79,.055); }
 .invite-editor-preview-scroll [data-editor-kind="text"].is-editor-inline-editing::after { opacity: 0 !important; }
@@ -449,7 +515,7 @@
   .invite-editor-preview-scroll [data-editor-kind]::after { content: ''; width: 32px; min-height: 32px; padding: 0; background-position: center; opacity: 0; transform: none; }
   .invite-editor-preview-scroll [data-editor-kind]:is(:focus, .is-editor-active)::after { opacity: .92; }
 }
-.invite-editor-preview-scroll .is-editor-active { outline: 2px solid #d07d4f !important; outline-offset: -2px; box-shadow: inset 0 0 0 9999px rgba(208,125,79,.035); }
+.invite-editor-preview-scroll .is-editor-active { outline: 3px solid #d07d4f !important; outline-offset: 5px !important; background-color: rgba(208,125,79,.06) !important; box-shadow: 0 0 0 6px rgba(208,125,79,.15), 0 10px 30px rgba(73,39,20,.14) !important; }
 .invite-editor-preview-scroll .is-editor-section-active { box-shadow: inset 0 0 0 1px rgba(208,125,79,.18); }
 .invite-editor-open-sheet { display: none; }
 
@@ -558,6 +624,8 @@
   .invite-editor-venue-list select,
   .invite-editor-template-search input { min-height: 46px; font-size: 16px; }
   .invite-editor-open-sheet { min-height: 45px; position: absolute; z-index: 22; right: 14px; bottom: 14px; display: inline-flex; align-items: center; gap: 7px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--editor-ink); color: #fff; box-shadow: 0 12px 32px rgba(0,0,0,.25); font-weight: 800; }
+  .invite-editor-field.is-editor-active { scroll-margin-block: 72px; }
+  .invite-editor-preview-scroll [data-editor-kind] { scroll-margin-block: 28%; }
 }
 
 @media (max-width: 480px) {

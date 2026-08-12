@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { CalendarDays, ChevronDown, ChevronUp, Heart, MapPin, MessageSquare, Plus, Trash2 } from 'lucide-react';
+import { CalendarDays, CheckSquare2, ChevronDown, ChevronUp, Heart, MapPin, MessageSquare, Plus, Shirt, Trash2, Users } from 'lucide-react';
 import { useEditor } from './EditorContext.jsx';
 import { CollapsibleSection, Field, PanelHeader, Toggle } from './EditorControls.jsx';
 import { splitNames } from './editorData.js';
+import { useLanguage } from '../../context/LanguageContext.jsx';
 
-const newVenue = (index) => ({ id: `venue-${Date.now()}-${index}`, label: `Վայր ${index + 1}`, time: '18:00', address: '', url: '', subtitle: '', icon: 'location', visible: true });
+const newVenue = (index, label) => ({ id: `venue-${Date.now()}-${index}`, label, time: '18:00', address: '', url: '', subtitle: '', icon: 'location', visible: true });
 
 const createGoogleMapsUrl = (address) => {
   const query = String(address || '').trim();
@@ -19,33 +20,68 @@ const autoGrowTextarea = (textarea) => {
 
 const editorProfiles = {
   wedding: {
-    title: 'Հարսանիքի հրավերի խմբագրում', dualNames: true, firstName: 'Հարսի անունը', secondName: 'Փեսայի անունը', namesLabel: 'Զույգի անունների տեսքը', messageLabel: 'Հարսանեկան հրավերի տեքստ', venueTypes: ['church', 'home', 'party', 'photo', 'location']
+    title: 'editorWeddingTitle', dualNames: true, firstName: 'editorBrideName', secondName: 'editorGroomName', namesLabel: 'editorCoupleNames', messageLabel: 'editorWeddingMessage', venueTypes: ['church', 'home', 'party', 'photo', 'location']
   },
   engagement: {
-    title: 'Նշանադրության հրավերի խմբագրում', dualNames: true, firstName: 'Առաջին անունը', secondName: 'Երկրորդ անունը', namesLabel: 'Զույգի անունների տեսքը', messageLabel: 'Նշանադրության հրավերի տեքստ', venueTypes: ['home', 'party', 'photo', 'location']
+    title: 'editorEngagementTitle', dualNames: true, firstName: 'editorFirstName', secondName: 'editorSecondName', namesLabel: 'editorCoupleNames', messageLabel: 'editorEngagementMessage', venueTypes: ['home', 'party', 'photo', 'location']
   },
   baptism: {
-    title: 'Մկրտության հրավերի խմբագրում', dualNames: false, nameLabel: 'Երեխայի անունը', messageLabel: 'Մկրտության հրավերի տեքստ', venueTypes: ['church', 'home', 'party', 'location']
+    title: 'editorBaptismTitle', dualNames: false, nameLabel: 'editorChildName', messageLabel: 'editorBaptismMessage', venueTypes: ['church', 'home', 'party', 'location']
   },
   birth: {
-    title: 'Ծնունդի հրավերի խմբագրում', dualNames: false, nameLabel: 'Հոբելյարի անունը', messageLabel: 'Ծնունդի հրավերի տեքստ', venueTypes: ['home', 'party', 'location']
+    title: 'editorBirthdayTitle', dualNames: false, nameLabel: 'editorCelebrantName', messageLabel: 'editorBirthdayMessage', venueTypes: ['home', 'party', 'location']
   },
   corporate: {
-    title: 'Կորպորատիվ հրավերի խմբագրում', dualNames: false, nameLabel: 'Միջոցառման անվանումը', messageLabel: 'Կորպորատիվ հրավերի տեքստ', venueTypes: ['party', 'location']
+    title: 'editorCorporateTitle', dualNames: false, nameLabel: 'editorEventName', messageLabel: 'editorCorporateMessage', venueTypes: ['party', 'location']
   }
 };
 
-const venueTypeLabels = {
-  location: 'Վայր', church: 'Եկեղեցի', home: 'Տուն', party: 'Հանդիսություն', photo: 'Ֆոտոսեսիա'
+const normalizeTemplateKey = (template = {}) => [template.designKey, template.slug, template.title]
+  .filter(Boolean).join(' ').toLowerCase();
+
+const getEditorCapabilities = (template = {}) => {
+  const key = normalizeTemplateKey(template);
+  const base = {
+    mainNames: true, eventMessage: true, heroVisible: true, openingVisible: true,
+    family: true, familyVisible: true, groomFamilyTitle: true, brideFamilyTitle: true,
+    schedule: true, eventDate: true, eventTime: true, venues: true, receptionVisible: true,
+    rsvp: true, questionsVisible: true, rsvpDescription: false, rsvpDeadline: false,
+    dress: false, dressCodeVisible: false, closing: true, finalMessageVisible: true
+  };
+  if (key.includes('sacred-beginnings') || key.includes('sacred-baptism')) return {
+    ...base, openingVisible: false, familyVisible: false, brideFamilyTitle: false,
+    venues: false, rsvpDescription: true, rsvpDeadline: true
+  };
+  if (key.includes('birthday-sparkle') || key.includes('sparkle-birthday')) return {
+    ...base, openingVisible: false, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: false, dress: true
+  };
+  if (key.includes('ivory-vows') || key.includes('ivory-wedding')) return {
+    ...base, openingVisible: false, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, eventTime: false, venues: false,
+    dress: true, dressCodeVisible: true, dressPalette: true
+  };
+  if (key.includes('midnight-vows') || key.includes('engagement-serenade') || key.includes('baptism-blessing')) return base;
+  return base;
 };
 
 export default function ContentPanel() {
   const { activeSection, data, editableContent, focusEditorTarget, template, update } = useEditor();
+  const { t } = useLanguage();
   const [openSections, setOpenSections] = useState(['hero', 'schedule']);
   const panelRef = useRef(null);
   const [firstName, secondName] = splitNames(data.mainNames);
   const editorType = String(template?.editorType || template?.category || 'wedding').toLowerCase();
   const profile = editorProfiles[editorType] || editorProfiles.wedding;
+  const capabilities = getEditorCapabilities(template);
+  const isBaptismEditor = editorType === 'baptism';
+  const dressColorNames = new Set((data.dressCodeColors || []).map((color) => String(color?.name || '').trim()).filter(Boolean));
+  const visibleTemplateTexts = editableContent.texts.filter((item) => {
+    if (capabilities.dressPalette && item.section === 'dress' && dressColorNames.has(String(item.defaultValue || '').trim())) return false;
+    if (!isBaptismEditor) return true;
+    const defaultText = String(item.defaultValue || '').replace(/\s+/g, ' ').trim();
+    return defaultText !== 'Կնքահայր և կնքամայր';
+  });
   const toggleOpen = (id) => setOpenSections((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]);
 
   useEffect(() => {
@@ -72,8 +108,23 @@ export default function ContentPanel() {
   const updateTemplateText = (key, value) => update((draft) => {
     draft.templateTextOverrides = { ...(draft.templateTextOverrides || {}), [key]: value };
   });
+  const renderTemplateTextFields = (section) => {
+    const items = visibleTemplateTexts.filter((item) => (item.section || 'templateContent') === section);
+    if (!items.length) return null;
+    return <div className="invite-editor-template-text-fields">
+      <div className="invite-editor-list-heading"><strong>{t('editorTemplateTexts')}</strong><small>{items.length}</small></div>
+      {items.map((item, index) => {
+        const overrides = data.templateTextOverrides || {};
+        const value = Object.prototype.hasOwnProperty.call(overrides, item.key) ? overrides[item.key] : item.defaultValue;
+        const preview = String(item.defaultValue || '').replace(/\s+/g, ' ').trim();
+        return <Field key={item.key} label={preview ? `«${preview.slice(0, 42)}${preview.length > 42 ? '…' : ''}»` : `${t('editorText')} ${index + 1}`} editorField={`templateTextOverrides.${item.key}`}>
+          <textarea rows={value.length > 70 ? 3 : 2} value={value} onChange={(event) => updateTemplateText(item.key, event.target.value)} />
+        </Field>;
+      })}
+    </div>;
+  };
   const updateVenue = (index, field, value) => update((draft) => {
-    const current = draft.mapLinks[index] || newVenue(index);
+    const current = draft.mapLinks[index] || newVenue(index, `${t('editorVenue')} ${index + 1}`);
     const next = { ...current, [field]: value };
     if (field === 'address') {
       const previousAutoUrl = createGoogleMapsUrl(current.address);
@@ -97,7 +148,7 @@ export default function ContentPanel() {
     draft.mapLink = draft.mapLinks[0]?.url || '';
   });
 
-  const sectionProps = (id, title, icon, field) => ({
+  const sectionProps = (id, title, icon, field, canToggle = true) => ({
     id,
     title,
     icon,
@@ -106,76 +157,118 @@ export default function ContentPanel() {
       focusEditorTarget({ section: id, scrollPreview: true });
       toggleOpen(id);
     },
-    enabled: field ? data[field] !== false : undefined,
-    onEnabledChange: field ? (value) => setVisible(field, value) : undefined
+    enabled: field && canToggle ? data[field] !== false : undefined,
+    onEnabledChange: field && canToggle ? (value) => setVisible(field, value) : undefined
   });
 
   return (
     <div ref={panelRef} className="invite-editor-panel" onFocusCapture={handleFieldFocus} onPointerDownCapture={handleFieldFocus} onInputCapture={(event) => autoGrowTextarea(event.target)}>
-      <PanelHeader title={profile.title} subtitle="Փոփոխությունները ավտոմատ պահպանվում և անմիջապես երևում են նախադիտման մեջ։" />
+      <PanelHeader title={t(profile.title)} subtitle={t('editorSessionSubtitle')} />
 
-      <CollapsibleSection {...sectionProps('hero', 'Գլխավոր էկրան', Heart, 'heroVisible')}>
+      <CollapsibleSection {...sectionProps('hero', t('editorMainScreen'), Heart, 'heroVisible')}>
         {profile.dualNames ? (
           <>
             <div className="invite-editor-grid-two">
-              <Field label={profile.firstName} editorField="mainName.0"><input value={firstName} onChange={(event) => updateName(0, event.target.value)} /></Field>
-              <Field label={profile.secondName} editorField="mainName.1"><input value={secondName} onChange={(event) => updateName(1, event.target.value)} /></Field>
+              <Field label={t(profile.firstName)} editorField="mainName.0"><input value={firstName} onChange={(event) => updateName(0, event.target.value)} /></Field>
+              <Field label={t(profile.secondName)} editorField="mainName.1"><input value={secondName} onChange={(event) => updateName(1, event.target.value)} /></Field>
             </div>
-            <Field label={profile.namesLabel} editorField="mainNames">
+            <Field label={t(profile.namesLabel)} editorField="mainNames">
               <input value={data.mainNames || ''} onChange={(event) => setField('mainNames', event.target.value)} />
             </Field>
           </>
         ) : (
-          <Field label={profile.nameLabel} editorField="mainNames">
+          <Field label={t(profile.nameLabel)} editorField="mainNames">
             <input value={data.mainNames || ''} onChange={(event) => setField('mainNames', event.target.value)} />
           </Field>
         )}
-        <Field label={profile.messageLabel} editorField="eventMessage"><textarea rows="4" value={data.eventMessage || ''} onChange={(event) => setField('eventMessage', event.target.value)} /></Field>
+        {capabilities.eventMessage && <Field label={t(profile.messageLabel)} editorField="eventMessage"><textarea rows="4" value={data.eventMessage || ''} onChange={(event) => setField('eventMessage', event.target.value)} /></Field>}
+        {capabilities.openingVisible && <div className="invite-editor-toggle-row"><span>{t('editorShowOpening')}</span><Toggle checked={data.openingVisible !== false} onChange={(value) => setVisible('openingVisible', value)} label={t('editorOpeningMessage')} /></div>}
+        {renderTemplateTextFields('hero')}
       </CollapsibleSection>
 
-      {editableContent.texts.length > 0 && (
-        <CollapsibleSection {...sectionProps('templateContent', 'Շաբլոնի բոլոր տեքստերը', MessageSquare)}>
-          {editableContent.texts.map((item, index) => {
-            const overrides = data.templateTextOverrides || {};
-            const value = Object.prototype.hasOwnProperty.call(overrides, item.key) ? overrides[item.key] : item.defaultValue;
-            return (
-              <Field key={item.key} label={`Տեքստ ${index + 1}`} hint={item.defaultValue.slice(0, 54)} editorField={`templateTextOverrides.${item.key}`}>
-                <textarea rows={value.length > 70 ? 3 : 2} value={value} onChange={(event) => updateTemplateText(item.key, event.target.value)} />
-              </Field>
-            );
-          })}
+      {(capabilities.family || visibleTemplateTexts.some((item) => item.section === 'family')) && <CollapsibleSection {...sectionProps('family', t('editorFamilies'), Users, 'familyVisible', capabilities.familyVisible)}>
+        {capabilities.groomFamilyTitle && <Field label={profile.dualNames ? t('editorFirstFamilyText') : t('editorFamilyText')} hint={t('optional')} editorField="groomFamilyTitle">
+          <textarea rows="2" value={data.groomFamilyTitle || ''} onChange={(event) => setField('groomFamilyTitle', event.target.value)} />
+        </Field>}
+        {profile.dualNames && capabilities.brideFamilyTitle && <Field label={t('editorSecondFamilyText')} hint={t('optional')} editorField="brideFamilyTitle">
+          <textarea rows="2" value={data.brideFamilyTitle || ''} onChange={(event) => setField('brideFamilyTitle', event.target.value)} />
+        </Field>}
+        {renderTemplateTextFields('family')}
+      </CollapsibleSection>}
+
+      {visibleTemplateTexts.some((item) => (item.section || 'templateContent') === 'templateContent') && (
+        <CollapsibleSection {...sectionProps('templateContent', t('editorAllTemplateTexts'), MessageSquare)}>
+          {renderTemplateTextFields('templateContent')}
         </CollapsibleSection>
       )}
 
-      <CollapsibleSection {...sectionProps('schedule', 'Օր, ժամ և ծրագիր', CalendarDays, 'receptionVisible')}>
+      <CollapsibleSection {...sectionProps('schedule', t('editorDateTimeSchedule'), CalendarDays, 'receptionVisible', capabilities.receptionVisible)}>
         <div className="invite-editor-grid-two">
-          <Field label="Ամսաթիվ" editorField="eventDate"><input type="date" value={data.eventDate || ''} onChange={(event) => setField('eventDate', event.target.value)} /></Field>
-          <Field label="Հիմնական ժամ" editorField="eventTime"><input type="time" value={data.eventTime || ''} onChange={(event) => updateVenue(0, 'time', event.target.value)} /></Field>
+          {capabilities.eventDate && <Field label={t('date')} editorField="eventDate"><input type="date" value={data.eventDate || ''} onChange={(event) => setField('eventDate', event.target.value)} /></Field>}
+          {capabilities.eventTime && <Field label={t('editorMainTime')} editorField="eventTime"><input type="time" value={data.eventTime || ''} onChange={(event) => capabilities.venues ? updateVenue(0, 'time', event.target.value) : setField('eventTime', event.target.value)} /></Field>}
         </div>
-        <div className="invite-editor-list-heading"><strong>Միջոցառման ծրագիր</strong><button type="button" onClick={() => update((draft) => { draft.mapLinks.push(newVenue(draft.mapLinks.length)); })}><Plus size={15} /> Ավելացնել</button></div>
+        {!capabilities.venues && <Field label={t('address')} editorField="eventLocation"><textarea rows="2" value={data.eventLocation || ''} onChange={(event) => setField('eventLocation', event.target.value)} /></Field>}
+        {capabilities.venues && <><div className="invite-editor-list-heading"><strong>{t('editorEventSchedule')}</strong><button type="button" onClick={() => update((draft) => { draft.mapLinks.push(newVenue(draft.mapLinks.length, `${t('editorVenue')} ${draft.mapLinks.length + 1}`)); })}><Plus size={15} /> {t('add')}</button></div>
         <div className="invite-editor-venue-list">
           {data.mapLinks.map((item, index) => (
             <article key={item.id || `${item.label}-${index}`}>
               <header><span><MapPin size={14} /> {String(index + 1).padStart(2, '0')}</span><div>
-                <button type="button" disabled={index === 0} onClick={() => moveVenue(index, -1)} aria-label="Տեղափոխել վեր"><ChevronUp size={14} /></button>
-                <button type="button" disabled={index === data.mapLinks.length - 1} onClick={() => moveVenue(index, 1)} aria-label="Տեղափոխել վար"><ChevronDown size={14} /></button>
-                <Toggle checked={item.visible !== false} onChange={(value) => updateVenue(index, 'visible', value)} label={`${item.label} ցուցադրել`} />
+                <button type="button" disabled={index === 0} onClick={() => moveVenue(index, -1)} aria-label={t('moveUp')}><ChevronUp size={14} /></button>
+                <button type="button" disabled={index === data.mapLinks.length - 1} onClick={() => moveVenue(index, 1)} aria-label={t('moveDown')}><ChevronDown size={14} /></button>
+                <Toggle checked={item.visible !== false} onChange={(value) => updateVenue(index, 'visible', value)} label={`${item.label}: ${t('show')}`} />
                 <button type="button" className="is-danger" onClick={() => update((draft) => {
                   draft.mapLinks.splice(index, 1);
-                  if (!draft.mapLinks.length) draft.mapLinks.push(newVenue(0));
+                  if (!draft.mapLinks.length) draft.mapLinks.push(newVenue(0, `${t('editorVenue')} 1`));
                   draft.eventTime = draft.mapLinks[0]?.time || draft.eventTime;
                   draft.eventLocation = draft.mapLinks[0]?.address || draft.eventLocation;
                   draft.mapLink = draft.mapLinks[0]?.url || '';
-                })} aria-label="Ջնջել վայրը"><Trash2 size={14} /></button>
+                })} aria-label={t('editorDeleteVenue')}><Trash2 size={14} /></button>
               </div></header>
-              <Field label="Անվանում" editorField={`mapLinks.${index}.label`}><input value={item.label || ''} onChange={(event) => updateVenue(index, 'label', event.target.value)} /></Field>
-              <div className="invite-editor-grid-two"><Field label="Ժամ" editorField={`mapLinks.${index}.time`}><input type="time" value={item.time || ''} onChange={(event) => updateVenue(index, 'time', event.target.value)} /></Field><Field label="Տեսակ"><select value={profile.venueTypes.includes(item.icon) ? item.icon : profile.venueTypes[0]} onChange={(event) => updateVenue(index, 'icon', event.target.value)}>{profile.venueTypes.map((value) => <option key={value} value={value}>{venueTypeLabels[value]}</option>)}</select></Field></div>
-              <Field label="Ենթավերնագիր" hint="ըստ ցանկության" editorField={`mapLinks.${index}.subtitle`}><input value={item.subtitle || ''} onChange={(event) => updateVenue(index, 'subtitle', event.target.value)} /></Field>
-              <Field label="Հասցե" editorField={`mapLinks.${index}.address`}><textarea rows="2" value={item.address || ''} onChange={(event) => updateVenue(index, 'address', event.target.value)} /></Field>
-              <Field label="Google Maps հղում" editorField={`mapLinks.${index}.url`}><input inputMode="url" value={item.url || ''} onChange={(event) => updateVenue(index, 'url', event.target.value)} /></Field>
+              <Field label={t('name')} editorField={`mapLinks.${index}.label`}><input value={item.label || ''} onChange={(event) => updateVenue(index, 'label', event.target.value)} /></Field>
+              <Field label={t('time')} editorField={`mapLinks.${index}.time`}><input type="time" value={item.time || ''} onChange={(event) => updateVenue(index, 'time', event.target.value)} /></Field>
+              <Field label={t('address')} editorField={`mapLinks.${index}.address`}><textarea rows="2" value={item.address || ''} onChange={(event) => updateVenue(index, 'address', event.target.value)} /></Field>
+              <Field label={t('editorGoogleMapsLink')} editorField={`mapLinks.${index}.url`}><input inputMode="url" value={item.url || ''} onChange={(event) => updateVenue(index, 'url', event.target.value)} /></Field>
             </article>
           ))}
+        </div></>}
+        {renderTemplateTextFields('schedule')}
+      </CollapsibleSection>
+
+      <CollapsibleSection {...sectionProps('rsvp', t('editorRsvp'), CheckSquare2, 'questionsVisible')}>
+        <Field label={t('editorSectionTitle')} editorField="rsvpSettings.title"><input value={data.rsvpSettings?.title || ''} onChange={(event) => update((draft) => { draft.rsvpSettings.title = event.target.value; })} /></Field>
+        {capabilities.rsvpDescription && <Field label={t('description')} editorField="rsvpSettings.description"><textarea rows="2" value={data.rsvpSettings?.description || ''} onChange={(event) => update((draft) => { draft.rsvpSettings.description = event.target.value; })} /></Field>}
+        {capabilities.rsvpDeadline && <Field label={t('editorResponseDeadline')} hint={t('optional')} editorField="rsvpSettings.deadline"><input value={data.rsvpSettings?.deadline || ''} onChange={(event) => update((draft) => { draft.rsvpSettings.deadline = event.target.value; })} /></Field>}
+        <Field label={t('editorGuestNameHint')} editorField="rsvpSettings.guestPlaceholder"><input value={data.rsvpSettings?.guestPlaceholder || ''} onChange={(event) => update((draft) => { draft.rsvpSettings.guestPlaceholder = event.target.value; })} /></Field>
+        <div className="invite-editor-grid-two">
+          <Field label={t('editorAttendingOption')} editorField="rsvpSettings.attendingLabel"><input value={data.rsvpSettings?.attendingLabel || ''} onChange={(event) => update((draft) => { draft.rsvpSettings.attendingLabel = event.target.value; })} /></Field>
+          <Field label={t('editorNotAttendingOption')} editorField="rsvpSettings.notAttendingLabel"><input value={data.rsvpSettings?.notAttendingLabel || ''} onChange={(event) => update((draft) => { draft.rsvpSettings.notAttendingLabel = event.target.value; })} /></Field>
         </div>
+        <Field label={t('editorButtonText')} editorField="rsvpSettings.submitLabel"><input value={data.rsvpSettings?.submitLabel || ''} onChange={(event) => update((draft) => { draft.rsvpSettings.submitLabel = event.target.value; })} /></Field>
+        <Field label={t('editorExtraQuestion')} hint={t('optional')} editorField="rsvpQuestion"><textarea rows="2" value={data.rsvpQuestion || ''} onChange={(event) => setField('rsvpQuestion', event.target.value)} /></Field>
+        <div className="invite-editor-toggle-row"><span>{t('editorAskGuestCount')}</span><Toggle checked={data.rsvpSettings?.askGuestCount !== false} onChange={(value) => update((draft) => { draft.rsvpSettings.askGuestCount = value; })} label={t('guestCount')} /></div>
+        <div className="invite-editor-toggle-row"><span>{t('editorAskMeal')}</span><Toggle checked={data.rsvpSettings?.askMeal === true} onChange={(value) => update((draft) => { draft.rsvpSettings.askMeal = value; })} label={t('editorMealPreference')} /></div>
+        {renderTemplateTextFields('rsvp')}
+      </CollapsibleSection>
+
+      {capabilities.dress && <CollapsibleSection {...sectionProps('dress', t('editorDressCode'), Shirt, 'dressCodeVisible', capabilities.dressCodeVisible)}>
+          <Field label={t('editorDressCode')} editorField="dressCode"><textarea rows="3" value={data.dressCode || ''} onChange={(event) => setField('dressCode', event.target.value)} /></Field>
+          {capabilities.dressPalette && <div className="invite-editor-dress-colors">
+            <div className="invite-editor-list-heading"><strong>{t('editorDressCodeColors')}</strong><button type="button" disabled={(data.dressCodeColors || []).length >= 8} onClick={() => update((draft) => { draft.dressCodeColors.push({ name: t('editorNewColor'), hex: '#d8b98e' }); })}><Plus size={15} /> {t('add')}</button></div>
+            {(data.dressCodeColors || []).map((color, index) => <article key={index} data-editor-field={`dressCodeColors.${index}`}>
+              <label className="invite-editor-color-picker" aria-label={`${t('editorDressColor')} ${index + 1}`}>
+                <input type="color" value={color.hex || '#d8b98e'} onChange={(event) => update((draft) => { draft.dressCodeColors[index].hex = event.target.value; })} />
+                <span style={{ backgroundColor: color.hex || '#d8b98e' }} aria-hidden="true" />
+              </label>
+              <Field label={`${t('editorDressColor')} ${index + 1}`} editorField={`dressCodeColors.${index}.name`}><input value={color.name || ''} onChange={(event) => update((draft) => { draft.dressCodeColors[index].name = event.target.value; })} /></Field>
+              <button type="button" className="is-danger" onClick={() => update((draft) => { draft.dressCodeColors.splice(index, 1); })} aria-label={`${t('delete')}: ${color.name || `${t('editorDressColor')} ${index + 1}`}`}><Trash2 size={15} /></button>
+            </article>)}
+          </div>}
+          {renderTemplateTextFields('dress')}
+        </CollapsibleSection>}
+
+      <CollapsibleSection {...sectionProps('closing', t('editorClosingWords'), MessageSquare, 'finalMessageVisible')}>
+        <Field label={t('editorClosingMessage')} editorField="closingMessage"><textarea rows="3" value={data.closingMessage || ''} onChange={(event) => setField('closingMessage', event.target.value)} /></Field>
+        {renderTemplateTextFields('closing')}
       </CollapsibleSection>
 
     </div>

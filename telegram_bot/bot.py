@@ -66,7 +66,7 @@ def is_admin_chat(chat_id: int | str | None) -> bool:
 def admin_bot_commands() -> list[BotCommand]:
     return [
         BotCommand("admin", "Բացել ադմին պանելը"),
-        BotCommand("start", "Բացել ադմին պանելը"),
+        BotCommand("start", "Ստուգել Amulet կապը"),
         BotCommand("cancel", "Չեղարկել ընթացիկ պատասխանը"),
     ]
 
@@ -456,12 +456,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await show_home(update, context, "welcome")
         return
 
-    if is_admin_chat(update.effective_chat.id):
-        await install_admin_commands(context.bot, update.effective_chat.id)
-        await ensure_admin_reply_keyboard(update)
-        await show_admin_home(update, context)
-        return
-
+    # Opening the bot by username must never imply administrator identity.
+    # Admin access is available only through the explicit /admin command.
     await show_home(update, context, "welcome_back")
 
 

@@ -39,7 +39,17 @@ export type InvitationData = {
     mapUrl: string;
     directionsUrl: string;
   };
-  rsvp: { heading: string; description: string; deadline: string };
+  rsvp: {
+    heading: string;
+    description: string;
+    deadline: string;
+    guestPlaceholder?: string;
+    attendingLabel?: string;
+    notAttendingLabel?: string;
+    submitLabel?: string;
+    askGuestCount?: boolean;
+    askMeal?: boolean;
+  };
   closing: { signature: string; message: string; familyName: string };
 };
 

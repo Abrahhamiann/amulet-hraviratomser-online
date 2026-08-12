@@ -12,7 +12,7 @@ export const builtInTracks = [
   { id: 'river-flows', title: 'River Flows in You', artist: 'Yiruma', meta: 'Amulet ընտրանի', src: baptismSong }
 ];
 
-export const normalizeInvitationGallery = (image, gallery = []) => [image, ...(Array.isArray(gallery) ? gallery : [])]
+export const normalizeInvitationGallery = (_image, gallery = []) => (Array.isArray(gallery) ? gallery : [])
   .filter((item, index, items) => item && items.indexOf(item) === index)
   .slice(0, MAX_GALLERY_IMAGES);
 
@@ -132,6 +132,15 @@ const defaultRsvp = {
   askMeal: false
 };
 
+const defaultDressCodeColors = [
+  { name: 'Փղոսկրագույն', hex: '#F4EEE4' },
+  { name: 'Շամպայն', hex: '#E4CFA8' },
+  { name: 'Ավազագույն', hex: '#D3BC9A' },
+  { name: 'Կավագույն', hex: '#B79274' },
+  { name: 'Ձիթապտղային', hex: '#8C9179' },
+  { name: 'Էսպրեսո', hex: '#5B4636' }
+];
+
 export const cloneEditorDraft = (value) => {
   if (typeof structuredClone === 'function') return structuredClone(value);
   return JSON.parse(JSON.stringify(value));
@@ -176,7 +185,19 @@ export const prepareEditorDraft = (draft = {}) => ({
   openingVisible: draft.openingVisible !== false,
   receptionVisible: draft.receptionVisible !== false,
   questionsVisible: draft.questionsVisible !== false,
-  finalMessageVisible: draft.finalMessageVisible !== false
+  finalMessageVisible: draft.finalMessageVisible !== false,
+  dressCodeVisible: draft.dressCodeVisible !== false,
+  groomFamilyTitle: draft.groomFamilyTitle || '',
+  brideFamilyTitle: draft.brideFamilyTitle || '',
+  rsvpQuestion: draft.rsvpQuestion || '',
+  dressCode: draft.dressCode || '',
+  dressCodeColors: Array.isArray(draft.dressCodeColors)
+    ? draft.dressCodeColors.slice(0, 8).map((color, index) => ({
+      name: String(color?.name || `Color ${index + 1}`),
+      hex: /^#[0-9a-f]{6}$/i.test(String(color?.hex || '')) ? color.hex : '#d8b98e'
+    }))
+    : defaultDressCodeColors.map((color) => ({ ...color })),
+  closingMessage: draft.closingMessage ?? 'Սիրով սպասում ենք Ձեզ։'
 });
 
 export const splitNames = (value = '') => {
