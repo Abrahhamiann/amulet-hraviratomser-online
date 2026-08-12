@@ -4,7 +4,7 @@ const rsvpSchema = new mongoose.Schema(
   {
     invitationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Invitation', required: true },
     guestName: { type: String, required: true },
-    phone: { type: String, required: true },
+    phone: { type: String, default: '' },
     guestSide: {
       type: String,
       enum: ['bride', 'groom', 'other'],

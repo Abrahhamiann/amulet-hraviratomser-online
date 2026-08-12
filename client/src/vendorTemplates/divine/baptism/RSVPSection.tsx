@@ -10,13 +10,40 @@ const fieldClass =
 const labelClass =
   "font-body mb-2 block text-[0.6rem] tracking-[0.28em] text-muted-foreground uppercase";
 
-export function RSVPSection() {
+type RsvpSubmit = (data: {
+  guestName: string;
+  phone?: string;
+  status: "attending" | "declined";
+  guestCount: number;
+  message: string;
+}) => Promise<unknown>;
+
+export function RSVPSection({ onSubmit }: { onSubmit?: RsvpSubmit }) {
   const [attending, setAttending] = useState<"yes" | "no" | null>(null);
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSent(true);
+    if (!attending) return;
+    const form = new FormData(e.currentTarget);
+    setSubmitting(true);
+    setError(null);
+    try {
+      await onSubmit?.({
+        guestName: String(form.get("name") || "").trim(),
+        phone: String(form.get("phone") || "").trim(),
+        status: attending === "yes" ? "attending" : "declined",
+        guestCount: Number(form.get("guests") || 1),
+        message: String(form.get("note") || "").trim()
+      });
+      setSent(true);
+    } catch {
+      setError("Չհաջողվեց ուղարկել պատասխանը։ Խնդրում ենք փորձել կրկին։");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -116,12 +143,14 @@ export function RSVPSection() {
                   <textarea id="rsvp-note" name="note" rows={3} className={`${fieldClass} resize-none`} />
                 </div>
 
+                {error ? <p role="alert" className="font-body text-sm" style={{ color: "var(--destructive, #b42318)" }}>{error}</p> : null}
+
                 <button
                   type="submit"
-                  disabled={attending === null}
+                  disabled={attending === null || submitting}
                   className="font-body w-full rounded-full border border-gold/60 bg-gradient-to-r from-gold-soft/70 to-gold/60 px-6 py-4 text-xs tracking-[0.28em] text-foreground uppercase transition-all duration-500 hover:shadow-halo disabled:cursor-not-allowed disabled:opacity-45"
                 >
-                  Ուղարկել
+                  {submitting ? "Ուղարկվում է…" : "Ուղարկել"}
                 </button>
               </motion.form>
             )}

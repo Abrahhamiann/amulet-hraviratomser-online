@@ -1194,54 +1194,6 @@ body.templates-route .template-type-dock {
 .test-wedding-rsvp-real {
   min-height: auto;
 }
-.test-wedding-rsvp-form {
-  width: min(760px, 100%);
-  padding: 12px 0 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  text-align: left;
-}
-.test-wedding-rsvp-form .field {
-  color: #2f343b;
-}
-.test-wedding-rsvp-form .input {
-  border-color: rgba(31,35,40,.22);
-  background: rgba(255,255,255,.56);
-}
-.test-wedding-rsvp-form .btn {
-  min-width: 190px;
-  border-radius: 999px;
-}
-.test-wedding-rsvp-form .form-error {
-  align-self: center;
-  font-weight: 800;
-}
-.test-wedding-rsvp-form .rsvp-choice-group {
-  display: grid;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-.test-wedding-rsvp-form .rsvp-choice-group legend {
-  margin-bottom: 2px;
-  color: inherit;
-  font-weight: 850;
-}
-.test-wedding-rsvp-form .rsvp-radio {
-  min-height: 34px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-.test-wedding-rsvp-form .rsvp-radio input {
-  width: 19px;
-  height: 19px;
-  flex: 0 0 auto;
-  accent-color: #d8b98e;
-}
 .test-wedding-public .test-wedding-actions {
   background: #fff;
 }
@@ -1292,9 +1244,6 @@ html[lang="hy"] .test-wedding-card-preview em {
   }
   .test-wedding-actions > div:last-child {
     justify-content: stretch;
-  }
-  .test-wedding-rsvp-form {
-    grid-template-columns: 1fr;
   }
 }
 .payment-success-page {

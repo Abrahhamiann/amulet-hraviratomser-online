@@ -231,16 +231,19 @@ export const truncateTelegramText = truncate;
 
 export const notifyInvitationOwnerOfRsvp = async (invitation, rsvp) => {
   let order = invitation.orderId
-    ? await Order.findById(invitation.orderId).select('email mainNames preferredLanguage')
+    ? await Order.findById(invitation.orderId).select('userId email mainNames preferredLanguage')
     : null;
   if (!order) {
     order = await Order.findOne({ invitationId: invitation._id })
-      .select('email mainNames preferredLanguage');
+      .select('userId email mainNames preferredLanguage');
   }
-  if (!order?.email) return false;
+  if (!order?.userId && !order?.email) return false;
 
+  const ownerQuery = order.userId
+    ? { _id: order.userId }
+    : { email: order.email.toLowerCase() };
   const user = await User.findOne({
-    email: order.email.toLowerCase(),
+    ...ownerQuery,
     'telegram.chatId': { $ne: '' },
     'telegram.notificationsEnabled': { $ne: false }
   });
@@ -260,10 +263,10 @@ export const notifyInvitationOwnerOfRsvp = async (invitation, rsvp) => {
     `<b>${copy.invitation}:</b> ${escapeHtml(invitation.names || order.mainNames)}`,
     `<b>${copy.guest}:</b> ${escapeHtml(rsvp.guestName)}`,
     `<b>${copy.status}:</b> ${escapeHtml(status)}`,
-    `<b>${copy.count}:</b> ${Number(rsvp.guestCount) || 1}`,
-    `<b>${copy.phone}:</b> ${escapeHtml(rsvp.phone)}`
+    `<b>${copy.count}:</b> ${Number(rsvp.guestCount) || 1}`
   ];
 
+  if (rsvp.phone) lines.push(`<b>${copy.phone}:</b> ${escapeHtml(rsvp.phone)}`);
   if (rsvp.message) lines.push(`<b>${copy.message}:</b> ${escapeHtml(truncate(rsvp.message))}`);
 
   const messageOptions = isPublicWebUrl(detailsUrl)

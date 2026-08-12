@@ -16,12 +16,20 @@ const rsvpSchema = z.object({
   message: z.string().trim().max(500).optional(),
 });
 
-export function RSVPForm({ rsvp }: { rsvp: WeddingConfig["rsvp"] }) {
+type RsvpSubmit = (data: {
+  guestName: string;
+  status: "attending" | "declined";
+  guestCount: number;
+  message: string;
+}) => Promise<unknown>;
+
+export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSubmit?: RsvpSubmit }) {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [attending, setAttending] = useState<"yes" | "no">("yes");
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.currentTarget));
     const parsed = rsvpSchema.safeParse({ ...data, attending });
@@ -30,7 +38,20 @@ export function RSVPForm({ rsvp }: { rsvp: WeddingConfig["rsvp"] }) {
       return;
     }
     setError(null);
-    setSent(true);
+    setSubmitting(true);
+    try {
+      await onSubmit?.({
+        guestName: parsed.data.name,
+        status: parsed.data.attending === "yes" ? "attending" : "declined",
+        guestCount: parsed.data.guests,
+        message: [parsed.data.message || "", parsed.data.meal ? `Meal preference: ${parsed.data.meal}` : ""].filter(Boolean).join("\n")
+      });
+      setSent(true);
+    } catch {
+      setError("Չհաջողվեց ուղարկել պատասխանը։ Խնդրում ենք փորձել կրկին։");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -170,8 +191,8 @@ export function RSVPForm({ rsvp }: { rsvp: WeddingConfig["rsvp"] }) {
               {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
               <div className="text-center">
-                <button type="submit" className="btn-gold w-full sm:w-auto">
-                  Send RSVP
+                <button type="submit" disabled={submitting} className="btn-gold w-full sm:w-auto disabled:cursor-not-allowed disabled:opacity-50">
+                  {submitting ? "Ուղարկվում է…" : "Send RSVP"}
                 </button>
                 <p className="mt-6 text-xs tracking-[0.2em] uppercase text-muted-foreground">
                   {rsvp.deadline}

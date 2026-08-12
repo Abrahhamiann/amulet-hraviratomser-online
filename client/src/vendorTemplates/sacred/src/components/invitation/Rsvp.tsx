@@ -7,13 +7,40 @@ import type { InvitationData } from "@/data/invitation";
 const inputClass =
   "w-full rounded-2xl border border-gold/30 bg-[color-mix(in_oklab,var(--ivory)_75%,transparent)] px-5 py-4 text-base text-foreground placeholder:text-muted-foreground/70 outline-none transition-all duration-500 focus:border-gold/70 focus:shadow-[var(--glow-gold)]";
 
-export function Rsvp({ data }: { data: InvitationData }) {
+type RsvpSubmit = (data: {
+  guestName: string;
+  phone?: string;
+  status: "attending" | "declined";
+  guestCount: number;
+  message: string;
+}) => Promise<unknown>;
+
+export function Rsvp({ data, onSubmit }: { data: InvitationData; onSubmit?: RsvpSubmit }) {
   const [attending, setAttending] = useState<"yes" | "no">("yes");
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSent(true);
+    const form = new FormData(e.currentTarget);
+    const meal = String(form.get("meal") || "").trim();
+    const message = String(form.get("message") || "").trim();
+    setSubmitting(true);
+    setError(null);
+    try {
+      await onSubmit?.({
+        guestName: String(form.get("name") || "").trim(),
+        status: attending === "yes" ? "attending" : "declined",
+        guestCount: Number(form.get("guests") || 1),
+        message: [message, meal ? `Food preference: ${meal}` : ""].filter(Boolean).join("\n")
+      });
+      setSent(true);
+    } catch {
+      setError("Չհաջողվեց ուղարկել պատասխանը։ Խնդրում ենք փորձել կրկին։");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -42,7 +69,7 @@ export function Rsvp({ data }: { data: InvitationData }) {
           </Reveal>
         ) : (
           <Reveal delay={160}>
-            <form onSubmit={onSubmit} className="mt-12 space-y-5">
+            <form onSubmit={submit} className="mt-12 space-y-5">
               <div>
                 <label htmlFor="rsvp-name" className="mb-2 block text-[0.65rem] tracking-[0.3em] text-muted-foreground uppercase">
                   Full Name
@@ -113,12 +140,15 @@ export function Rsvp({ data }: { data: InvitationData }) {
                 />
               </div>
 
+              {error ? <p role="alert" className="text-sm" style={{ color: "var(--destructive, #b42318)" }}>{error}</p> : null}
+
               <button
                 type="submit"
+                disabled={submitting}
                 className="min-h-13 w-full rounded-full py-4 text-[0.72rem] tracking-[0.34em] text-primary-foreground uppercase transition-all duration-500 hover:shadow-[var(--glow-gold)]"
                 style={{ background: "var(--gradient-gold)" }}
               >
-                {data.rsvp.submitLabel || "Confirm Attendance"}
+                {submitting ? "Ուղարկվում է…" : (data.rsvp.submitLabel || "Confirm Attendance")}
               </button>
 
               <p className="pt-2 text-center text-[0.68rem] tracking-[0.2em] text-muted-foreground">

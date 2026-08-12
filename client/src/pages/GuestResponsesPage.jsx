@@ -289,7 +289,7 @@ export default function GuestResponsesPage() {
                           {t('guestResponsesGuestCount').replace('{count}', Number(rsvp.guestCount || 1))}
                         </span>
                         {guestSide && <span><CheckCircle2 size={17} /> {guestSide}</span>}
-                        <a href={`tel:${rsvp.phone}`}><Phone size={17} /> {rsvp.phone}</a>
+                        {rsvp.phone && <a href={`tel:${rsvp.phone}`}><Phone size={17} /> {rsvp.phone}</a>}
                       </div>
 
                       {rsvp.message && (

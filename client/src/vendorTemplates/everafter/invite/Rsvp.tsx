@@ -4,21 +4,43 @@ import { Check, Minus, Plus } from "lucide-react";
 import { GoldRule, Reveal, Section, SectionTitle, TwinRings } from "./decor";
 
 type Answer = "accept" | "decline" | null;
+type RsvpSubmit = (data: {
+  guestName: string;
+  status: "attending" | "declined";
+  guestCount: number;
+  message: string;
+}) => Promise<unknown>;
 
 const fieldClass =
   "peer w-full rounded-xl border border-gold/35 bg-card/70 px-4 py-3.5 font-sans text-sm text-foreground outline-none transition-all duration-500 ease-[var(--ease-silk)] placeholder:text-muted-foreground/70 focus:border-gold focus:shadow-[0_0_0_4px_color-mix(in_oklab,var(--gold)_18%,transparent)]";
 
-export function Rsvp() {
+export function Rsvp({ onSubmit }: { onSubmit?: RsvpSubmit }) {
   const [answer, setAnswer] = useState<Answer>(null);
   const [guests, setGuests] = useState(2);
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !answer) return;
-    setSent(true);
+    setSubmitting(true);
+    setError(null);
+    try {
+      await onSubmit?.({
+        guestName: name.trim(),
+        status: answer === "accept" ? "attending" : "declined",
+        guestCount: guests,
+        message: message.trim()
+      });
+      setSent(true);
+    } catch {
+      setError("Չհաջողվեց ուղարկել պատասխանը։ Խնդրում ենք փորձել կրկին։");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -158,13 +180,15 @@ export function Rsvp() {
                   />
                 </div>
 
+                {error ? <p role="alert" className="text-sm" style={{ color: "var(--destructive, #b42318)" }}>{error}</p> : null}
+
                 <button
                   type="submit"
-                  disabled={!name.trim() || !answer}
+                  disabled={!name.trim() || !answer || submitting}
                   className="group relative w-full overflow-hidden rounded-full border border-gold/60 px-8 py-4 text-[0.7rem] uppercase tracking-[0.35em] text-foreground transition-opacity duration-500 disabled:opacity-45"
                 >
                   <span className="absolute inset-0 translate-y-full bg-[var(--gradient-gold)] transition-transform duration-600 ease-[var(--ease-silk)] group-enabled:group-hover:translate-y-0" />
-                  <span className="relative">Send Our Reply</span>
+                  <span className="relative">{submitting ? "Ուղարկվում է…" : "Send Our Reply"}</span>
                 </button>
               </motion.form>
             )}

@@ -168,7 +168,16 @@ type TemplateProps = {
   onEdit?: () => void;
   onOrder?: () => void;
   actions?: ReactNode;
-  rsvpForm?: ReactNode;
+  onRsvpSubmit?: (data: TemplateRsvpData) => Promise<unknown>;
+};
+
+export type TemplateRsvpData = {
+  guestName: string;
+  phone?: string;
+  status: 'attending' | 'declined' | 'unsure';
+  guestCount?: number;
+  guestSide?: 'bride' | 'groom' | 'other';
+  message?: string;
 };
 
 const UI_TRANSLATIONS: Record<string, string> = {
@@ -480,9 +489,8 @@ function TemplateShell({ children, props }: { children: ReactNode; props: Templa
     <div className="original-ts-template-shell">
       {children}
       {props.mode !== 'public' && props.mode !== 'studio' ? <PreviewActions {...props} /> : null}
-      {props.mode === 'public' && (props.actions || props.rsvpForm) ? (
+      {props.mode === 'public' && props.actions ? (
         <section className="original-template-public-extras">
-          {props.rsvpForm ? <div className="original-template-rsvp">{props.rsvpForm}</div> : null}
           {props.actions ? <div className="original-template-public-actions">{props.actions}</div> : null}
         </section>
       ) : null}
@@ -529,7 +537,7 @@ function SacredBeginningsTemplate(props: TemplateProps) {
       fontImport={'@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap");'}
       label="Սուրբ սկիզբ մկրտության հրավեր"
     >
-      <BaptismInvitation data={data} visibility={draft} />
+      <BaptismInvitation data={data} visibility={draft} onRsvpSubmit={props.onRsvpSubmit} />
       <MusicControl src={musicSource} />
     </OriginalTemplateSurface></TemplateShell>
   );
@@ -540,7 +548,7 @@ function BirthdaySparkleTemplate(props: TemplateProps) {
   const musicSource = draft.musicEnabled === false ? undefined : (draft.musicUrl || defaultInvitationSong);
   const [revealed, setRevealed] = useState(false);
   const onIntroDone = useCallback(() => setRevealed(true), []);
-  const handleRsvp = useCallback((_data: RsvpData) => undefined, []);
+  const handleRsvp = useCallback((data: RsvpData) => props.onRsvpSubmit?.(data), [props.onRsvpSubmit]);
   const data = useMemo<InvitationConfig>(() => {
     const image = resolveTemplateImage(draft.image) || birthdayInvitation.portrait.src;
     const gallery = (draft.gallery || []).map(resolveTemplateImage).filter(Boolean);
@@ -652,7 +660,7 @@ function IvoryVowsTemplate(props: TemplateProps) {
         <WeddingGallery images={gallery} />
         <div className="ivory-dress" hidden={draft.dressCodeVisible === false}><DressCode dressCode={dressCodeData} /></div>
         <ImportantInfo />
-        <div className="ivory-rsvp" hidden={draft.questionsVisible === false}><RSVPForm settings={draft.rsvpSettings} question={draft.rsvpQuestion} /></div>
+        <div className="ivory-rsvp" hidden={draft.questionsVisible === false}><RSVPForm settings={draft.rsvpSettings} question={draft.rsvpQuestion} onSubmit={props.onRsvpSubmit} /></div>
         <ContactSection />
         <div className="ivory-closing" hidden={draft.finalMessageVisible === false}><ClosingSection /><WeddingFooter /></div>
         <FloatingActions />
@@ -706,7 +714,7 @@ function DivineBlessingTemplate(props: TemplateProps) {
         <DivineGallery /><DivineQuote /><DivineCurve />
         <div className="divine-schedule" hidden={draft.receptionVisible === false}><DivineLocation /></div>
         <DivineDivider symbol="cross" />
-        <div className="divine-rsvp" hidden={draft.questionsVisible === false}><DivineRsvp /></div>
+        <div className="divine-rsvp" hidden={draft.questionsVisible === false}><DivineRsvp onSubmit={props.onRsvpSubmit} /></div>
         <div className="divine-closing" hidden={draft.finalMessageVisible === false}><DivineFooter /></div>
         <DivineMusic src={draft.musicEnabled === false ? undefined : (draft.musicUrl || defaultInvitationSong)} />
       </main>
@@ -798,7 +806,7 @@ function ElevateInviteTemplate(props: TemplateProps) {
         <ElevatePurpose data={data} /><ElevateSpeakers data={data} /><ElevateStats data={data} /><ElevateGallery data={data} />
         <div className="elevate-schedule" hidden={draft.receptionVisible === false}><ElevateVenue data={data} /></div>
         <div className="elevate-dress" hidden={draft.dressCodeVisible === false}><ElevateDressCode data={data} /></div>
-        <div className="elevate-rsvp" hidden={draft.questionsVisible === false}><ElevateRsvp data={data} /></div>
+        <div className="elevate-rsvp" hidden={draft.questionsVisible === false}><ElevateRsvp data={data} onSubmit={props.onRsvpSubmit} /></div>
         <ElevateContact data={data} />
         <div className="elevate-closing" hidden={draft.finalMessageVisible === false}><ElevateFooter data={data} /></div>
         <ElevateMusic data={data} />
@@ -858,7 +866,7 @@ function EverAfterTemplate(props: TemplateProps) {
         <div className="ever-after-schedule" hidden={draft.receptionVisible === false}><EverAfterAnnouncement /><EverAfterCountdown /><EverAfterDivider label="The Details" /><EverAfterDetails /><EverAfterLocation /><EverAfterTimeline /></div>
         <EverAfterGallery /><EverAfterQuote />
         <div className="ever-after-dress" hidden={draft.dressCodeVisible === false}><EverAfterDressCode /></div>
-        <div className="ever-after-rsvp" hidden={draft.questionsVisible === false}><EverAfterRsvp /></div>
+        <div className="ever-after-rsvp" hidden={draft.questionsVisible === false}><EverAfterRsvp onSubmit={props.onRsvpSubmit} /></div>
         <div className="ever-after-closing" hidden={draft.finalMessageVisible === false}><EverAfterFooter /></div>
         {draft.musicEnabled !== false ? <EverAfterMusic /> : null}
       </main>
@@ -961,7 +969,7 @@ function EverlastingVowsTemplate(props: TemplateProps) {
         <div className="everlasting-schedule" hidden={draft.receptionVisible === false}><EverlastingSaveDate config={config} /><EverlastingCountdown iso={config.date.iso} /><EverlastingCeremony ceremony={config.ceremony} dateLong={config.date.long} /><EverlastingReception reception={config.reception} /><EverlastingTimeline timeline={config.timeline} /></div>
         <EverlastingGallery gallery={config.gallery} /><EverlastingQuote quote={config.quote} />
         <div className="everlasting-dress" hidden={draft.dressCodeVisible === false}><EverlastingDressCode dressCode={config.dressCode} /></div>
-        <div className="everlasting-rsvp" hidden={draft.questionsVisible === false}><EverlastingRsvp rsvp={config.rsvp} /><EverlastingWishes wishes={config.wishes} /></div>
+        <div className="everlasting-rsvp" hidden={draft.questionsVisible === false}><EverlastingRsvp rsvp={config.rsvp} onSubmit={props.onRsvpSubmit} /><EverlastingWishes wishes={config.wishes} /></div>
         <div className="everlasting-closing" hidden={draft.finalMessageVisible === false}><EverlastingFooter config={config} /></div>
         {config.music.enabled ? <EverlastingMusic music={config.music} /> : null}
       </main>

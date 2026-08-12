@@ -130,6 +130,7 @@ const getPreviewFields = (data) => {
     field,
     section,
     inline,
+    displayValue: values.length === 1 ? String(values[0] ?? '') : undefined,
     values: values.map(normalizePreviewText).filter((value) => value.length > 1)
   }));
 };
@@ -278,7 +279,8 @@ export const clearPreviewDecorations = (root, { removeStyles = false, preserveAc
         'data-editor-kind', 'data-editor-field', 'data-editor-tab', 'data-editor-section',
         'data-editor-label', 'data-editor-owned-tabindex', 'data-editor-owned-role',
         'data-editor-owned-label', 'data-editor-owned-click', 'data-editor-owned-contenteditable',
-        'data-editor-owned-inline-events', 'data-editor-original-text', 'data-editor-inline'
+        'data-editor-owned-inline-events', 'data-editor-original-text', 'data-editor-inline',
+        'data-editor-rendered-value', 'data-editor-exact-value'
       ].forEach((attribute) => element.removeAttribute(attribute));
     });
     if (removeStyles) scope.querySelector('style[data-amulet-edit-hotspots]')?.remove();
@@ -293,6 +295,20 @@ export const decoratePreview = (root, data, { suppressMotion = false, labels: su
   const editableImages = new Map();
 
   getPreviewRoots(root).forEach((scope) => {
+    // Keep the semantic field identity from the previous render. Imported
+    // templates are decorated after React renders inside a shadow root; when
+    // their DOM was localized or customized, matching by the newly typed text
+    // alone could lose the field and leave the old value visible.
+    const previousSemanticFields = new Map(
+      [...scope.querySelectorAll('[data-editor-kind="text"][data-editor-field]')].map((element) => [
+        element,
+        {
+          field: element.dataset.editorField,
+          renderedValue: element.dataset.editorRenderedValue ?? element.textContent ?? '',
+          exact: element.dataset.editorExactValue === 'true'
+        }
+      ])
+    );
     if (scope.nodeType === 11 && scope.host && !scope.querySelector('style[data-amulet-edit-hotspots]')) {
       const style = scope.ownerDocument.createElement('style');
       style.dataset.amuletEditHotspots = '';
@@ -330,7 +346,11 @@ export const decoratePreview = (root, data, { suppressMotion = false, labels: su
       if (!element.dataset.templateTextKey) element.dataset.templateTextKey = templateTextKey;
       if (element.dataset.templateTextDefault === undefined) element.dataset.templateTextDefault = element.textContent || '';
 
-      let match = fields.find((item) => item.values.some((value) => text === value || (value.length > 4 && text.includes(value))));
+      const previousSemantic = previousSemanticFields.get(element);
+      let match = previousSemantic?.field
+        ? fields.find((item) => item.field === previousSemantic.field)
+        : null;
+      if (!match) match = fields.find((item) => item.values.some((value) => text === value || (value.length > 4 && text.includes(value))));
       let section = match?.section || getEditableTextSection(element);
       if (!match) {
         const defaultValue = element.dataset.templateTextDefault ?? element.textContent ?? '';
@@ -344,19 +364,33 @@ export const decoratePreview = (root, data, { suppressMotion = false, labels: su
           if (element.textContent !== overriddenValue) element.textContent = overriddenValue;
         }
       }
+      if (
+        match
+        && previousSemantic?.exact
+        && match.displayValue !== undefined
+        && normalizePreviewText(element.textContent) === normalizePreviewText(previousSemantic.renderedValue)
+        && element.textContent !== match.displayValue
+      ) {
+        element.textContent = match.displayValue;
+      }
       const block = element.closest('section, article, blockquote') || section;
       const score = (match ? 100 : 0)
         + (element.matches('h1') ? 35 : element.matches('h2') ? 30 : element.matches('h3') ? 25 : 0)
         + Math.min(text.length, 40) / 10;
       const candidates = textCandidatesByBlock.get(block) || [];
-      candidates.push({ element, match, score, section });
+      const exactValue = Boolean(match?.values?.includes(normalizePreviewText(element.textContent)));
+      candidates.push({ element, exactValue, match, score, section });
       textCandidatesByBlock.set(block, candidates);
     });
 
     textCandidatesByBlock.forEach((candidates) => {
-      candidates.forEach(({ element, match, section }) => {
+      candidates.forEach(({ element, exactValue, match, section }) => {
         const isInteractiveCopy = element.matches('button, a, label') || Boolean(element.closest('button, a, label'));
         makeEditorHotspot(element, { kind: 'text', section, field: match?.field, tab: 'content', inline: match?.inline !== false && !isInteractiveCopy, labels });
+        if (match?.field && !match.field.startsWith('templateTextOverrides.')) {
+          element.dataset.editorRenderedValue = element.textContent || '';
+          element.dataset.editorExactValue = exactValue ? 'true' : 'false';
+        }
       });
     });
 

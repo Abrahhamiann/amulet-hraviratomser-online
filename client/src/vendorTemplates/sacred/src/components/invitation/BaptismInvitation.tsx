@@ -20,7 +20,9 @@ type SectionVisibility = {
   finalMessageVisible?: boolean;
 };
 
-export function BaptismInvitation({ data, visibility = {} }: { data: InvitationData; visibility?: SectionVisibility }) {
+type RsvpSubmit = Parameters<typeof Rsvp>[0]["onSubmit"];
+
+export function BaptismInvitation({ data, visibility = {}, onRsvpSubmit }: { data: InvitationData; visibility?: SectionVisibility; onRsvpSubmit?: RsvpSubmit }) {
   return (
     <main className="relative overflow-x-hidden">
       <div className="sacred-hero" hidden={visibility.heroVisible === false}><Hero data={data} /></div>
@@ -35,7 +37,7 @@ export function BaptismInvitation({ data, visibility = {} }: { data: InvitationD
       <Family data={data} />
       <Gallery data={data} />
       <div className="sacred-schedule" hidden={visibility.receptionVisible === false}><Location data={data} /></div>
-      <div className="sacred-rsvp" hidden={visibility.questionsVisible === false}><Rsvp data={data} /></div>
+      <div className="sacred-rsvp" hidden={visibility.questionsVisible === false}><Rsvp data={data} onSubmit={onRsvpSubmit} /></div>
       <div className="sacred-closing" hidden={visibility.finalMessageVisible === false}><Footer data={data} /></div>
     </main>
   );

@@ -4,12 +4,10 @@ This folder contains the code-based invitation designs. Database template cards 
 
 ## How a card connects to a design
 
-Each admin template card has a `designKey`.
-
-- `midnight-vows` uses `MidnightVowsTemplate.jsx`.
-- `baptism-blessing` uses `BaptismBlessingTemplate.jsx`.
-
-The registry is in `index.jsx`. When you add a new invitation design, export its preview/live/public components there and add the same key to the admin design list.
+Each admin template card has a `designKey`. The active designs are registered in
+`index.jsx` and implemented through `OriginalTypeScriptTemplates.tsx`. When you
+add a design, export its preview/live/public components there and add the same
+key to the admin design list.
 
 ## Admin behavior
 

@@ -55,14 +55,23 @@ function Field({
   );
 }
 
-export function RSVPForm({ data }: { data: InvitationData }) {
+type RsvpSubmit = (data: {
+  guestName: string;
+  phone?: string;
+  status: "attending" | "declined";
+  guestCount: number;
+  message: string;
+}) => Promise<unknown>;
+
+export function RSVPForm({ data, onSubmit }: { data: InvitationData; onSubmit?: RsvpSubmit }) {
   const { rsvp } = data;
   const [attending, setAttending] = useState<"yes" | "no">("yes");
   const [guests, setGuests] = useState("1");
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const parsed = schema.safeParse({
@@ -80,7 +89,27 @@ export function RSVPForm({ data }: { data: InvitationData }) {
       return;
     }
     setError(null);
-    setSent(true);
+    setSubmitting(true);
+    try {
+      const details = [
+        parsed.data.company ? `Company: ${parsed.data.company}` : "",
+        parsed.data.position ? `Position: ${parsed.data.position}` : "",
+        parsed.data.email ? `Email: ${parsed.data.email}` : "",
+        parsed.data.message || ""
+      ].filter(Boolean).join("\n");
+      await onSubmit?.({
+        guestName: parsed.data.fullName,
+        phone: parsed.data.phone || "",
+        status: parsed.data.attending === "yes" ? "attending" : "declined",
+        guestCount: parsed.data.attending === "yes" ? Math.max(1, parsed.data.guests) : 1,
+        message: details
+      });
+      setSent(true);
+    } catch {
+      setError("Չհաջողվեց ուղարկել պատասխանը։ Խնդրում ենք փորձել կրկին։");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -128,7 +157,7 @@ export function RSVPForm({ data }: { data: InvitationData }) {
           ) : (
             <motion.form
               key="form"
-              onSubmit={onSubmit}
+              onSubmit={handleSubmit}
               noValidate
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -216,10 +245,11 @@ export function RSVPForm({ data }: { data: InvitationData }) {
 
               <button
                 type="submit"
+                disabled={submitting}
                 className="group relative mt-2 inline-flex items-center justify-center overflow-hidden border border-primary px-8 py-4 text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-primary transition-colors duration-500 hover:text-primary-foreground"
               >
                 <span className="absolute inset-0 origin-left scale-x-0 bg-primary transition-transform duration-700 ease-[var(--ease-elegant)] group-hover:scale-x-100" />
-                <span className="relative z-10">Send Confirmation</span>
+                <span className="relative z-10">{submitting ? "Ուղարկվում է…" : "Send Confirmation"}</span>
               </button>
             </motion.form>
           )}

@@ -75,6 +75,12 @@
 .invite-editor-top-actions { justify-content: flex-end; gap: 7px; min-width: 0; }
 .invite-editor-top-actions small { max-width: 170px; overflow: hidden; color: var(--editor-muted); font-size: .67rem; text-overflow: ellipsis; white-space: nowrap; }
 .invite-editor-top-actions button:nth-last-child(2) { border-color: var(--editor-ink); background: var(--editor-ink); color: #fff; font-weight: 800; }
+.invite-editor-top-actions button:nth-last-child(2) span {
+  font-size: .69rem;
+  line-height: 1.15;
+  letter-spacing: -.015em;
+  white-space: nowrap;
+}
 .invite-editor-top-actions button:last-child { padding: 0; border-color: transparent; background: transparent; }
 .invite-editor-top-actions .invite-editor-restore-trigger { color: #9f3d35; }
 .invite-editor-top-actions .invite-editor-restore-trigger:hover { background: #fff2f0; }

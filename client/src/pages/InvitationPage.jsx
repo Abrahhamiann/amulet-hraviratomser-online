@@ -1,4 +1,3 @@
-import React from 'react';
 import { CalendarDays, CheckCircle2, Clock, MapPin, Share2, Sparkles, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -53,21 +52,30 @@ export default function InvitationPage() {
     return Math.max(0, Math.ceil((new Date(invitation.date) - new Date()) / 86400000));
   }, [invitation]);
 
+  const submitRsvp = async (data) => {
+    const nextErrors = required(data, ['guestName', 'status']);
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) throw new Error('Missing RSVP fields');
+    setRsvpStatus('loading');
+    try {
+      const response = await api.post(`/rsvp/${invitation._id}`, data);
+      setRsvpStatus('success');
+      return response.data;
+    } catch (error) {
+      setRsvpStatus('error');
+      throw error;
+    }
+  };
+
   const submit = async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
-    const data = toForm(event);
-    const nextErrors = required(data, ['guestName', 'phone', 'status']);
-    setErrors(nextErrors);
-    if (Object.keys(nextErrors).length) return;
-    setRsvpStatus('loading');
     try {
-      await api.post(`/rsvp/${invitation._id}`, data);
+      await submitRsvp(toForm(event));
       form.reset();
-      setRsvpStatus('success');
       setSuccessOpen(true);
     } catch {
-      setRsvpStatus('error');
+      // The form keeps its values and renders the validation/request error.
     }
   };
 
@@ -85,48 +93,15 @@ export default function InvitationPage() {
   const secondaryGallery = invitation.gallery?.slice(1) || [];
   const occasionTemplate = getOccasionTemplate(invitation.templateId);
   const PublicView = occasionTemplate?.PublicView;
-  const isBaptismTemplate = occasionTemplate?.key === 'sacred-beginnings';
-  const isEngagementTemplate = false;
   const mapLinks = normalizeMapLinks(invitation, t('map'));
   const gallery = (invitation.gallery || []).filter((image) => {
     if (typeof image !== 'string' || !image.trim()) return false;
     if (!PublicView) return true;
     return isDisplayableImage(image);
   }).map(resolveTemplateImage);
-  const rsvpForm = (
-    <form className={`panel-form compact test-wedding-rsvp-form${isBaptismTemplate ? ' baptism-live-rsvp-form' : ''}${isEngagementTemplate ? ' engagement-live-rsvp-form' : ''}`} onSubmit={submit}>
-      <fieldset className="rsvp-choice-group">
-        <legend>{isBaptismTemplate ? t('guestRelation') : t('guestSide')}</legend>
-        <label className="rsvp-radio"><input type="radio" name="guestSide" value="bride" defaultChecked /><span>{isBaptismTemplate ? t('familyGuest') : t('brideSide')}</span></label>
-        <label className="rsvp-radio"><input type="radio" name="guestSide" value="groom" /><span>{isBaptismTemplate ? t('godparentGuest') : t('groomSide')}</span></label>
-      </fieldset>
-      <Input label={t('guestName')} name="guestName" error={errors.guestName} />
-      <Input label={t('phone')} name="phone" type="tel" error={errors.phone} />
-      <fieldset className="rsvp-choice-group">
-        <legend>{t('attendance')}</legend>
-        <label className="rsvp-radio"><input type="radio" name="status" value="attending" defaultChecked /><span>{t('gladlyAttending')}</span></label>
-        <label className="rsvp-radio"><input type="radio" name="status" value="declined" /><span>{t('regretfullyDeclining')}</span></label>
-      </fieldset>
-      <Input label={t('guestCount')} name="guestCount" type="number" min="1" defaultValue="1" />
-      <Input label={t('message')} name="message" as="textarea" rows="3" />
-      <Button disabled={rsvpStatus === 'loading'}>{rsvpStatus === 'loading' ? t('loading') : t('submit')}</Button>
-      {rsvpStatus === 'error' && <p className="form-error">{t('error')}</p>}
-    </form>
-  );
   const inviteActions = (
     <Button type="button" onClick={share}><Share2 size={18} />{t('share')}</Button>
   );
-  const successModal = successOpen && (
-    <div className="rsvp-success-backdrop" role="dialog" aria-modal="true" aria-labelledby="rsvp-success-title">
-      <div className="rsvp-success-modal">
-        <button type="button" onClick={() => setSuccessOpen(false)} aria-label={t('close')}><X size={20} /></button>
-        <CheckCircle2 size={44} />
-        <h2 id="rsvp-success-title">{t('rsvpSentTitle')}</h2>
-        <p>{t('rsvpSentText')}</p>
-      </div>
-    </div>
-  );
-
   if (PublicView) {
     const publicDraft = {
       mainNames: invitation.names,
@@ -149,8 +124,8 @@ export default function InvitationPage() {
           draft={publicDraft}
           daysLeftText={`${daysLeft ?? 0} ${t('daysToGo')}`}
           actions={inviteActions}
+          onRsvpSubmit={submitRsvp}
         />
-        {successModal}
       </main>
     );
   }

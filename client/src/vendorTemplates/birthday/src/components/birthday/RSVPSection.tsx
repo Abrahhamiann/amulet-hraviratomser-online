@@ -4,9 +4,9 @@ import { ConfettiBurst } from "./ConfettiBurst";
 import { Reveal } from "./Reveal";
 
 export type RsvpData = {
-  fullName: string;
-  guests: number;
-  attending: "yes" | "no";
+  guestName: string;
+  guestCount: number;
+  status: "attending" | "declined";
   message: string;
 };
 
@@ -23,21 +23,32 @@ type EditorRsvpSettings = {
 const fieldClass =
   "mt-2 min-h-12 w-full rounded-2xl border border-input bg-card px-4 py-3 font-sans text-base text-foreground placeholder:text-muted-foreground/70 outline-none transition-colors focus:border-gold";
 
-export function RSVPSection({ onSubmit, settings = {}, question = '' }: { onSubmit?: (data: RsvpData) => void | Promise<void>; settings?: EditorRsvpSettings; question?: string }) {
+export function RSVPSection({ onSubmit, settings = {}, question = '' }: { onSubmit?: (data: RsvpData) => unknown | Promise<unknown>; settings?: EditorRsvpSettings; question?: string }) {
   const [attending, setAttending] = useState<"yes" | "no">("yes");
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const data: RsvpData = {
-      fullName: String(form.get("fullName") ?? ""),
-      guests: Number(form.get("guests") ?? 1),
-      attending,
+      guestName: String(form.get("fullName") ?? "").trim(),
+      guestCount: Number(form.get("guests") ?? 1),
+      status: attending === "yes" ? "attending" : "declined",
       message: String(form.get("message") ?? ""),
     };
-    await onSubmit?.(data);
-    setSent(true);
+    if (!data.guestName) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      await onSubmit?.(data);
+      setSent(true);
+    } catch {
+      setError("Չհաջողվեց ուղարկել պատասխանը։ Խնդրում ենք փորձել կրկին։");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -190,15 +201,18 @@ export function RSVPSection({ onSubmit, settings = {}, question = '' }: { onSubm
                     />
                   </div>
 
+                  {error ? <p role="alert" className="font-sans text-sm" style={{ color: "var(--destructive, #b42318)" }}>{error}</p> : null}
+
                   <button
                     type="submit"
+                    disabled={submitting}
                     className="min-h-13 w-full rounded-full px-8 py-4 font-sans text-sm font-medium uppercase tracking-[0.25em] text-accent-foreground shadow-glow transition-transform duration-300 hover:scale-[1.02] active:scale-[0.99]"
                     style={{
                       backgroundImage: "var(--gradient-gold)",
                       backgroundSize: "200% 100%",
                     }}
                   >
-                    {settings.submitLabel || "Send RSVP 🎉"}
+                    {submitting ? "Ուղարկվում է…" : (settings.submitLabel || "Send RSVP 🎉")}
                   </button>
                 </motion.form>
               )}

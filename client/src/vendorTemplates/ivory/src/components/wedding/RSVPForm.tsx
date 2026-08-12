@@ -28,13 +28,21 @@ type EditorRsvpSettings = {
   askMeal?: boolean;
 };
 
-export function RSVPForm({ settings = {}, question = '' }: { settings?: EditorRsvpSettings; question?: string }) {
+type RsvpSubmit = (data: {
+  guestName: string;
+  status: "attending" | "declined";
+  guestCount: number;
+  message: string;
+}) => Promise<unknown>;
+
+export function RSVPForm({ settings = {}, question = '', onSubmit }: { settings?: EditorRsvpSettings; question?: string; onSubmit?: RsvpSubmit }) {
   const { rsvp } = wedding;
   const [attending, setAttending] = useState<"yes" | "no">("yes");
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const parsed = schema.safeParse({
@@ -50,7 +58,20 @@ export function RSVPForm({ settings = {}, question = '' }: { settings?: EditorRs
       return;
     }
     setError(null);
-    setSent(true);
+    setSubmitting(true);
+    try {
+      await onSubmit?.({
+        guestName: parsed.data.name,
+        status: parsed.data.attending === "yes" ? "attending" : "declined",
+        guestCount: parsed.data.guests,
+        message: [parsed.data.message, parsed.data.food ? `Food preference: ${parsed.data.food}` : ""].filter(Boolean).join("\n")
+      });
+      setSent(true);
+    } catch {
+      setError("Չհաջողվեց ուղարկել պատասխանը։ Խնդրում ենք փորձել կրկին։");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -70,7 +91,7 @@ export function RSVPForm({ settings = {}, question = '' }: { settings?: EditorRs
               </p>
             </div>
           ) : (
-            <form onSubmit={onSubmit} noValidate className="space-y-10">
+            <form onSubmit={handleSubmit} noValidate className="space-y-10">
               <div>
                 <label htmlFor="name" className="eyebrow">
                   Full Name
@@ -159,9 +180,10 @@ export function RSVPForm({ settings = {}, question = '' }: { settings?: EditorRs
 
               <button
                 type="submit"
+                disabled={submitting}
                 className="min-h-12 w-full border border-gold bg-gold/10 px-8 text-[0.7rem] tracking-[0.3em] uppercase text-foreground transition-colors duration-500 hover:bg-gold/20"
               >
-                {settings.submitLabel || "Confirm Attendance"}
+                {submitting ? "Ուղարկվում է…" : (settings.submitLabel || "Confirm Attendance")}
               </button>
             </form>
           )}

@@ -9,17 +9,37 @@ export const createRSVP = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Invitation not found');
   }
-  const rsvp = await RSVP.create({ ...req.body, invitationId: req.params.invitationId });
-  res.status(201).json(rsvp);
+  const guestName = String(req.body?.guestName || '').trim().slice(0, 120);
+  const phone = String(req.body?.phone || '').trim().slice(0, 40);
+  const status = ['attending', 'declined', 'unsure'].includes(req.body?.status)
+    ? req.body.status
+    : '';
+  if (!guestName || !status) {
+    res.status(400);
+    throw new Error('Guest name and attendance status are required');
+  }
 
+  const requestedGuestCount = Number.parseInt(req.body?.guestCount, 10);
+  const rsvp = await RSVP.create({
+    invitationId: invitation._id,
+    guestName,
+    phone,
+    status,
+    guestSide: ['bride', 'groom', 'other'].includes(req.body?.guestSide) ? req.body.guestSide : 'other',
+    guestCount: Number.isFinite(requestedGuestCount) ? Math.min(20, Math.max(1, requestedGuestCount)) : 1,
+    message: String(req.body?.message || '').trim().slice(0, 1000)
+  });
+  let telegramDelivered = false;
   try {
-    const delivered = await notifyInvitationOwnerOfRsvp(invitation, rsvp);
-    if (!delivered) {
+    telegramDelivered = await notifyInvitationOwnerOfRsvp(invitation, rsvp);
+    if (!telegramDelivered) {
       console.warn(`Telegram RSVP notification was not delivered for invitation ${invitation._id}`);
     }
   } catch (error) {
     console.error('Telegram RSVP notification failed:', error.message);
   }
+
+  res.status(201).json({ ...rsvp.toObject(), telegramDelivered });
 });
 
 export const getRSVPs = asyncHandler(async (req, res) => {

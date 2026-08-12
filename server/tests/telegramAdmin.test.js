@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { connectTelegramBot, deleteTelegramAdminMessages } from '../controllers/telegramController.js';
 import ContactMessage from '../models/ContactMessage.js';
+import Order from '../models/Order.js';
 import User from '../models/User.js';
 import { notifyAdminsOfOrder, notifyAdminsOfUnansweredContactMessage } from '../utils/adminTelegram.js';
-import { getTelegramAdminChatIds, isTelegramAdmin } from '../utils/telegram.js';
+import { getTelegramAdminChatIds, isTelegramAdmin, notifyInvitationOwnerOfRsvp } from '../utils/telegram.js';
 
 const ORIGINAL_ENV = {
   ids: process.env.TELEGRAM_ADMIN_CHAT_IDS,
@@ -16,6 +17,7 @@ const ORIGINAL_FETCH = global.fetch;
 const ORIGINAL_DELETE_MANY = ContactMessage.deleteMany;
 const ORIGINAL_USER_FIND_ONE = User.findOne;
 const ORIGINAL_USER_FIND_ONE_AND_UPDATE = User.findOneAndUpdate;
+const ORIGINAL_ORDER_FIND_BY_ID = Order.findById;
 
 const restoreEnv = (key, value) => {
   if (value === undefined) delete process.env[key];
@@ -31,6 +33,7 @@ test.afterEach(() => {
   ContactMessage.deleteMany = ORIGINAL_DELETE_MANY;
   User.findOne = ORIGINAL_USER_FIND_ONE;
   User.findOneAndUpdate = ORIGINAL_USER_FIND_ONE_AND_UPDATE;
+  Order.findById = ORIGINAL_ORDER_FIND_BY_ID;
 });
 
 test('deletes every contact message from MongoDB for a Telegram administrator', async () => {
@@ -191,4 +194,49 @@ test('sends an unanswered contact reminder with a direct reply action', async ()
     requests[0].reply_markup.inline_keyboard[0][0].callback_data,
     'admin:message:507f1f77bcf86cd799439012'
   );
+});
+
+test('sends RSVP notifications to the purchased invitation owner by stable user id', async () => {
+  process.env.TELEGRAM_BOT_TOKEN = 'test-token';
+  Order.findById = () => ({
+    select: async () => ({
+      userId: '507f1f77bcf86cd799439099',
+      email: 'old-email@example.com',
+      mainNames: 'Anna & Armen',
+      preferredLanguage: 'en'
+    })
+  });
+  let ownerQuery;
+  User.findOne = async (query) => {
+    ownerQuery = query;
+    return {
+      telegram: { chatId: '555', language: 'en', notificationsEnabled: true }
+    };
+  };
+  let requestBody;
+  global.fetch = async (_url, options) => {
+    requestBody = JSON.parse(options.body);
+    return { ok: true };
+  };
+
+  const delivered = await notifyInvitationOwnerOfRsvp(
+    {
+      _id: '507f1f77bcf86cd799439011',
+      orderId: '507f1f77bcf86cd799439022',
+      names: 'Anna & Armen'
+    },
+    {
+      guestName: 'Guest One',
+      phone: '+37400000000',
+      status: 'attending',
+      guestCount: 2,
+      message: 'See you there!'
+    }
+  );
+
+  assert.equal(delivered, true);
+  assert.equal(ownerQuery._id, '507f1f77bcf86cd799439099');
+  assert.equal(requestBody.chat_id, '555');
+  assert.match(requestBody.text, /Guest One/);
+  assert.match(requestBody.text, /See you there!/);
 });
