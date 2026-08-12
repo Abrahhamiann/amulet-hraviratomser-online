@@ -6,7 +6,11 @@ import { ensureTemplateCodes, nextTemplateCode } from '../utils/templateCode.js'
 const PUBLIC_DESIGN_KEYS = [
   'sacred-beginnings',
   'birthday-sparkle',
-  'ivory-vows'
+  'ivory-vows',
+  'divine-blessing',
+  'elevate-invite',
+  'ever-after',
+  'everlasting-vows'
 ];
 
 export const getTemplates = asyncHandler(async (req, res) => {

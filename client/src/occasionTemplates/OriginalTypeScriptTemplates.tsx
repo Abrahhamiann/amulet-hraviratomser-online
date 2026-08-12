@@ -41,6 +41,67 @@ import { WeddingSchedule } from '../vendorTemplates/ivory/src/components/wedding
 import { wedding } from '../vendorTemplates/ivory/src/data/wedding';
 import ivoryStyles from '../vendorTemplates/ivory/src/styles.css?inline';
 import ivoryHero from '../vendorTemplates/ivory/src/assets/hero.jpg';
+
+import { BabyGallery as DivineGallery } from '../vendorTemplates/divine/baptism/BabyGallery';
+import { BaptismDetails as DivineDetails } from '../vendorTemplates/divine/baptism/BaptismDetails';
+import { BaptismFooter as DivineFooter } from '../vendorTemplates/divine/baptism/BaptismFooter';
+import { BaptismHero as DivineHero } from '../vendorTemplates/divine/baptism/BaptismHero';
+import { BaptismTimeline as DivineTimeline } from '../vendorTemplates/divine/baptism/BaptismTimeline';
+import { BlessingQuote as DivineQuote } from '../vendorTemplates/divine/baptism/BlessingQuote';
+import { CalendarSection as DivineCalendar } from '../vendorTemplates/divine/baptism/CalendarSection';
+import { CountdownSection as DivineCountdown } from '../vendorTemplates/divine/baptism/CountdownSection';
+import { FamilyMessage as DivineFamilyMessage } from '../vendorTemplates/divine/baptism/FamilyMessage';
+import { LocationSection as DivineLocation } from '../vendorTemplates/divine/baptism/LocationSection';
+import { MusicButton as DivineMusic } from '../vendorTemplates/divine/baptism/MusicButton';
+import { RSVPSection as DivineRsvp } from '../vendorTemplates/divine/baptism/RSVPSection';
+import { CurveDivider as DivineCurve, Divider as DivineDivider } from '../vendorTemplates/divine/baptism/primitives';
+import { invitation as divineInvitation } from '../vendorTemplates/divine/data/invitation';
+import divineStyles from '../vendorTemplates/divine/styles.css?inline';
+import divineHeroImage from '../vendorTemplates/divine/assets/baby-1.jpg';
+
+import { ContactSection as ElevateContact } from '../vendorTemplates/elevate/invitation/ContactSection';
+import { CorporateFooter as ElevateFooter } from '../vendorTemplates/elevate/invitation/CorporateFooter';
+import { CorporateGallery as ElevateGallery } from '../vendorTemplates/elevate/invitation/CorporateGallery';
+import { CorporateHero as ElevateHero } from '../vendorTemplates/elevate/invitation/CorporateHero';
+import { CorporateStats as ElevateStats } from '../vendorTemplates/elevate/invitation/CorporateStats';
+import { Countdown as ElevateCountdown } from '../vendorTemplates/elevate/invitation/Countdown';
+import { DressCode as ElevateDressCode } from '../vendorTemplates/elevate/invitation/DressCode';
+import { EventAgenda as ElevateAgenda } from '../vendorTemplates/elevate/invitation/EventAgenda';
+import { EventDetails as ElevateDetails } from '../vendorTemplates/elevate/invitation/EventDetails';
+import { EventIntroduction as ElevateIntroduction } from '../vendorTemplates/elevate/invitation/EventIntroduction';
+import { EventPurpose as ElevatePurpose } from '../vendorTemplates/elevate/invitation/EventPurpose';
+import { MusicToggle as ElevateMusic } from '../vendorTemplates/elevate/invitation/MusicToggle';
+import { RSVPForm as ElevateRsvp } from '../vendorTemplates/elevate/invitation/RSVPForm';
+import { SpeakersSection as ElevateSpeakers } from '../vendorTemplates/elevate/invitation/SpeakersSection';
+import { VenueSection as ElevateVenue } from '../vendorTemplates/elevate/invitation/VenueSection';
+import { invitation as elevateInvitation, type InvitationData as ElevateInvitationData } from '../vendorTemplates/elevate/data/invitation';
+import elevateStyles from '../vendorTemplates/elevate/styles.css?inline';
+import elevateHeroImage from '../vendorTemplates/elevate/assets/hero-bg.jpg';
+
+import { Gallery as EverAfterGallery } from '../vendorTemplates/everafter/invite/Gallery';
+import { Hero as EverAfterHero } from '../vendorTemplates/everafter/invite/Hero';
+import { MusicToggle as EverAfterMusic } from '../vendorTemplates/everafter/invite/MusicToggle';
+import { Rsvp as EverAfterRsvp } from '../vendorTemplates/everafter/invite/Rsvp';
+import { CurveDivider as EverAfterCurve, OrnamentDivider as EverAfterDivider } from '../vendorTemplates/everafter/invite/decor';
+import { Announcement as EverAfterAnnouncement, Countdown as EverAfterCountdown, Couple as EverAfterCouple, Details as EverAfterDetails, DressCode as EverAfterDressCode, Footer as EverAfterFooter, Location as EverAfterLocation, Quote as EverAfterQuote, Story as EverAfterStory, Timeline as EverAfterTimeline } from '../vendorTemplates/everafter/invite/sections';
+import { dressPalette as everAfterDressPalette, invite as everAfterInvite } from '../vendorTemplates/everafter/invite/data';
+import everAfterStyles from '../vendorTemplates/everafter/styles.css?inline';
+import everAfterHeroImage from '../vendorTemplates/everafter/assets/hero-floral.jpg';
+
+import { CoupleSection as EverlastingCouple } from '../vendorTemplates/everlasting/wedding/CoupleSection';
+import { CeremonyDetails as EverlastingCeremony, ReceptionDetails as EverlastingReception } from '../vendorTemplates/everlasting/wedding/EventDetails';
+import { MusicToggle as EverlastingMusic, WeddingFooter as EverlastingFooter } from '../vendorTemplates/everlasting/wedding/FooterAndMusic';
+import { RSVPForm as EverlastingRsvp, WishesSection as EverlastingWishes } from '../vendorTemplates/everlasting/wedding/Forms';
+import { OurStory as EverlastingStory } from '../vendorTemplates/everlasting/wedding/OurStory';
+import { DressCode as EverlastingDressCode, RomanticQuote as EverlastingQuote } from '../vendorTemplates/everlasting/wedding/QuoteAndDressCode';
+import { SaveTheDate as EverlastingSaveDate } from '../vendorTemplates/everlasting/wedding/SaveTheDate';
+import { WeddingCountdown as EverlastingCountdown } from '../vendorTemplates/everlasting/wedding/WeddingCountdown';
+import { WeddingGallery as EverlastingGallery } from '../vendorTemplates/everlasting/wedding/WeddingGallery';
+import { WeddingHero as EverlastingHero } from '../vendorTemplates/everlasting/wedding/WeddingHero';
+import { WeddingTimeline as EverlastingTimeline } from '../vendorTemplates/everlasting/wedding/WeddingTimeline';
+import { weddingConfig as everlastingConfig, type WeddingConfig as EverlastingConfig } from '../vendorTemplates/everlasting/data/wedding';
+import everlastingStyles from '../vendorTemplates/everlasting/styles.css?inline';
+import everlastingHeroImage from '../vendorTemplates/everlasting/assets/hero.jpg';
 import defaultInvitationSong from '../assets/audio/ed-sheeran-perfect.mp3';
 import { resolveTemplateImage, templateDefaultGalleryIds } from './templateAssets.js';
 
@@ -65,6 +126,9 @@ type Draft = {
   eventMessage?: string;
   image?: string;
   gallery?: string[];
+  mapLinks?: Array<{ label?: string; time?: string; address?: string; url?: string; subtitle?: string; visible?: boolean }>;
+  musicEnabled?: boolean;
+  musicUrl?: string;
   templateTextOverrides?: Record<string, string>;
   templateImageOverrides?: Record<string, string>;
   colors?: { accent?: string; text?: string; overlay?: string };
@@ -208,10 +272,10 @@ const applyTemplateOverrides = (root: HTMLDivElement, draft: Draft = {}) => {
   });
 
   const visibilityRules: Array<[string, boolean]> = [
-    ['.sacred-hero, .sacred-message, .birthday-hero, .birthday-message, .ivory-hero, .ivory-message', draft.heroVisible !== false],
-    ['.sacred-schedule, .birthday-schedule, .ivory-schedule', draft.receptionVisible !== false],
-    ['.sacred-rsvp, .birthday-rsvp, .ivory-rsvp', draft.questionsVisible !== false],
-    ['.sacred-closing, .birthday-closing, .ivory-closing', draft.finalMessageVisible !== false]
+    ['.sacred-hero, .sacred-message, .birthday-hero, .birthday-message, .ivory-hero, .ivory-message, .divine-hero, .elevate-hero, .ever-after-hero, .everlasting-hero', draft.heroVisible !== false],
+    ['.sacred-schedule, .birthday-schedule, .ivory-schedule, .divine-schedule, .elevate-schedule, .ever-after-schedule, .everlasting-schedule', draft.receptionVisible !== false],
+    ['.sacred-rsvp, .birthday-rsvp, .ivory-rsvp, .divine-rsvp, .elevate-rsvp, .ever-after-rsvp, .everlasting-rsvp', draft.questionsVisible !== false],
+    ['.sacred-closing, .birthday-closing, .ivory-closing, .divine-closing, .elevate-closing, .ever-after-closing, .everlasting-closing', draft.finalMessageVisible !== false]
   ];
   visibilityRules.forEach(([selector, visible]) => {
     root.querySelectorAll<HTMLElement>(selector).forEach((element) => { element.hidden = !visible; });
@@ -227,6 +291,35 @@ const formatArmenianDate = (value?: string) => {
 };
 
 const splitNames = (value?: string) => String(value || '').split(/\s*(?:&|և|եւ|\+|,|·)\s*/).filter(Boolean);
+
+const replaceTemplateText = (root: HTMLDivElement, replacements: Record<string, string>) => {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let node = walker.nextNode();
+  while (node) {
+    const value = node.nodeValue || '';
+    const trimmed = value.trim();
+    if (Object.prototype.hasOwnProperty.call(replacements, trimmed)) {
+      const nextValue = value.replace(trimmed, replacements[trimmed]);
+      if (nextValue !== value) node.nodeValue = nextValue;
+    }
+    node = walker.nextNode();
+  }
+};
+
+const applyDraftGallery = (root: HTMLDivElement, draft: Draft, designKey: keyof typeof templateDefaultGalleryIds) => {
+  const defaults = (templateDefaultGalleryIds[designKey] || []).map(resolveTemplateImage);
+  const nextGallery = (draft.gallery || []).map(resolveTemplateImage);
+  root.querySelectorAll<HTMLImageElement>('img:not([aria-hidden="true"])').forEach((image) => {
+    let index = Number(image.dataset.templateGalleryIndex);
+    if (!Number.isInteger(index)) {
+      index = defaults.findIndex((source) => {
+        try { return image.src === new URL(source, document.baseURI).href; } catch { return image.src === source; }
+      });
+      if (index >= 0) image.dataset.templateGalleryIndex = String(index);
+    }
+    if (index >= 0 && nextGallery[index] && image.src !== nextGallery[index]) image.src = nextGallery[index];
+  });
+};
 
 const normalizeKey = (value: unknown) => String(value || '')
   .trim()
@@ -250,6 +343,22 @@ export const isBirthdaySparkleTemplate = (template?: TemplateRecord) => matches(
 
 export const isIvoryVowsTemplate = (template?: TemplateRecord) => matches(template, [
   'ivory-vows', 'amulet-ivory-vows', 'ivory-wedding'
+]);
+
+export const isDivineBlessingTemplate = (template?: TemplateRecord) => matches(template, [
+  'divine-blessing', 'divine-blessing-baptism'
+]);
+
+export const isElevateInviteTemplate = (template?: TemplateRecord) => matches(template, [
+  'elevate-invite', 'elevate-corporate'
+]);
+
+export const isEverAfterTemplate = (template?: TemplateRecord) => matches(template, [
+  'ever-after', 'ever-after-engagement'
+]);
+
+export const isEverlastingVowsTemplate = (template?: TemplateRecord) => matches(template, [
+  'everlasting-vows', 'everlasting-vows-wedding'
 ]);
 
 function OriginalTemplateSurface({ children, css, fontImport, label, draft, customize }: SurfaceProps) {
@@ -553,6 +662,313 @@ function IvoryVowsTemplate(props: TemplateProps) {
   );
 }
 
+function DivineBlessingTemplate(props: TemplateProps) {
+  const { draft = {} } = props;
+  const customize = useCallback((root: HTMLDivElement) => {
+    const firstVenue = draft.mapLinks?.[0];
+    replaceTemplateText(root, {
+      [divineInvitation.babyName]: draft.mainNames ?? divineInvitation.babyName,
+      [divineInvitation.heroDescription]: draft.eventMessage || divineInvitation.heroDescription,
+      [divineInvitation.dateLabel]: draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : divineInvitation.dateLabel,
+      [divineInvitation.details[0]?.value || '']: draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : divineInvitation.details[0]?.value || '',
+      [divineInvitation.details[1]?.value || '']: draft.eventTime ?? divineInvitation.details[1]?.value ?? '',
+      [divineInvitation.location.churchName]: firstVenue?.label || draft.eventLocation || divineInvitation.location.churchName,
+      [divineInvitation.location.churchAddress]: firstVenue?.address || divineInvitation.location.churchAddress,
+      [divineInvitation.familyMessage]: draft.closingMessage || divineInvitation.familyMessage,
+      'Խնդրում ենք հաստատել Ձեր ներկայությունը': draft.rsvpSettings?.title || 'Խնդրում ենք հաստատել Ձեր ներկայությունը',
+      'Անուն, Ազգանուն': draft.rsvpSettings?.guestPlaceholder || 'Անուն, Ազգանուն',
+      'Այո, կմասնակցեմ': draft.rsvpSettings?.attendingLabel || 'Այո, կմասնակցեմ',
+      'Չեմ կարող մասնակցել': draft.rsvpSettings?.notAttendingLabel || 'Չեմ կարող մասնակցել',
+      'Ուղարկել': draft.rsvpSettings?.submitLabel || 'Ուղարկել'
+    });
+    const map = root.querySelector<HTMLAnchorElement>('a[href*="maps"]');
+    if (map && firstVenue?.url) map.href = firstVenue.url;
+    applyDraftGallery(root, draft, 'divine-blessing');
+  }, [draft]);
+
+  return (
+    <TemplateShell props={props}><OriginalTemplateSurface
+      css={divineStyles}
+      draft={draft}
+      fontImport={'@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Montserrat:wght@300;400;500&display=swap");'}
+      label="Divine Blessing baptism invitation"
+      customize={customize}
+    >
+      <main className="divine-template relative overflow-x-hidden">
+        <div className="divine-hero" hidden={draft.heroVisible === false}><DivineHero /></div>
+        <DivineCurve />
+        <div className="divine-schedule" hidden={draft.receptionVisible === false}>
+          <DivineDetails /><DivineDivider symbol="cross" /><DivineCountdown /><DivineCurve />
+          <DivineCalendar /><DivineDivider symbol="floral" /><DivineTimeline />
+        </div>
+        <DivineDivider symbol="dove" />
+        <div className="divine-family" hidden={draft.familyVisible === false}><DivineFamilyMessage /></div>
+        <DivineGallery /><DivineQuote /><DivineCurve />
+        <div className="divine-schedule" hidden={draft.receptionVisible === false}><DivineLocation /></div>
+        <DivineDivider symbol="cross" />
+        <div className="divine-rsvp" hidden={draft.questionsVisible === false}><DivineRsvp /></div>
+        <div className="divine-closing" hidden={draft.finalMessageVisible === false}><DivineFooter /></div>
+        <DivineMusic src={draft.musicEnabled === false ? undefined : (draft.musicUrl || defaultInvitationSong)} />
+      </main>
+    </OriginalTemplateSurface></TemplateShell>
+  );
+}
+
+function ElevateInviteTemplate(props: TemplateProps) {
+  const { draft = {} } = props;
+  const customize = useCallback((root: HTMLDivElement) => {
+    replaceTemplateText(root, {
+      'Full name': draft.rsvpSettings?.guestPlaceholder || 'Full name',
+      "Yes, I'll Attend": draft.rsvpSettings?.attendingLabel || "Yes, I'll Attend",
+      "Unfortunately, I Can't Attend": draft.rsvpSettings?.notAttendingLabel || "Unfortunately, I Can't Attend",
+      'Send Confirmation': draft.rsvpSettings?.submitLabel || 'Send Confirmation'
+    });
+  }, [draft.rsvpSettings]);
+  const data = useMemo<ElevateInvitationData>(() => {
+    const firstVenue = draft.mapLinks?.[0];
+    const gallery = (draft.gallery || []).slice(1).map(resolveTemplateImage).filter(Boolean);
+    const dateLabel = draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : elevateInvitation.hero.dateLabel;
+    const venueName = firstVenue?.label || draft.eventLocation || elevateInvitation.venue.name;
+    const venueAddress = firstVenue?.address || elevateInvitation.venue.address;
+    return {
+      ...elevateInvitation,
+      hero: {
+        ...elevateInvitation.hero,
+        title: draft.mainNames ?? elevateInvitation.hero.title,
+        invitationNote: draft.eventMessage || elevateInvitation.hero.invitationNote,
+        dateLabel,
+        locationLabel: venueAddress,
+        backgroundImage: resolveTemplateImage(draft.image) || elevateInvitation.hero.backgroundImage
+      },
+      details: {
+        ...elevateInvitation.details,
+        date: { ...elevateInvitation.details.date, value: dateLabel },
+        time: { ...elevateInvitation.details.time, value: draft.eventTime ?? elevateInvitation.details.time.value },
+        venue: { ...elevateInvitation.details.venue, value: venueName, note: venueAddress }
+      },
+      countdown: {
+        ...elevateInvitation.countdown,
+        targetDate: draft.eventDate ? `${draft.eventDate}T${draft.eventTime || '19:00'}:00+04:00` : elevateInvitation.countdown.targetDate
+      },
+      gallery: {
+        ...elevateInvitation.gallery,
+        images: gallery.length ? gallery.map((src, index) => ({ src, alt: `${draft.mainNames || elevateInvitation.hero.title} ${index + 1}` })) : elevateInvitation.gallery.images
+      },
+      venue: {
+        ...elevateInvitation.venue,
+        name: venueName,
+        address: venueAddress,
+        mapsUrl: firstVenue?.url || elevateInvitation.venue.mapsUrl
+      },
+      dressCode: {
+        ...elevateInvitation.dressCode,
+        note: draft.dressCode || elevateInvitation.dressCode.note,
+        palette: draft.dressCodeColors?.length ? draft.dressCodeColors.map(({ name, hex }) => ({ name, color: hex })) : elevateInvitation.dressCode.palette
+      },
+      rsvp: {
+        ...elevateInvitation.rsvp,
+        title: draft.rsvpSettings?.title || elevateInvitation.rsvp.title,
+        subtitle: draft.rsvpSettings?.description || draft.rsvpQuestion || elevateInvitation.rsvp.subtitle,
+        deadline: draft.rsvpSettings?.deadline || elevateInvitation.rsvp.deadline
+      },
+      music: {
+        ...elevateInvitation.music,
+        enabled: draft.musicEnabled !== false,
+        src: draft.musicUrl || elevateInvitation.music.src
+      },
+      finale: {
+        ...elevateInvitation.finale,
+        date: dateLabel,
+        quote: draft.closingMessage || elevateInvitation.finale.quote
+      }
+    };
+  }, [draft]);
+
+  return (
+    <TemplateShell props={props}><OriginalTemplateSurface
+      css={elevateStyles}
+      draft={draft}
+      fontImport={'@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Montserrat:wght@300;400;500;600&display=swap");'}
+      label="Elevate corporate invitation"
+      customize={customize}
+    >
+      <main className="elevate-template relative">
+        <div className="elevate-hero" hidden={draft.heroVisible === false}><ElevateHero data={data} /><ElevateIntroduction data={data} /></div>
+        <div className="elevate-schedule" hidden={draft.receptionVisible === false}><ElevateDetails data={data} /><ElevateCountdown data={data} /><ElevateAgenda data={data} /></div>
+        <ElevatePurpose data={data} /><ElevateSpeakers data={data} /><ElevateStats data={data} /><ElevateGallery data={data} />
+        <div className="elevate-schedule" hidden={draft.receptionVisible === false}><ElevateVenue data={data} /></div>
+        <div className="elevate-dress" hidden={draft.dressCodeVisible === false}><ElevateDressCode data={data} /></div>
+        <div className="elevate-rsvp" hidden={draft.questionsVisible === false}><ElevateRsvp data={data} /></div>
+        <ElevateContact data={data} />
+        <div className="elevate-closing" hidden={draft.finalMessageVisible === false}><ElevateFooter data={data} /></div>
+        <ElevateMusic data={data} />
+      </main>
+    </OriginalTemplateSurface></TemplateShell>
+  );
+}
+
+function EverAfterTemplate(props: TemplateProps) {
+  const { draft = {} } = props;
+  const customize = useCallback((root: HTMLDivElement) => {
+    const [bride, groom] = splitNames(draft.mainNames);
+    const firstVenue = draft.mapLinks?.[0];
+    replaceTemplateText(root, {
+      [everAfterInvite.bride]: draft.mainNames !== undefined ? (bride || '') : everAfterInvite.bride,
+      [everAfterInvite.groom]: draft.mainNames !== undefined ? (groom || '') : everAfterInvite.groom,
+      [everAfterInvite.dateLabel]: draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : everAfterInvite.dateLabel,
+      [everAfterInvite.timeLabel]: draft.eventTime ?? everAfterInvite.timeLabel,
+      [everAfterInvite.venue]: firstVenue?.label || draft.eventLocation || everAfterInvite.venue,
+      [everAfterInvite.address]: firstVenue?.address || everAfterInvite.address
+      , 'Will You Celebrate With Us?': draft.rsvpSettings?.title || 'Will You Celebrate With Us?'
+      , 'kindly reply by September 1': draft.rsvpSettings?.deadline || 'kindly reply by September 1'
+      , 'Full Name': draft.rsvpSettings?.guestPlaceholder || 'Անուն ազգանուն'
+      , 'Անուն ազգանուն': draft.rsvpSettings?.guestPlaceholder || 'Անուն ազգանուն'
+      , 'Joyfully Accept': draft.rsvpSettings?.attendingLabel || 'Joyfully Accept'
+      , 'Regretfully Decline': draft.rsvpSettings?.notAttendingLabel || 'Regretfully Decline'
+      , 'Send Our Reply': draft.rsvpSettings?.submitLabel || 'Send Our Reply'
+      , 'Soft neutrals, silk and a touch of gold — dress as though the evening were a photograph you’d keep forever.': draft.dressCode || 'Soft neutrals, silk and a touch of gold — dress as though the evening were a photograph you’d keep forever.'
+    });
+    root.querySelectorAll<HTMLInputElement>('input[placeholder="Your name"], input[placeholder="Ձեր անունը"]').forEach((input) => {
+      input.placeholder = draft.rsvpSettings?.guestPlaceholder || 'Անուն ազգանուն';
+    });
+    const dressRoot = root.querySelector('.ever-after-dress');
+    draft.dressCodeColors?.forEach((color, index) => {
+      const label = dressRoot?.querySelectorAll<HTMLElement>('.eyebrow.mt-3')[index];
+      const swatch = label?.parentElement?.querySelector<HTMLElement>('.rounded-full');
+      if (label) label.textContent = color.name;
+      if (swatch) swatch.style.background = color.hex;
+    });
+    root.querySelectorAll<HTMLAnchorElement>('a[href*="maps"]').forEach((map) => {
+      if (firstVenue?.url) map.href = firstVenue.url;
+    });
+    applyDraftGallery(root, draft, 'ever-after');
+  }, [draft]);
+
+  return (
+    <TemplateShell props={props}><OriginalTemplateSurface
+      css={everAfterStyles}
+      draft={draft}
+      fontImport={'@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Great+Vibes&family=Montserrat:wght@300;400;500&display=swap");'}
+      label="Ever After engagement invitation"
+      customize={customize}
+    >
+      <main className="ever-after-template relative overflow-x-hidden">
+        <div className="ever-after-hero" hidden={draft.heroVisible === false}><EverAfterHero /><EverAfterStory /></div>
+        <EverAfterCurve /><EverAfterCouple /><EverAfterCurve flip />
+        <div className="ever-after-schedule" hidden={draft.receptionVisible === false}><EverAfterAnnouncement /><EverAfterCountdown /><EverAfterDivider label="The Details" /><EverAfterDetails /><EverAfterLocation /><EverAfterTimeline /></div>
+        <EverAfterGallery /><EverAfterQuote />
+        <div className="ever-after-dress" hidden={draft.dressCodeVisible === false}><EverAfterDressCode /></div>
+        <div className="ever-after-rsvp" hidden={draft.questionsVisible === false}><EverAfterRsvp /></div>
+        <div className="ever-after-closing" hidden={draft.finalMessageVisible === false}><EverAfterFooter /></div>
+        {draft.musicEnabled !== false ? <EverAfterMusic /> : null}
+      </main>
+    </OriginalTemplateSurface></TemplateShell>
+  );
+}
+
+function EverlastingVowsTemplate(props: TemplateProps) {
+  const { draft = {} } = props;
+  const customize = useCallback((root: HTMLDivElement) => {
+    replaceTemplateText(root, {
+      'Full Name': draft.rsvpSettings?.guestPlaceholder || 'Անուն ազգանուն',
+      'Անուն ազգանուն': draft.rsvpSettings?.guestPlaceholder || 'Անուն ազգանուն',
+      'Joyfully Accept': draft.rsvpSettings?.attendingLabel || 'Joyfully Accept',
+      'Regretfully Decline': draft.rsvpSettings?.notAttendingLabel || 'Regretfully Decline',
+      'Send RSVP': draft.rsvpSettings?.submitLabel || 'Send RSVP'
+    });
+    root.querySelectorAll<HTMLInputElement>('input[placeholder="Your name"], input[placeholder="Ձեր անունը"]').forEach((input) => {
+      input.placeholder = draft.rsvpSettings?.guestPlaceholder || 'Անուն ազգանուն';
+    });
+  }, [draft.rsvpSettings]);
+  const config = useMemo<EverlastingConfig>(() => {
+    const [bride, groom] = splitNames(draft.mainNames);
+    const gallery = (draft.gallery || []).map(resolveTemplateImage).filter(Boolean);
+    const ceremony = draft.mapLinks?.[0];
+    const reception = draft.mapLinks?.[1];
+    const longDate = draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : everlastingConfig.date.long;
+    return {
+      ...everlastingConfig,
+      couple: {
+        ...everlastingConfig.couple,
+        bride: { ...everlastingConfig.couple.bride, name: bride || everlastingConfig.couple.bride.name, photo: gallery[1] || everlastingConfig.couple.bride.photo },
+        groom: { ...everlastingConfig.couple.groom, name: groom || everlastingConfig.couple.groom.name, photo: gallery[2] || everlastingConfig.couple.groom.photo },
+        initials: { left: (bride || everlastingConfig.couple.bride.name).charAt(0), right: (groom || everlastingConfig.couple.groom.name).charAt(0) }
+      },
+      hero: {
+        ...everlastingConfig.hero,
+        background: resolveTemplateImage(draft.image) || gallery[0] || everlastingConfig.hero.background,
+        dateLabel: longDate,
+        invitation: draft.eventMessage || everlastingConfig.hero.invitation
+      },
+      envelope: { ...everlastingConfig.envelope, enabled: false },
+      date: {
+        ...everlastingConfig.date,
+        iso: draft.eventDate ? `${draft.eventDate}T${draft.eventTime || '16:00'}:00+04:00` : everlastingConfig.date.iso,
+        long: longDate
+      },
+      ceremony: {
+        ...everlastingConfig.ceremony,
+        time: ceremony?.time || draft.eventTime || everlastingConfig.ceremony.time,
+        venue: ceremony?.label || draft.eventLocation || everlastingConfig.ceremony.venue,
+        city: ceremony?.address || everlastingConfig.ceremony.city,
+        mapUrl: ceremony?.url || everlastingConfig.ceremony.mapUrl
+      },
+      reception: {
+        ...everlastingConfig.reception,
+        time: reception?.time || everlastingConfig.reception.time,
+        venue: reception?.label || everlastingConfig.reception.venue,
+        city: reception?.address || everlastingConfig.reception.city,
+        mapUrl: reception?.url || everlastingConfig.reception.mapUrl
+      },
+      gallery: {
+        ...everlastingConfig.gallery,
+        images: gallery.length > 3 ? gallery.slice(3).map((src, index) => ({ src, alt: `${draft.mainNames || 'Wedding'} ${index + 1}` })) : everlastingConfig.gallery.images
+      },
+      dressCode: {
+        ...everlastingConfig.dressCode,
+        note: draft.dressCode || everlastingConfig.dressCode.note,
+        swatches: draft.dressCodeColors?.length ? draft.dressCodeColors.map(({ name, hex }) => ({ name, color: hex })) : everlastingConfig.dressCode.swatches
+      },
+      rsvp: {
+        ...everlastingConfig.rsvp,
+        title: draft.rsvpSettings?.title || everlastingConfig.rsvp.title,
+        subtitle: draft.rsvpSettings?.description || draft.rsvpQuestion || everlastingConfig.rsvp.subtitle,
+        deadline: draft.rsvpSettings?.deadline || everlastingConfig.rsvp.deadline
+      },
+      music: {
+        ...everlastingConfig.music,
+        enabled: draft.musicEnabled !== false,
+        src: draft.musicUrl || everlastingConfig.music.src
+      },
+      footer: {
+        ...everlastingConfig.footer,
+        message: draft.closingMessage || everlastingConfig.footer.message
+      }
+    };
+  }, [draft]);
+
+  return (
+    <TemplateShell props={props}><OriginalTemplateSurface
+      css={everlastingStyles}
+      draft={draft}
+      fontImport={'@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Great+Vibes&family=Montserrat:wght@300;400;500&display=swap");'}
+      label="Everlasting Vows wedding invitation"
+      customize={customize}
+    >
+      <main className="everlasting-template relative">
+        <div className="everlasting-hero" hidden={draft.heroVisible === false}><EverlastingHero config={config} started /></div>
+        <EverlastingStory story={config.story} /><EverlastingCouple couple={config.couple} />
+        <div className="everlasting-schedule" hidden={draft.receptionVisible === false}><EverlastingSaveDate config={config} /><EverlastingCountdown iso={config.date.iso} /><EverlastingCeremony ceremony={config.ceremony} dateLong={config.date.long} /><EverlastingReception reception={config.reception} /><EverlastingTimeline timeline={config.timeline} /></div>
+        <EverlastingGallery gallery={config.gallery} /><EverlastingQuote quote={config.quote} />
+        <div className="everlasting-dress" hidden={draft.dressCodeVisible === false}><EverlastingDressCode dressCode={config.dressCode} /></div>
+        <div className="everlasting-rsvp" hidden={draft.questionsVisible === false}><EverlastingRsvp rsvp={config.rsvp} /><EverlastingWishes wishes={config.wishes} /></div>
+        <div className="everlasting-closing" hidden={draft.finalMessageVisible === false}><EverlastingFooter config={config} /></div>
+        {config.music.enabled ? <EverlastingMusic music={config.music} /> : null}
+      </main>
+    </OriginalTemplateSurface></TemplateShell>
+  );
+}
+
 const makeDraft = (mainNames: string, eventDate: string, eventTime: string, eventLocation: string, image: string, designKey: keyof typeof templateDefaultGalleryIds) => ({
   mainNames,
   eventDate,
@@ -592,6 +1008,130 @@ export const getIvoryVowsDraft = () => ({ ...makeDraft(
   'ivory-vows'
 ), dressCode: wedding.dressCode.text, dressCodeColors: wedding.dressCode.colors.map((color) => ({ ...color })) });
 
+export const getDivineBlessingDraft = () => ({ ...makeDraft(
+  divineInvitation.babyName,
+  divineInvitation.eventISO.slice(0, 10),
+  divineInvitation.details[1]?.value || '14:00',
+  divineInvitation.location.churchName,
+  divineHeroImage,
+  'divine-blessing'
+),
+  eventMessage: divineInvitation.heroDescription,
+  closingMessage: divineInvitation.familyMessage,
+  mapLinks: [{
+    label: divineInvitation.location.churchName,
+    time: divineInvitation.details[1]?.value || '14:00',
+    address: divineInvitation.location.churchAddress,
+    url: divineInvitation.location.mapUrl,
+    visible: true
+  }],
+  rsvpSettings: {
+    title: 'Խնդրում ենք հաստատել Ձեր ներկայությունը',
+    description: '',
+    deadline: '',
+    guestPlaceholder: 'Անուն, Ազգանուն',
+    attendingLabel: 'Այո, կմասնակցեմ',
+    notAttendingLabel: 'Չեմ կարող մասնակցել',
+    submitLabel: 'Ուղարկել',
+    askGuestCount: true,
+    askMeal: false
+  }
+});
+
+export const getElevateInviteDraft = () => ({ ...makeDraft(
+  elevateInvitation.hero.title,
+  elevateInvitation.countdown.targetDate.slice(0, 10),
+  elevateInvitation.details.time.value,
+  elevateInvitation.venue.name,
+  elevateHeroImage,
+  'elevate-invite'
+),
+  eventMessage: elevateInvitation.hero.invitationNote,
+  dressCode: elevateInvitation.dressCode.note,
+  dressCodeColors: elevateInvitation.dressCode.palette.map(({ name, color }) => ({ name, hex: color })),
+  dressCodeVisible: true,
+  closingMessage: elevateInvitation.finale.quote,
+  mapLinks: [{
+    label: elevateInvitation.venue.name,
+    time: elevateInvitation.details.time.value,
+    address: elevateInvitation.venue.address,
+    url: elevateInvitation.venue.mapsUrl,
+    visible: true
+  }],
+  rsvpSettings: {
+    title: elevateInvitation.rsvp.title,
+    description: elevateInvitation.rsvp.subtitle,
+    deadline: elevateInvitation.rsvp.deadline,
+    guestPlaceholder: 'Full name',
+    attendingLabel: "Yes, I'll Attend",
+    notAttendingLabel: "Unfortunately, I Can't Attend",
+    submitLabel: 'Send Confirmation',
+    askGuestCount: true,
+    askMeal: false
+  }
+});
+
+export const getEverAfterDraft = () => ({ ...makeDraft(
+  `${everAfterInvite.bride} & ${everAfterInvite.groom}`,
+  everAfterInvite.dateISO.slice(0, 10),
+  everAfterInvite.timeLabel,
+  everAfterInvite.venue,
+  everAfterHeroImage,
+  'ever-after'
+),
+  dressCode: 'Soft neutrals, silk and a touch of gold — dress as though the evening were a photograph you’d keep forever.',
+  dressCodeColors: everAfterDressPalette.map(({ name }, index) => ({ name, hex: ['#FAF7EF', '#EAD9B8', '#EBCBC8', '#B77E82', '#C9A85C'][index] || '#D8B98E' })),
+  dressCodeVisible: true,
+  mapLinks: [{
+    label: everAfterInvite.venue,
+    time: everAfterInvite.timeLabel,
+    address: everAfterInvite.address,
+    url: everAfterInvite.mapsUrl,
+    visible: true
+  }],
+  rsvpSettings: {
+    title: 'Will You Celebrate With Us?',
+    description: '',
+    deadline: 'kindly reply by September 1',
+    guestPlaceholder: 'Անուն ազգանուն',
+    attendingLabel: 'Joyfully Accept',
+    notAttendingLabel: 'Regretfully Decline',
+    submitLabel: 'Send Our Reply',
+    askGuestCount: true,
+    askMeal: false
+  }
+});
+
+export const getEverlastingVowsDraft = () => ({ ...makeDraft(
+  `${everlastingConfig.couple.bride.name} & ${everlastingConfig.couple.groom.name}`,
+  everlastingConfig.date.iso.slice(0, 10),
+  everlastingConfig.ceremony.time,
+  everlastingConfig.ceremony.venue,
+  everlastingHeroImage,
+  'everlasting-vows'
+),
+  eventMessage: everlastingConfig.hero.invitation,
+  dressCode: everlastingConfig.dressCode.note,
+  dressCodeColors: everlastingConfig.dressCode.swatches.map(({ name, color }) => ({ name, hex: color })),
+  dressCodeVisible: true,
+  closingMessage: everlastingConfig.footer.message,
+  mapLinks: [
+    { label: everlastingConfig.ceremony.venue, time: everlastingConfig.ceremony.time, address: everlastingConfig.ceremony.city, url: everlastingConfig.ceremony.mapUrl, visible: true },
+    { label: everlastingConfig.reception.venue, time: everlastingConfig.reception.time, address: everlastingConfig.reception.city, url: everlastingConfig.reception.mapUrl, visible: true }
+  ],
+  rsvpSettings: {
+    title: everlastingConfig.rsvp.title,
+    description: everlastingConfig.rsvp.subtitle,
+    deadline: everlastingConfig.rsvp.deadline,
+    guestPlaceholder: 'Անուն ազգանուն',
+    attendingLabel: 'Joyfully Accept',
+    notAttendingLabel: 'Regretfully Decline',
+    submitLabel: 'Send RSVP',
+    askGuestCount: true,
+    askMeal: true
+  }
+});
+
 function OriginalTemplateCard({ image, title }: { image: string; title: string }) {
   return (
     <div className="original-template-card-preview">
@@ -606,10 +1146,22 @@ function OriginalTemplateCard({ image, title }: { image: string; title: string }
 export const SacredBeginningsCardPreview = () => <OriginalTemplateCard image={sacredPortrait} title="Սուրբ սկիզբ" />;
 export const BirthdaySparkleCardPreview = () => <OriginalTemplateCard image={birthdayPortrait} title="Փայլուն տարեդարձ" />;
 export const IvoryVowsCardPreview = () => <OriginalTemplateCard image={ivoryHero} title="Փղոսկրե երդումներ" />;
+export const DivineBlessingCardPreview = () => <OriginalTemplateCard image={divineHeroImage} title="Աստվածային օրհնություն" />;
+export const ElevateInviteCardPreview = () => <OriginalTemplateCard image={elevateHeroImage} title="Elevate" />;
+export const EverAfterCardPreview = () => <OriginalTemplateCard image={everAfterHeroImage} title="Ever After" />;
+export const EverlastingVowsCardPreview = () => <OriginalTemplateCard image={everlastingHeroImage} title="Everlasting Vows" />;
 
 export const SacredBeginningsLivePreview = SacredBeginningsTemplate;
 export const BirthdaySparkleLivePreview = BirthdaySparkleTemplate;
 export const IvoryVowsLivePreview = IvoryVowsTemplate;
+export const DivineBlessingLivePreview = DivineBlessingTemplate;
+export const ElevateInviteLivePreview = ElevateInviteTemplate;
+export const EverAfterLivePreview = EverAfterTemplate;
+export const EverlastingVowsLivePreview = EverlastingVowsTemplate;
 export const SacredBeginningsInvitationView = (props: TemplateProps) => <SacredBeginningsTemplate {...props} mode="public" />;
 export const BirthdaySparkleInvitationView = (props: TemplateProps) => <BirthdaySparkleTemplate {...props} mode="public" />;
 export const IvoryVowsInvitationView = (props: TemplateProps) => <IvoryVowsTemplate {...props} mode="public" />;
+export const DivineBlessingInvitationView = (props: TemplateProps) => <DivineBlessingTemplate {...props} mode="public" />;
+export const ElevateInviteInvitationView = (props: TemplateProps) => <ElevateInviteTemplate {...props} mode="public" />;
+export const EverAfterInvitationView = (props: TemplateProps) => <EverAfterTemplate {...props} mode="public" />;
+export const EverlastingVowsInvitationView = (props: TemplateProps) => <EverlastingVowsTemplate {...props} mode="public" />;

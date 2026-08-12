@@ -2,10 +2,30 @@ import {
   BirthdaySparkleCardPreview,
   BirthdaySparkleInvitationView,
   BirthdaySparkleLivePreview,
+  DivineBlessingCardPreview,
+  DivineBlessingInvitationView,
+  DivineBlessingLivePreview,
+  ElevateInviteCardPreview,
+  ElevateInviteInvitationView,
+  ElevateInviteLivePreview,
+  EverAfterCardPreview,
+  EverAfterInvitationView,
+  EverAfterLivePreview,
+  EverlastingVowsCardPreview,
+  EverlastingVowsInvitationView,
+  EverlastingVowsLivePreview,
   getBirthdaySparkleDraft,
+  getDivineBlessingDraft,
+  getElevateInviteDraft,
+  getEverAfterDraft,
+  getEverlastingVowsDraft,
   getIvoryVowsDraft,
   getSacredBeginningsDraft,
   isBirthdaySparkleTemplate,
+  isDivineBlessingTemplate,
+  isElevateInviteTemplate,
+  isEverAfterTemplate,
+  isEverlastingVowsTemplate,
   isIvoryVowsTemplate,
   isSacredBeginningsTemplate,
   IvoryVowsCardPreview,
@@ -19,7 +39,11 @@ import {
 export const availableOccasionTemplates = [
   { key: 'sacred-beginnings', label: 'Սուրբ սկիզբ · մկրտություն' },
   { key: 'birthday-sparkle', label: 'Փայլուն տարեդարձ' },
-  { key: 'ivory-vows', label: 'Փղոսկրե երդումներ · հարսանիք' }
+  { key: 'ivory-vows', label: 'Փղոսկրե երդումներ · հարսանիք' },
+  { key: 'divine-blessing', label: 'Աստվածային օրհնություն · մկրտություն' },
+  { key: 'elevate-invite', label: 'Elevate · կորպորատիվ միջոցառում' },
+  { key: 'ever-after', label: 'Ever After · նշանադրություն' },
+  { key: 'everlasting-vows', label: 'Everlasting Vows · հարսանիք' }
 ];
 
 const normalizeTemplateKey = (value) => String(value || '')
@@ -56,6 +80,42 @@ export const occasionTemplates = [
     LivePreview: IvoryVowsLivePreview,
     PublicView: IvoryVowsInvitationView,
     getInitialDraft: getIvoryVowsDraft
+  },
+  {
+    key: 'divine-blessing',
+    aliases: ['divine-blessing', 'divine-blessing-baptism'],
+    match: isDivineBlessingTemplate,
+    CardPreview: DivineBlessingCardPreview,
+    LivePreview: DivineBlessingLivePreview,
+    PublicView: DivineBlessingInvitationView,
+    getInitialDraft: getDivineBlessingDraft
+  },
+  {
+    key: 'elevate-invite',
+    aliases: ['elevate-invite', 'elevate-corporate'],
+    match: isElevateInviteTemplate,
+    CardPreview: ElevateInviteCardPreview,
+    LivePreview: ElevateInviteLivePreview,
+    PublicView: ElevateInviteInvitationView,
+    getInitialDraft: getElevateInviteDraft
+  },
+  {
+    key: 'ever-after',
+    aliases: ['ever-after', 'ever-after-engagement'],
+    match: isEverAfterTemplate,
+    CardPreview: EverAfterCardPreview,
+    LivePreview: EverAfterLivePreview,
+    PublicView: EverAfterInvitationView,
+    getInitialDraft: getEverAfterDraft
+  },
+  {
+    key: 'everlasting-vows',
+    aliases: ['everlasting-vows', 'everlasting-vows-wedding'],
+    match: isEverlastingVowsTemplate,
+    CardPreview: EverlastingVowsCardPreview,
+    LivePreview: EverlastingVowsLivePreview,
+    PublicView: EverlastingVowsInvitationView,
+    getInitialDraft: getEverlastingVowsDraft
   }
 ];
 

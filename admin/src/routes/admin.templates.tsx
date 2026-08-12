@@ -39,6 +39,36 @@ import ivoryGallery1 from "../../../client/src/assets/importedTemplates/ivory/ga
 import ivoryGallery2 from "../../../client/src/assets/importedTemplates/ivory/gallery-2.jpg";
 import ivoryGallery3 from "../../../client/src/assets/importedTemplates/ivory/gallery-3.jpg";
 import ivoryGallery4 from "../../../client/src/assets/importedTemplates/ivory/gallery-4.jpg";
+import divineBaby1 from "../../../client/src/vendorTemplates/divine/assets/baby-1.jpg";
+import divineBaby2 from "../../../client/src/vendorTemplates/divine/assets/baby-2.jpg";
+import divineBaby3 from "../../../client/src/vendorTemplates/divine/assets/baby-3.jpg";
+import divineChurch from "../../../client/src/vendorTemplates/divine/assets/church.jpg";
+import elevateHero from "../../../client/src/vendorTemplates/elevate/assets/hero-bg.jpg";
+import elevateGallery1 from "../../../client/src/vendorTemplates/elevate/assets/gallery-1.jpg";
+import elevateGallery2 from "../../../client/src/vendorTemplates/elevate/assets/gallery-2.jpg";
+import elevateGallery3 from "../../../client/src/vendorTemplates/elevate/assets/gallery-3.jpg";
+import elevateGallery4 from "../../../client/src/vendorTemplates/elevate/assets/gallery-4.jpg";
+import elevateGallery5 from "../../../client/src/vendorTemplates/elevate/assets/gallery-5.jpg";
+import elevateGallery6 from "../../../client/src/vendorTemplates/elevate/assets/gallery-6.jpg";
+import everAfterHero from "../../../client/src/vendorTemplates/everafter/assets/hero-floral.jpg";
+import everAfterBride from "../../../client/src/vendorTemplates/everafter/assets/portrait-anna.jpg";
+import everAfterGroom from "../../../client/src/vendorTemplates/everafter/assets/portrait-david.jpg";
+import everAfterMap from "../../../client/src/vendorTemplates/everafter/assets/map-placeholder.jpg";
+import everAfterGallery1 from "../../../client/src/vendorTemplates/everafter/assets/gallery-1.jpg";
+import everAfterGallery2 from "../../../client/src/vendorTemplates/everafter/assets/gallery-2.jpg";
+import everAfterGallery3 from "../../../client/src/vendorTemplates/everafter/assets/gallery-3.jpg";
+import everAfterGallery4 from "../../../client/src/vendorTemplates/everafter/assets/gallery-4.jpg";
+import everAfterGallery5 from "../../../client/src/vendorTemplates/everafter/assets/gallery-5.jpg";
+import everAfterGallery6 from "../../../client/src/vendorTemplates/everafter/assets/gallery-6.jpg";
+import everlastingHero from "../../../client/src/vendorTemplates/everlasting/assets/hero.jpg";
+import everlastingBride from "../../../client/src/vendorTemplates/everlasting/assets/bride.jpg";
+import everlastingGroom from "../../../client/src/vendorTemplates/everlasting/assets/groom.jpg";
+import everlastingGallery1 from "../../../client/src/vendorTemplates/everlasting/assets/g1.jpg";
+import everlastingGallery2 from "../../../client/src/vendorTemplates/everlasting/assets/g2.jpg";
+import everlastingGallery3 from "../../../client/src/vendorTemplates/everlasting/assets/g3.jpg";
+import everlastingGallery4 from "../../../client/src/vendorTemplates/everlasting/assets/g4.jpg";
+import everlastingGallery5 from "../../../client/src/vendorTemplates/everlasting/assets/g5.jpg";
+import everlastingGallery6 from "../../../client/src/vendorTemplates/everlasting/assets/g6.jpg";
 
 export const Route = createFileRoute("/admin/templates")({ component: TemplatesPage });
 
@@ -52,6 +82,10 @@ const staticDesignOptions = [
   { key: "sacred-beginnings", label: "Սուրբ սկիզբ · մկրտություն" },
   { key: "birthday-sparkle", label: "Փայլուն տարեդարձ" },
   { key: "ivory-vows", label: "Փղոսկրե երդումներ · հարսանիք" },
+  { key: "divine-blessing", label: "Աստվածային օրհնություն · մկրտություն" },
+  { key: "elevate-invite", label: "Elevate · գործարար միջոցառում" },
+  { key: "ever-after", label: "Ever After · նշանադրություն" },
+  { key: "everlasting-vows", label: "Հավերժական երդումներ · հարսանիք" },
 ];
 
 const templateAssetPreviews: Record<string, string> = {
@@ -75,6 +109,36 @@ const templateAssetPreviews: Record<string, string> = {
   "asset:curated/ivory/gallery-2.jpg": ivoryGallery2,
   "asset:curated/ivory/gallery-3.jpg": ivoryGallery3,
   "asset:curated/ivory/gallery-4.jpg": ivoryGallery4,
+  "asset:curated/divine/baby-1.jpg": divineBaby1,
+  "asset:curated/divine/baby-2.jpg": divineBaby2,
+  "asset:curated/divine/baby-3.jpg": divineBaby3,
+  "asset:curated/divine/church.jpg": divineChurch,
+  "asset:curated/elevate/hero-bg.jpg": elevateHero,
+  "asset:curated/elevate/gallery-1.jpg": elevateGallery1,
+  "asset:curated/elevate/gallery-2.jpg": elevateGallery2,
+  "asset:curated/elevate/gallery-3.jpg": elevateGallery3,
+  "asset:curated/elevate/gallery-4.jpg": elevateGallery4,
+  "asset:curated/elevate/gallery-5.jpg": elevateGallery5,
+  "asset:curated/elevate/gallery-6.jpg": elevateGallery6,
+  "asset:curated/ever-after/hero-floral.jpg": everAfterHero,
+  "asset:curated/ever-after/bride.jpg": everAfterBride,
+  "asset:curated/ever-after/groom.jpg": everAfterGroom,
+  "asset:curated/ever-after/map.jpg": everAfterMap,
+  "asset:curated/ever-after/gallery-1.jpg": everAfterGallery1,
+  "asset:curated/ever-after/gallery-2.jpg": everAfterGallery2,
+  "asset:curated/ever-after/gallery-3.jpg": everAfterGallery3,
+  "asset:curated/ever-after/gallery-4.jpg": everAfterGallery4,
+  "asset:curated/ever-after/gallery-5.jpg": everAfterGallery5,
+  "asset:curated/ever-after/gallery-6.jpg": everAfterGallery6,
+  "asset:curated/everlasting/hero.jpg": everlastingHero,
+  "asset:curated/everlasting/bride.jpg": everlastingBride,
+  "asset:curated/everlasting/groom.jpg": everlastingGroom,
+  "asset:curated/everlasting/gallery-1.jpg": everlastingGallery1,
+  "asset:curated/everlasting/gallery-2.jpg": everlastingGallery2,
+  "asset:curated/everlasting/gallery-3.jpg": everlastingGallery3,
+  "asset:curated/everlasting/gallery-4.jpg": everlastingGallery4,
+  "asset:curated/everlasting/gallery-5.jpg": everlastingGallery5,
+  "asset:curated/everlasting/gallery-6.jpg": everlastingGallery6,
 };
 
 const defaultDesignGalleries: Record<string, string[]> = {
@@ -104,6 +168,44 @@ const defaultDesignGalleries: Record<string, string[]> = {
     "asset:curated/ivory/gallery-3.jpg",
     "asset:curated/ivory/gallery-4.jpg",
   ],
+  "divine-blessing": [
+    "asset:curated/divine/baby-1.jpg",
+    "asset:curated/divine/baby-2.jpg",
+    "asset:curated/divine/baby-3.jpg",
+    "asset:curated/divine/church.jpg",
+  ],
+  "elevate-invite": [
+    "asset:curated/elevate/hero-bg.jpg",
+    "asset:curated/elevate/gallery-1.jpg",
+    "asset:curated/elevate/gallery-2.jpg",
+    "asset:curated/elevate/gallery-3.jpg",
+    "asset:curated/elevate/gallery-4.jpg",
+    "asset:curated/elevate/gallery-5.jpg",
+    "asset:curated/elevate/gallery-6.jpg",
+  ],
+  "ever-after": [
+    "asset:curated/ever-after/hero-floral.jpg",
+    "asset:curated/ever-after/bride.jpg",
+    "asset:curated/ever-after/groom.jpg",
+    "asset:curated/ever-after/map.jpg",
+    "asset:curated/ever-after/gallery-1.jpg",
+    "asset:curated/ever-after/gallery-2.jpg",
+    "asset:curated/ever-after/gallery-3.jpg",
+    "asset:curated/ever-after/gallery-4.jpg",
+    "asset:curated/ever-after/gallery-5.jpg",
+    "asset:curated/ever-after/gallery-6.jpg",
+  ],
+  "everlasting-vows": [
+    "asset:curated/everlasting/hero.jpg",
+    "asset:curated/everlasting/bride.jpg",
+    "asset:curated/everlasting/groom.jpg",
+    "asset:curated/everlasting/gallery-1.jpg",
+    "asset:curated/everlasting/gallery-2.jpg",
+    "asset:curated/everlasting/gallery-3.jpg",
+    "asset:curated/everlasting/gallery-4.jpg",
+    "asset:curated/everlasting/gallery-5.jpg",
+    "asset:curated/everlasting/gallery-6.jpg",
+  ],
 };
 
 const emptyForm = {
@@ -115,6 +217,7 @@ const emptyForm = {
   designKey: "ivory-vows",
   description: "",
   mainImage: "asset:curated/ivory/hero.jpg",
+  pagePreviewImage: "",
   gallery: "asset:curated/ivory/hero.jpg",
   features: "",
   isFeatured: false,
@@ -162,6 +265,9 @@ const sameImageList = (first: string[], second: string[]) => (
 
 const getPreviewImage = (image?: string) => templateAssetPreviews[image || ""] || image || "";
 
+const MAX_PAGE_PREVIEW_BYTES = 10 * 1024 * 1024;
+const PAGE_PREVIEW_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+
 const readImageFile = (file: File) => new Promise<string>((resolve) => {
   const reader = new FileReader();
   reader.onload = () => resolve(String(reader.result || ""));
@@ -192,6 +298,7 @@ function toForm(template?: any) {
     designKey,
     description: template.description || "",
     mainImage: template.cover || "",
+    pagePreviewImage: template.pagePreviewImage || "",
     gallery: gallery.join("\n"),
     features: (template.features || []).join("\n"),
     isFeatured: Boolean(template.featured),
@@ -245,6 +352,7 @@ function TemplatesPage() {
     designKey: isKnownDesignKey(form.designKey) ? form.designKey : "ivory-vows",
     description: form.description,
     mainImage: form.mainImage,
+    pagePreviewImage: form.pagePreviewImage,
     gallery: form.gallery,
     galleryConfigured: true,
     features: form.features,
@@ -488,6 +596,18 @@ function TemplateForm({ form, setForm }: any) {
     };
     reader.readAsDataURL(file);
   };
+  const choosePagePreview = async (file?: File) => {
+    if (!file) return;
+    if (!PAGE_PREVIEW_TYPES.has(file.type)) {
+      toast.error(t("pagePreviewTypeError"));
+      return;
+    }
+    if (file.size > MAX_PAGE_PREVIEW_BYTES) {
+      toast.error(t("pagePreviewTooLarge"));
+      return;
+    }
+    set("pagePreviewImage", await readImageFile(file));
+  };
   const addGalleryImages = async (files?: FileList | null) => {
     const selectedFiles = Array.from(files || []);
     if (!selectedFiles.length) return;
@@ -568,6 +688,45 @@ function TemplateForm({ form, setForm }: any) {
                 </div>
                 <Slider value={[imagePosition.zoom]} min={1} max={2} step={0.01} onValueChange={([value]) => setImagePosition("zoom", value)} />
               </div>
+            </div>
+          </div>
+        ) : null}
+      </div>
+      <div className="space-y-3 rounded-2xl border border-border/60 bg-secondary/20 p-4 sm:col-span-2">
+        <div className="space-y-1">
+          <Label>{t("pagePreviewImage")}</Label>
+          <p className="text-xs leading-5 text-muted-foreground">{t("pagePreviewHelp")}</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
+          <Input
+            value={form.pagePreviewImage}
+            onChange={(event) => set("pagePreviewImage", event.target.value)}
+            placeholder={t("imagePlaceholder")}
+          />
+          <label className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border/70 bg-background px-4 text-sm font-medium shadow-sm transition hover:border-[color:var(--gold)] focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+            <Upload className="h-4 w-4" />
+            {t("upload")}
+            <input
+              className="sr-only"
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={(event) => { void choosePagePreview(event.target.files?.[0]); event.target.value = ""; }}
+            />
+          </label>
+          {form.pagePreviewImage ? (
+            <Button type="button" variant="outline" onClick={() => set("pagePreviewImage", "")}>
+              <Trash2 className="mr-2 h-4 w-4" />{t("pagePreviewRemove")}
+            </Button>
+          ) : null}
+        </div>
+        {form.pagePreviewImage ? (
+          <div className="overflow-hidden rounded-xl border border-border/70 bg-background p-3">
+            <div className="mx-auto max-h-80 max-w-sm overflow-y-auto rounded-lg border border-border/60 bg-secondary/30">
+              <img
+                src={getPreviewImage(form.pagePreviewImage)}
+                alt={t("pagePreviewImage")}
+                className="block h-auto w-full"
+              />
             </div>
           </div>
         ) : null}

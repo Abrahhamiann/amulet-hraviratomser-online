@@ -21,18 +21,20 @@ const previewSectionSelectors = {
     '.baptism-hero', '.baptism-countdown-section', '.baptism-message-copy',
     '.sacred-hero', '.sacred-message',
     '.birthday-hero', '.birthday-message',
-    '.ivory-hero', '.ivory-message'
+    '.ivory-hero', '.ivory-message',
+    '.divine-hero', '.elevate-hero', '.ever-after-hero', '.everlasting-hero'
   ],
-  family: ['.midnight-family-note', '.engagement-family-note', '.baptism-family-note'],
+  family: ['.midnight-family-note', '.engagement-family-note', '.baptism-family-note', '.divine-family'],
   schedule: [
     '.midnight-schedule',
     '.engagement-week', '.engagement-location', '.engagement-place-list',
     '.baptism-event-section', '.baptism-party-section',
-    '.sacred-schedule', '.birthday-schedule', '.ivory-schedule'
+    '.sacred-schedule', '.birthday-schedule', '.ivory-schedule',
+    '.divine-schedule', '.elevate-schedule', '.ever-after-schedule', '.everlasting-schedule'
   ],
-  rsvp: ['.midnight-rsvp-section', '.engagement-rsvp-section', '.baptism-rsvp-section', '.sacred-rsvp', '.birthday-rsvp', '.ivory-rsvp'],
-  closing: ['.midnight-signature', '.engagement-final', '.baptism-signature', '.sacred-closing', '.birthday-closing', '.ivory-closing'],
-  dress: ['.curated-dress', '.ivory-dress']
+  rsvp: ['.midnight-rsvp-section', '.engagement-rsvp-section', '.baptism-rsvp-section', '.sacred-rsvp', '.birthday-rsvp', '.ivory-rsvp', '.divine-rsvp', '.elevate-rsvp', '.ever-after-rsvp', '.everlasting-rsvp'],
+  closing: ['.midnight-signature', '.engagement-final', '.baptism-signature', '.sacred-closing', '.birthday-closing', '.ivory-closing', '.divine-closing', '.elevate-closing', '.ever-after-closing', '.everlasting-closing'],
+  dress: ['.curated-dress', '.ivory-dress', '.elevate-dress', '.ever-after-dress', '.everlasting-dress']
 };
 
 const normalizePreviewText = (value) => String(value || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('hy');
@@ -365,7 +367,15 @@ export const decoratePreview = (root, data, { suppressMotion = false, labels: su
 
     scope.querySelectorAll('img:not([aria-hidden="true"])').forEach((image, imageOrder) => {
       if (image.closest('.original-template-preview-actions, [data-editor-ignore]')) return;
-      const target = image.closest('picture') || image;
+      const parent = image.parentElement;
+      const hasVisualOverlay = parent && (
+        parent.children.length > 1
+        || parent.matches('picture, figure, button, a, label')
+      );
+      // Many imported designs place a gradient/border sibling above the <img>.
+      // Decorating only the image makes a real pointer click land on that
+      // overlay instead. Promote the hotspot to the immediate visual wrapper.
+      const target = image.closest('picture') || (hasVisualOverlay ? parent : image);
       if (!target) return;
       const source = image.currentSrc || image.src;
       const galleryIndex = galleryImages.findIndex((item) => absoluteImageSource(item) === source);
@@ -400,7 +410,7 @@ export const decoratePreview = (root, data, { suppressMotion = false, labels: su
     });
 
     let fallbackMapIndex = 0;
-    scope.querySelectorAll('a[class*="map-button"], button[class*="map-button"], span[class*="map-button"], a[href*="google.com/maps"], a[href*="maps.app"], a[href*="goo.gl/maps"]').forEach((target) => {
+    scope.querySelectorAll('a[class*="map-button"], button[class*="map-button"], span[class*="map-button"], a[href*="google.com/maps"], a[href*="maps.google."], a[href*="maps.app"], a[href*="goo.gl/maps"]').forEach((target) => {
       const href = target.getAttribute('href') || '';
       const matchedIndex = (data.mapLinks || []).findIndex((item) => item?.url && href.includes(item.url));
       const mapIndex = matchedIndex >= 0 ? matchedIndex : Math.min(fallbackMapIndex, Math.max(0, (data.mapLinks || []).length - 1));
@@ -566,9 +576,23 @@ function PreviewWorkspace({ PreviewComponent }) {
   const handlePreviewClick = (event) => {
     if (event.amuletEditorHandled) return;
     const path = (event.nativeEvent || event).composedPath();
-    const target = path.find((node) => node?.dataset?.editorKind)
+    const target = path.find((node) => ['image', 'map'].includes(node?.dataset?.editorKind))
+      || path.find((node) => node?.dataset?.editorKind)
       || event.target.closest?.('[data-editor-kind]');
-    if (!target) return;
+    if (!target) {
+      const sectionTarget = path.find((node) => node?.dataset?.editorSection)
+        || event.target.closest?.('[data-editor-section]');
+      if (!sectionTarget) return;
+      event.preventDefault();
+      event.stopPropagation();
+      focusEditorTarget({
+        section: sectionTarget.dataset.editorSection || 'templateContent',
+        targetTab: 'content',
+        scrollPreview: false,
+        focusSidebar: true
+      });
+      return;
+    }
     event.amuletEditorHandled = true;
     if (target.dataset.editorKind === 'text' && target.dataset.editorField) {
       const inline = target.dataset.editorInline === 'true';
@@ -614,8 +638,9 @@ function PreviewWorkspace({ PreviewComponent }) {
   useEffect(() => {
     const root = previewRootRef.current;
     if (!root) return undefined;
-    root.ownerDocument.__amuletEditorHotspotHandler = handlePreviewClick;
-    root.ownerDocument.__amuletEditorHotspotFocusHandler = (target) => {
+    const previewDocument = root.ownerDocument;
+    previewDocument.__amuletEditorHotspotHandler = handlePreviewClick;
+    previewDocument.__amuletEditorHotspotFocusHandler = (target) => {
       focusEditorTarget({
         section: target.dataset.editorSection || 'hero',
         field: target.dataset.editorField || '',
@@ -624,20 +649,23 @@ function PreviewWorkspace({ PreviewComponent }) {
         focusSidebar: false
       });
     };
-    root.ownerDocument.__amuletEditorInlineCommitHandler = ({ field, value }) => {
+    previewDocument.__amuletEditorInlineCommitHandler = ({ field, value }) => {
       if (!field) return;
       update((draft) => updateDraftTextField(draft, field, value));
     };
-    root.addEventListener('click', handlePreviewClick, true);
-    root.addEventListener('keydown', handlePreviewKeyDown, true);
+    // Imported templates render inside shadow roots. Listen on the iframe
+    // document as well as the React mount node so composed clicks from every
+    // image/text hotspot reliably reach the editor, including nested buttons.
+    previewDocument.addEventListener('click', handlePreviewClick, true);
+    previewDocument.addEventListener('keydown', handlePreviewKeyDown, true);
     return () => {
-      delete root.ownerDocument.__amuletEditorHotspotHandler;
-      delete root.ownerDocument.__amuletEditorHotspotFocusHandler;
-      delete root.ownerDocument.__amuletEditorInlineCommitHandler;
-      root.removeEventListener('click', handlePreviewClick, true);
-      root.removeEventListener('keydown', handlePreviewKeyDown, true);
+      delete previewDocument.__amuletEditorHotspotHandler;
+      delete previewDocument.__amuletEditorHotspotFocusHandler;
+      delete previewDocument.__amuletEditorInlineCommitHandler;
+      previewDocument.removeEventListener('click', handlePreviewClick, true);
+      previewDocument.removeEventListener('keydown', handlePreviewKeyDown, true);
     };
-  }, [previewReady]);
+  }, [focusEditorTarget, previewReady, update]);
 
   const frameImage = device === 'mobile' ? iphoneDeviceFrame : device === 'tablet' ? ipadDeviceFrame : null;
   return (

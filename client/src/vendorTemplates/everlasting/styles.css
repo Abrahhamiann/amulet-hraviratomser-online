@@ -1,0 +1,266 @@
+@import "tailwindcss" source(none);
+@source ".";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Amulet — Wedding Invitation design system.
+ * Editable brand surface: change the tokens in :root only.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-blush: var(--blush);
+  --color-rose: var(--rose);
+  --color-sage: var(--sage);
+  --color-champagne: var(--champagne);
+  --color-ivory: var(--ivory);
+  --color-ink: var(--ink);
+  --font-script: var(--font-script-family);
+  --font-serif: var(--font-heading-family);
+  --font-sans: var(--font-body-family);
+}
+
+:root {
+  --radius: 0.25rem;
+
+  /* Fonts */
+  --font-script-family: "Great Vibes", "Cormorant Garamond", cursive;
+  --font-heading-family: "Cormorant Garamond", Georgia, serif;
+  --font-body-family: "Jost", "Helvetica Neue", sans-serif;
+
+  /* Wedding palette */
+  --ivory: oklch(0.977 0.008 85);
+  --champagne: oklch(0.918 0.032 84);
+  --blush: oklch(0.925 0.024 24);
+  --rose: oklch(0.735 0.062 20);
+  --sage: oklch(0.77 0.038 140);
+  --gold: oklch(0.72 0.083 78);
+  --gold-soft: oklch(0.86 0.055 82);
+  --ink: oklch(0.32 0.018 60);
+
+  --background: var(--ivory);
+  --foreground: var(--ink);
+  --card: oklch(0.99 0.005 85);
+  --card-foreground: var(--ink);
+  --popover: oklch(0.99 0.005 85);
+  --popover-foreground: var(--ink);
+  --primary: var(--gold);
+  --primary-foreground: oklch(0.99 0.005 85);
+  --secondary: var(--champagne);
+  --secondary-foreground: var(--ink);
+  --muted: oklch(0.955 0.012 84);
+  --muted-foreground: oklch(0.52 0.02 60);
+  --accent: var(--blush);
+  --accent-foreground: var(--ink);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.99 0.005 85);
+  --border: oklch(0.885 0.02 82);
+  --input: oklch(0.885 0.02 82);
+  --ring: var(--gold);
+
+  --gradient-veil: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--ivory) 0%, transparent) 0%,
+    color-mix(in oklab, var(--ivory) 75%, transparent) 55%,
+    var(--ivory) 100%
+  );
+  --gradient-gold: linear-gradient(100deg, var(--gold-soft), var(--gold), var(--gold-soft));
+  --shadow-soft: 0 30px 60px -30px color-mix(in oklab, var(--ink) 28%, transparent);
+  --shadow-lift: 0 40px 80px -40px color-mix(in oklab, var(--ink) 40%, transparent);
+}
+
+.dark {
+  --background: oklch(0.22 0.012 60);
+  --foreground: oklch(0.95 0.01 85);
+  --card: oklch(0.26 0.014 60);
+  --card-foreground: oklch(0.95 0.01 85);
+  --popover: oklch(0.26 0.014 60);
+  --popover-foreground: oklch(0.95 0.01 85);
+  --muted: oklch(0.3 0.014 60);
+  --muted-foreground: oklch(0.75 0.02 70);
+  --border: oklch(1 0 0 / 14%);
+  --input: oklch(1 0 0 / 18%);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-body-family);
+    font-weight: 300;
+    letter-spacing: 0.01em;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-heading-family);
+    font-weight: 300;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--gold) 30%, transparent);
+  }
+}
+
+@utility font-script {
+  font-family: "Great Vibes", var(--font-script-family);
+  font-weight: 400;
+}
+
+@utility text-gold-gradient {
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility eyebrow {
+  font-family: var(--font-body-family);
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.42em;
+  font-size: 0.68rem;
+  color: color-mix(in oklab, var(--ink) 62%, var(--ivory));
+}
+
+@utility hairline {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--gold) 70%, transparent),
+    transparent
+  );
+}
+
+@utility paper {
+  background-image:
+    radial-gradient(
+      120% 80% at 50% -10%,
+      color-mix(in oklab, var(--champagne) 45%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      90% 60% at 100% 100%,
+      color-mix(in oklab, var(--blush) 32%, transparent),
+      transparent 65%
+    );
+}
+
+@utility btn-gold {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: 3rem;
+  padding: 0.9rem 2.2rem;
+  border: 1px solid color-mix(in oklab, var(--gold) 55%, transparent);
+  color: var(--ink);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  background: color-mix(in oklab, var(--ivory) 70%, transparent);
+  transition:
+    background 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+
+  &:hover {
+    background: color-mix(in oklab, var(--gold) 88%, white);
+    color: var(--ivory);
+    box-shadow: var(--shadow-soft);
+  }
+
+  &:focus-visible {
+    outline: 1px solid var(--gold);
+    outline-offset: 4px;
+  }
+}
+
+@utility arch {
+  border-radius: 50% 50% 4px 4px / 34% 34% 2px 2px;
+  overflow: hidden;
+}
+
+@keyframes petal-fall {
+  0% {
+    transform: translate3d(0, -10vh, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.7;
+  }
+  90% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate3d(var(--drift, 40px), 110vh, 0) rotate(320deg);
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer-float {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateY(-14px);
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

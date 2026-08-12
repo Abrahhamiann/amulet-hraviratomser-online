@@ -7,9 +7,12 @@ import { defineConfig } from 'vite';
 const clientRoot = path.dirname(fileURLToPath(import.meta.url));
 const vendorRoot = path.join(clientRoot, 'src', 'vendorTemplates');
 
-const templateRoots = ['sacred', 'birthday', 'ivory'].map((name) => ({
-  marker: path.join('vendorTemplates', name, 'src').replaceAll('\\', '/'),
-  root: path.join(vendorRoot, name, 'src')
+const templateRoots = [
+  ...['sacred', 'birthday', 'ivory'].map((name) => ({ name, sourceDir: 'src' })),
+  ...['divine', 'elevate', 'everafter', 'everlasting'].map((name) => ({ name, sourceDir: '' }))
+].map(({ name, sourceDir }) => ({
+  marker: path.join('vendorTemplates', name, sourceDir).replaceAll('\\', '/'),
+  root: path.join(vendorRoot, name, sourceDir)
 }));
 
 const scopedTemplateAlias = {

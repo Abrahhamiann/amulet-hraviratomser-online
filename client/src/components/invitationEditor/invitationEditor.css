@@ -519,17 +519,6 @@
 .invite-editor-preview-scroll .is-editor-section-active { box-shadow: inset 0 0 0 1px rgba(208,125,79,.18); }
 .invite-editor-open-sheet { display: none; }
 
-.invite-editor-confirm { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 20px; background: rgba(20,18,16,.58); backdrop-filter: blur(8px); pointer-events: auto; }
-.invite-editor-confirm > section { width: min(420px, 100%); position: relative; z-index: 1; display: grid; justify-items: center; gap: 9px; padding: 24px; border-radius: 18px; background: #fff; box-shadow: 0 26px 80px rgba(0,0,0,.25); text-align: center; pointer-events: auto; }
-.invite-editor-confirm > section > span { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: #f3eadb; color: #7d5d31; }
-.invite-editor-confirm h2 { margin: 0; font-size: 1.05rem; }
-.invite-editor-confirm p { margin: 0; color: var(--editor-muted); font-size: .72rem; }
-.invite-editor-confirm section > div { width: 100%; display: grid; gap: 7px; margin-top: 7px; }
-.invite-editor-confirm button { min-height: 44px; position: relative; z-index: 2; border: 1px solid var(--editor-line); border-radius: 10px; background: #fff; color: var(--editor-ink); font-weight: 800; cursor: pointer; pointer-events: auto; touch-action: manipulation; }
-.invite-editor-confirm button:disabled { cursor: wait; opacity: .62; }
-.invite-editor-confirm button:nth-child(2) { border-color: var(--editor-ink); background: var(--editor-ink); color: #fff; }
-.invite-editor-confirm button.is-danger { color: #a43b3b; }
-
 .midnight-vows-invite.has-custom-name-style .midnight-cover-copy h1,
 .engagement-serenade-invite.has-custom-name-style .engagement-cover-copy h1,
 .baptism-blessing-invite.has-custom-name-style .baptism-hero-copy h1,

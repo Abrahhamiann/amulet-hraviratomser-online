@@ -21,7 +21,6 @@ import api from '../api/axios.js';
 import ErrorState from '../components/ErrorState.jsx';
 import InvitationEditor, { clearPreviewDecorations, decoratePreview, updateDraftTextField } from '../components/invitationEditor/InvitationEditor.jsx';
 import { cloneEditorDraft } from '../components/invitationEditor/editorData.js';
-import { prepareImage } from '../components/invitationEditor/mediaUtils.js';
 import Loading from '../components/Loading.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -218,8 +217,6 @@ export default function TemplateLivePreviewPage() {
   const autoEditorOpenedRef = useRef(false);
   const autoBuyOpenedRef = useRef(false);
   const livePreviewRootRef = useRef(null);
-  const directImageInputRef = useRef(null);
-  const directImageFieldRef = useRef('');
   const autosaveTokenRef = useRef(previewToken || '');
   const editorHotspotLabels = useMemo(() => ({ image: t('image'), map: t('map'), edit: t('editorEdit'), changeImage: t('editorChangeImage'), editMap: t('editorEditMap'), editSection: t('editorEditSection'), heroImage: t('editorHeroImage'), galleryImage: t('editorGalleryImage'), participantImage: t('editorParticipantImage'), venueImage: t('editorVenueImage'), closingImage: t('editorClosingImage'), invitationImage: t('editorInvitationImage') }), [t]);
 
@@ -268,19 +265,30 @@ export default function TemplateLivePreviewPage() {
     const activateEditorTarget = (event) => {
       if (event.amuletEditorHandled) return;
       const path = event.composedPath();
-      const target = path.find((node) => node?.dataset?.editorKind);
-      if (!target) return;
+      const target = path.find((node) => ['image', 'map'].includes(node?.dataset?.editorKind))
+        || path.find((node) => node?.dataset?.editorKind);
+      if (!target) {
+        const sectionTarget = path.find((node) => node?.dataset?.editorSection);
+        if (!sectionTarget) return;
+        event.preventDefault();
+        event.stopPropagation();
+        setEditorInitialTarget({
+          section: sectionTarget.dataset.editorSection || 'templateContent',
+          field: '',
+          targetTab: 'content'
+        });
+        setEditing(true);
+        return;
+      }
       event.amuletEditorHandled = true;
-      if (target.dataset.editorKind === 'text' && target.dataset.editorField) {
+      const isInlineEditableText = target.dataset.editorKind === 'text'
+        && target.dataset.editorField
+        && target.dataset.editorInline === 'true';
+      if (isInlineEditableText) {
         return;
       }
       event.preventDefault();
       event.stopPropagation();
-      if (target.dataset.editorKind === 'image') {
-        directImageFieldRef.current = target.dataset.editorField || '';
-        directImageInputRef.current?.click();
-        return;
-      }
       setEditorInitialTarget({
         section: target.dataset.editorSection || (target.dataset.editorKind === 'image' ? 'media' : 'hero'),
         field: target.dataset.editorField || '',
@@ -490,29 +498,6 @@ export default function TemplateLivePreviewPage() {
     }
   };
 
-  const replaceDirectImage = async (file) => {
-    if (!file) return;
-    const imageValue = await prepareImage(file);
-    const prefix = 'templateImageOverrides.';
-    const field = directImageFieldRef.current;
-    setDraft((current) => {
-      if (field.startsWith(prefix)) {
-        return {
-          ...current,
-          templateImageOverrides: { ...(current.templateImageOverrides || {}), [field.slice(prefix.length)]: imageValue }
-        };
-      }
-      if (/^gallery\.\d+$/.test(field)) {
-        const index = Number(field.split('.')[1]);
-        const gallery = [...(current.gallery || [])];
-        gallery[index] = imageValue;
-        return { ...current, gallery };
-      }
-      return { ...current, image: imageValue };
-    });
-    setIsEdited(true);
-  };
-
   const clearEditorSession = () => {
     if (!template?._id) return;
     localStorage.removeItem(`amulet_autosave_${template._id}`);
@@ -549,7 +534,6 @@ export default function TemplateLivePreviewPage() {
       ref={livePreviewRootRef}
       className={`${LivePreview ? 'template-live-page test-wedding-page' : 'template-live-page'}${editing ? ' is-editing' : ''}${isStandalonePreview ? ' is-standalone-preview' : ''}`}
     >
-      {!isStandalonePreview && <input ref={directImageInputRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => { void replaceDirectImage(event.target.files?.[0]); event.target.value = ''; }} />}
       {LivePreview ? (
         <>
           <LivePreview

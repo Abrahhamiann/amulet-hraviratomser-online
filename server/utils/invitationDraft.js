@@ -111,7 +111,11 @@ export const normalizeRsvpSettings = (source = {}) => ({
 export const PUBLIC_DESIGN_KEYS = [
   'sacred-beginnings',
   'birthday-sparkle',
-  'ivory-vows'
+  'ivory-vows',
+  'divine-blessing',
+  'elevate-invite',
+  'ever-after',
+  'everlasting-vows'
 ];
 
 export const normalizeDraft = (draft, template) => {

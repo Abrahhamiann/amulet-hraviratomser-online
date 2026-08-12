@@ -4,7 +4,10 @@ import Order from '../models/Order.js';
 import Template from '../models/Template.js';
 import { createSecureInvitationSlug, isSecureInvitationSlug } from '../utils/invitationSlug.js';
 
-const CURRENT_DESIGN_KEYS = new Set(['sacred-beginnings', 'birthday-sparkle', 'ivory-vows']);
+const CURRENT_DESIGN_KEYS = new Set([
+  'sacred-beginnings', 'birthday-sparkle', 'ivory-vows',
+  'divine-blessing', 'elevate-invite', 'ever-after', 'everlasting-vows'
+]);
 
 export const getInvitationBySlug = asyncHandler(async (req, res) => {
   const identifier = req.params.slug;

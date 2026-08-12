@@ -14,5 +14,8 @@ const previews = {
 const normalize = (value) => String(value || '').trim().toLowerCase();
 
 export const getTemplatePagePreview = (template) => (
-  previews[normalize(template?.designKey)] || previews[normalize(template?.slug)] || ''
+  template?.pagePreviewImage
+  || previews[normalize(template?.designKey)]
+  || previews[normalize(template?.slug)]
+  || ''
 );

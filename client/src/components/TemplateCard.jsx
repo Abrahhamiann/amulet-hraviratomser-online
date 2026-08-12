@@ -20,7 +20,7 @@ export default function TemplateCard({ template }) {
   const zoom = Number.isFinite(Number(imagePosition.zoom)) ? Math.min(2, Math.max(1, Number(imagePosition.zoom))) : 1;
   const objectPosition = `${x}% ${y}%`;
   const mainImage = resolveTemplateImage(template.mainImage);
-  const pagePreview = getTemplatePagePreview(template);
+  const pagePreview = resolveTemplateImage(getTemplatePagePreview(template));
   const previewPath = `/templates/${template._id}/live`;
   const previewUrl = useMemo(() => {
     if (typeof window === 'undefined') return previewPath;
@@ -79,9 +79,8 @@ export default function TemplateCard({ template }) {
             className="catalog-template-scroll-shot"
             src={pagePreview}
             alt={`${template.title} — ամբողջական էջ`}
-            width="630"
-            height="16384"
             loading="lazy"
+            decoding="async"
             onTransitionEnd={(event) => {
               if (event.propertyName === 'transform') setCatalogWalkthroughComplete(true);
             }}
@@ -129,8 +128,7 @@ export default function TemplateCard({ template }) {
                   className={`template-qr-auto-scroll${modalWalkthroughComplete ? ' is-complete' : ''}`}
                   src={pagePreview}
                   alt={`${template.title} — ամբողջական էջ`}
-                  width="630"
-                  height="16384"
+                  decoding="async"
                   onAnimationEnd={() => setModalWalkthroughComplete(true)}
                 />
               ) : mainImage ? (

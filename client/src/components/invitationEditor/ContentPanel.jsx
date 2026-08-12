@@ -61,6 +61,29 @@ const getEditorCapabilities = (template = {}) => {
     groomFamilyTitle: false, brideFamilyTitle: false, eventTime: false, venues: false,
     dress: true, dressCodeVisible: true, dressPalette: true
   };
+  if (key.includes('divine-blessing')) return {
+    ...base, openingVisible: false, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
+    rsvpDescription: true, rsvpDeadline: true
+  };
+  if (key.includes('elevate-invite')) return {
+    ...base, openingVisible: false, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
+    dress: true, dressCodeVisible: true, dressPalette: true,
+    rsvpDescription: true, rsvpDeadline: true
+  };
+  if (key.includes('ever-after')) return {
+    ...base, openingVisible: false, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
+    dress: true, dressCodeVisible: true, dressPalette: true,
+    rsvpDescription: true, rsvpDeadline: true
+  };
+  if (key.includes('everlasting-vows')) return {
+    ...base, openingVisible: false, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
+    dress: true, dressCodeVisible: true, dressPalette: true,
+    rsvpDescription: true, rsvpDeadline: true
+  };
   if (key.includes('midnight-vows') || key.includes('engagement-serenade') || key.includes('baptism-blessing')) return base;
   return base;
 };

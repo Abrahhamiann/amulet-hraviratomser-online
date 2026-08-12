@@ -2202,7 +2202,7 @@ Object.assign(hy, {
   editorPreviewDevice: 'Նախադիտման սարք', editorDesktop: 'Համակարգիչ', editorTablet: 'Պլանշետ', editorMobile: 'Հեռախոս', editorDialogLabel: 'Amulet հրավերի խմբագրիչ',
   editorClosePanel: 'Փակել խմբագրման վահանակը', editorOpenPanel: 'Բացել խմբագրման վահանակը', editorUndo: 'Հետարկել', editorRedo: 'Կրկնել',
   editorSessionChanges: 'Փոփոխությունները պահվում են միայն այս խմբագրման ընթացքում', editorOriginalState: 'Հրավերը սկզբնական տեսքով է', editorRestore: 'Վերականգնել', editorViewChanges: 'Դիտել փոփոխվածը', editorClose: 'Փակել խմբագրիչը', editorSections: 'Խմբագրիչի բաժիններ', back: 'Ետ',
-  editorRestoreTitle: 'Վերականգնե՞լ հրավերի սկզբնական տեսքը', editorRestoreDescription: 'Ձեր կատարած բոլոր տեքստային, նկարային և ձևավորման փոփոխությունները կհեռացվեն, և հրավերը կվերադառնա իր օրիգինալ տարբերակին։ Այս քայլը հնարավոր չէ հետարկել։', editorRestoreConfirm: 'Այո, վերականգնել',
+  editorRestoreTitle: 'Վերականգնե՞լ հրավերի սկզբնական տեսքը', editorRestoreDescription: 'Ձեր կատարած բոլոր տեքստային, նկարային և ձևավորման փոփոխությունները կջնջվեն, և հրավերը կվերականգնվի իր սկզբնական տարբերակին։ Այս գործողությունը հնարավոր չէ չեղարկել։', editorRestoreConfirm: 'Այո, վերականգնել',
   editorTemplates: 'Ձևանմուշներ', editorEdit: 'Խմբագրել', editorDesign: 'Ձևավորում', editorMedia: 'Մեդիա', editorBuy: 'Գնել'
 });
 Object.assign(en, {

@@ -1,0 +1,258 @@
+@import "tailwindcss" source(none);
+@source ".";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Amulet — Baptism Invitation design system.
+ * Soft, sacred, ivory + champagne gold + dusty blue.
+ * All colors are oklch tokens; never hardcode colors in components.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  --font-display: "Noto Serif Armenian", "Cormorant Garamond", Georgia, serif;
+  --font-title: "Noto Serif Armenian", "Cormorant Garamond", Georgia, serif;
+  --font-body: "Noto Sans Armenian", "Jost", system-ui, sans-serif;
+  --font-latin: "Cormorant Garamond", Georgia, serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-ivory: var(--ivory);
+  --color-cream: var(--cream);
+  --color-sky: var(--sky);
+  --color-dusty: var(--dusty);
+  --color-blush: var(--blush);
+  --color-silver: var(--silver);
+}
+
+:root {
+  --radius: 0.75rem;
+
+  --background: oklch(0.988 0.006 90);
+  --foreground: oklch(0.36 0.025 250);
+  --card: oklch(0.995 0.004 95);
+  --card-foreground: oklch(0.36 0.025 250);
+  --popover: oklch(0.995 0.004 95);
+  --popover-foreground: oklch(0.36 0.025 250);
+
+  --primary: oklch(0.66 0.055 245);
+  --primary-foreground: oklch(0.99 0.005 95);
+  --secondary: oklch(0.96 0.012 90);
+  --secondary-foreground: oklch(0.4 0.025 250);
+  --muted: oklch(0.965 0.01 90);
+  --muted-foreground: oklch(0.56 0.02 250);
+  --accent: oklch(0.94 0.02 240);
+  --accent-foreground: oklch(0.38 0.03 250);
+  --destructive: oklch(0.6 0.14 25);
+  --destructive-foreground: oklch(0.99 0.005 95);
+
+  --border: oklch(0.9 0.015 85);
+  --input: oklch(0.91 0.014 85);
+  --ring: oklch(0.8 0.06 85);
+
+  --gold: oklch(0.76 0.085 82);
+  --gold-soft: oklch(0.88 0.05 88);
+  --ivory: oklch(0.985 0.008 92);
+  --cream: oklch(0.96 0.018 88);
+  --sky: oklch(0.93 0.03 235);
+  --dusty: oklch(0.72 0.05 240);
+  --blush: oklch(0.93 0.025 25);
+  --silver: oklch(0.93 0.004 250);
+
+  --gradient-heaven: linear-gradient(
+    180deg,
+    oklch(0.995 0.005 95) 0%,
+    oklch(0.975 0.012 88) 40%,
+    oklch(0.96 0.02 235) 100%
+  );
+  --gradient-gold: linear-gradient(
+    100deg,
+    oklch(0.84 0.06 88) 0%,
+    oklch(0.72 0.09 82) 45%,
+    oklch(0.88 0.045 92) 100%
+  );
+  --gradient-veil: radial-gradient(
+    ellipse at 50% 0%,
+    color-mix(in oklab, var(--gold-soft) 35%, transparent) 0%,
+    transparent 65%
+  );
+
+  --shadow-soft: 0 18px 50px -28px color-mix(in oklab, var(--dusty) 45%, transparent);
+  --shadow-halo: 0 0 60px -10px color-mix(in oklab, var(--gold-soft) 60%, transparent);
+  --ease-sacred: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-body);
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--gold-soft) 60%, transparent);
+  }
+}
+
+@utility text-gold-gradient {
+  background-image: var(--gradient-gold);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+@utility bg-heaven {
+  background-image: var(--gradient-heaven);
+}
+
+@utility bg-veil {
+  background-image: var(--gradient-veil);
+}
+
+@utility shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+
+@utility shadow-halo {
+  box-shadow: var(--shadow-halo);
+}
+
+@utility font-display {
+  font-family: var(--font-display);
+}
+
+@utility font-title {
+  font-family: var(--font-title);
+}
+
+@utility font-body {
+  font-family: var(--font-body);
+}
+
+@utility font-latin {
+  font-family: var(--font-latin);
+}
+
+@utility glass-card {
+  background: color-mix(in oklab, var(--card) 78%, transparent);
+  backdrop-filter: blur(14px);
+  border: 1px solid color-mix(in oklab, var(--gold-soft) 55%, transparent);
+  box-shadow: var(--shadow-soft);
+}
+
+@utility arch {
+  border-radius: 999px 999px var(--radius-xl) var(--radius-xl);
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateY(-26px) translateX(8px);
+    opacity: 0.8;
+  }
+}
+
+@keyframes shimmer-line {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes halo-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.85;
+  }
+}
+
+@keyframes ray-drift {
+  0%,
+  100% {
+    transform: translateX(-3%) rotate(-1deg);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateX(3%) rotate(1deg);
+    opacity: 0.6;
+  }
+}
+
+@utility animate-float-slow {
+  animation: float-slow 14s var(--ease-sacred) infinite;
+}
+
+@utility animate-shimmer-line {
+  animation: shimmer-line 5s ease-in-out infinite;
+}
+
+@utility animate-halo {
+  animation: halo-pulse 6s ease-in-out infinite;
+}
+
+@utility animate-ray {
+  animation: ray-drift 18s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -28,7 +28,11 @@ const DEFAULT_DESIGN_KEY = 'ivory-vows';
 const PUBLIC_DESIGN_KEYS = [
   'sacred-beginnings',
   'birthday-sparkle',
-  'ivory-vows'
+  'ivory-vows',
+  'divine-blessing',
+  'elevate-invite',
+  'ever-after',
+  'everlasting-vows'
 ];
 const FAQ_SETTING_KEY = 'faqItems';
 const REVENUE_RESET_SETTING_KEY = 'revenueResetAt';
@@ -155,6 +159,7 @@ const mapTemplate = (template, usage = 0) => ({
   price: template.price,
   designKey: template.designKey || DEFAULT_DESIGN_KEY,
   cover: template.mainImage || template.gallery?.[0] || '',
+  pagePreviewImage: template.pagePreviewImage || '',
   imagePosition: normalizeImagePosition(template.imagePosition),
   gallery: template.gallery || [],
   galleryConfigured: Boolean(template.galleryConfigured),
