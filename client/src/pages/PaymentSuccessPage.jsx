@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import api from '../api/axios.js';
 import Loading from '../components/Loading.jsx';
+import { qrImageUrl, siteUrl } from '../config/env.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { clearPurchasedPromo } from '../utils/promoStorage.js';
@@ -35,8 +36,8 @@ export default function PaymentSuccessPage() {
   if (state === 'loading') return <Loading text={t('loading')} />;
 
   const invitePath = order?.invitationId?.slug ? `/invite/${order.invitationId.slug}` : '/account';
-  const invitationUrl = order?.invitationId?.slug ? `${window.location.origin}${invitePath}` : '';
-  const qrUrl = invitationUrl ? `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=14&data=${encodeURIComponent(invitationUrl)}` : '';
+  const invitationUrl = order?.invitationId?.slug ? siteUrl(invitePath) : '';
+  const qrUrl = invitationUrl ? qrImageUrl(invitationUrl, 260, 14) : '';
   const copyInvitationUrl = async () => {
     if (!invitationUrl) return;
     try {

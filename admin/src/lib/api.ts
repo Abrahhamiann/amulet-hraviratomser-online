@@ -1,29 +1,5 @@
-function resolveApiBaseURL() {
-  const configuredUrl = import.meta.env.VITE_API_URL?.trim();
-  if (configuredUrl) {
-    try {
-      const apiUrl = new URL(configuredUrl);
-      const pageHost = typeof window !== "undefined" ? window.location.hostname : "";
-      const isLoopbackApi = ["localhost", "127.0.0.1", "::1"].includes(apiUrl.hostname);
-      if (isLoopbackApi && pageHost) {
-        apiUrl.hostname = pageHost;
-        return apiUrl.toString().replace(/\/$/, "");
-      }
-    } catch {
-      return configuredUrl.replace(/\/$/, "");
-    }
+import { API_URL as API_BASE_URL } from "./env";
 
-    return configuredUrl.replace(/\/$/, "");
-  }
-
-  if (typeof window !== "undefined" && window.location.hostname) {
-    return `${window.location.protocol}//${window.location.hostname}:5000/api`;
-  }
-
-  return "http://127.0.0.1:5000/api";
-}
-
-const API_BASE_URL = resolveApiBaseURL();
 const LEGACY_TOKEN_KEYS = ["amulet_admin_token", "token", "userToken"];
 
 export type AdminUser = {

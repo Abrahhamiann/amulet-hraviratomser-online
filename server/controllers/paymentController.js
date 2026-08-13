@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import Stripe from 'stripe';
+import { clientUrl as resolveClientUrl } from '../config/env.js';
 import Invitation from '../models/Invitation.js';
 import InvitationDraft from '../models/InvitationDraft.js';
 import Order from '../models/Order.js';
@@ -74,7 +75,7 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
     data: draft,
     expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 6)
   });
-  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+  const clientUrl = resolveClientUrl();
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     payment_method_types: ['card'],

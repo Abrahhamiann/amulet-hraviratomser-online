@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import crypto from 'crypto';
+import { clientUrl } from '../config/env.js';
 import ContactMessage from '../models/ContactMessage.js';
 import Invitation from '../models/Invitation.js';
 import Order from '../models/Order.js';
@@ -16,7 +17,6 @@ const cleanBotUsername = () => (
   || process.env.TELEGRAM_BOT_USERNAME
   || ''
 ).trim().replace(/^@/, '');
-const clientUrl = () => (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
 
 const botUrl = () => {
   const username = cleanBotUsername();

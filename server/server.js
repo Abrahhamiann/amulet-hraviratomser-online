@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { connectDB } from './config/db.js';
+import { allowedOrigins as resolveAllowedOrigins } from './config/env.js';
 import { errorHandler, notFound } from './middleware/error.js';
 import { parseCookies } from './middleware/cookies.js';
 import adminRoutes from './routes/adminRoutes.js';
@@ -50,20 +51,7 @@ if (telegramBotEnv.parsed?.TELEGRAM_BOT_USERNAME) {
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const allowedOrigins = [
-  process.env.CLIENT_URL || 'http://localhost:5173',
-  process.env.ADMIN_URL || 'http://localhost:8080'
-].flatMap((origin) => {
-  try {
-    const url = new URL(origin);
-    if (!['localhost', '127.0.0.1'].includes(url.hostname)) return [url.origin];
-    const alias = new URL(origin);
-    alias.hostname = url.hostname === 'localhost' ? '127.0.0.1' : 'localhost';
-    return [origin, alias.origin];
-  } catch {
-    return [];
-  }
-});
+const allowedOrigins = resolveAllowedOrigins();
 
 app.use(cors({
   origin(origin, callback) {

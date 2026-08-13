@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Eye, Pencil, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
+import { qrImageUrl, siteUrl } from '../config/env.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
 import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
@@ -22,11 +23,8 @@ export default function TemplateCard({ template }) {
   const mainImage = resolveTemplateImage(template.mainImage);
   const pagePreview = resolveTemplateImage(getTemplatePagePreview(template));
   const previewPath = `/templates/${template._id}/live`;
-  const previewUrl = useMemo(() => {
-    if (typeof window === 'undefined') return previewPath;
-    return new URL(previewPath, window.location.origin).toString();
-  }, [previewPath]);
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=12&data=${encodeURIComponent(previewUrl)}`;
+  const previewUrl = useMemo(() => siteUrl(previewPath), [previewPath]);
+  const qrUrl = qrImageUrl(previewUrl, 220, 12);
   const openQr = () => {
     setModalWalkthroughComplete(false);
     setQrOpen(true);

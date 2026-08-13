@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { startStripeCheckout } from '../utils/checkout.js';
 
-const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+import { GOOGLE_CLIENT_ID as googleClientId } from '../config/env.js';
 
 export default function AuthPage() {
   const navigate = useNavigate();

@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { adminApi, currency } from "@/lib/api";
+import { CLIENT_URL } from "@/lib/env";
 import { formatAdminCategory, useAdminI18n } from "@/lib/i18n";
 import { useTemplates } from "@/hooks/useAdminData";
 import sacredPortrait from "../../../client/src/assets/importedTemplates/sacred/child-portrait.jpg";
@@ -275,10 +276,7 @@ const readImageFile = (file: File) => new Promise<string>((resolve) => {
 });
 
 function getClientBaseUrl() {
-  const configured = (import.meta as any).env?.VITE_CLIENT_URL?.trim();
-  if (configured) return configured.replace(/\/$/, "");
-  if (typeof window !== "undefined") return `${window.location.protocol}//${window.location.hostname}:5173`;
-  return "http://localhost:5173";
+  return CLIENT_URL;
 }
 
 function toForm(template?: any) {

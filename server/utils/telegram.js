@@ -1,5 +1,6 @@
 import Order from '../models/Order.js';
 import User from '../models/User.js';
+import { clientUrl as resolveClientUrl } from '../config/env.js';
 
 export const TELEGRAM_LANGUAGES = ['hy', 'en', 'ru', 'es', 'fr', 'de', 'it'];
 
@@ -255,7 +256,7 @@ export const notifyInvitationOwnerOfRsvp = async (invitation, rsvp) => {
   );
   const copy = labels[language];
   const status = copy[rsvp.status] || rsvp.status;
-  const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
+  const clientUrl = resolveClientUrl();
   const detailsUrl = `${clientUrl}/account/invitations/${invitation._id}/responses`;
   const lines = [
     `<b>🔔 ${copy.title}</b>`,

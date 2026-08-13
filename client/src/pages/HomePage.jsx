@@ -2,6 +2,7 @@ import React from 'react';
 import { Pencil, Search, Share2, Sparkles } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { CREATION_VIDEO_URL } from '../config/env.js';
 import baptismChurch from '../assets/morph/baptism-church.webp';
 import baptismLift from '../assets/morph/baptism-lift.jpg';
 import birthdayCakeLights from '../assets/morph/birthday-cake-lights.jpg';
@@ -25,7 +26,7 @@ const occasionLinks = [
   { category: 'engagement', image: engagementSmile }
 ];
 
-const creationVideoUrl = 'https://youtu.be/WUPRFyeUwCU?si=sAyLMnUu_QknEBLF';
+const creationVideoUrl = CREATION_VIDEO_URL;
 
 function getYouTubeStartSeconds(value) {
   if (!value) return '';
