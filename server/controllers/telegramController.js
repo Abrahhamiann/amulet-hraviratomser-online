@@ -9,6 +9,8 @@ import { deliverContactReply } from '../utils/contactReply.js';
 import { isTelegramAdmin, normalizeTelegramLanguage } from '../utils/telegram.js';
 
 const tokenHash = (token) => crypto.createHash('sha256').update(token).digest('hex');
+const BOT_HEARTBEAT_TTL_MS = 90 * 1000;
+let lastBotHeartbeatAt = 0;
 const cleanBotUsername = () => (
   process.env.TELEGRAM_SHARED_BOT_USERNAME
   || process.env.TELEGRAM_BOT_USERNAME
@@ -25,6 +27,8 @@ const isBotConfigured = () => Boolean(
   cleanBotUsername()
   && (process.env.TELEGRAM_SHARED_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN)?.trim()
 );
+
+const isBotAvailable = () => isBotConfigured() && Date.now() - lastBotHeartbeatAt < BOT_HEARTBEAT_TTL_MS;
 
 const requireBotConfiguration = (res) => {
   if (isBotConfigured()) return;
@@ -128,9 +132,7 @@ export const getTelegramStatus = asyncHandler(async (req, res) => {
   const configured = isBotConfigured();
   res.json({
     configured,
-    // Do not disable account linking because of a transient getMe/network
-    // request. The one-time /start token remains safe even if Telegram is slow.
-    available: configured,
+    available: isBotAvailable(),
     connected,
     username: cleanBotUsername(),
     displayName: req.user.telegram?.firstName || req.user.telegram?.username || '',
@@ -140,8 +142,17 @@ export const getTelegramStatus = asyncHandler(async (req, res) => {
   });
 });
 
+export const registerTelegramBotHeartbeat = asyncHandler(async (_req, res) => {
+  lastBotHeartbeatAt = Date.now();
+  res.json({ ok: true, serverTime: new Date(lastBotHeartbeatAt).toISOString() });
+});
+
 export const createTelegramLink = asyncHandler(async (req, res) => {
   requireBotConfiguration(res);
+  if (!isBotAvailable()) {
+    res.status(503);
+    throw new Error('Telegram bot process is not running');
+  }
   const language = normalizeTelegramLanguage(req.body?.language);
   const token = crypto.randomBytes(24).toString('base64url');
 

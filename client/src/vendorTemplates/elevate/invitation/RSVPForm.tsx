@@ -7,10 +7,10 @@ import { Reveal, SectionHeading } from "./primitives";
 import { cn } from "@/lib/utils";
 
 const schema = z.object({
-  fullName: z.string().trim().min(2, "Please enter your full name").max(100),
+  fullName: z.string().trim().min(2, "Մուտքագրեք Ձեր անունը և ազգանունը").max(100),
   company: z.string().trim().max(120).optional(),
   position: z.string().trim().max(120).optional(),
-  email: z.string().trim().email("Please enter a valid email").max(255),
+  email: z.string().trim().email("Մուտքագրեք վավեր էլ․ հասցե").max(255),
   phone: z.string().trim().max(40).optional(),
   attending: z.enum(["yes", "no"]),
   guests: z.coerce.number().int().min(0).max(10),
@@ -85,16 +85,16 @@ export function RSVPForm({ data, onSubmit }: { data: InvitationData; onSubmit?: 
       message: fd.get("message"),
     });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Please review your details");
+      setError(parsed.error.issues[0]?.message ?? "Խնդրում ենք ստուգել լրացված տվյալները");
       return;
     }
     setError(null);
     setSubmitting(true);
     try {
       const details = [
-        parsed.data.company ? `Company: ${parsed.data.company}` : "",
-        parsed.data.position ? `Position: ${parsed.data.position}` : "",
-        parsed.data.email ? `Email: ${parsed.data.email}` : "",
+        parsed.data.company ? `Ընկերություն՝ ${parsed.data.company}` : "",
+        parsed.data.position ? `Պաշտոն՝ ${parsed.data.position}` : "",
+        parsed.data.email ? `Էլ․ հասցե՝ ${parsed.data.email}` : "",
         parsed.data.message || ""
       ].filter(Boolean).join("\n");
       await onSubmit?.({
@@ -165,20 +165,20 @@ export function RSVPForm({ data, onSubmit }: { data: InvitationData; onSubmit?: 
               className="mt-12 flex flex-col gap-7"
             >
               <div className="grid gap-7 sm:grid-cols-2">
-                <Field id="fullName" label="Full name" required />
-                <Field id="company" label="Company" />
-                <Field id="position" label="Position" />
-                <Field id="email" label="Email" type="email" inputMode="email" required />
+                <Field id="fullName" label="Անուն ազգանուն" required />
+                <Field id="company" label="Ընկերություն" />
+                <Field id="position" label="Պաշտոն" />
+                <Field id="email" label="Էլ․ հասցե" type="email" inputMode="email" required />
               </div>
-              <Field id="phone" label="Phone number" type="tel" inputMode="tel" />
+              <Field id="phone" label="Հեռախոսահամար" type="tel" inputMode="tel" />
 
               <fieldset className="mt-2">
-                <legend className="eyebrow mb-4">Will you attend?</legend>
+                <legend className="eyebrow mb-4">Կմասնակցե՞ք</legend>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {(
                     [
-                      { key: "yes", label: "Yes, I'll Attend" },
-                      { key: "no", label: "Unfortunately, I Can't Attend" },
+                      { key: "yes", label: "Այո, կմասնակցեմ" },
+                      { key: "no", label: "Ցավոք, չեմ կարող մասնակցել" },
                     ] as const
                   ).map((opt) => (
                     <button
@@ -202,7 +202,7 @@ export function RSVPForm({ data, onSubmit }: { data: InvitationData; onSubmit?: 
               {attending === "yes" && (
                 <div className="flex items-center justify-between border-b border-input pb-3">
                   <label htmlFor="guests" className="text-sm text-muted-foreground">
-                    Number of guests
+                    Հյուրերի քանակ
                   </label>
                   <select
                     id="guests"
@@ -225,11 +225,11 @@ export function RSVPForm({ data, onSubmit }: { data: InvitationData; onSubmit?: 
                   name="message"
                   rows={3}
                   maxLength={600}
-                  placeholder="Message (optional)"
+                  placeholder="Հաղորդագրություն (ըստ ցանկության)"
                   className={cn(fieldClass, "resize-none")}
                 />
                 <label htmlFor="message" className={labelClass}>
-                  Message (optional)
+                  Հաղորդագրություն (ըստ ցանկության)
                 </label>
               </div>
 
@@ -246,10 +246,9 @@ export function RSVPForm({ data, onSubmit }: { data: InvitationData; onSubmit?: 
               <button
                 type="submit"
                 disabled={submitting}
-                className="group relative mt-2 inline-flex items-center justify-center overflow-hidden border border-primary px-8 py-4 text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-primary transition-colors duration-500 hover:text-primary-foreground"
+                className="group relative isolate mt-2 inline-flex items-center justify-center overflow-hidden border border-primary bg-primary px-8 py-4 text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-primary-foreground transition-opacity duration-300 hover:opacity-90"
               >
-                <span className="absolute inset-0 origin-left scale-x-0 bg-primary transition-transform duration-700 ease-[var(--ease-elegant)] group-hover:scale-x-100" />
-                <span className="relative z-10">{submitting ? "Ուղարկվում է…" : "Send Confirmation"}</span>
+                <span className="relative z-10">{submitting ? "Ուղարկվում է…" : "Ուղարկել հաստատումը"}</span>
               </button>
             </motion.form>
           )}

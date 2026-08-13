@@ -41,9 +41,9 @@ export const availableOccasionTemplates = [
   { key: 'birthday-sparkle', label: 'Փայլուն տարեդարձ' },
   { key: 'ivory-vows', label: 'Փղոսկրե երդումներ · հարսանիք' },
   { key: 'divine-blessing', label: 'Աստվածային օրհնություն · մկրտություն' },
-  { key: 'elevate-invite', label: 'Elevate · կորպորատիվ միջոցառում' },
-  { key: 'ever-after', label: 'Ever After · նշանադրություն' },
-  { key: 'everlasting-vows', label: 'Everlasting Vows · հարսանիք' }
+  { key: 'elevate-invite', label: 'Վերելք · կորպորատիվ միջոցառում' },
+  { key: 'ever-after', label: 'Եվ ապրեցին երջանիկ · նշանադրություն' },
+  { key: 'everlasting-vows', label: 'Հավերժական երդումներ · հարսանիք' }
 ];
 
 const normalizeTemplateKey = (value) => String(value || '')

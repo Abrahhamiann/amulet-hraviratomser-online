@@ -26,9 +26,8 @@ export function VenueSection({ data }: { data: InvitationData }) {
                   href={venue.mapsUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="group relative inline-flex items-center gap-2 overflow-hidden border border-primary/60 px-6 py-3.5 text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-primary transition-colors duration-500 hover:text-primary-foreground"
+                  className="group relative isolate inline-flex items-center gap-2 overflow-hidden border border-primary bg-primary px-6 py-3.5 text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-primary-foreground transition-opacity duration-300 hover:opacity-90"
                 >
-                  <span className="absolute inset-0 origin-left scale-x-0 bg-primary transition-transform duration-700 ease-[var(--ease-elegant)] group-hover:scale-x-100" />
                   <Navigation className="relative z-10 h-4 w-4" strokeWidth={1.4} />
                   <span className="relative z-10">{venue.cta}</span>
                 </a>
@@ -38,7 +37,7 @@ export function VenueSection({ data }: { data: InvitationData }) {
                   rel="noreferrer"
                   className="inline-flex items-center border border-border px-6 py-3.5 text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-muted-foreground transition-colors duration-500 hover:border-primary/60 hover:text-foreground"
                 >
-                  Open in Maps
+                  Բացել քարտեզում
                 </a>
               </div>
             </div>
@@ -53,7 +52,7 @@ export function VenueSection({ data }: { data: InvitationData }) {
             >
               <img
                 src={venue.mapImage}
-                alt={`Map showing ${venue.name}`}
+                alt={`${venue.name} վայրի քարտեզը`}
                 width={1600}
                 height={1024}
                 loading="lazy"

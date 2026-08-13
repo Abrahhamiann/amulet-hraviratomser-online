@@ -177,6 +177,7 @@ const makeEditorHotspot = (element, { kind, section, field = '', tab, inline = t
     }
     element.setAttribute('aria-multiline', element.matches('p, blockquote, figcaption') ? 'true' : 'false');
     element.addEventListener('focus', forwardEditorInlineFocus);
+    element.addEventListener('input', forwardEditorInlineInput);
     element.addEventListener('blur', forwardEditorInlineBlur);
     element.addEventListener('keydown', forwardEditorInlineKeyDown);
     element.dataset.editorOwnedInlineEvents = '';
@@ -204,6 +205,15 @@ function forwardEditorInlineFocus(event) {
   target.dataset.editorOriginalText = target.innerText;
   target.classList.add('is-editor-inline-editing');
   target.ownerDocument.__amuletEditorHotspotFocusHandler?.(target);
+}
+
+function forwardEditorInlineInput(event) {
+  const target = event.currentTarget;
+  target.ownerDocument.__amuletEditorInlineCommitHandler?.({
+    field: target.dataset.editorField || '',
+    value: target.innerText.replace(/\u00a0/g, ' '),
+    live: true
+  });
 }
 
 function forwardEditorInlineBlur(event) {
@@ -265,6 +275,7 @@ export const clearPreviewDecorations = (root, { removeStyles = false, preserveAc
       if (element.hasAttribute('data-editor-owned-click')) element.removeEventListener('click', forwardEditorHotspotClick);
       if (element.hasAttribute('data-editor-owned-inline-events')) {
         element.removeEventListener('focus', forwardEditorInlineFocus);
+        element.removeEventListener('input', forwardEditorInlineInput);
         element.removeEventListener('blur', forwardEditorInlineBlur);
         element.removeEventListener('keydown', forwardEditorInlineKeyDown);
       }
@@ -787,6 +798,7 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
   }, [requestClose, restoreOpen]);
 
   useEffect(() => {
+    if (!previewFocusRequest.focusSidebar) return undefined;
     const timer = window.setTimeout(() => {
       const sidebar = document.querySelector('.invite-editor-sidebar-scroll');
       if (!sidebar) return;

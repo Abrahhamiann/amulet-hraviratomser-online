@@ -29,7 +29,7 @@ export function Gallery() {
 
   return (
     <Section className="panel-veil">
-      <SectionTitle eyebrow="Captured Along the Way" title="Our Moments" />
+      <SectionTitle eyebrow="Ճանապարհին պահված" title="Մեր պահերը" />
       <div className="mt-14 grid auto-rows-[11rem] grid-cols-2 gap-3 sm:auto-rows-[13rem] sm:grid-cols-4 sm:gap-5">
         {photos.map((p, i) => (
           <Reveal key={p.src} delay={(i % 3) * 0.08} className={p.span}>
@@ -76,7 +76,7 @@ export function Gallery() {
             <button
               type="button"
               onClick={() => setOpen(null)}
-              aria-label="Close photo"
+              aria-label="Փակել նկարը"
               className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded-full border border-gold/50 bg-background/80 text-foreground"
             >
               <X className="h-4 w-4" strokeWidth={1.4} />

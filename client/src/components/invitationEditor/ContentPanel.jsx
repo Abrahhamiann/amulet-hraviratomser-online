@@ -50,15 +50,15 @@ const getEditorCapabilities = (template = {}) => {
   };
   if (key.includes('sacred-beginnings') || key.includes('sacred-baptism')) return {
     ...base, openingVisible: false, familyVisible: false, brideFamilyTitle: false,
-    venues: false, rsvpDescription: true, rsvpDeadline: true
+    venues: true, rsvpDescription: true, rsvpDeadline: true
   };
   if (key.includes('birthday-sparkle') || key.includes('sparkle-birthday')) return {
     ...base, openingVisible: false, family: false, familyVisible: false,
-    groomFamilyTitle: false, brideFamilyTitle: false, venues: false, dress: true
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: true, dress: true
   };
   if (key.includes('ivory-vows') || key.includes('ivory-wedding')) return {
     ...base, openingVisible: false, family: false, familyVisible: false,
-    groomFamilyTitle: false, brideFamilyTitle: false, eventTime: false, venues: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, eventTime: false, venues: true,
     dress: true, dressCodeVisible: true, dressPalette: true
   };
   if (key.includes('divine-blessing')) return {
@@ -119,7 +119,7 @@ export default function ContentPanel() {
   const handleFieldFocus = (event) => {
     const field = event.target.closest('[data-editor-field]')?.dataset.editorField;
     const section = event.target.closest('[data-editor-section-id]')?.dataset.editorSectionId;
-    if (section) focusEditorTarget({ section, field: field || '', scrollPreview: true });
+    if (section) focusEditorTarget({ section, field: field || '', scrollPreview: false, focusSidebar: false });
   };
   const setVisible = (field, value) => update((draft) => { draft[field] = value; });
   const setField = (field, value) => update((draft) => { draft[field] = value; });
@@ -231,7 +231,10 @@ export default function ContentPanel() {
           {capabilities.eventTime && <Field label={t('editorMainTime')} editorField="eventTime"><input type="time" value={data.eventTime || ''} onChange={(event) => capabilities.venues ? updateVenue(0, 'time', event.target.value) : setField('eventTime', event.target.value)} /></Field>}
         </div>
         {!capabilities.venues && <Field label={t('address')} editorField="eventLocation"><textarea rows="2" value={data.eventLocation || ''} onChange={(event) => setField('eventLocation', event.target.value)} /></Field>}
-        {capabilities.venues && <><div className="invite-editor-list-heading"><strong>{t('editorEventSchedule')}</strong><button type="button" onClick={() => update((draft) => { draft.mapLinks.push(newVenue(draft.mapLinks.length, `${t('editorVenue')} ${draft.mapLinks.length + 1}`)); })}><Plus size={15} /> {t('add')}</button></div>
+        {capabilities.venues && <><div className="invite-editor-list-heading"><strong>{t('editorEventSchedule')}</strong><button type="button" onClick={() => update((draft) => {
+          if (!Array.isArray(draft.mapLinks)) draft.mapLinks = [];
+          draft.mapLinks.push(newVenue(draft.mapLinks.length, `${t('editorVenue')} ${draft.mapLinks.length + 1}`));
+        })}><Plus size={15} /> {t('add')}</button></div>
         <div className="invite-editor-venue-list">
           {data.mapLinks.map((item, index) => (
             <article key={item.id || `${item.label}-${index}`}>

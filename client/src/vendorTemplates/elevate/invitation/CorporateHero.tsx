@@ -107,9 +107,8 @@ export function CorporateHero({ data }: { data: InvitationData }) {
         >
           <a
             href="#invitation"
-            className="group relative inline-flex items-center gap-3 overflow-hidden border border-primary/60 px-8 py-4 text-xs font-semibold uppercase tracking-[0.3em] text-primary transition-colors duration-500 hover:text-primary-foreground"
+            className="group relative isolate inline-flex items-center gap-3 overflow-hidden border border-primary bg-primary px-8 py-4 text-xs font-semibold uppercase tracking-[0.3em] text-primary-foreground transition-opacity duration-300 hover:opacity-90"
           >
-            <span className="absolute inset-0 -z-0 origin-left scale-x-0 bg-primary transition-transform duration-700 ease-[var(--ease-elegant)] group-hover:scale-x-100" />
             <span className="relative z-10">{hero.cta}</span>
             <ChevronDown className="relative z-10 h-4 w-4 transition-transform duration-500 group-hover:translate-y-0.5" />
           </a>

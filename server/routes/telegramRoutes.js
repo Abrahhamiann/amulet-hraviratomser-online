@@ -15,6 +15,7 @@ import {
   getTelegramAdminOrder,
   getTelegramAdminOrders,
   replyTelegramAdminMessage,
+  registerTelegramBotHeartbeat,
   updateTelegramBotSettings
 } from '../controllers/telegramController.js';
 import { protect } from '../middleware/auth.js';
@@ -48,6 +49,7 @@ router.post('/link', protect, createTelegramLink);
 router.delete('/disconnect', protect, disconnectTelegram);
 
 router.post('/bot/connect', botOnly, connectTelegramBot);
+router.post('/bot/heartbeat', botOnly, registerTelegramBotHeartbeat);
 router.get('/bot/account', botOnly, getTelegramBotAccount);
 router.get('/bot/invitations/:invitationId', botOnly, validateObjectId('invitationId'), getTelegramBotInvitation);
 router.patch('/bot/settings', botOnly, updateTelegramBotSettings);

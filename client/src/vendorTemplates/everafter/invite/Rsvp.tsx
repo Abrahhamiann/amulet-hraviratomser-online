@@ -45,7 +45,7 @@ export function Rsvp({ onSubmit }: { onSubmit?: RsvpSubmit }) {
 
   return (
     <Section id="rsvp" className="relative overflow-hidden bg-cream">
-      <SectionTitle eyebrow="RSVP" title="Will You Celebrate With Us?" script="kindly reply by September 1" />
+      <SectionTitle eyebrow="Մասնակցության հաստատում" title="Կտոնե՞ք մեզ հետ" script="Խնդրում ենք պատասխանել մինչև սեպտեմբերի 1-ը" />
 
       <Reveal delay={0.12} className="mt-12">
         <div className="card-soft mx-auto max-w-xl rounded-3xl px-5 py-9 sm:px-10 sm:py-12">
@@ -69,12 +69,12 @@ export function Rsvp({ onSubmit }: { onSubmit?: RsvpSubmit }) {
                 </motion.span>
                 <TwinRings className="mt-6 h-16 w-28" />
                 <h3 className="mt-6 font-serif text-3xl font-light text-foreground">
-                  {answer === "accept" ? "Thank you." : "We will miss you."}
+                  {answer === "accept" ? "Շնորհակալություն։" : "Մենք կկարոտենք Ձեզ։"}
                 </h3>
                 <p className="mt-3 max-w-sm text-sm leading-7 text-muted-foreground">
                   {answer === "accept"
-                    ? "We can’t wait to celebrate with you!"
-                    : "Thank you for letting us know — you’ll be with us in spirit."}
+                    ? "Անհամբեր սպասում ենք Ձեզ հետ տոնելուն։"
+                    : "Շնորհակալություն տեղեկացնելու համար․ մտքով մեզ հետ կլինեք։"}
                 </p>
                 <GoldRule className="mt-7 w-36" />
               </motion.div>
@@ -89,25 +89,25 @@ export function Rsvp({ onSubmit }: { onSubmit?: RsvpSubmit }) {
               >
                 <div>
                   <label htmlFor="rsvp-name" className="eyebrow">
-                    Full Name
+                    Անուն ազգանուն
                   </label>
                   <input
                     id="rsvp-name"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Your name"
+                    placeholder="Ձեր անունը"
                     className={`${fieldClass} mt-3`}
                   />
                 </div>
 
                 <div>
-                  <p className="eyebrow">Will you attend?</p>
+                  <p className="eyebrow">Կմասնակցե՞ք</p>
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
                     {(
                       [
-                        ["accept", "Joyfully Accept"],
-                        ["decline", "Regretfully Decline"],
+                        ["accept", "Այո, մեծ սիրով"],
+                        ["decline", "Ցավոք, չեմ կարող"],
                       ] as const
                     ).map(([key, label]) => {
                       const active = answer === key;
@@ -136,11 +136,11 @@ export function Rsvp({ onSubmit }: { onSubmit?: RsvpSubmit }) {
                 </div>
 
                 <div>
-                  <p className="eyebrow">Number of guests</p>
+                  <p className="eyebrow">Հյուրերի քանակ</p>
                   <div className="mt-3 flex items-center gap-5">
                     <button
                       type="button"
-                      aria-label="Decrease guests"
+                      aria-label="Նվազեցնել հյուրերի քանակը"
                       onClick={() => setGuests((g) => Math.max(1, g - 1))}
                       className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gold/40 text-gold transition-colors duration-400 hover:bg-blush/40"
                     >
@@ -157,7 +157,7 @@ export function Rsvp({ onSubmit }: { onSubmit?: RsvpSubmit }) {
                     </motion.span>
                     <button
                       type="button"
-                      aria-label="Increase guests"
+                      aria-label="Ավելացնել հյուրերի քանակը"
                       onClick={() => setGuests((g) => Math.min(10, g + 1))}
                       className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gold/40 text-gold transition-colors duration-400 hover:bg-blush/40"
                     >
@@ -168,14 +168,14 @@ export function Rsvp({ onSubmit }: { onSubmit?: RsvpSubmit }) {
 
                 <div>
                   <label htmlFor="rsvp-message" className="eyebrow">
-                    A message for us (optional)
+                    Հաղորդագրություն մեզ (ըստ ցանկության)
                   </label>
                   <textarea
                     id="rsvp-message"
                     rows={3}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Write something sweet…"
+                    placeholder="Գրեք մի քանի ջերմ խոսք…"
                     className={`${fieldClass} mt-3 resize-none`}
                   />
                 </div>
@@ -188,7 +188,7 @@ export function Rsvp({ onSubmit }: { onSubmit?: RsvpSubmit }) {
                   className="group relative w-full overflow-hidden rounded-full border border-gold/60 px-8 py-4 text-[0.7rem] uppercase tracking-[0.35em] text-foreground transition-opacity duration-500 disabled:opacity-45"
                 >
                   <span className="absolute inset-0 translate-y-full bg-[var(--gradient-gold)] transition-transform duration-600 ease-[var(--ease-silk)] group-enabled:group-hover:translate-y-0" />
-                  <span className="relative">{submitting ? "Ուղարկվում է…" : "Send Our Reply"}</span>
+                  <span className="relative">{submitting ? "Ուղարկվում է…" : "Ուղարկել պատասխանը"}</span>
                 </button>
               </motion.form>
             )}

@@ -280,12 +280,12 @@
 .invite-editor-card-title small,
 .invite-editor-upload-heading b { color: var(--editor-muted); font-size: .61rem; }
 .invite-editor-card { min-width: 0; display: grid; gap: 12px; padding: 12px; }
-.invite-editor-venue-list { display: grid; gap: 8px; }
-.invite-editor-venue-list article { position: relative; display: grid; gap: 7px; padding: 9px; border: 1px solid #ebe8e2; border-radius: 11px; background: #faf9f7; }
-.invite-editor-venue-list article > header { min-height: 38px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.invite-editor-venue-list { display: grid; gap: 12px; scroll-margin-block: 24px; }
+.invite-editor-venue-list article { position: relative; display: grid; gap: 10px; padding: 12px; border: 1px solid #e4dfd7; border-radius: 14px; background: #faf9f7; box-shadow: 0 5px 16px rgba(38,31,24,.035); }
+.invite-editor-venue-list article > header { min-height: 44px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
 .invite-editor-venue-list article > header > span { display: inline-flex; align-items: center; gap: 5px; font-size: .72rem; font-weight: 750; }
 .invite-editor-venue-list article > header > div { display: flex; align-items: center; gap: 7px; }
-.invite-editor-venue-list article > header button:not(.invite-editor-toggle) { width: 34px; height: 34px; display: grid; place-items: center; padding: 0; border: 1px solid var(--editor-line); border-radius: 9px; background: #fff; color: var(--editor-ink); }
+.invite-editor-venue-list article > header button:not(.invite-editor-toggle) { width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border: 1px solid var(--editor-line); border-radius: 10px; background: #fff; color: var(--editor-ink); }
 .invite-editor-venue-list article > header button.is-danger { color: #ad4040; }
 
 .invite-editor-typography { position: relative; }

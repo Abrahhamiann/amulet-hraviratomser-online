@@ -10,7 +10,7 @@ export function OurStory({ story }: { story: WeddingConfig["story"] }) {
 
   return (
     <Section id="story" tone="paper">
-      <SectionTitle eyebrow="Our Beginning" title={story.title} script={story.intro} />
+      <SectionTitle eyebrow="Մեր սկիզբը" title={story.title} script={story.intro} />
 
       <div ref={ref} className="relative mt-20 sm:mt-24">
         <div

@@ -30,6 +30,9 @@ class AmuletApi:
     async def connect(self, payload: dict):
         return await self._request("POST", "/connect", json=payload)
 
+    async def heartbeat(self):
+        return await self._request("POST", "/heartbeat")
+
     async def account(self, chat_id: int | str):
         return await self._request("GET", "/account", params={"chatId": str(chat_id)})
 

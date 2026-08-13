@@ -100,7 +100,7 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.2, delay: 2 }}
         >
-          &ldquo;Together is a beautiful place to be.&rdquo;
+          &ldquo;Միասին լինելը աշխարհի ամենագեղեցիկ վայրն է։&rdquo;
         </motion.p>
 
         <motion.p
@@ -119,9 +119,9 @@ export function Hero() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1, delay: 2.6 }}
-        aria-label="Scroll to discover the invitation"
+        aria-label="Ոլորեք՝ հրավերը բացահայտելու համար"
       >
-        <span className="eyebrow text-[0.6rem]">Scroll to Discover</span>
+        <span className="eyebrow text-[0.6rem]">Ոլորեք՝ բացահայտելու համար</span>
         <motion.span
           className="block h-10 w-px bg-gradient-to-b from-transparent via-gold to-transparent"
           animate={reduced ? {} : { scaleY: [0.4, 1, 0.4], opacity: [0.4, 1, 0.4] }}

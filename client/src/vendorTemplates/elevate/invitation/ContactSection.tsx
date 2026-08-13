@@ -5,8 +5,8 @@ import { Reveal, SectionHeading } from "./primitives";
 export function ContactSection({ data }: { data: InvitationData }) {
   const { contact } = data;
   const links = [
-    { icon: Phone, label: "Call", href: contact.phoneHref },
-    { icon: Mail, label: "Email", href: `mailto:${contact.email}` },
+    { icon: Phone, label: "Զանգահարել", href: contact.phoneHref },
+    { icon: Mail, label: "Էլ․ նամակ", href: `mailto:${contact.email}` },
     { icon: MessageCircle, label: "WhatsApp", href: contact.whatsapp },
   ];
 

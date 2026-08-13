@@ -1,6 +1,6 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { Home, Pencil, ShoppingBag } from 'lucide-react';
+import { Clock3, Home, MapPin, Navigation, Pencil, ShoppingBag } from 'lucide-react';
 
 import { BaptismInvitation } from '../vendorTemplates/sacred/src/components/invitation/BaptismInvitation';
 import { invitation as sacredInvitation, type InvitationData } from '../vendorTemplates/sacred/src/data/invitation';
@@ -126,7 +126,7 @@ type Draft = {
   eventMessage?: string;
   image?: string;
   gallery?: string[];
-  mapLinks?: Array<{ label?: string; time?: string; address?: string; url?: string; subtitle?: string; visible?: boolean }>;
+  mapLinks?: Array<{ id?: string; label?: string; time?: string; address?: string; url?: string; subtitle?: string; visible?: boolean }>;
   musicEnabled?: boolean;
   musicUrl?: string;
   templateTextOverrides?: Record<string, string>;
@@ -267,6 +267,11 @@ const applyTemplateOverrides = (root: HTMLDivElement, draft: Draft = {}) => {
     if (Object.prototype.hasOwnProperty.call(textOverrides, key)) {
       const nextValue = String(textOverrides[key] ?? '');
       if (element.textContent !== nextValue) element.textContent = nextValue;
+      element.dataset.templateTextOverridden = 'true';
+    } else if (element.dataset.templateTextOverridden === 'true') {
+      const defaultValue = element.dataset.templateTextDefault ?? '';
+      if (element.textContent !== defaultValue) element.textContent = defaultValue;
+      delete element.dataset.templateTextOverridden;
     }
   });
 
@@ -274,10 +279,17 @@ const applyTemplateOverrides = (root: HTMLDivElement, draft: Draft = {}) => {
     const key = image.dataset.templateImageKey || `image-${index}`;
     if (!image.dataset.templateImageKey) image.dataset.templateImageKey = key;
     if (!image.dataset.templateImageDefault) image.dataset.templateImageDefault = image.currentSrc || image.src;
-    if (!Object.prototype.hasOwnProperty.call(imageOverrides, key)) return;
-    const nextSource = String(imageOverrides[key] ?? '');
-    image.hidden = !nextSource;
-    if (nextSource && image.src !== nextSource) image.src = nextSource;
+    if (Object.prototype.hasOwnProperty.call(imageOverrides, key)) {
+      const nextSource = String(imageOverrides[key] ?? '');
+      image.hidden = !nextSource;
+      if (nextSource && image.src !== nextSource) image.src = nextSource;
+      image.dataset.templateImageOverridden = 'true';
+    } else if (image.dataset.templateImageOverridden === 'true') {
+      const defaultSource = image.dataset.templateImageDefault || '';
+      image.hidden = false;
+      if (defaultSource && image.src !== defaultSource) image.src = defaultSource;
+      delete image.dataset.templateImageOverridden;
+    }
   });
 
   const visibilityRules: Array<[string, boolean]> = [
@@ -439,6 +451,22 @@ function OriginalTemplateSurface({ children, css, fontImport, label, draft, cust
       .original-template-document { width: 100%; min-height: 100vh; overflow-x: hidden; color: var(--foreground); background: var(--background); font-family: var(--font-body, var(--font-sans, ui-sans-serif, system-ui, sans-serif)); -webkit-font-smoothing: antialiased; }
       .original-template-document [hidden] { display: none !important; }
       .original-template-document h1, .original-template-document h2, .original-template-document h3 { font-family: var(--font-display, ui-serif, Georgia, serif); }
+      .amulet-extra-venues { padding: clamp(52px, 8vw, 96px) 20px; color: var(--foreground); background: var(--background); }
+      .amulet-extra-venues-inner { width: min(100%, 980px); margin: 0 auto; }
+      .amulet-extra-venues-eyebrow { margin: 0 0 22px; color: var(--primary); font-size: 12px; font-weight: 700; letter-spacing: .22em; text-align: center; text-transform: uppercase; }
+      .amulet-extra-venues-list { display: grid; gap: 16px; }
+      .amulet-extra-venues-list article { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 18px; padding: 22px; border: 1px solid var(--border); background: var(--card); color: var(--card-foreground); }
+      .amulet-extra-venues-list article > svg { width: 24px; height: 24px; color: var(--primary); }
+      .amulet-extra-venues-list h3 { margin: 0 0 8px; color: inherit; font-size: clamp(22px, 4vw, 30px); line-height: 1.15; }
+      .amulet-extra-venues-list p, .amulet-extra-venues-list address, .amulet-extra-venues-list small { margin: 4px 0 0; color: var(--muted-foreground); font-family: var(--font-body, ui-sans-serif, system-ui, sans-serif); font-style: normal; line-height: 1.55; }
+      .amulet-extra-venues-list p { display: flex; align-items: center; gap: 7px; }
+      .amulet-extra-venues-list p svg { width: 16px; height: 16px; }
+      .amulet-extra-venues-list a { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 16px; border: 1px solid var(--primary); background: var(--primary); color: var(--primary-foreground); font-family: var(--font-body, ui-sans-serif, system-ui, sans-serif); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-decoration: none; transition: opacity .2s ease; }
+      .amulet-extra-venues-list a:hover { opacity: .86; }
+      .amulet-extra-venues-list a:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
+      .amulet-extra-venues-list a svg { width: 16px; height: 16px; }
+      @media (max-width: 640px) { .amulet-extra-venues-list article { grid-template-columns: auto minmax(0, 1fr); align-items: start; padding: 18px; } .amulet-extra-venues-list article > a { grid-column: 1 / -1; width: 100%; } }
+      @media (prefers-reduced-motion: reduce) { .amulet-extra-venues-list a { transition: none; } }
     `;
     shadow.replaceChildren(style, root);
     setPortalRoot(root);
@@ -498,8 +526,35 @@ function TemplateShell({ children, props }: { children: ReactNode; props: Templa
   );
 }
 
+function AdditionalVenues({ draft, nativeCount = 1 }: { draft?: Draft; nativeCount?: number }) {
+  const venues = (draft?.mapLinks || []).filter((venue) => venue?.visible !== false).slice(nativeCount);
+  if (!venues.length) return null;
+  return (
+    <section className="amulet-extra-venues" aria-label="Միջոցառման վայրեր">
+      <div className="amulet-extra-venues-inner">
+        <p className="amulet-extra-venues-eyebrow">Միջոցառման վայրեր</p>
+        <div className="amulet-extra-venues-list">
+          {venues.map((venue, index) => (
+            <article key={venue.id || `${venue.label}-${index}`}>
+              <MapPin aria-hidden="true" />
+              <div>
+                <h3>{venue.label || `Վայր ${nativeCount + index + 1}`}</h3>
+                {venue.time ? <p><Clock3 aria-hidden="true" /> {venue.time}</p> : null}
+                {venue.address ? <address>{venue.address}</address> : null}
+                {venue.subtitle ? <small>{venue.subtitle}</small> : null}
+              </div>
+              {venue.url ? <a href={venue.url} target="_blank" rel="noreferrer"><Navigation aria-hidden="true" /> Բացել քարտեզում</a> : null}
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function SacredBeginningsTemplate(props: TemplateProps) {
   const { draft = {} } = props;
+  const firstVenue = draft.mapLinks?.find((venue) => venue?.visible !== false);
   const musicSource = draft.musicEnabled === false ? undefined : (draft.musicUrl || defaultInvitationSong);
   const data = useMemo<InvitationData>(() => {
     const image = resolveTemplateImage(draft.image) || sacredInvitation.child.portrait.src;
@@ -509,7 +564,7 @@ function SacredBeginningsTemplate(props: TemplateProps) {
       child: { ...sacredInvitation.child, name: draft.mainNames ?? sacredInvitation.child.name, portrait: { ...sacredInvitation.child.portrait, src: image } },
       hero: { ...sacredInvitation.hero, dateLabel: draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : sacredInvitation.hero.dateLabel },
       intro: { ...sacredInvitation.intro, subMessage: draft.eventMessage ?? sacredInvitation.intro.subMessage },
-      event: { ...sacredInvitation.event, isoDate: draft.eventDate ? `${draft.eventDate}T${draft.eventTime ?? '14:00'}:00+04:00` : '', dateLabel: draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : sacredInvitation.event.dateLabel, timeLabel: draft.eventTime ?? sacredInvitation.event.timeLabel, venue: draft.eventLocation ?? sacredInvitation.event.venue },
+      event: { ...sacredInvitation.event, isoDate: draft.eventDate ? `${draft.eventDate}T${firstVenue?.time || draft.eventTime || '14:00'}:00+04:00` : '', dateLabel: draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : sacredInvitation.event.dateLabel, timeLabel: firstVenue?.time || draft.eventTime || sacredInvitation.event.timeLabel, venue: firstVenue?.label || draft.eventLocation || sacredInvitation.event.venue, city: firstVenue?.address || sacredInvitation.event.city },
       gallery: gallery.length ? gallery.map((src, index) => ({ src, alt: `${draft.mainNames || sacredInvitation.child.name} ${index + 1}` })) : sacredInvitation.gallery,
       rsvp: {
         ...sacredInvitation.rsvp,
@@ -538,6 +593,7 @@ function SacredBeginningsTemplate(props: TemplateProps) {
       label="Սուրբ սկիզբ մկրտության հրավեր"
     >
       <BaptismInvitation data={data} visibility={draft} onRsvpSubmit={props.onRsvpSubmit} />
+      <AdditionalVenues draft={draft} nativeCount={0} />
       <MusicControl src={musicSource} />
     </OriginalTemplateSurface></TemplateShell>
   );
@@ -550,6 +606,7 @@ function BirthdaySparkleTemplate(props: TemplateProps) {
   const onIntroDone = useCallback(() => setRevealed(true), []);
   const handleRsvp = useCallback((data: RsvpData) => props.onRsvpSubmit?.(data), [props.onRsvpSubmit]);
   const data = useMemo<InvitationConfig>(() => {
+    const firstVenue = draft.mapLinks?.find((venue) => venue?.visible !== false);
     const image = resolveTemplateImage(draft.image) || birthdayInvitation.portrait.src;
     const gallery = (draft.gallery || []).map(resolveTemplateImage).filter(Boolean);
     return {
@@ -558,8 +615,10 @@ function BirthdaySparkleTemplate(props: TemplateProps) {
       fullName: draft.mainNames ?? birthdayInvitation.fullName,
       eventDateISO: draft.eventDate ? `${draft.eventDate}T${draft.eventTime ?? '19:00'}:00` : '',
       dateLabel: draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : birthdayInvitation.dateLabel,
-      timeLabel: draft.eventTime ?? birthdayInvitation.timeLabel,
-      venue: draft.eventLocation ?? birthdayInvitation.venue,
+      timeLabel: firstVenue?.time || draft.eventTime || birthdayInvitation.timeLabel,
+      venue: firstVenue?.label || draft.eventLocation || birthdayInvitation.venue,
+      address: firstVenue?.address || birthdayInvitation.address,
+      mapsQuery: firstVenue?.url || birthdayInvitation.mapsQuery,
       personalMessage: draft.eventMessage ?? birthdayInvitation.personalMessage,
       dressCode: draft.dressCode || birthdayInvitation.dressCode,
       portrait: { ...birthdayInvitation.portrait, src: image },
@@ -588,6 +647,7 @@ function BirthdaySparkleTemplate(props: TemplateProps) {
         <BirthdayGallery photos={data.photos} />
         <div className="birthday-message" hidden={draft.heroVisible === false}><BirthdayMessage data={data} /></div>
         <div className="birthday-schedule" hidden={draft.receptionVisible === false}><LocationSection data={data} /></div>
+        <AdditionalVenues draft={draft} nativeCount={1} />
         <div className="birthday-rsvp" hidden={draft.questionsVisible === false}><RSVPSection onSubmit={handleRsvp} settings={draft.rsvpSettings} question={draft.rsvpQuestion} /></div>
         <div className="birthday-closing" hidden={draft.finalMessageVisible === false}><FinalCelebration data={data} closingMessage={draft.closingMessage} /></div>
         <MusicControl src={musicSource} />
@@ -599,7 +659,19 @@ function BirthdaySparkleTemplate(props: TemplateProps) {
 function IvoryVowsTemplate(props: TemplateProps) {
   const { draft = {} } = props;
   const musicSource = draft.musicEnabled === false ? undefined : (draft.musicUrl || defaultInvitationSong);
-  const [ceremony, reception] = wedding.venues;
+  const venues = useMemo(() => {
+    const edited = (draft.mapLinks || []).filter((venue) => venue?.visible !== false);
+    if (!edited.length) return [...wedding.venues];
+    return edited.map((venue, index) => ({
+      id: venue.id || `venue-${index}`,
+      label: venue.label || `Վայր ${index + 1}`,
+      name: venue.label || `Վայր ${index + 1}`,
+      time: venue.time || '',
+      address: venue.address || '',
+      image: wedding.venues[index % wedding.venues.length]?.image || wedding.venues[0].image,
+      mapUrl: venue.url || '#'
+    }));
+  }, [draft.mapLinks]);
   const gallery = useMemo(() => {
     const images = (draft.gallery || []).map(resolveTemplateImage).filter(Boolean);
     return images.length
@@ -654,8 +726,7 @@ function IvoryVowsTemplate(props: TemplateProps) {
         <div className="ivory-schedule" hidden={draft.receptionVisible === false}>
           <WeddingCountdown />
           <WeddingSchedule />
-          {ceremony ? <VenueSection venue={ceremony} /> : null}
-          {reception ? <VenueSection venue={reception} reverse /> : null}
+          {venues.map((venue, index) => <VenueSection key={venue.id} venue={venue} reverse={index % 2 === 1} />)}
         </div>
         <WeddingGallery images={gallery} />
         <div className="ivory-dress" hidden={draft.dressCodeVisible === false}><DressCode dressCode={dressCodeData} /></div>
@@ -713,6 +784,7 @@ function DivineBlessingTemplate(props: TemplateProps) {
         <div className="divine-family" hidden={draft.familyVisible === false}><DivineFamilyMessage /></div>
         <DivineGallery /><DivineQuote /><DivineCurve />
         <div className="divine-schedule" hidden={draft.receptionVisible === false}><DivineLocation /></div>
+        <AdditionalVenues draft={draft} nativeCount={1} />
         <DivineDivider symbol="cross" />
         <div className="divine-rsvp" hidden={draft.questionsVisible === false}><DivineRsvp onSubmit={props.onRsvpSubmit} /></div>
         <div className="divine-closing" hidden={draft.finalMessageVisible === false}><DivineFooter /></div>
@@ -805,6 +877,7 @@ function ElevateInviteTemplate(props: TemplateProps) {
         <div className="elevate-schedule" hidden={draft.receptionVisible === false}><ElevateDetails data={data} /><ElevateCountdown data={data} /><ElevateAgenda data={data} /></div>
         <ElevatePurpose data={data} /><ElevateSpeakers data={data} /><ElevateStats data={data} /><ElevateGallery data={data} />
         <div className="elevate-schedule" hidden={draft.receptionVisible === false}><ElevateVenue data={data} /></div>
+        <AdditionalVenues draft={draft} nativeCount={1} />
         <div className="elevate-dress" hidden={draft.dressCodeVisible === false}><ElevateDressCode data={data} /></div>
         <div className="elevate-rsvp" hidden={draft.questionsVisible === false}><ElevateRsvp data={data} onSubmit={props.onRsvpSubmit} /></div>
         <ElevateContact data={data} />
@@ -864,6 +937,7 @@ function EverAfterTemplate(props: TemplateProps) {
         <div className="ever-after-hero" hidden={draft.heroVisible === false}><EverAfterHero /><EverAfterStory /></div>
         <EverAfterCurve /><EverAfterCouple /><EverAfterCurve flip />
         <div className="ever-after-schedule" hidden={draft.receptionVisible === false}><EverAfterAnnouncement /><EverAfterCountdown /><EverAfterDivider label="The Details" /><EverAfterDetails /><EverAfterLocation /><EverAfterTimeline /></div>
+        <AdditionalVenues draft={draft} nativeCount={1} />
         <EverAfterGallery /><EverAfterQuote />
         <div className="ever-after-dress" hidden={draft.dressCodeVisible === false}><EverAfterDressCode /></div>
         <div className="ever-after-rsvp" hidden={draft.questionsVisible === false}><EverAfterRsvp onSubmit={props.onRsvpSubmit} /></div>
@@ -967,6 +1041,7 @@ function EverlastingVowsTemplate(props: TemplateProps) {
         <div className="everlasting-hero" hidden={draft.heroVisible === false}><EverlastingHero config={config} started /></div>
         <EverlastingStory story={config.story} /><EverlastingCouple couple={config.couple} />
         <div className="everlasting-schedule" hidden={draft.receptionVisible === false}><EverlastingSaveDate config={config} /><EverlastingCountdown iso={config.date.iso} /><EverlastingCeremony ceremony={config.ceremony} dateLong={config.date.long} /><EverlastingReception reception={config.reception} /><EverlastingTimeline timeline={config.timeline} /></div>
+        <AdditionalVenues draft={draft} nativeCount={2} />
         <EverlastingGallery gallery={config.gallery} /><EverlastingQuote quote={config.quote} />
         <div className="everlasting-dress" hidden={draft.dressCodeVisible === false}><EverlastingDressCode dressCode={config.dressCode} /></div>
         <div className="everlasting-rsvp" hidden={draft.questionsVisible === false}><EverlastingRsvp rsvp={config.rsvp} onSubmit={props.onRsvpSubmit} /><EverlastingWishes wishes={config.wishes} /></div>
@@ -1070,10 +1145,10 @@ export const getElevateInviteDraft = () => ({ ...makeDraft(
     title: elevateInvitation.rsvp.title,
     description: elevateInvitation.rsvp.subtitle,
     deadline: elevateInvitation.rsvp.deadline,
-    guestPlaceholder: 'Full name',
-    attendingLabel: "Yes, I'll Attend",
-    notAttendingLabel: "Unfortunately, I Can't Attend",
-    submitLabel: 'Send Confirmation',
+    guestPlaceholder: 'Անուն ազգանուն',
+    attendingLabel: 'Այո, կմասնակցեմ',
+    notAttendingLabel: 'Ցավոք, չեմ կարող մասնակցել',
+    submitLabel: 'Ուղարկել հաստատումը',
     askGuestCount: true,
     askMeal: false
   }
@@ -1087,7 +1162,7 @@ export const getEverAfterDraft = () => ({ ...makeDraft(
   everAfterHeroImage,
   'ever-after'
 ),
-  dressCode: 'Soft neutrals, silk and a touch of gold — dress as though the evening were a photograph you’d keep forever.',
+  dressCode: 'Մեղմ չեզոք երանգներ, մետաքս և մի փոքր ոսկեգույն․ հագնվեք այնպես, կարծես երեկոն լուսանկար է, որը հավերժ կպահեիք։',
   dressCodeColors: everAfterDressPalette.map(({ name }, index) => ({ name, hex: ['#FAF7EF', '#EAD9B8', '#EBCBC8', '#B77E82', '#C9A85C'][index] || '#D8B98E' })),
   dressCodeVisible: true,
   mapLinks: [{
@@ -1098,13 +1173,13 @@ export const getEverAfterDraft = () => ({ ...makeDraft(
     visible: true
   }],
   rsvpSettings: {
-    title: 'Will You Celebrate With Us?',
+    title: 'Կտոնե՞ք մեզ հետ',
     description: '',
-    deadline: 'kindly reply by September 1',
+    deadline: 'Խնդրում ենք պատասխանել մինչև սեպտեմբերի 1-ը',
     guestPlaceholder: 'Անուն ազգանուն',
-    attendingLabel: 'Joyfully Accept',
-    notAttendingLabel: 'Regretfully Decline',
-    submitLabel: 'Send Our Reply',
+    attendingLabel: 'Այո, մեծ սիրով',
+    notAttendingLabel: 'Ցավոք, չեմ կարող',
+    submitLabel: 'Ուղարկել պատասխանը',
     askGuestCount: true,
     askMeal: false
   }
@@ -1132,9 +1207,9 @@ export const getEverlastingVowsDraft = () => ({ ...makeDraft(
     description: everlastingConfig.rsvp.subtitle,
     deadline: everlastingConfig.rsvp.deadline,
     guestPlaceholder: 'Անուն ազգանուն',
-    attendingLabel: 'Joyfully Accept',
-    notAttendingLabel: 'Regretfully Decline',
-    submitLabel: 'Send RSVP',
+    attendingLabel: 'Այո, մեծ սիրով',
+    notAttendingLabel: 'Ցավոք, չեմ կարող',
+    submitLabel: 'Ուղարկել պատասխանը',
     askGuestCount: true,
     askMeal: true
   }
@@ -1155,9 +1230,9 @@ export const SacredBeginningsCardPreview = () => <OriginalTemplateCard image={sa
 export const BirthdaySparkleCardPreview = () => <OriginalTemplateCard image={birthdayPortrait} title="Փայլուն տարեդարձ" />;
 export const IvoryVowsCardPreview = () => <OriginalTemplateCard image={ivoryHero} title="Փղոսկրե երդումներ" />;
 export const DivineBlessingCardPreview = () => <OriginalTemplateCard image={divineHeroImage} title="Աստվածային օրհնություն" />;
-export const ElevateInviteCardPreview = () => <OriginalTemplateCard image={elevateHeroImage} title="Elevate" />;
-export const EverAfterCardPreview = () => <OriginalTemplateCard image={everAfterHeroImage} title="Ever After" />;
-export const EverlastingVowsCardPreview = () => <OriginalTemplateCard image={everlastingHeroImage} title="Everlasting Vows" />;
+export const ElevateInviteCardPreview = () => <OriginalTemplateCard image={elevateHeroImage} title="Վերելք" />;
+export const EverAfterCardPreview = () => <OriginalTemplateCard image={everAfterHeroImage} title="Եվ ապրեցին երջանիկ" />;
+export const EverlastingVowsCardPreview = () => <OriginalTemplateCard image={everlastingHeroImage} title="Հավերժական երդումներ" />;
 
 export const SacredBeginningsLivePreview = SacredBeginningsTemplate;
 export const BirthdaySparkleLivePreview = BirthdaySparkleTemplate;

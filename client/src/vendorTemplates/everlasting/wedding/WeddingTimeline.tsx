@@ -11,7 +11,7 @@ export function WeddingTimeline({ timeline }: { timeline: WeddingConfig["timelin
 
   return (
     <Section id="schedule" tone="paper">
-      <SectionTitle eyebrow="Wedding Day" title="The Schedule" />
+      <SectionTitle eyebrow="Հարսանիքի օրը" title="Օրվա ծրագիրը" />
 
       <div ref={ref} className="relative mx-auto mt-16 max-w-xl">
         <div aria-hidden="true" className="absolute top-0 bottom-0 left-[7px] w-px bg-border" />

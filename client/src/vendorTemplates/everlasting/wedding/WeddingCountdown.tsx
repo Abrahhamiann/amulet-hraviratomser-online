@@ -47,16 +47,16 @@ export function WeddingCountdown({ iso }: { iso: string }) {
   return (
     <Section id="countdown">
       <Reveal className="text-center">
-        <p className="eyebrow">Until We Say</p>
-        <p className="font-script mt-3 text-5xl text-gold-gradient sm:text-6xl">“I Do”</p>
+        <p className="eyebrow">Մինչև ասենք</p>
+        <p className="font-script mt-3 text-5xl text-gold-gradient sm:text-6xl">«Այո»</p>
       </Reveal>
 
       <Reveal delay={0.15}>
         <div className="mx-auto mt-14 flex max-w-3xl items-start justify-center divide-x divide-border">
-          <Unit value={time.days} label="Days" />
-          <Unit value={time.hours} label="Hours" />
-          <Unit value={time.minutes} label="Minutes" />
-          <Unit value={time.seconds} label="Seconds" />
+          <Unit value={time.days} label="Օր" />
+          <Unit value={time.hours} label="Ժամ" />
+          <Unit value={time.minutes} label="Րոպե" />
+          <Unit value={time.seconds} label="Վայրկյան" />
         </div>
         <div className="hairline mx-auto mt-12 h-px w-full max-w-3xl" />
       </Reveal>

@@ -36,7 +36,7 @@ export function MusicToggle() {
       type="button"
       onClick={toggle}
       aria-pressed={playing}
-      aria-label={playing ? "Pause romantic music" : "Play romantic music"}
+      aria-label={playing ? "Դադարեցնել ռոմանտիկ երաժշտությունը" : "Միացնել ռոմանտիկ երաժշտությունը"}
       className="fixed bottom-5 right-5 z-40 flex h-12 w-12 items-center justify-center rounded-full border border-gold/50 bg-card/85 text-gold backdrop-blur-md transition-transform duration-500 ease-[var(--ease-silk)] hover:scale-105 sm:bottom-8 sm:right-8"
       style={{ boxShadow: "var(--shadow-soft)" }}
     >

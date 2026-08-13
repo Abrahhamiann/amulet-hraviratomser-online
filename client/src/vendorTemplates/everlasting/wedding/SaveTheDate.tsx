@@ -27,7 +27,7 @@ export function SaveTheDate({ config }: { config: WeddingConfig }) {
       <Petals count={8} gold />
       <div className="relative text-center">
         <Reveal>
-          <p className="eyebrow">Save the Date</p>
+          <p className="eyebrow">Պահպանեք ամսաթիվը</p>
         </Reveal>
 
         <Reveal delay={0.1}>
@@ -51,7 +51,7 @@ export function SaveTheDate({ config }: { config: WeddingConfig }) {
             {config.date.long}
           </p>
           <a className="btn-gold mt-10" href={icsHref(config)} download="wedding.ics">
-            Add to Calendar
+            Ավելացնել օրացույցում
           </a>
         </Reveal>
       </div>

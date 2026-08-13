@@ -39,7 +39,7 @@ export function MusicToggle({ data }: { data: InvitationData }) {
       <button
         type="button"
         onClick={toggle}
-        aria-label={playing ? "Pause ambient music" : "Play ambient music"}
+        aria-label={playing ? "Դադարեցնել երաժշտությունը" : "Միացնել երաժշտությունը"}
         aria-pressed={playing}
         className={cn(
           "glass-panel fixed bottom-5 right-5 z-40 grid h-12 w-12 place-items-center rounded-full text-primary transition-all duration-500 ease-[var(--ease-elegant)] hover:scale-105 sm:h-14 sm:w-14",

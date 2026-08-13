@@ -32,7 +32,7 @@ export function MusicToggle({ music }: { music: WeddingConfig["music"] }) {
       <button
         type="button"
         onClick={toggle}
-        aria-label={playing ? "Pause music" : `Play ${music.label}`}
+        aria-label={playing ? "Դադարեցնել երաժշտությունը" : `Միացնել՝ ${music.label}`}
         className="fixed right-4 bottom-4 z-40 grid h-12 w-12 place-items-center rounded-full border backdrop-blur-sm sm:right-6 sm:bottom-6"
         style={{
           borderColor: "color-mix(in oklab, var(--gold) 55%, transparent)",

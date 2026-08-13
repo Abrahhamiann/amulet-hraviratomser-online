@@ -23,10 +23,10 @@ import {
 export function Story() {
   return (
     <Section id="story">
-      <SectionTitle eyebrow="The Beginning" title="Our Story" />
+      <SectionTitle eyebrow="Սկիզբը" title="Մեր պատմությունը" />
       <Reveal delay={0.1} className="mt-10 text-center">
         <p className="mx-auto max-w-2xl font-serif text-2xl font-light italic leading-relaxed text-foreground sm:text-3xl">
-          &ldquo;Every love story is beautiful, but ours is our favorite.&rdquo;
+          &ldquo;Սիրո յուրաքանչյուր պատմություն գեղեցիկ է, բայց մերն ամենասիրելին է։&rdquo;
         </p>
       </Reveal>
       <Stagger className="mt-8 space-y-5 text-center">
@@ -34,16 +34,16 @@ export function Story() {
           variants={staggerChild}
           className="mx-auto max-w-2xl text-[0.98rem] leading-8 text-muted-foreground"
         >
-          It started with a rainy evening in Yerevan, one shared umbrella and a conversation that
-          refused to end. Six years, countless journeys and a thousand small mornings later, we
-          still choose the same person every single day.
+          Ամեն ինչ սկսվեց անձրևոտ երևանյան երեկոյից, մեկ ընդհանուր անձրևանոցից և մի զրույցից,
+          որը չէր ուզում ավարտվել։ Վեց տարի, անհամար ճանապարհորդություններ և հազարավոր փոքրիկ
+          առավոտներ անց մենք ամեն օր կրկին ընտրում ենք միմյանց։
         </motion.p>
         <motion.p
           variants={staggerChild}
           className="mx-auto max-w-2xl text-[0.98rem] leading-8 text-muted-foreground"
         >
-          This autumn, we begin a new chapter — and we would love for you to stand beside us as we
-          promise forever to each other.
+          Այս աշնանը մենք նոր գլուխ ենք սկսում և շատ կցանկանանք, որ մեր կողքին լինեք,
+          երբ միմյանց հավերժություն խոստանանք։
         </motion.p>
         <motion.div variants={staggerChild} className="flex justify-center pt-2">
           <FloralSprig className="h-16 w-10 opacity-70" />
@@ -95,13 +95,13 @@ function PortraitCard({
 export function Couple() {
   return (
     <Section className="panel-veil">
-      <SectionTitle eyebrow="The Two of Us" title="Anna & David" script="soon to be engaged" />
+      <SectionTitle eyebrow="Մենք երկուսով" title="Աննա և Դավիթ" script="շուտով նշանադրվելու ենք" />
       <div className="mt-14 flex flex-col items-center gap-12 sm:mt-16 sm:flex-row sm:justify-center sm:gap-10 lg:gap-20">
-        <PortraitCard src={portraitAnna} name="Anna" role="The Bride To Be" delay={0} />
+        <PortraitCard src={portraitAnna} name="Աննա" role="Ապագա հարսնացուն" delay={0} />
         <Reveal delay={0.15} className="flex flex-col items-center">
-          <span className="font-script text-5xl text-gold-shine sm:text-6xl">and</span>
+          <span className="font-script text-5xl text-gold-shine sm:text-6xl">և</span>
         </Reveal>
-        <PortraitCard src={portraitDavid} name="David" role="The Groom To Be" delay={0.2} />
+        <PortraitCard src={portraitDavid} name="Դավիթ" role="Ապագա փեսացուն" delay={0.2} />
       </div>
     </Section>
   );
@@ -116,16 +116,16 @@ export function Announcement() {
       <GoldParticles count={22} />
       <div className="relative flex flex-col items-center text-center">
         <Reveal>
-          <p className="eyebrow">And so it begins</p>
+          <p className="eyebrow">Եվ այսպես սկսվում է</p>
         </Reveal>
         <Reveal delay={0.1}>
           <h2 className="mt-5 font-serif text-[clamp(2.6rem,11vw,6rem)] font-light uppercase leading-none tracking-[0.12em] text-foreground">
-            We Said
+            Մենք ասացինք
           </h2>
         </Reveal>
         <Reveal delay={0.25}>
           <p className="font-script text-[clamp(4rem,18vw,10rem)] leading-[1.1] text-gold-shine">
-            Yes!
+            Այո՛
           </p>
         </Reveal>
         <motion.div
@@ -139,7 +139,7 @@ export function Announcement() {
         </motion.div>
         <Reveal delay={0.2}>
           <p className="mt-8 max-w-lg font-serif text-lg font-light italic text-muted-foreground">
-            One question, one answer, and the beginning of everything we&rsquo;ve been dreaming of.
+            Մեկ հարց, մեկ պատասխան և այն ամենի սկիզբը, ինչի մասին երազել ենք։
           </p>
         </Reveal>
         {!reduced && (
@@ -203,13 +203,13 @@ export function Countdown() {
   const t = useCountdown(invite.dateISO);
   return (
     <Section>
-      <SectionTitle eyebrow="Save the Date" title="Until Our Engagement" />
+      <SectionTitle eyebrow="Պահպանեք ամսաթիվը" title="Մինչև մեր նշանադրությունը" />
       <Reveal delay={0.15}>
         <div className="mx-auto mt-12 flex max-w-3xl gap-2.5 sm:gap-5">
-          <CountUnit value={t.days} label="Days" />
-          <CountUnit value={t.hours} label="Hours" />
-          <CountUnit value={t.minutes} label="Minutes" />
-          <CountUnit value={t.seconds} label="Seconds" />
+          <CountUnit value={t.days} label="Օր" />
+          <CountUnit value={t.hours} label="Ժամ" />
+          <CountUnit value={t.minutes} label="Րոպե" />
+          <CountUnit value={t.seconds} label="Վայրկյան" />
         </div>
       </Reveal>
     </Section>
@@ -219,15 +219,15 @@ export function Countdown() {
 /* ------------------------------- Event Details ------------------------------ */
 
 const details = [
-  { icon: CalendarDays, label: "Date", value: invite.dateLabel, note: "Sunday" },
-  { icon: Clock, label: "Time", value: invite.timeLabel, note: "Arrival from 17:45" },
-  { icon: MapPin, label: "Venue", value: invite.venue, note: "Yerevan, Armenia" },
+  { icon: CalendarDays, label: "Ամսաթիվ", value: invite.dateLabel, note: "Կիրակի" },
+  { icon: Clock, label: "Ժամ", value: invite.timeLabel, note: "Ժամանումը՝ 17:45-ից" },
+  { icon: MapPin, label: "Վայր", value: invite.venue, note: "Երևան, Հայաստան" },
 ];
 
 export function Details() {
   return (
     <Section className="panel-veil">
-      <SectionTitle eyebrow="The Celebration" title="Event Details" />
+      <SectionTitle eyebrow="Տոնակատարություն" title="Միջոցառման մանրամասներ" />
       <Stagger className="mt-14 grid gap-6 sm:grid-cols-3">
         {details.map(({ icon: Icon, label, value, note }) => (
           <motion.div
@@ -253,7 +253,7 @@ export function Details() {
 export function Location() {
   return (
     <Section>
-      <SectionTitle eyebrow="How to Find Us" title="Find the Celebration" />
+      <SectionTitle eyebrow="Ինչպես գտնել մեզ" title="Տոնակատարության վայրը" />
       <Reveal delay={0.1} className="mt-12">
         <div className="card-soft overflow-hidden rounded-3xl">
           <img
@@ -272,11 +272,10 @@ export function Location() {
               href={invite.mapsUrl}
               target="_blank"
               rel="noreferrer"
-              className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-gold/60 px-8 py-3 text-xs uppercase tracking-[0.3em] text-foreground transition-colors duration-500 hover:text-primary-foreground"
+              className="group relative isolate inline-flex items-center gap-2 overflow-hidden rounded-full border border-gold bg-[var(--gradient-gold)] px-8 py-3 text-xs uppercase tracking-[0.3em] text-primary-foreground transition-opacity duration-300 hover:opacity-90"
             >
-              <span className="absolute inset-0 -z-0 translate-y-full bg-[var(--gradient-gold)] transition-transform duration-500 ease-[var(--ease-silk)] group-hover:translate-y-0" />
               <Navigation className="relative h-3.5 w-3.5" strokeWidth={1.4} />
-              <span className="relative">Open in Maps</span>
+              <span className="relative">Բացել քարտեզում</span>
             </a>
           </div>
         </div>
@@ -290,7 +289,7 @@ export function Location() {
 export function Timeline() {
   return (
     <Section className="panel-veil">
-      <SectionTitle eyebrow="The Evening" title="Engagement Timeline" />
+      <SectionTitle eyebrow="Երեկոն" title="Նշանադրության ծրագիր" />
       <div className="relative mx-auto mt-14 max-w-2xl pl-10 sm:pl-0">
         <motion.span
           aria-hidden="true"
@@ -344,11 +343,11 @@ export function Quote() {
         <span className="font-serif text-7xl leading-none text-gold/50">&ldquo;</span>
         <Reveal>
           <p className="mx-auto mt-2 max-w-3xl font-script text-3xl leading-[1.5] text-foreground sm:text-5xl">
-            Whatever our souls are made of, his and mine are the same.
+            Ինչից էլ կազմված լինեն մեր հոգիները, նրա և իմ հոգին նույնն են։
           </p>
         </Reveal>
         <Reveal delay={0.15}>
-          <p className="eyebrow mt-8">Emily Brontë</p>
+          <p className="eyebrow mt-8">Էմիլի Բրոնտե</p>
         </Reveal>
         <Reveal delay={0.2} className="mt-8">
           <TwinRings spin={false} className="h-16 w-28 opacity-70" />
@@ -363,7 +362,7 @@ export function Quote() {
 export function DressCode() {
   return (
     <Section>
-      <SectionTitle eyebrow="A Small Request" title="Dress Code" script="Elegant / Cocktail" />
+      <SectionTitle eyebrow="Մի փոքր խնդրանք" title="Դրես կոդ" script="Էլեգանտ / Կոկտեյլային" />
       <Stagger className="mt-12 flex flex-wrap items-start justify-center gap-6 sm:gap-10">
         {dressPalette.map((c) => (
           <motion.div key={c.name} variants={staggerChild} className="flex flex-col items-center">
@@ -379,8 +378,8 @@ export function DressCode() {
       </Stagger>
       <Reveal delay={0.2}>
         <p className="mx-auto mt-10 max-w-md text-center text-sm leading-7 text-muted-foreground">
-          Soft neutrals, silk and a touch of gold — dress as though the evening were a photograph
-          you&rsquo;d keep forever.
+          Մեղմ չեզոք երանգներ, մետաքս և մի փոքր ոսկեգույն․ հագնվեք այնպես, կարծես երեկոն
+          լուսանկար է, որը հավերժ կպահեիք։
         </p>
       </Reveal>
     </Section>
@@ -399,7 +398,7 @@ export function Footer() {
           {invite.bride} &amp; {invite.groom}
         </h2>
         <p className="mt-6 font-serif text-lg font-light italic text-muted-foreground">
-          &ldquo;Thank you for being part of our story.&rdquo;
+          &ldquo;Շնորհակալություն մեր պատմության մի մասը լինելու համար։&rdquo;
         </p>
         <p className="mt-6 text-xs uppercase tracking-[0.35em] text-foreground">
           {invite.dateLabel}
@@ -407,7 +406,7 @@ export function Footer() {
         <div className="mt-12 flex flex-col items-center gap-2">
           <GoldRule className="w-32" />
           <p className="text-[0.65rem] uppercase tracking-[0.4em] text-muted-foreground">
-            Created with <span className="text-gold">Amulet</span>
+            Ստեղծված է <span className="text-gold">Amulet</span>-ով
           </p>
         </div>
       </div>

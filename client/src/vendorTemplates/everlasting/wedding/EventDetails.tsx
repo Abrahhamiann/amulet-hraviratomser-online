@@ -34,14 +34,14 @@ export function CeremonyDetails({
 }) {
   return (
     <Section id="ceremony" tone="paper">
-      <SectionTitle eyebrow="Join Us" title={ceremony.title} />
+      <SectionTitle eyebrow="Միացեք մեզ" title={ceremony.title} />
       <Reveal delay={0.15}>
         <div className="mx-auto mt-14 grid max-w-3xl gap-10 sm:grid-cols-3">
-          <DetailRow icon={CalendarDays} label="Date" value={dateLong} />
-          <DetailRow icon={Clock} label="Time" value={ceremony.time} />
+          <DetailRow icon={CalendarDays} label="Ամսաթիվ" value={dateLong} />
+          <DetailRow icon={Clock} label="Ժամ" value={ceremony.time} />
           <DetailRow
             icon={MapPin}
-            label="Location"
+            label="Վայր"
             value={ceremony.venue}
             sub={ceremony.city}
           />
@@ -57,7 +57,7 @@ export function CeremonyDetails({
 export function ReceptionDetails({ reception }: { reception: WeddingConfig["reception"] }) {
   return (
     <Section id="reception">
-      <SectionTitle eyebrow="Afterwards" title={reception.title} />
+      <SectionTitle eyebrow="Այնուհետև" title={reception.title} />
       <Reveal delay={0.15} className="mt-12 text-center">
         <p className="text-[clamp(2.2rem,8vw,4rem)] leading-none tracking-[0.08em]">
           {reception.time}
@@ -73,7 +73,7 @@ export function ReceptionDetails({ reception }: { reception: WeddingConfig["rece
           target="_blank"
           rel="noreferrer noopener"
         >
-          Get Directions
+          Ինչպես հասնել
         </a>
       </Reveal>
     </Section>

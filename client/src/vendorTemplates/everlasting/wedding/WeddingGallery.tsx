@@ -24,7 +24,7 @@ export function WeddingGallery({ gallery }: { gallery: WeddingConfig["gallery"] 
 
   return (
     <Section id="gallery">
-      <SectionTitle eyebrow="Gallery" title={gallery.title} script="A few of our favourites" />
+      <SectionTitle eyebrow="Պատկերասրահ" title={gallery.title} script="Մեր սիրելի պահերից մի քանիսը" />
 
       <div className="mt-16 grid grid-cols-1 gap-4 sm:grid-cols-12 sm:gap-6">
         {gallery.images.map((img, i) => (
@@ -34,7 +34,7 @@ export function WeddingGallery({ gallery }: { gallery: WeddingConfig["gallery"] 
               onClick={() => setActive(i)}
               className="group block h-full w-full overflow-hidden"
               style={{ boxShadow: "var(--shadow-soft)" }}
-              aria-label={`Open image: ${img.alt}`}
+              aria-label={`Բացել նկարը՝ ${img.alt}`}
             >
               <img
                 src={img.src}
@@ -62,7 +62,7 @@ export function WeddingGallery({ gallery }: { gallery: WeddingConfig["gallery"] 
             <button
               type="button"
               onClick={() => setActive(null)}
-              aria-label="Close"
+              aria-label="Փակել"
               className="absolute top-5 right-5 grid h-12 w-12 place-items-center rounded-full border border-border/40 text-background"
             >
               <X className="h-5 w-5" strokeWidth={1} />

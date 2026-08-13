@@ -17,9 +17,9 @@ function Person({ role, name, phone, delay }: { role: string; name: string; phon
       </a>
       <div className="mt-5 flex items-center justify-center gap-3">
         {[
-          { href: `tel:+${digits}`, Icon: Phone, label: `Call ${name}` },
-          { href: `https://wa.me/${digits}`, Icon: MessageCircle, label: `WhatsApp ${name}` },
-          { href: `https://t.me/+${digits}`, Icon: Send, label: `Telegram ${name}` },
+          { href: `tel:+${digits}`, Icon: Phone, label: `Զանգահարել՝ ${name}` },
+          { href: `https://wa.me/${digits}`, Icon: MessageCircle, label: `WhatsApp-ով գրել՝ ${name}` },
+          { href: `https://t.me/+${digits}`, Icon: Send, label: `Telegram-ով գրել՝ ${name}` },
         ].map(({ href, Icon, label }) => (
           <a
             key={label}

@@ -41,7 +41,7 @@ export function MusicControl({ src }: { src?: string | undefined }) {
       <button
         type="button"
         onClick={toggle}
-        aria-label={playing ? "Mute background music" : "Play background music"}
+        aria-label={playing ? "Անջատել ֆոնային երաժշտությունը" : "Միացնել ֆոնային երաժշտությունը"}
         aria-pressed={playing}
         className="glass-card fixed bottom-5 right-5 z-40 grid h-12 w-12 place-items-center rounded-full transition-transform duration-300 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring sm:bottom-7 sm:right-7"
       >

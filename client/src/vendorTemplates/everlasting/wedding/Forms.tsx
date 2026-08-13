@@ -9,7 +9,7 @@ const fieldClass =
   "w-full min-h-12 border-0 border-b border-border bg-transparent px-1 py-3 text-base outline-none transition-colors duration-500 placeholder:text-muted-foreground/70 focus:border-primary";
 
 const rsvpSchema = z.object({
-  name: z.string().trim().min(2, "Please tell us your name").max(80),
+  name: z.string().trim().min(2, "Խնդրում ենք նշել Ձեր անունը").max(80),
   attending: z.enum(["yes", "no"]),
   guests: z.coerce.number().int().min(1).max(10),
   meal: z.string().max(40),
@@ -34,7 +34,7 @@ export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSu
     const data = Object.fromEntries(new FormData(e.currentTarget));
     const parsed = rsvpSchema.safeParse({ ...data, attending });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Please check the form");
+      setError(parsed.error.issues[0]?.message ?? "Խնդրում ենք ստուգել լրացված տվյալները");
       return;
     }
     setError(null);
@@ -44,7 +44,7 @@ export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSu
         guestName: parsed.data.name,
         status: parsed.data.attending === "yes" ? "attending" : "declined",
         guestCount: parsed.data.guests,
-        message: [parsed.data.message || "", parsed.data.meal ? `Meal preference: ${parsed.data.meal}` : ""].filter(Boolean).join("\n")
+        message: [parsed.data.message || "", parsed.data.meal ? `Սննդի նախընտրություն՝ ${parsed.data.meal}` : ""].filter(Boolean).join("\n")
       });
       setSent(true);
     } catch {
@@ -57,7 +57,7 @@ export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSu
   return (
     <Section id="rsvp" tone="paper" className="overflow-hidden">
       <Petals count={6} gold />
-      <SectionTitle eyebrow="RSVP" title={rsvp.title} script={rsvp.subtitle} />
+      <SectionTitle eyebrow="Մասնակցության հաստատում" title={rsvp.title} script={rsvp.subtitle} />
 
       <div className="relative mx-auto mt-14 max-w-xl">
         <AnimatePresence mode="wait">
@@ -93,8 +93,8 @@ export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSu
                   transition={{ duration: 1, delay: 0.7, ease: "easeInOut" }}
                 />
               </motion.svg>
-              <p className="font-script mt-6 text-5xl text-gold-gradient">Thank you!</p>
-              <p className="mt-3 text-muted-foreground">We can't wait to celebrate with you.</p>
+              <p className="font-script mt-6 text-5xl text-gold-gradient">Շնորհակալություն։</p>
+              <p className="mt-3 text-muted-foreground">Անհամբեր սպասում ենք Ձեզ հետ տոնելուն։</p>
             </motion.div>
           ) : (
             <motion.form
@@ -108,13 +108,13 @@ export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSu
             >
               <div>
                 <label className="eyebrow text-[0.55rem]" htmlFor="rsvp-name">
-                  Full Name
+                  Անուն ազգանուն
                 </label>
-                <input id="rsvp-name" name="name" maxLength={80} className={fieldClass} placeholder="Your name" />
+                <input id="rsvp-name" name="name" maxLength={80} className={fieldClass} placeholder="Ձեր անունը" />
               </div>
 
               <fieldset>
-                <legend className="eyebrow text-[0.55rem]">Will you attend?</legend>
+                <legend className="eyebrow text-[0.55rem]">Կմասնակցե՞ք</legend>
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                   <button
                     type="button"
@@ -127,7 +127,7 @@ export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSu
                     }
                     aria-pressed={attending === "yes"}
                   >
-                    Joyfully Accept
+                    Այո, մեծ սիրով
                   </button>
                   <button
                     type="button"
@@ -140,7 +140,7 @@ export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSu
                     }
                     aria-pressed={attending === "no"}
                   >
-                    Regretfully Decline
+                    Ցավոք, չեմ կարող
                   </button>
                 </div>
               </fieldset>
@@ -148,7 +148,7 @@ export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSu
               <div className="grid gap-8 sm:grid-cols-2">
                 <div>
                   <label className="eyebrow text-[0.55rem]" htmlFor="rsvp-guests">
-                    Number of guests
+                    Հյուրերի քանակ
                   </label>
                   <input
                     id="rsvp-guests"
@@ -162,7 +162,7 @@ export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSu
                 </div>
                 <div>
                   <label className="eyebrow text-[0.55rem]" htmlFor="rsvp-meal">
-                    Meal preference
+                    Սննդի նախընտրություն
                   </label>
                   <select id="rsvp-meal" name="meal" className={fieldClass} defaultValue={rsvp.meals[0]}>
                     {rsvp.meals.map((m) => (
@@ -176,7 +176,7 @@ export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSu
 
               <div>
                 <label className="eyebrow text-[0.55rem]" htmlFor="rsvp-message">
-                  Optional message
+                  Հաղորդագրություն (ըստ ցանկության)
                 </label>
                 <textarea
                   id="rsvp-message"
@@ -184,7 +184,7 @@ export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSu
                   rows={3}
                   maxLength={500}
                   className={`${fieldClass} resize-none`}
-                  placeholder="A note for the couple"
+                  placeholder="Մի քանի խոսք զույգին"
                 />
               </div>
 
@@ -192,7 +192,7 @@ export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSu
 
               <div className="text-center">
                 <button type="submit" disabled={submitting} className="btn-gold w-full sm:w-auto disabled:cursor-not-allowed disabled:opacity-50">
-                  {submitting ? "Ուղարկվում է…" : "Send RSVP"}
+                  {submitting ? "Ուղարկվում է…" : "Ուղարկել պատասխանը"}
                 </button>
                 <p className="mt-6 text-xs tracking-[0.2em] uppercase text-muted-foreground">
                   {rsvp.deadline}
@@ -207,8 +207,8 @@ export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSu
 }
 
 const wishSchema = z.object({
-  name: z.string().trim().min(2, "Please add your name").max(60),
-  wish: z.string().trim().min(4, "Please write a short wish").max(400),
+  name: z.string().trim().min(2, "Խնդրում ենք նշել Ձեր անունը").max(60),
+  wish: z.string().trim().min(4, "Խնդրում ենք գրել կարճ բարեմաղթանք").max(400),
 });
 
 export function WishesSection({ wishes }: { wishes: WeddingConfig["wishes"] }) {
@@ -220,7 +220,7 @@ export function WishesSection({ wishes }: { wishes: WeddingConfig["wishes"] }) {
     const data = Object.fromEntries(new FormData(e.currentTarget));
     const parsed = wishSchema.safeParse(data);
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Please check the form");
+      setError(parsed.error.issues[0]?.message ?? "Խնդրում ենք ստուգել լրացված տվյալները");
       return;
     }
     setError(null);
@@ -229,25 +229,25 @@ export function WishesSection({ wishes }: { wishes: WeddingConfig["wishes"] }) {
 
   return (
     <Section id="wishes">
-      <SectionTitle eyebrow="Guest Book" title={wishes.title} script={wishes.subtitle} />
+      <SectionTitle eyebrow="Հյուրերի գիրք" title={wishes.title} script={wishes.subtitle} />
 
       <div className="mx-auto mt-12 max-w-xl">
         {sent ? (
           <Reveal className="py-8 text-center">
-            <p className="font-script text-4xl text-gold-gradient">With all our heart, thank you</p>
-            <p className="mt-3 text-muted-foreground">Your wish has been added to our story.</p>
+            <p className="font-script text-4xl text-gold-gradient">Ի սրտե շնորհակալություն</p>
+            <p className="mt-3 text-muted-foreground">Ձեր բարեմաղթանքն ավելացվեց մեր պատմությանը։</p>
           </Reveal>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-8" noValidate>
             <div>
               <label className="eyebrow text-[0.55rem]" htmlFor="wish-name">
-                Your name
+                Ձեր անունը
               </label>
-              <input id="wish-name" name="name" maxLength={60} className={fieldClass} placeholder="Your name" />
+              <input id="wish-name" name="name" maxLength={60} className={fieldClass} placeholder="Ձեր անունը" />
             </div>
             <div>
               <label className="eyebrow text-[0.55rem]" htmlFor="wish-text">
-                Your wish
+                Ձեր բարեմաղթանքը
               </label>
               <textarea
                 id="wish-text"
@@ -255,13 +255,13 @@ export function WishesSection({ wishes }: { wishes: WeddingConfig["wishes"] }) {
                 rows={4}
                 maxLength={400}
                 className={`${fieldClass} resize-none`}
-                placeholder="Wishing you both..."
+                placeholder="Մաղթում եմ ձեզ…"
               />
             </div>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <div className="text-center">
               <button type="submit" className="btn-gold w-full sm:w-auto">
-                Send Wish
+                Ուղարկել բարեմաղթանքը
               </button>
             </div>
           </form>

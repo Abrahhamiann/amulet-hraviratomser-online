@@ -24,6 +24,7 @@ export default function PrivacyPage() {
                 {section.items.map((item) => <li key={item}>{item}</li>)}
               </ul>
             )}
+            {section.after?.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
           </article>
         ))}
       </div>

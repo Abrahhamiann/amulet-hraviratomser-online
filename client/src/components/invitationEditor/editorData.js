@@ -141,6 +141,9 @@ const defaultDressCodeColors = [
   { name: 'Էսպրեսո', hex: '#5B4636' }
 ];
 
+let venueSequence = 0;
+const createVenueId = () => `venue-${Date.now()}-${venueSequence += 1}`;
+
 export const cloneEditorDraft = (value) => {
   if (typeof structuredClone === 'function') return structuredClone(value);
   return JSON.parse(JSON.stringify(value));
@@ -152,6 +155,7 @@ export const prepareEditorDraft = (draft = {}) => ({
   gallery: normalizeInvitationGallery(draft.image, draft.gallery),
   mapLinks: Array.isArray(draft.mapLinks) && draft.mapLinks.length
     ? draft.mapLinks.map((item, index) => ({
+      id: item?.id || createVenueId(),
       label: item?.label ?? `Վայր ${index + 1}`,
       time: item?.time ?? (index === 0 ? draft.eventTime ?? '' : ''),
       address: item?.address ?? (index === 0 ? draft.eventLocation ?? '' : ''),
@@ -161,6 +165,7 @@ export const prepareEditorDraft = (draft = {}) => ({
       visible: item?.visible !== false
     }))
     : [{
+      id: createVenueId(),
       label: 'Վայր 1',
       time: draft.eventTime || '',
       address: draft.eventLocation || '',

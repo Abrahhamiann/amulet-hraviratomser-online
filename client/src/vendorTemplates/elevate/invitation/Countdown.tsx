@@ -63,10 +63,10 @@ export function Countdown({ data }: { data: InvitationData }) {
             </p>
           ) : (
             <div className="mt-14 flex items-stretch gap-2 sm:mt-20 sm:gap-4">
-              <Unit value={t.days} label="Days" />
-              <Unit value={t.hours} label="Hours" />
-              <Unit value={t.minutes} label="Minutes" />
-              <Unit value={t.seconds} label="Seconds" />
+              <Unit value={t.days} label="Օր" />
+              <Unit value={t.hours} label="Ժամ" />
+              <Unit value={t.minutes} label="Րոպե" />
+              <Unit value={t.seconds} label="Վայրկյան" />
             </div>
           )}
         </Reveal>

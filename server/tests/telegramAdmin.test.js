@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { connectTelegramBot, deleteTelegramAdminMessages } from '../controllers/telegramController.js';
+import {
+  connectTelegramBot,
+  deleteTelegramAdminMessages,
+  getTelegramStatus,
+  registerTelegramBotHeartbeat
+} from '../controllers/telegramController.js';
 import ContactMessage from '../models/ContactMessage.js';
 import Order from '../models/Order.js';
 import User from '../models/User.js';
@@ -11,7 +16,10 @@ const ORIGINAL_ENV = {
   ids: process.env.TELEGRAM_ADMIN_CHAT_IDS,
   first: process.env.TELEGRAM_ADMIN_1_ID,
   second: process.env.TELEGRAM_ADMIN_2_ID,
-  token: process.env.TELEGRAM_BOT_TOKEN
+  token: process.env.TELEGRAM_BOT_TOKEN,
+  sharedToken: process.env.TELEGRAM_SHARED_BOT_TOKEN,
+  username: process.env.TELEGRAM_BOT_USERNAME,
+  sharedUsername: process.env.TELEGRAM_SHARED_BOT_USERNAME
 };
 const ORIGINAL_FETCH = global.fetch;
 const ORIGINAL_DELETE_MANY = ContactMessage.deleteMany;
@@ -29,11 +37,38 @@ test.afterEach(() => {
   restoreEnv('TELEGRAM_ADMIN_1_ID', ORIGINAL_ENV.first);
   restoreEnv('TELEGRAM_ADMIN_2_ID', ORIGINAL_ENV.second);
   restoreEnv('TELEGRAM_BOT_TOKEN', ORIGINAL_ENV.token);
+  restoreEnv('TELEGRAM_SHARED_BOT_TOKEN', ORIGINAL_ENV.sharedToken);
+  restoreEnv('TELEGRAM_BOT_USERNAME', ORIGINAL_ENV.username);
+  restoreEnv('TELEGRAM_SHARED_BOT_USERNAME', ORIGINAL_ENV.sharedUsername);
   global.fetch = ORIGINAL_FETCH;
   ContactMessage.deleteMany = ORIGINAL_DELETE_MANY;
   User.findOne = ORIGINAL_USER_FIND_ONE;
   User.findOneAndUpdate = ORIGINAL_USER_FIND_ONE_AND_UPDATE;
   Order.findById = ORIGINAL_ORDER_FIND_BY_ID;
+});
+
+test('reports Telegram available only after the bot heartbeat reaches the server', async () => {
+  process.env.TELEGRAM_SHARED_BOT_TOKEN = 'test-token';
+  process.env.TELEGRAM_SHARED_BOT_USERNAME = 'amulet_test_bot';
+
+  let heartbeatPayload;
+  await registerTelegramBotHeartbeat(
+    {},
+    { json(value) { heartbeatPayload = value; return this; } },
+    (error) => { throw error; }
+  );
+
+  let statusPayload;
+  await getTelegramStatus(
+    { user: { telegram: {} } },
+    { json(value) { statusPayload = value; return this; } },
+    (error) => { throw error; }
+  );
+
+  assert.equal(heartbeatPayload.ok, true);
+  assert.equal(statusPayload.configured, true);
+  assert.equal(statusPayload.available, true);
+  assert.equal(statusPayload.username, 'amulet_test_bot');
 });
 
 test('deletes every contact message from MongoDB for a Telegram administrator', async () => {

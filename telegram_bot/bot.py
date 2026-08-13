@@ -1,4 +1,5 @@
 import html
+import asyncio
 import logging
 import math
 import os
@@ -445,8 +446,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             })
         except AmuletApiError as exc:
             language = normalize_language(telegram_user.language_code, "en")
+            error_key = "expired" if exc.status_code == 400 else "api_unavailable" if exc.status_code == 0 else "error"
             await update.effective_message.reply_text(
-                tr(language, "expired" if exc.status_code == 400 else "error"),
+                tr(language, error_key),
                 parse_mode=ParseMode.HTML,
             )
             return
@@ -786,6 +788,19 @@ async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def post_init(application: Application):
+    async def heartbeat_loop():
+        while True:
+            try:
+                await API.heartbeat()
+            except AmuletApiError as exc:
+                LOGGER.warning("Amulet API heartbeat failed: %s", exc)
+            await asyncio.sleep(30)
+
+    try:
+        await API.heartbeat()
+    except AmuletApiError as exc:
+        LOGGER.warning("Initial Amulet API heartbeat failed: %s", exc)
+    application.create_task(heartbeat_loop(), name="amulet-api-heartbeat")
     command_descriptions = {
         "en": ("Open Amulet menu", "View purchased invitations", "Change language", "Toggle RSVP notifications", "How the bot works", "Disconnect Telegram"),
         "hy": ("Բացել Amulet ցանկը", "Դիտել գնված հրավիրատոմսերը", "Փոխել լեզուն", "Միացնել կամ անջատել ծանուցումները", "Ինչպես է աշխատում բոտը", "Անջատել Telegram-ը"),

@@ -72,7 +72,7 @@ export function CorporateGallery({ data }: { data: InvitationData }) {
             <button
               type="button"
               onClick={() => setActive(null)}
-              aria-label="Close image"
+              aria-label="Փակել նկարը"
               className="absolute right-5 top-5 grid h-11 w-11 place-items-center border border-border text-foreground transition-colors hover:border-primary hover:text-primary"
             >
               <X className="h-5 w-5" />
