@@ -11,6 +11,7 @@ import MediaPanel from './MediaPanel.jsx';
 import BuyPanel from './BuyPanel.jsx';
 import { splitNames } from './editorData.js';
 import { resolveTemplateImage } from '../../occasionTemplates/templateAssets.js';
+import { prepareImage } from './mediaUtils.js';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 import './invitationEditor.css';
 
@@ -54,7 +55,14 @@ const getDatePreviewValues = (value) => {
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const armenianMonths = ['հունվարի', 'փետրվարի', 'մարտի', 'ապրիլի', 'մայիսի', 'հունիսի', 'հուլիսի', 'օգոստոսի', 'սեպտեմբերի', 'հոկտեմբերի', 'նոյեմբերի', 'դեկտեմբերի'];
-  return [value, `${day}.${month}.${date.getFullYear()}`, `${date.getDate()} ${armenianMonths[date.getMonth()]}, ${date.getFullYear()}`, `${date.getDate()} ${armenianMonths[date.getMonth()]} ${date.getFullYear()}`];
+  return [
+    value,
+    `${day}.${month}.${date.getFullYear()}`,
+    `${day} · ${month} · ${date.getFullYear()}`,
+    `${day} • ${month} • ${date.getFullYear()}`,
+    `${date.getDate()} ${armenianMonths[date.getMonth()]}, ${date.getFullYear()}`,
+    `${date.getDate()} ${armenianMonths[date.getMonth()]} ${date.getFullYear()}`
+  ];
 };
 
 const getTemplateImageLabel = (image, index, labels = {}) => {
@@ -167,9 +175,11 @@ const makeEditorHotspot = (element, { kind, section, field = '', tab, inline = t
   element.dataset.editorLabel = kind === 'image' ? labels.image : kind === 'map' ? labels.map : labels.edit;
   if (field) element.dataset.editorField = field;
   if (kind === 'text' && field && inline) {
+    const numeric = element.dataset.editorInputMode === 'numeric';
     element.contentEditable = 'plaintext-only';
     if (!element.isContentEditable) element.contentEditable = 'true';
-    element.spellcheck = true;
+    element.spellcheck = !numeric;
+    if (numeric) element.inputMode = 'numeric';
     element.dataset.editorOwnedContenteditable = '';
     if (!element.hasAttribute('role')) {
       element.setAttribute('role', 'textbox');
@@ -203,23 +213,40 @@ const makeEditorHotspot = (element, { kind, section, field = '', tab, inline = t
 function forwardEditorInlineFocus(event) {
   const target = event.currentTarget;
   target.dataset.editorOriginalText = target.innerText;
+  if (target.dataset.editorInputMode === 'numeric') {
+    target.innerText = target.innerText.replace(/\D/g, '');
+  }
   target.classList.add('is-editor-inline-editing');
   target.ownerDocument.__amuletEditorHotspotFocusHandler?.(target);
 }
 
 function forwardEditorInlineInput(event) {
   const target = event.currentTarget;
-  target.ownerDocument.__amuletEditorInlineCommitHandler?.({
+  // Keep the contenteditable DOM in charge while the user is typing. Updating
+  // React state on every keystroke re-renders imported templates and moves the
+  // caret (or drops focus entirely). The final value is committed on blur.
+  const rawValue = target.innerText.replace(/\u00a0/g, ' ');
+  const value = target.dataset.editorInputMode === 'numeric' ? rawValue.replace(/\D/g, '') : rawValue;
+  if (value !== rawValue) {
+    target.innerText = value;
+    const selection = target.ownerDocument.getSelection();
+    selection?.selectAllChildren(target);
+    selection?.collapseToEnd();
+  }
+  target.dataset.editorLiveValue = value;
+  target.ownerDocument.__amuletEditorInlineLiveHandler?.({
     field: target.dataset.editorField || '',
-    value: target.innerText.replace(/\u00a0/g, ' '),
-    live: true
+    value
   });
 }
 
 function forwardEditorInlineBlur(event) {
   const target = event.currentTarget;
   target.classList.remove('is-editor-inline-editing');
-  const value = target.innerText.replace(/\u00a0/g, ' ');
+  const rawValue = target.innerText.replace(/\u00a0/g, ' ');
+  const numeric = target.dataset.editorInputMode === 'numeric';
+  const value = numeric ? rawValue.replace(/\D/g, '') : rawValue;
+  if (numeric) target.innerText = `${value}${target.dataset.editorNumericSuffix || ''}`;
   delete target.dataset.editorOriginalText;
   target.ownerDocument.__amuletEditorInlineCommitHandler?.({
     field: target.dataset.editorField || '',
@@ -229,6 +256,16 @@ function forwardEditorInlineBlur(event) {
 
 function forwardEditorInlineKeyDown(event) {
   const target = event.currentTarget;
+  if (
+    target.dataset.editorInputMode === 'numeric'
+    && event.key.length === 1
+    && !/\d/.test(event.key)
+    && !event.ctrlKey
+    && !event.metaKey
+  ) {
+    event.preventDefault();
+    return;
+  }
   if (event.key === 'Escape') {
     event.preventDefault();
     target.innerText = target.dataset.editorOriginalText ?? target.innerText;
@@ -291,7 +328,7 @@ export const clearPreviewDecorations = (root, { removeStyles = false, preserveAc
         'data-editor-label', 'data-editor-owned-tabindex', 'data-editor-owned-role',
         'data-editor-owned-label', 'data-editor-owned-click', 'data-editor-owned-contenteditable',
         'data-editor-owned-inline-events', 'data-editor-original-text', 'data-editor-inline',
-        'data-editor-rendered-value', 'data-editor-exact-value'
+        'data-editor-rendered-value', 'data-editor-exact-value', 'data-editor-live-value'
       ].forEach((attribute) => element.removeAttribute(attribute));
     });
     if (removeStyles) scope.querySelector('style[data-amulet-edit-hotspots]')?.remove();
@@ -343,12 +380,24 @@ export const decoratePreview = (root, data, { suppressMotion = false, labels: su
     });
 
     const textCandidatesByBlock = new Map();
+    const selectedTextContainers = new Set();
     scope.querySelectorAll(TEMPLATE_TEXT_SELECTOR).forEach((element, candidateIndex) => {
       if (element.closest('[aria-hidden="true"]')) return;
       if (element.closest('.original-template-preview-actions, [data-editor-ignore]')) return;
-      if (!element.dataset.templateTextKey && element.querySelector(TEMPLATE_TEXT_SELECTOR)) return;
+      let parent = element.parentElement;
+      while (parent) {
+        if (selectedTextContainers.has(parent)) return;
+        parent = parent.parentElement;
+      }
+      const hasNestedTextElement = Boolean(element.querySelector(TEMPLATE_TEXT_SELECTOR));
+      const hasDirectText = [...element.childNodes].some((node) => node.nodeType === 3 && normalizePreviewText(node.textContent));
+      // Prefer a mixed-content parent (for example: <p><em>Intro</em> rest of
+      // sentence</p>) so the whole visible sentence is editable, while still
+      // allowing independently styled child-only text nodes to be edited.
+      if (!element.dataset.templateTextKey && hasNestedTextElement && !hasDirectText) return;
       const text = normalizePreviewText(element.textContent);
       if (!text && !element.dataset.templateTextKey) return;
+      selectedTextContainers.add(element);
 
       // Every visible template string receives a stable positional key. Imported
       // templates already provide these keys; this fallback makes new JSX/TSX
@@ -364,9 +413,16 @@ export const decoratePreview = (root, data, { suppressMotion = false, labels: su
       if (!match) match = fields.find((item) => item.values.some((value) => text === value || (value.length > 4 && text.includes(value))));
       let section = match?.section || getEditableTextSection(element);
       if (!match) {
-        const defaultValue = element.dataset.templateTextDefault ?? element.textContent ?? '';
+        const defaultValue = element.dataset.editorInputMode === 'numeric'
+          ? element.dataset.editorNumericValue || ''
+          : element.dataset.templateTextDefault ?? element.textContent ?? '';
         const semanticSection = getEditableTextSection(element);
-        editableTexts.set(templateTextKey, { key: templateTextKey, defaultValue, section: semanticSection });
+        editableTexts.set(templateTextKey, {
+          key: templateTextKey,
+          defaultValue,
+          section: semanticSection,
+          inputMode: element.dataset.editorInputMode || 'text'
+        });
         match = { field: `templateTextOverrides.${templateTextKey}`, section: semanticSection };
         section = semanticSection;
 
@@ -583,8 +639,11 @@ function PreviewWorkspace({ PreviewComponent }) {
     update
   } = useEditor();
   const previewRootRef = useRef(null);
+  const imageInputRef = useRef(null);
+  const pendingImageFieldRef = useRef('');
   const handledPreviewFocusRequestRef = useRef(previewFocusRequest.id);
   const [previewReady, setPreviewReady] = useState(0);
+  const [imageUploadError, setImageUploadError] = useState('');
   const hotspotLabels = useMemo(() => ({ image: t('image'), map: t('map'), edit: t('editorEdit'), changeImage: t('editorChangeImage'), editMap: t('editorEditMap'), editSection: t('editorEditSection'), heroImage: t('editorHeroImage'), galleryImage: t('editorGalleryImage'), participantImage: t('editorParticipantImage'), venueImage: t('editorVenueImage'), closingImage: t('editorClosingImage'), invitationImage: t('editorInvitationImage'), previewTitle: t('editorResponsivePreview') }), [t]);
 
   const handlePreviewReady = useCallback((root, catalog) => {
@@ -618,11 +677,40 @@ function PreviewWorkspace({ PreviewComponent }) {
     if (shouldScrollPreview) target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
   }, [activeField, activeSection, data, previewFocusRequest, previewReady]);
 
+  const openPreviewImagePicker = (field) => {
+    if (!field) return;
+    pendingImageFieldRef.current = field;
+    setImageUploadError('');
+    imageInputRef.current?.click();
+  };
+
+  const replacePreviewImage = async (file) => {
+    const field = pendingImageFieldRef.current;
+    pendingImageFieldRef.current = '';
+    if (!file || !field) return;
+    try {
+      const image = await prepareImage(file);
+      update((draft) => {
+        if (field.startsWith('gallery.')) {
+          const index = Number(field.split('.')[1]);
+          if (Number.isInteger(index) && index >= 0 && index < (draft.gallery || []).length) draft.gallery[index] = image;
+          return;
+        }
+        const key = field.replace(/^templateImageOverrides\./, '');
+        if (key) draft.templateImageOverrides = { ...(draft.templateImageOverrides || {}), [key]: image };
+      });
+    } catch (uploadError) {
+      setImageUploadError(uploadError.message?.startsWith('media') ? t(uploadError.message) : (uploadError.message || t('editorImageUploadError')));
+    }
+  };
+
   const handlePreviewClick = (event) => {
     if (event.amuletEditorHandled) return;
     const path = (event.nativeEvent || event).composedPath();
-    const target = path.find((node) => ['image', 'map'].includes(node?.dataset?.editorKind))
-      || path.find((node) => node?.dataset?.editorKind)
+    // composedPath is ordered from the exact clicked node outwards. Respect
+    // that order so text layered over an image selects the text, not the image
+    // wrapper behind it.
+    const target = path.find((node) => node?.dataset?.editorKind)
       || event.target.closest?.('[data-editor-kind]');
     if (!target) {
       const sectionTarget = path.find((node) => node?.dataset?.editorSection)
@@ -650,7 +738,8 @@ function PreviewWorkspace({ PreviewComponent }) {
         field: target.dataset.editorField || '',
         targetTab: target.dataset.editorTab || 'content',
         scrollPreview: false,
-        focusSidebar: !inline
+        focusSidebar: !inline,
+        scrollSidebar: true
       });
       return;
     }
@@ -662,8 +751,9 @@ function PreviewWorkspace({ PreviewComponent }) {
         field: target.dataset.editorField || '',
         targetTab: 'media',
         scrollPreview: false,
-        focusSidebar: true
+        focusSidebar: false
       });
+      openPreviewImagePicker(target.dataset.editorField || '');
       return;
     }
     focusEditorTarget({
@@ -676,6 +766,7 @@ function PreviewWorkspace({ PreviewComponent }) {
   };
 
   const handlePreviewKeyDown = (event) => {
+    if (event.target?.isContentEditable) return;
     if (!['Enter', ' '].includes(event.key)) return;
     handlePreviewClick(event);
   };
@@ -691,12 +782,33 @@ function PreviewWorkspace({ PreviewComponent }) {
         field: target.dataset.editorField || '',
         targetTab: target.dataset.editorTab || 'content',
         scrollPreview: false,
-        focusSidebar: false
+        focusSidebar: false,
+        scrollSidebar: true
       });
     };
     previewDocument.__amuletEditorInlineCommitHandler = ({ field, value }) => {
       if (!field) return;
       update((draft) => updateDraftTextField(draft, field, value));
+    };
+    previewDocument.__amuletEditorInlineLiveHandler = ({ field, value }) => {
+      if (!field) return;
+      const syncSidebarControl = () => {
+        const sidebar = document.querySelector('.invite-editor-sidebar-scroll');
+        const fieldContainer = [...(sidebar?.querySelectorAll('[data-editor-field]') || [])]
+          .find((element) => element.dataset.editorField === field);
+        const control = fieldContainer?.querySelector('input:not([type="file"]), textarea');
+        if (!control || control.value === value) return Boolean(control);
+        control.value = value;
+        if (control instanceof HTMLTextAreaElement) {
+          control.style.height = '0px';
+          control.style.height = `${Math.max(control.scrollHeight, 46)}px`;
+        }
+        return true;
+      };
+      // The section can be mounting during the first keystroke after focus.
+      // Sync immediately, then retry on the next frame if its control is not
+      // in the sidebar DOM yet.
+      if (!syncSidebarControl()) window.requestAnimationFrame(syncSidebarControl);
     };
     // Imported templates render inside shadow roots. Listen on the iframe
     // document as well as the React mount node so composed clicks from every
@@ -707,6 +819,7 @@ function PreviewWorkspace({ PreviewComponent }) {
       delete previewDocument.__amuletEditorHotspotHandler;
       delete previewDocument.__amuletEditorHotspotFocusHandler;
       delete previewDocument.__amuletEditorInlineCommitHandler;
+      delete previewDocument.__amuletEditorInlineLiveHandler;
       previewDocument.removeEventListener('click', handlePreviewClick, true);
       previewDocument.removeEventListener('keydown', handlePreviewKeyDown, true);
     };
@@ -725,6 +838,17 @@ function PreviewWorkspace({ PreviewComponent }) {
         </div>
         {frameImage && <img className="invite-editor-device-frame" src={frameImage} alt="" aria-hidden="true" />}
       </div>
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        hidden
+        onChange={(event) => {
+          void replacePreviewImage(event.target.files?.[0]);
+          event.target.value = '';
+        }}
+      />
+      {imageUploadError && <p className="invite-editor-preview-upload-error" role="alert">{imageUploadError}</p>}
       {mobileSheet === 'collapsed' && <button type="button" className="invite-editor-open-sheet" onClick={() => setMobileSheet('medium')}><Pencil size={17} /> {t('editorEdit')}</button>}
     </main>
   );
@@ -798,23 +922,42 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
   }, [requestClose, restoreOpen]);
 
   useEffect(() => {
-    if (!previewFocusRequest.focusSidebar) return undefined;
-    const timer = window.setTimeout(() => {
+    if (!previewFocusRequest.scrollSidebar && !previewFocusRequest.focusSidebar) return undefined;
+    let timer = 0;
+    let cancelled = false;
+    let attempts = 0;
+    const focusTarget = () => {
+      if (cancelled) return;
       const sidebar = document.querySelector('.invite-editor-sidebar-scroll');
-      if (!sidebar) return;
+      if (!sidebar) {
+        if (attempts++ < 8) timer = window.setTimeout(focusTarget, 40);
+        return;
+      }
       let target = activeField ? sidebar.querySelector(`[data-editor-field="${activeField}"]`) : null;
       if (!target && activeSection) target = sidebar.querySelector(`[data-editor-section-id="${activeSection}"]`);
       if (!target) {
+        if (attempts++ < 8) {
+          timer = window.setTimeout(focusTarget, 50);
+          return;
+        }
         if (activeSection === 'media') sidebar.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const sidebarRect = sidebar.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const top = sidebar.scrollTop + targetRect.top - sidebarRect.top - ((sidebar.clientHeight - targetRect.height) / 2);
+      sidebar.scrollTo({ top: Math.max(0, top), behavior: prefersReducedMotion ? 'auto' : 'smooth' });
       if (previewFocusRequest.focusSidebar) {
         const control = activeField ? target.querySelector('input, textarea, select, button, [tabindex="0"]') : null;
         control?.focus({ preventScroll: true });
       }
-    }, 90);
-    return () => window.clearTimeout(timer);
+    };
+    timer = window.setTimeout(focusTarget, 70);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, [activeField, activeSection, previewFocusRequest, tab]);
 
   const selectTab = (next) => {

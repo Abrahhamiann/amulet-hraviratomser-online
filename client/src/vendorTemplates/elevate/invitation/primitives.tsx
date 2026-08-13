@@ -156,7 +156,13 @@ export function CountUp({ value, suffix = "" }: { value: number; suffix?: string
   }, [inView, value, reduced]);
 
   return (
-    <span ref={ref} className="tabular-nums">
+    <span
+      ref={ref}
+      className="tabular-nums"
+      data-editor-input-mode="numeric"
+      data-editor-numeric-value={value}
+      data-editor-numeric-suffix={suffix}
+    >
       {display}
       {suffix}
     </span>

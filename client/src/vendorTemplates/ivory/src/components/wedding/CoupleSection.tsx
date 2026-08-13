@@ -41,7 +41,12 @@ function Portrait({
   );
 }
 
-export function CoupleSection() {
+type CoupleNames = {
+  bride: string;
+  groom: string;
+};
+
+export function CoupleSection({ names }: { names?: CoupleNames } = {}) {
   const { couple, coupleSection } = wedding;
   return (
     <section className="surface-warm px-5 py-24 sm:py-32">
@@ -49,7 +54,7 @@ export function CoupleSection() {
         <div className="grid gap-14 sm:grid-cols-2 sm:gap-12">
           <Portrait
             image={couple.bride.image}
-            name={couple.bride.name}
+            name={names?.bride ?? couple.bride.name}
             role="Հարսը"
             text={coupleSection.brideText}
             align="left"
@@ -57,7 +62,7 @@ export function CoupleSection() {
           />
           <Portrait
             image={couple.groom.image}
-            name={couple.groom.name}
+            name={names?.groom ?? couple.groom.name}
             role="Փեսան"
             text={coupleSection.groomText}
             align="right"

@@ -60,9 +60,11 @@ export const CONTACT_PHONE_DISPLAY = read('VITE_CONTACT_PHONE_DISPLAY', '041 401
 export const CONTACT_PHONE_E164 = read('VITE_CONTACT_PHONE_E164', '+37441401415');
 export const CONTACT_PHONE_DIGITS = read('VITE_CONTACT_PHONE_DIGITS', CONTACT_PHONE_E164.replace(/\D/g, ''));
 export const CONTACT_TELEGRAM_HANDLE = read('VITE_CONTACT_TELEGRAM', 'amulet_invitiations').replace(/^@/, '');
+export const CONTACT_INSTAGRAM_HANDLE = read('VITE_CONTACT_INSTAGRAM', 'amulet_invite').replace(/^@/, '');
 export const CONTACT_EMAIL = read('VITE_CONTACT_EMAIL', 'amuletarmenia@gmail.com');
 export const CONTACT_TELEGRAM_URL = `https://t.me/${CONTACT_TELEGRAM_HANDLE}`;
 export const CONTACT_WHATSAPP_URL = `${trimTrailingSlash(read('VITE_WHATSAPP_BASE_URL', 'https://wa.me'))}/${CONTACT_PHONE_DIGITS}`;
+export const CONTACT_INSTAGRAM_URL = `https://www.instagram.com/${CONTACT_INSTAGRAM_HANDLE}/`;
 
 // External services.
 export const QR_API_URL = trimTrailingSlash(read('VITE_QR_API_URL', 'https://api.qrserver.com/v1/create-qr-code/'));

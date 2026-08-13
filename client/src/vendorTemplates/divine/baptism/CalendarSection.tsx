@@ -19,40 +19,19 @@ function buildMonth(iso: string) {
   return { cells, day };
 }
 
-function icsDate(iso: string) {
-  return new Date(iso).toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-}
-
-function addToCalendar() {
-  const ics = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//Amulet//Baptism//HY",
-    "BEGIN:VEVENT",
-    `UID:${Date.now()}@amulet`,
-    `DTSTAMP:${icsDate(new Date().toISOString())}`,
-    `DTSTART:${icsDate(invitation.eventISO)}`,
-    `DTEND:${icsDate(invitation.eventEndISO)}`,
-    `SUMMARY:${invitation.calendarTitle}`,
-    `LOCATION:${invitation.location.churchName}, ${invitation.location.churchAddress}`,
-    `DESCRIPTION:${invitation.heroDescription}`,
-    "END:VEVENT",
-    "END:VCALENDAR",
-  ].join("\r\n");
-
-  const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" }));
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "baptism.ics";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-export function CalendarSection() {
-  const { cells, day } = buildMonth(invitation.eventISO);
+export function CalendarSection({
+  eventISO = invitation.eventISO,
+  monthLabel = invitation.calendarMonthLabel,
+  dayLabel = invitation.calendarDayLabel,
+}: {
+  eventISO?: string;
+  monthLabel?: string;
+  dayLabel?: string;
+} = {}) {
+  const { cells, day } = buildMonth(eventISO);
 
   return (
-    <section className="relative px-6 py-20 sm:py-28">
+    <section className="relative px-6 py-20 sm:py-28" data-editor-ignore="calendar">
       <SectionTitle icon="floral" eyebrow="Save the date">
         Օրը Նշեք Ձեր Օրացույցում
       </SectionTitle>
@@ -64,7 +43,7 @@ export function CalendarSection() {
               <CrossIcon />
             </span>
             <p className="font-title text-base tracking-[0.24em] text-foreground sm:text-lg">
-              {invitation.calendarMonthLabel}
+              {monthLabel}
             </p>
             <span className="h-4 w-4">
               <CalendarGlyph />
@@ -98,16 +77,9 @@ export function CalendarSection() {
           </div>
 
           <p className="font-title mt-7 text-center text-lg text-foreground sm:text-xl">
-            {invitation.calendarDayLabel}
+            {dayLabel}
           </p>
 
-          <button
-            type="button"
-            onClick={addToCalendar}
-            className="font-body mt-6 w-full rounded-full border border-gold/50 bg-ivory/60 px-6 py-3.5 text-xs tracking-[0.24em] text-foreground uppercase transition-all duration-500 hover:border-gold hover:bg-cream hover:shadow-halo"
-          >
-            Ավելացնել Օրացույց
-          </button>
         </div>
       </Reveal>
     </section>

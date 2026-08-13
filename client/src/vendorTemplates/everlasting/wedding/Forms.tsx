@@ -23,7 +23,9 @@ type RsvpSubmit = (data: {
   message: string;
 }) => Promise<unknown>;
 
-export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSubmit?: RsvpSubmit }) {
+type EditorRsvpSettings = { askGuestCount?: boolean; askMeal?: boolean };
+
+export function RSVPForm({ rsvp, onSubmit, settings = {} }: { rsvp: WeddingConfig["rsvp"]; onSubmit?: RsvpSubmit; settings?: EditorRsvpSettings }) {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [attending, setAttending] = useState<"yes" | "no">("yes");
@@ -32,7 +34,7 @@ export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSu
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.currentTarget));
-    const parsed = rsvpSchema.safeParse({ ...data, attending });
+    const parsed = rsvpSchema.safeParse({ ...data, attending, guests: data.guests ?? 1, meal: data.meal ?? "" });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Խնդրում ենք ստուգել լրացված տվյալները");
       return;
@@ -145,8 +147,8 @@ export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSu
                 </div>
               </fieldset>
 
-              <div className="grid gap-8 sm:grid-cols-2">
-                <div>
+              {(settings.askGuestCount !== false || settings.askMeal === true) ? <div className="grid gap-8 sm:grid-cols-2">
+                {settings.askGuestCount !== false ? <div>
                   <label className="eyebrow text-[0.55rem]" htmlFor="rsvp-guests">
                     Հյուրերի քանակ
                   </label>
@@ -159,8 +161,8 @@ export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSu
                     defaultValue={1}
                     className={fieldClass}
                   />
-                </div>
-                <div>
+                </div> : null}
+                {settings.askMeal === true ? <div>
                   <label className="eyebrow text-[0.55rem]" htmlFor="rsvp-meal">
                     Սննդի նախընտրություն
                   </label>
@@ -171,8 +173,8 @@ export function RSVPForm({ rsvp, onSubmit }: { rsvp: WeddingConfig["rsvp"]; onSu
                       </option>
                     ))}
                   </select>
-                </div>
-              </div>
+                </div> : null}
+              </div> : null}
 
               <div>
                 <label className="eyebrow text-[0.55rem]" htmlFor="rsvp-message">

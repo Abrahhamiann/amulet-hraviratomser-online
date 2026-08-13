@@ -5,12 +5,14 @@ import ContactMessage from '../models/ContactMessage.js';
 import Invitation from '../models/Invitation.js';
 import Order from '../models/Order.js';
 import RSVP from '../models/RSVP.js';
+import Setting from '../models/Setting.js';
 import User from '../models/User.js';
 import { deliverContactReply } from '../utils/contactReply.js';
 import { isTelegramAdmin, normalizeTelegramLanguage } from '../utils/telegram.js';
 
 const tokenHash = (token) => crypto.createHash('sha256').update(token).digest('hex');
 const BOT_HEARTBEAT_TTL_MS = 90 * 1000;
+const BOT_HEARTBEAT_SETTING_KEY = 'telegram_bot_heartbeat';
 let lastBotHeartbeatAt = 0;
 const cleanBotUsername = () => (
   process.env.TELEGRAM_SHARED_BOT_USERNAME
@@ -28,7 +30,16 @@ const isBotConfigured = () => Boolean(
   && (process.env.TELEGRAM_SHARED_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN)?.trim()
 );
 
-const isBotAvailable = () => isBotConfigured() && Date.now() - lastBotHeartbeatAt < BOT_HEARTBEAT_TTL_MS;
+const isBotAvailable = async () => {
+  if (!isBotConfigured()) return false;
+  if (Date.now() - lastBotHeartbeatAt < BOT_HEARTBEAT_TTL_MS) return true;
+
+  const saved = await Setting.findOne({ key: BOT_HEARTBEAT_SETTING_KEY }).lean();
+  const persistedAt = saved?.value?.at ? new Date(saved.value.at).getTime() : 0;
+  if (!Number.isFinite(persistedAt)) return false;
+  lastBotHeartbeatAt = persistedAt;
+  return Date.now() - persistedAt < BOT_HEARTBEAT_TTL_MS;
+};
 
 const requireBotConfiguration = (res) => {
   if (isBotConfigured()) return;
@@ -47,14 +58,11 @@ const findTelegramUser = async (chatId, res) => {
 
 const requireTelegramAdmin = async (chatId, res) => {
   const normalizedChatId = String(chatId || '').trim();
-  const linkedSuperAdmin = isTelegramAdmin(normalizedChatId)
-    ? await User.findOne({
-        role: 'super_admin',
-        'telegram.chatId': normalizedChatId,
-        'telegram.userId': normalizedChatId
-      }).select('_id')
-    : null;
-  if (linkedSuperAdmin) return normalizedChatId;
+  // These routes already pass through `botOnly`, which authenticates the
+  // Node.js bot with the shared secret. The configured chat ID is therefore
+  // the administrator identity; requiring a separately linked website user
+  // made /admin open successfully in Telegram but every data request fail.
+  if (isTelegramAdmin(normalizedChatId)) return normalizedChatId;
   res.status(403);
   throw new Error('Telegram administrator access required');
 };
@@ -132,7 +140,7 @@ export const getTelegramStatus = asyncHandler(async (req, res) => {
   const configured = isBotConfigured();
   res.json({
     configured,
-    available: isBotAvailable(),
+    available: await isBotAvailable(),
     connected,
     username: cleanBotUsername(),
     displayName: req.user.telegram?.firstName || req.user.telegram?.username || '',
@@ -144,12 +152,17 @@ export const getTelegramStatus = asyncHandler(async (req, res) => {
 
 export const registerTelegramBotHeartbeat = asyncHandler(async (_req, res) => {
   lastBotHeartbeatAt = Date.now();
+  await Setting.findOneAndUpdate(
+    { key: BOT_HEARTBEAT_SETTING_KEY },
+    { $set: { value: { at: new Date(lastBotHeartbeatAt) } } },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
   res.json({ ok: true, serverTime: new Date(lastBotHeartbeatAt).toISOString() });
 });
 
 export const createTelegramLink = asyncHandler(async (req, res) => {
   requireBotConfiguration(res);
-  if (!isBotAvailable()) {
+  if (!await isBotAvailable()) {
     res.status(503);
     throw new Error('Telegram bot process is not running');
   }

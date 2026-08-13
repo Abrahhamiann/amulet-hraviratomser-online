@@ -88,7 +88,7 @@ export function EditorProvider({ initialDraft, originalDraft = initialDraft, ini
   const [mobileSheet, setMobileSheet] = useState(getInitialMobileSheet);
   const [activeSection, setActiveSection] = useState(initialTarget.section || 'hero');
   const [activeField, setActiveField] = useState(initialTarget.field || (initialTarget.section ? '' : 'mainNames'));
-  const [previewFocusRequest, setPreviewFocusRequest] = useState({ id: 0, scroll: false, focusSidebar: false });
+  const [previewFocusRequest, setPreviewFocusRequest] = useState({ id: 0, scroll: false, scrollSidebar: false, focusSidebar: false });
   const [editableContent, setEditableContent] = useState({ texts: [], images: [] });
   const [saveStatus, setSaveStatus] = useState('idle');
   const originalDraftRef = useRef(prepareEditorDraft(prepareTemplateDraft(cloneEditorDraft(originalDraft), template)));
@@ -108,13 +108,13 @@ export function EditorProvider({ initialDraft, originalDraft = initialDraft, ini
   const update = useCallback((change) => dispatch({ type: 'update', change }), []);
   const undo = useCallback(() => dispatch({ type: 'undo' }), []);
   const redo = useCallback(() => dispatch({ type: 'redo' }), []);
-  const focusEditorTarget = useCallback(({ section = 'hero', field = '', targetTab = 'content', scrollPreview = true, focusSidebar = true } = {}) => {
+  const focusEditorTarget = useCallback(({ section = 'hero', field = '', targetTab = 'content', scrollPreview = true, focusSidebar = true, scrollSidebar = focusSidebar } = {}) => {
     setActiveSection(section);
     setActiveField(field);
     setTab(targetTab);
     setSidebarOpen(true);
     setMobileSheet('medium');
-    setPreviewFocusRequest((request) => ({ id: request.id + 1, scroll: scrollPreview, focusSidebar }));
+    setPreviewFocusRequest((request) => ({ id: request.id + 1, scroll: scrollPreview, scrollSidebar, focusSidebar }));
   }, []);
   const registerEditableContent = useCallback((catalog = {}) => {
     setEditableContent((current) => {

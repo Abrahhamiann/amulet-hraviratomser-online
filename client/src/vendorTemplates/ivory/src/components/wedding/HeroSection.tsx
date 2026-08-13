@@ -1,8 +1,22 @@
 import { wedding } from "@/data/wedding";
 import { Sprig } from "./Ornament";
 
-export function HeroSection() {
+type HeroInitials = {
+  groom: string;
+  bride: string;
+};
+
+type HeroNames = {
+  groom: string;
+  bride: string;
+};
+
+export function HeroSection({ initials, names }: { initials?: HeroInitials; names?: HeroNames } = {}) {
   const { couple, date, hero } = wedding;
+  const groomInitial = initials?.groom ?? couple.groom.initial;
+  const brideInitial = initials?.bride ?? couple.bride.initial;
+  const groomName = names?.groom ?? couple.groom.name;
+  const brideName = names?.bride ?? couple.bride.name;
 
   return (
     <section className="relative isolate flex min-h-[100svh] flex-col items-center justify-end overflow-hidden px-5 pb-16 text-center sm:pb-20">
@@ -24,15 +38,15 @@ export function HeroSection() {
 
       <div className="animate-[fade-in_1.4s_var(--ease-calm)_both] mx-auto w-full max-w-3xl">
         <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-full border border-gold/45 font-display text-lg tracking-[0.15em] text-gold">
-          {couple.groom.initial}&nbsp;&amp;&nbsp;{couple.bride.initial}
+          {groomInitial}&nbsp;&amp;&nbsp;{brideInitial}
         </div>
 
         <p className="eyebrow">{hero.eyebrow}</p>
 
         <h1 className="mt-6 font-display text-[clamp(3rem,15vw,7.5rem)] leading-[0.95] font-light tracking-[-0.02em] text-foreground">
-          <span className="block">{couple.groom.name}</span>
+          <span className="block">{groomName}</span>
           <span className="my-1 block text-gold italic text-[0.5em]">&amp;</span>
-          <span className="block">{couple.bride.name}</span>
+          <span className="block">{brideName}</span>
         </h1>
 
         <div className="mx-auto mt-8 flex max-w-xs items-center justify-center gap-4">

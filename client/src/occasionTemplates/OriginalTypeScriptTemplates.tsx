@@ -261,11 +261,20 @@ const applyTemplateOverrides = (root: HTMLDivElement, draft: Draft = {}) => {
     const key = element.dataset.templateTextKey || `text-${index}`;
     if (!element.dataset.templateTextKey) element.dataset.templateTextKey = key;
     if (element.dataset.templateTextDefault === undefined) element.dataset.templateTextDefault = element.textContent || '';
+    // Countdown values and their unit labels are generated from eventDate.
+    // Never apply saved/free-text overrides to this system-owned region.
+    if (element.closest('[data-editor-ignore="countdown"], [data-editor-ignore="calendar"], [data-editor-field="eventDate"]')) {
+      delete element.dataset.templateTextOverridden;
+      return;
+    }
     // While the user is typing directly on the preview, the MutationObserver
     // must not restore the last saved value before blur can commit the new one.
     if (element.classList.contains('is-editor-inline-editing')) return;
     if (Object.prototype.hasOwnProperty.call(textOverrides, key)) {
-      const nextValue = String(textOverrides[key] ?? '');
+      const rawValue = String(textOverrides[key] ?? '');
+      const nextValue = element.dataset.editorInputMode === 'numeric'
+        ? `${rawValue.replace(/\D/g, '')}${element.dataset.editorNumericSuffix || ''}`
+        : rawValue;
       if (element.textContent !== nextValue) element.textContent = nextValue;
       element.dataset.templateTextOverridden = 'true';
     } else if (element.dataset.templateTextOverridden === 'true') {
@@ -309,6 +318,37 @@ const formatArmenianDate = (value?: string) => {
   if (Number.isNaN(date.getTime())) return value;
   const months = ['հունվարի', 'փետրվարի', 'մարտի', 'ապրիլի', 'մայիսի', 'հունիսի', 'հուլիսի', 'օգոստոսի', 'սեպտեմբերի', 'հոկտեմբերի', 'նոյեմբերի', 'դեկտեմբերի'];
   return `${date.getDate()} ${months[date.getMonth()]}, ${date.getFullYear()}`;
+};
+
+const formatNumericDate = (value?: string, separator = '.') => {
+  if (!value) return '';
+  const date = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  return `${day}${separator}${month}${separator}${date.getFullYear()}`;
+};
+
+const formatArmenianMonth = (value?: string) => {
+  if (!value) return '';
+  const date = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  const months = ['Հունվար', 'Փետրվար', 'Մարտ', 'Ապրիլ', 'Մայիս', 'Հունիս', 'Հուլիս', 'Օգոստոս', 'Սեպտեմբեր', 'Հոկտեմբեր', 'Նոյեմբեր', 'Դեկտեմբեր'];
+  return `${months[date.getMonth()]} ${date.getFullYear()}`;
+};
+
+const applySystemOwnedDraftFields = (root: HTMLDivElement, draft: Draft = {}) => {
+  if (draft.eventDate === undefined) return;
+  root.querySelectorAll<HTMLElement>('[data-editor-field="eventDate"]').forEach((element) => {
+    const sample = element.dataset.templateTextDefault || element.textContent || '';
+    const dateLabel = /[·•]/.test(sample)
+      ? formatNumericDate(draft.eventDate, sample.includes('•') ? ' • ' : ' · ')
+      : /^\s*\d{1,2}[./-]\d{1,2}[./-]\d{4}\s*$/.test(sample)
+        ? formatNumericDate(draft.eventDate)
+        : formatArmenianDate(draft.eventDate);
+    if (element.textContent !== dateLabel) element.textContent = dateLabel;
+    delete element.dataset.templateTextOverridden;
+  });
 };
 
 const splitNames = (value?: string) => String(value || '').split(/\s*(?:&|և|եւ|\+|,|·)\s*/).filter(Boolean);
@@ -474,6 +514,7 @@ function OriginalTemplateSurface({ children, css, fontImport, label, draft, cust
     const applyLocalization = () => {
       localizeTemplateUi(root);
       customizeRef.current?.(root);
+      applySystemOwnedDraftFields(root, draftRef.current);
       applyTemplateOverrides(root, draftRef.current);
     };
     const observer = new MutationObserver(applyLocalization);
@@ -491,6 +532,7 @@ function OriginalTemplateSurface({ children, css, fontImport, label, draft, cust
     if (!portalRoot) return;
     localizeTemplateUi(portalRoot);
     customize?.(portalRoot);
+    applySystemOwnedDraftFields(portalRoot, draft);
     applyTemplateOverrides(portalRoot, draft);
   }, [customize, draft, portalRoot]);
 
@@ -659,6 +701,20 @@ function BirthdaySparkleTemplate(props: TemplateProps) {
 function IvoryVowsTemplate(props: TemplateProps) {
   const { draft = {} } = props;
   const musicSource = draft.musicEnabled === false ? undefined : (draft.musicUrl || defaultInvitationSong);
+  const coupleNames = useMemo(() => {
+    if (draft.mainNames === undefined) {
+      return { bride: wedding.couple.bride.name, groom: wedding.couple.groom.name };
+    }
+    const [bride, groom] = splitNames(draft.mainNames);
+    return { bride, groom };
+  }, [draft.mainNames]);
+  const heroInitials = useMemo(() => {
+    const firstLetter = (name: string) => Array.from(String(name).trim())[0] || '';
+    return {
+      groom: firstLetter(coupleNames.groom),
+      bride: firstLetter(coupleNames.bride)
+    };
+  }, [coupleNames]);
   const venues = useMemo(() => {
     const edited = (draft.mapLinks || []).filter((venue) => venue?.visible !== false);
     if (!edited.length) return [...wedding.venues];
@@ -683,11 +739,7 @@ function IvoryVowsTemplate(props: TemplateProps) {
     colors: draft.dressCodeColors?.length ? draft.dressCodeColors : wedding.dressCode.colors
   }), [draft.dressCode, draft.dressCodeColors]);
   const customize = useCallback((root: HTMLDivElement) => {
-    const explicitNames = String(draft.mainNames ?? '').split(/\s*[&+,·]\s*/, 2);
-    const [groom, bride] = explicitNames.length > 1 ? [explicitNames[0] || '', explicitNames[1] || ''] : splitNames(draft.mainNames);
     const replacements: Record<string, string> = {
-      [wedding.couple.groom.name]: draft.mainNames !== undefined ? (groom || '') : wedding.couple.groom.name,
-      [wedding.couple.bride.name]: draft.mainNames !== undefined ? (bride || '') : wedding.couple.bride.name,
       [wedding.date.long]: draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : wedding.date.long,
       [wedding.invitation.note]: draft.eventMessage ?? wedding.invitation.note,
       [wedding.venues[0]?.name || '']: draft.eventLocation ?? wedding.venues[0]?.name ?? '',
@@ -719,12 +771,12 @@ function IvoryVowsTemplate(props: TemplateProps) {
       customize={customize}
     >
       <main className="overflow-x-hidden">
-        <div className="ivory-hero" hidden={draft.heroVisible === false}><WeddingHeroSection /></div>
+        <div className="ivory-hero" hidden={draft.heroVisible === false}><WeddingHeroSection initials={heroInitials} names={coupleNames} /></div>
         <div className="ivory-message" hidden={draft.heroVisible === false}><InvitationMessage /></div>
-        <CoupleSection />
+        <CoupleSection names={coupleNames} />
         <StoryTimeline />
         <div className="ivory-schedule" hidden={draft.receptionVisible === false}>
-          <WeddingCountdown />
+          <WeddingCountdown dateISO={draft.eventDate ? `${draft.eventDate}T${draft.eventTime || '16:00'}:00+04:00` : wedding.date.iso} />
           <WeddingSchedule />
           {venues.map((venue, index) => <VenueSection key={venue.id} venue={venue} reverse={index % 2 === 1} />)}
         </div>
@@ -733,8 +785,8 @@ function IvoryVowsTemplate(props: TemplateProps) {
         <ImportantInfo />
         <div className="ivory-rsvp" hidden={draft.questionsVisible === false}><RSVPForm settings={draft.rsvpSettings} question={draft.rsvpQuestion} onSubmit={props.onRsvpSubmit} /></div>
         <ContactSection />
-        <div className="ivory-closing" hidden={draft.finalMessageVisible === false}><ClosingSection /><WeddingFooter /></div>
-        <FloatingActions />
+        <div className="ivory-closing" hidden={draft.finalMessageVisible === false}><ClosingSection dateShort={draft.eventDate !== undefined ? formatNumericDate(draft.eventDate) : wedding.date.short} /><WeddingFooter /></div>
+        <FloatingActions dateISO={draft.eventDate ? `${draft.eventDate}T${draft.eventTime || '16:00'}:00+04:00` : wedding.date.iso} />
         <MusicControl src={musicSource} />
       </main>
     </OriginalTemplateSurface></TemplateShell>
@@ -777,8 +829,12 @@ function DivineBlessingTemplate(props: TemplateProps) {
         <div className="divine-hero" hidden={draft.heroVisible === false}><DivineHero /></div>
         <DivineCurve />
         <div className="divine-schedule" hidden={draft.receptionVisible === false}>
-          <DivineDetails /><DivineDivider symbol="cross" /><DivineCountdown /><DivineCurve />
-          <DivineCalendar /><DivineDivider symbol="floral" /><DivineTimeline />
+          <DivineDetails /><DivineDivider symbol="cross" /><DivineCountdown eventISO={draft.eventDate ? `${draft.eventDate}T${draft.eventTime || '14:00'}:00+04:00` : divineInvitation.eventISO} /><DivineCurve />
+          <DivineCalendar
+            eventISO={draft.eventDate ? `${draft.eventDate}T${draft.eventTime || '14:00'}:00+04:00` : divineInvitation.eventISO}
+            monthLabel={draft.eventDate !== undefined ? formatArmenianMonth(draft.eventDate) : divineInvitation.calendarMonthLabel}
+            dayLabel={draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : divineInvitation.calendarDayLabel}
+          /><DivineDivider symbol="floral" /><DivineTimeline />
         </div>
         <DivineDivider symbol="dove" />
         <div className="divine-family" hidden={draft.familyVisible === false}><DivineFamilyMessage /></div>
@@ -786,7 +842,7 @@ function DivineBlessingTemplate(props: TemplateProps) {
         <div className="divine-schedule" hidden={draft.receptionVisible === false}><DivineLocation /></div>
         <AdditionalVenues draft={draft} nativeCount={1} />
         <DivineDivider symbol="cross" />
-        <div className="divine-rsvp" hidden={draft.questionsVisible === false}><DivineRsvp onSubmit={props.onRsvpSubmit} /></div>
+        <div className="divine-rsvp" hidden={draft.questionsVisible === false}><DivineRsvp settings={draft.rsvpSettings} onSubmit={props.onRsvpSubmit} /></div>
         <div className="divine-closing" hidden={draft.finalMessageVisible === false}><DivineFooter /></div>
         <DivineMusic src={draft.musicEnabled === false ? undefined : (draft.musicUrl || defaultInvitationSong)} />
       </main>
@@ -879,7 +935,7 @@ function ElevateInviteTemplate(props: TemplateProps) {
         <div className="elevate-schedule" hidden={draft.receptionVisible === false}><ElevateVenue data={data} /></div>
         <AdditionalVenues draft={draft} nativeCount={1} />
         <div className="elevate-dress" hidden={draft.dressCodeVisible === false}><ElevateDressCode data={data} /></div>
-        <div className="elevate-rsvp" hidden={draft.questionsVisible === false}><ElevateRsvp data={data} onSubmit={props.onRsvpSubmit} /></div>
+        <div className="elevate-rsvp" hidden={draft.questionsVisible === false}><ElevateRsvp data={data} settings={draft.rsvpSettings} onSubmit={props.onRsvpSubmit} /></div>
         <ElevateContact data={data} />
         <div className="elevate-closing" hidden={draft.finalMessageVisible === false}><ElevateFooter data={data} /></div>
         <ElevateMusic data={data} />
@@ -936,11 +992,11 @@ function EverAfterTemplate(props: TemplateProps) {
       <main className="ever-after-template relative overflow-x-hidden">
         <div className="ever-after-hero" hidden={draft.heroVisible === false}><EverAfterHero /><EverAfterStory /></div>
         <EverAfterCurve /><EverAfterCouple /><EverAfterCurve flip />
-        <div className="ever-after-schedule" hidden={draft.receptionVisible === false}><EverAfterAnnouncement /><EverAfterCountdown /><EverAfterDivider label="The Details" /><EverAfterDetails /><EverAfterLocation /><EverAfterTimeline /></div>
+        <div className="ever-after-schedule" hidden={draft.receptionVisible === false}><EverAfterAnnouncement /><EverAfterCountdown dateISO={draft.eventDate ? `${draft.eventDate}T${draft.eventTime || '18:00'}:00+04:00` : everAfterInvite.dateISO} /><EverAfterDivider label="The Details" /><EverAfterDetails /><EverAfterLocation /><EverAfterTimeline /></div>
         <AdditionalVenues draft={draft} nativeCount={1} />
         <EverAfterGallery /><EverAfterQuote />
         <div className="ever-after-dress" hidden={draft.dressCodeVisible === false}><EverAfterDressCode /></div>
-        <div className="ever-after-rsvp" hidden={draft.questionsVisible === false}><EverAfterRsvp onSubmit={props.onRsvpSubmit} /></div>
+        <div className="ever-after-rsvp" hidden={draft.questionsVisible === false}><EverAfterRsvp settings={draft.rsvpSettings} onSubmit={props.onRsvpSubmit} /></div>
         <div className="ever-after-closing" hidden={draft.finalMessageVisible === false}><EverAfterFooter /></div>
         {draft.musicEnabled !== false ? <EverAfterMusic /> : null}
       </main>
@@ -986,6 +1042,7 @@ function EverlastingVowsTemplate(props: TemplateProps) {
       date: {
         ...everlastingConfig.date,
         iso: draft.eventDate ? `${draft.eventDate}T${draft.eventTime || '16:00'}:00+04:00` : everlastingConfig.date.iso,
+        display: draft.eventDate !== undefined ? formatNumericDate(draft.eventDate, ' · ') : everlastingConfig.date.display,
         long: longDate
       },
       ceremony: {
@@ -1044,7 +1101,7 @@ function EverlastingVowsTemplate(props: TemplateProps) {
         <AdditionalVenues draft={draft} nativeCount={2} />
         <EverlastingGallery gallery={config.gallery} /><EverlastingQuote quote={config.quote} />
         <div className="everlasting-dress" hidden={draft.dressCodeVisible === false}><EverlastingDressCode dressCode={config.dressCode} /></div>
-        <div className="everlasting-rsvp" hidden={draft.questionsVisible === false}><EverlastingRsvp rsvp={config.rsvp} onSubmit={props.onRsvpSubmit} /><EverlastingWishes wishes={config.wishes} /></div>
+        <div className="everlasting-rsvp" hidden={draft.questionsVisible === false}><EverlastingRsvp rsvp={config.rsvp} settings={draft.rsvpSettings} onSubmit={props.onRsvpSubmit} /><EverlastingWishes wishes={config.wishes} /></div>
         <div className="everlasting-closing" hidden={draft.finalMessageVisible === false}><EverlastingFooter config={config} /></div>
         {config.music.enabled ? <EverlastingMusic music={config.music} /> : null}
       </main>
@@ -1083,7 +1140,7 @@ export const getBirthdaySparkleDraft = () => makeDraft(
 );
 
 export const getIvoryVowsDraft = () => ({ ...makeDraft(
-  `${wedding.couple.groom.name} & ${wedding.couple.bride.name}`,
+  `${wedding.couple.bride.name} & ${wedding.couple.groom.name}`,
   wedding.date.iso.slice(0, 10),
   wedding.venues[0]?.time || '',
   wedding.venues[0]?.name || '',

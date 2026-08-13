@@ -1,0 +1,14 @@
+{
+  "name": "amulet-telegram-bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node bot.js",
+    "start": "node bot.js",
+    "check": "node bot.js --check"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7"
+  }
+}

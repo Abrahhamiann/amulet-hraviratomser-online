@@ -38,16 +38,16 @@ npm run seed
 npm run dev
 ```
 
-Telegram linking also requires the polling bot to run continuously. After
-installing `telegram_bot/requirements.txt`, either start it separately with
-`npm run dev:bot` or run all three services together with `npm run dev:all`.
-The website and API alone can create a Telegram deep link, but they cannot
-consume `/start` updates or finish the account connection without this process.
+Telegram linking uses the Node.js polling service in `server/telegram-bot`.
+All Telegram settings belong in `server/.env`; no Python runtime or separate
+bot environment file is required. `npm run dev` starts the API, website and bot
+together. Use `npm run dev:bot` when only the bot process needs to be restarted.
+In production the bot must run continuously and `TELEGRAM_BOT_API_URL` must
+point to the public HTTPS API when it is deployed on another machine.
 
 Client: `http://localhost:5173`
 
 Server: `http://localhost:5000`
-
 
 ## Main Features
 

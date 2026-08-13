@@ -2311,4 +2311,26 @@ Object.assign(it, {
   editorPreviewDevice: 'Dispositivo di anteprima', editorDesktop: 'Computer', editorTablet: 'Tablet', editorMobile: 'Telefono', editorDialogLabel: 'Editor inviti Amulet', editorClosePanel: 'Chiudi pannello di modifica', editorOpenPanel: 'Apri pannello di modifica', editorUndo: 'Annulla', editorRedo: 'Ripeti', editorSessionChanges: 'Le modifiche restano solo durante questa sessione', editorOriginalState: "L’invito è nello stato originale", editorRestore: 'Ripristina', editorViewChanges: 'Visualizza modifiche', editorClose: "Chiudi l’editor", editorSections: "Sezioni dell’editor", back: 'Indietro', editorRestoreTitle: "Ripristinare l’invito originale?", editorRestoreDescription: "Tutte le modifiche a testi, immagini e design verranno eliminate e l’invito tornerà alla versione originale. Questa azione non può essere annullata.", editorRestoreConfirm: 'Sì, ripristina', editorTemplates: 'Modelli', editorEdit: 'Modifica', editorDesign: 'Design', editorMedia: 'Media', editorBuy: 'Acquista'
 });
 
+Object.assign(hy, {
+  accountInvitationActions: 'Հրավերի գործողություններ', shareInvitation: 'Կիսվել', shareInvitationTitle: 'Կիսվեք հրավերով', shareInvitationText: 'Ուղարկեք հյուրերին QR կոդը կամ պատճենեք հրավերի հղումը։', shareInvitationQrAlt: 'Հրավերի QR կոդ', shareInvitationLink: 'Ձեր հրավերի հղումը', shareInvitationCopy: 'Պատճենել հղումը', shareInvitationCopied: 'Հղումը պատճենված է', shareInvitationCopyError: 'Չհաջողվեց պատճենել։ Նշեք հղումը և պատճենեք ձեռքով։'
+});
+Object.assign(en, {
+  accountInvitationActions: 'Invitation actions', shareInvitation: 'Share', shareInvitationTitle: 'Share your invitation', shareInvitationText: 'Send the QR code to your guests or copy the invitation link.', shareInvitationQrAlt: 'Invitation QR code', shareInvitationLink: 'Your invitation link', shareInvitationCopy: 'Copy link', shareInvitationCopied: 'Link copied', shareInvitationCopyError: 'Could not copy the link. Select it and copy it manually.'
+});
+Object.assign(ru, {
+  accountInvitationActions: 'Действия с приглашением', shareInvitation: 'Поделиться', shareInvitationTitle: 'Поделиться приглашением', shareInvitationText: 'Отправьте гостям QR-код или скопируйте ссылку на приглашение.', shareInvitationQrAlt: 'QR-код приглашения', shareInvitationLink: 'Ссылка на приглашение', shareInvitationCopy: 'Копировать ссылку', shareInvitationCopied: 'Ссылка скопирована', shareInvitationCopyError: 'Не удалось скопировать ссылку. Выделите и скопируйте её вручную.'
+});
+Object.assign(es, {
+  accountInvitationActions: 'Acciones de la invitación', shareInvitation: 'Compartir', shareInvitationTitle: 'Comparte tu invitación', shareInvitationText: 'Envía el código QR a tus invitados o copia el enlace.', shareInvitationQrAlt: 'Código QR de la invitación', shareInvitationLink: 'Enlace de tu invitación', shareInvitationCopy: 'Copiar enlace', shareInvitationCopied: 'Enlace copiado', shareInvitationCopyError: 'No se pudo copiar. Selecciona el enlace y cópialo manualmente.'
+});
+Object.assign(fr, {
+  accountInvitationActions: 'Actions de l’invitation', shareInvitation: 'Partager', shareInvitationTitle: 'Partagez votre invitation', shareInvitationText: 'Envoyez le QR code à vos invités ou copiez le lien.', shareInvitationQrAlt: 'QR code de l’invitation', shareInvitationLink: 'Lien de votre invitation', shareInvitationCopy: 'Copier le lien', shareInvitationCopied: 'Lien copié', shareInvitationCopyError: 'Impossible de copier. Sélectionnez le lien et copiez-le manuellement.'
+});
+Object.assign(de, {
+  accountInvitationActions: 'Einladungsaktionen', shareInvitation: 'Teilen', shareInvitationTitle: 'Einladung teilen', shareInvitationText: 'Senden Sie den QR-Code an Ihre Gäste oder kopieren Sie den Link.', shareInvitationQrAlt: 'QR-Code der Einladung', shareInvitationLink: 'Link zu Ihrer Einladung', shareInvitationCopy: 'Link kopieren', shareInvitationCopied: 'Link kopiert', shareInvitationCopyError: 'Der Link konnte nicht kopiert werden. Bitte manuell auswählen und kopieren.'
+});
+Object.assign(it, {
+  accountInvitationActions: 'Azioni invito', shareInvitation: 'Condividi', shareInvitationTitle: 'Condividi il tuo invito', shareInvitationText: 'Invia il codice QR agli ospiti oppure copia il link.', shareInvitationQrAlt: 'Codice QR dell’invito', shareInvitationLink: 'Link del tuo invito', shareInvitationCopy: 'Copia link', shareInvitationCopied: 'Link copiato', shareInvitationCopyError: 'Impossibile copiare il link. Selezionalo e copialo manualmente.'
+});
+
 export const translations = { hy, en, ru, es, fr, de, it };

@@ -53,12 +53,22 @@ export default function InvitationPage() {
   }, [invitation]);
 
   const submitRsvp = async (data) => {
-    const nextErrors = required(data, ['guestName', 'status']);
+    // All invitation templates converge here. Keep the API payload stable even
+    // when an optional control is not rendered and a template passes null.
+    const normalizedData = {
+      guestName: String(data?.guestName ?? '').trim(),
+      phone: String(data?.phone ?? '').trim(),
+      status: String(data?.status ?? '').trim(),
+      guestSide: ['bride', 'groom', 'other'].includes(data?.guestSide) ? data.guestSide : 'other',
+      guestCount: Number.isFinite(Number(data?.guestCount)) ? Number(data.guestCount) : 1,
+      message: String(data?.message ?? '').trim()
+    };
+    const nextErrors = required(normalizedData, ['guestName', 'status']);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) throw new Error('Missing RSVP fields');
     setRsvpStatus('loading');
     try {
-      const response = await api.post(`/rsvp/${invitation._id}`, data);
+      const response = await api.post(`/rsvp/${invitation._id}`, normalizedData);
       setRsvpStatus('success');
       return response.data;
     } catch (error) {

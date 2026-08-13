@@ -26,15 +26,15 @@ function remaining(target: number): Left {
   };
 }
 
-export function CountdownSection() {
+export function CountdownSection({ eventISO = invitation.eventISO }: { eventISO?: string }) {
   const [left, setLeft] = useState<Left | null>(null);
 
   useEffect(() => {
-    const target = new Date(invitation.eventISO).getTime();
+    const target = new Date(eventISO).getTime();
     setLeft(remaining(target));
     const id = setInterval(() => setLeft(remaining(target)), 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [eventISO]);
 
   return (
     <section className="relative overflow-hidden px-6 py-20 sm:py-28">
@@ -44,7 +44,7 @@ export function CountdownSection() {
       </SectionTitle>
 
       <Reveal>
-        <div className="mx-auto grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-5">
+        <div className="mx-auto grid max-w-3xl grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-5" data-editor-ignore="countdown">
           {UNITS.map((u, i) => {
             const value = left ? left[u.key] : null;
             const text = value === null ? "—" : String(value).padStart(2, "0");

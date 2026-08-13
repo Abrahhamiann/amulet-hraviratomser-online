@@ -1,19 +1,21 @@
 import React from 'react';
 import {
   AlertTriangle,
-  ArrowRight,
   CalendarDays,
   CheckCircle2,
   Clock,
+  Copy,
   LogOut,
   MapPin,
   RefreshCw,
   Send,
+  Share2,
   Star,
   Trash2,
   Unlink,
   Users,
-  Wrench
+  Wrench,
+  X
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
@@ -83,6 +85,8 @@ export default function AccountPage() {
   const [reviewText, setReviewText] = useState('');
   const [reviewState, setReviewState] = useState('idle');
   const [reviewError, setReviewError] = useState('');
+  const [shareTarget, setShareTarget] = useState(null);
+  const [copyState, setCopyState] = useState('idle');
   useEffect(() => {
     if (!user) return undefined;
     Promise.all([api.get('/orders/my/list'), api.get('/reviews/my')])
@@ -156,6 +160,18 @@ export default function AccountPage() {
     };
   }, [telegramState, language]);
 
+  useEffect(() => {
+    if (!shareTarget) return undefined;
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') {
+        setShareTarget(null);
+        setCopyState('idle');
+      }
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [shareTarget]);
+
   if (!initialized) return <Loading text={t('loading')} />;
   if (!user) return <Navigate to="/login" replace />;
 
@@ -223,15 +239,59 @@ export default function AccountPage() {
       setReviewError(error.response?.data?.message || t('reviewSubmitError'));
     }
   };
+  const openShareModal = (order, invitationHref) => {
+    if (!invitationHref) return;
+    setShareTarget({
+      name: order.mainNames,
+      url: `${window.location.origin}${invitationHref}`
+    });
+    setCopyState('idle');
+  };
+  const closeShareModal = () => {
+    setShareTarget(null);
+    setCopyState('idle');
+  };
+  const copyInvitationLink = async () => {
+    if (!shareTarget?.url) return;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareTarget.url);
+      } else {
+        const field = document.createElement('textarea');
+        field.value = shareTarget.url;
+        field.setAttribute('readonly', '');
+        field.style.position = 'fixed';
+        field.style.opacity = '0';
+        document.body.appendChild(field);
+        field.select();
+        document.execCommand('copy');
+        field.remove();
+      }
+      setCopyState('copied');
+    } catch {
+      setCopyState('error');
+    }
+  };
+
   const connectTelegram = async () => {
+    // Open synchronously from the click event so Safari, Telegram Desktop and
+    // popup blockers preserve the deep-link in a real new tab.
+    const telegramWindow = window.open('about:blank', '_blank');
+    if (!telegramWindow) {
+      setTelegramState('error');
+      setTelegramError(t('telegramConnectError'));
+      return;
+    }
+    telegramWindow.opener = null;
+    telegramWindow.document.title = 'Telegram';
+    telegramWindow.document.body.textContent = t('telegramWaitingForStart');
     setTelegramState('linking');
     setTelegramError('');
     try {
       const { data } = await api.post('/telegram/link', { language });
-      // A top-level navigation preserves Telegram's /start payload on Safari
-      // and Telegram Desktop. Async popup redirects are commonly blocked on macOS.
-      window.location.assign(data.botUrl);
+      telegramWindow.location.replace(data.botUrl);
     } catch {
+      telegramWindow.close();
       setTelegramState('error');
       setTelegramError(t('telegramConnectError'));
     }
@@ -369,8 +429,8 @@ export default function AccountPage() {
               const invitation = order.invitationId;
               const invitationIdentifier = invitation?.slug;
               const invitationHref = invitationIdentifier ? `/invite/${invitationIdentifier}` : '';
-              const invitationCard = (
-                <div className={invitationHref ? 'account-invitation-card' : 'account-invitation-card is-disabled'}>
+              const invitationContent = (
+                <>
                   <AccountInvitationPreview
                     order={order}
                     fallbackText={order.mainNames || t('accountInvitations')}
@@ -387,11 +447,11 @@ export default function AccountPage() {
                       ? <small>{t('accountViewInvitation')}</small>
                       : <small>{t('accountInvitationPending')}</small>}
                   </div>
-                </div>
+                </>
               );
 
               return (
-                <article className="account-invitation-row" key={order._id}>
+                <div className="account-invitation-row" key={order._id}>
                   <button
                     className="account-delete-invitation"
                     type="button"
@@ -400,49 +460,90 @@ export default function AccountPage() {
                   >
                     <Trash2 size={18} />
                   </button>
-                  <div className="account-invitation-main">
-                    {invitationHref ? (
-                      <Link className="account-invitation-link" to={invitationHref} aria-label={`${t('accountViewInvitation')}: ${order.mainNames}`}>
-                        {invitationCard}
+                  {invitationHref ? (
+                    <Link className="account-invitation-link" to={invitationHref} aria-label={`${t('accountViewInvitation')}: ${order.mainNames}`}>
+                      {invitationContent}
+                    </Link>
+                  ) : (
+                    <div className="account-invitation-link is-disabled">
+                      {invitationContent}
+                    </div>
+                  )}
+                  <div className="account-invitation-side-actions" role="group" aria-label={t('accountInvitationActions')}>
+                    {invitation?._id && (
+                      <Link
+                        className="account-invitation-action"
+                        to={`/account/invitations/${invitation._id}/responses`}
+                        aria-label={`${t('accountGuestResponses')}: ${order.mainNames}`}
+                      >
+                        <Users size={17} />
+                        <span>{t('accountGuestResponses')}</span>
                       </Link>
-                    ) : (
-                      invitationCard
                     )}
-
-                    {(invitation?._id || order.paymentStatus === 'paid') && (
-                      <div className="account-invitation-tools">
-                        {invitation?._id && (
-                          <Link
-                            className="account-guest-responses-link"
-                            to={`/account/invitations/${invitation._id}/responses`}
-                            aria-label={`${t('accountGuestResponses')}: ${order.mainNames}`}
-                          >
-                            <span>
-                              <Users size={18} />
-                              <span>
-                                <strong>{t('accountGuestResponses')}</strong>
-                                <small>{t('accountGuestResponsesDescription')}</small>
-                              </span>
-                            </span>
-                            <ArrowRight size={18} />
-                          </Link>
-                        )}
-                        {order.paymentStatus === 'paid' && (
-                          reviewsByOrder[order._id] ? (
-                            <div className="account-review-complete"><CheckCircle2 size={18} /><span><strong>{t('reviewSubmitted')}</strong><small>{t('reviewPendingApproval')}</small></span></div>
-                          ) : (
-                            <button className="account-add-review" type="button" onClick={() => openReviewModal(order)}><Star size={19} /><span><strong>{t('addReview')}</strong><small>{t('addReviewHint')}</small></span><ArrowRight size={19} /></button>
-                          )
-                        )}
-                      </div>
+                    {order.paymentStatus === 'paid' && (
+                      reviewsByOrder[order._id] ? (
+                        <div className="account-invitation-action is-complete" title={t('reviewPendingApproval')}>
+                          <CheckCircle2 size={17} />
+                          <span>{t('reviewSubmitted')}</span>
+                        </div>
+                      ) : (
+                        <button className="account-invitation-action" type="button" onClick={() => openReviewModal(order)}>
+                          <Star size={17} />
+                          <span>{t('addReview')}</span>
+                        </button>
+                      )
+                    )}
+                    {invitationHref && (
+                      <button className="account-invitation-action is-share" type="button" onClick={() => openShareModal(order, invitationHref)}>
+                        <Share2 size={17} />
+                        <span>{t('shareInvitation')}</span>
+                      </button>
                     )}
                   </div>
-                </article>
+                </div>
               );
             })}
           </div>
         )}
       </div>
+
+      {shareTarget && (
+        <div
+          className="account-modal-backdrop account-share-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="account-share-title"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeShareModal();
+          }}
+        >
+          <div className="account-modal account-share-modal">
+            <button className="account-share-close" type="button" onClick={closeShareModal} aria-label={t('close')}>
+              <X size={19} />
+            </button>
+            <span className="account-share-heading-icon"><Share2 size={23} /></span>
+            <h2 id="account-share-title">{t('shareInvitationTitle')}</h2>
+            <p>{t('shareInvitationText')}</p>
+            <div className="account-share-content">
+              <div className="account-share-qr">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=14&data=${encodeURIComponent(shareTarget.url)}`}
+                  alt={t('shareInvitationQrAlt')}
+                />
+              </div>
+              <div className="account-share-link-block">
+                <strong>{t('shareInvitationLink')}</strong>
+                <a href={shareTarget.url} target="_blank" rel="noreferrer">{shareTarget.url}</a>
+                <button type="button" onClick={copyInvitationLink} className={copyState === 'copied' ? 'is-copied' : ''}>
+                  {copyState === 'copied' ? <CheckCircle2 size={18} /> : <Copy size={18} />}
+                  {copyState === 'copied' ? t('shareInvitationCopied') : t('shareInvitationCopy')}
+                </button>
+                {copyState === 'error' && <small role="alert">{t('shareInvitationCopyError')}</small>}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {logoutOpen && (
         <div className="account-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="logout-title">

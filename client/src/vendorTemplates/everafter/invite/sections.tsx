@@ -199,13 +199,13 @@ function CountUnit({ value, label }: { value: number; label: string }) {
   );
 }
 
-export function Countdown() {
-  const t = useCountdown(invite.dateISO);
+export function Countdown({ dateISO = invite.dateISO }: { dateISO?: string }) {
+  const t = useCountdown(dateISO);
   return (
     <Section>
       <SectionTitle eyebrow="Պահպանեք ամսաթիվը" title="Մինչև մեր նշանադրությունը" />
       <Reveal delay={0.15}>
-        <div className="mx-auto mt-12 flex max-w-3xl gap-2.5 sm:gap-5">
+        <div className="mx-auto mt-12 flex max-w-3xl gap-2.5 sm:gap-5" data-editor-ignore="countdown">
           <CountUnit value={t.days} label="Օր" />
           <CountUnit value={t.hours} label="Ժամ" />
           <CountUnit value={t.minutes} label="Րոպե" />

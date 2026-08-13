@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { CalendarDays, CheckSquare2, ChevronDown, ChevronUp, Heart, MapPin, MessageSquare, Plus, Shirt, Trash2, Users } from 'lucide-react';
 import { useEditor } from './EditorContext.jsx';
 import { CollapsibleSection, Field, PanelHeader, Toggle } from './EditorControls.jsx';
-import { splitNames } from './editorData.js';
+import { MAX_DRESS_CODE_COLORS, splitNames } from './editorData.js';
 import { useLanguage } from '../../context/LanguageContext.jsx';
 
 const newVenue = (index, label) => ({ id: `venue-${Date.now()}-${index}`, label, time: '18:00', address: '', url: '', subtitle: '', icon: 'location', visible: true });
@@ -16,6 +16,60 @@ const autoGrowTextarea = (textarea) => {
   if (!(textarea instanceof HTMLTextAreaElement)) return;
   textarea.style.height = '0px';
   textarea.style.height = `${Math.max(textarea.scrollHeight, 46)}px`;
+};
+
+const normalizeDressColor = (value) => /^#[0-9a-f]{6}$/i.test(String(value || ''))
+  ? String(value).toLowerCase()
+  : '#d8b98e';
+
+const DressColorPicker = ({ value, label, onCommit }) => {
+  const inputRef = useRef(null);
+  const onCommitRef = useRef(onCommit);
+  const normalizedValue = normalizeDressColor(value);
+  const [previewColor, setPreviewColor] = useState(normalizedValue);
+  const lastCommittedRef = useRef(normalizedValue);
+
+  useEffect(() => {
+    onCommitRef.current = onCommit;
+  }, [onCommit]);
+
+  useEffect(() => {
+    setPreviewColor(normalizedValue);
+    lastCommittedRef.current = normalizedValue;
+    if (inputRef.current && inputRef.current.value !== normalizedValue) {
+      inputRef.current.value = normalizedValue;
+    }
+  }, [normalizedValue]);
+
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return undefined;
+
+    const commitColor = () => {
+      const nextColor = normalizeDressColor(input.value);
+      setPreviewColor(nextColor);
+      if (nextColor === lastCommittedRef.current) return;
+      lastCommittedRef.current = nextColor;
+      onCommitRef.current(nextColor);
+    };
+
+    input.addEventListener('change', commitColor);
+    input.addEventListener('blur', commitColor);
+    return () => {
+      input.removeEventListener('change', commitColor);
+      input.removeEventListener('blur', commitColor);
+    };
+  }, []);
+
+  return <label className="invite-editor-color-picker" aria-label={label}>
+    <input
+      ref={inputRef}
+      type="color"
+      defaultValue={normalizedValue}
+      onInput={(event) => setPreviewColor(normalizeDressColor(event.currentTarget.value))}
+    />
+    <span style={{ backgroundColor: previewColor }} aria-hidden="true" />
+  </label>;
 };
 
 const editorProfiles = {
@@ -93,6 +147,7 @@ export default function ContentPanel() {
   const { t } = useLanguage();
   const [openSections, setOpenSections] = useState(['hero', 'schedule']);
   const panelRef = useRef(null);
+  const lastPreviewFocusRef = useRef({ key: '', at: 0 });
   const [firstName, secondName] = splitNames(data.mainNames);
   const editorType = String(template?.editorType || template?.category || 'wedding').toLowerCase();
   const profile = editorProfiles[editorType] || editorProfiles.wedding;
@@ -119,7 +174,21 @@ export default function ContentPanel() {
   const handleFieldFocus = (event) => {
     const field = event.target.closest('[data-editor-field]')?.dataset.editorField;
     const section = event.target.closest('[data-editor-section-id]')?.dataset.editorSectionId;
-    if (section) focusEditorTarget({ section, field: field || '', scrollPreview: false, focusSidebar: false });
+    // Section action buttons (add/delete/reorder/toggle) must not move the
+    // preview. Only actual editor fields participate in sidebar -> preview
+    // focus scrolling.
+    if (!section || !field) return;
+    const now = window.performance?.now?.() ?? Date.now();
+    const key = `${section}:${field || ''}`;
+    if (lastPreviewFocusRef.current.key === key && now - lastPreviewFocusRef.current.at < 250) return;
+    lastPreviewFocusRef.current = { key, at: now };
+    focusEditorTarget({
+      section,
+      field: field || '',
+      scrollPreview: true,
+      focusSidebar: false,
+      scrollSidebar: false
+    });
   };
   const setVisible = (field, value) => update((draft) => { draft[field] = value; });
   const setField = (field, value) => update((draft) => { draft[field] = value; });
@@ -138,10 +207,13 @@ export default function ContentPanel() {
       <div className="invite-editor-list-heading"><strong>{t('editorTemplateTexts')}</strong><small>{items.length}</small></div>
       {items.map((item, index) => {
         const overrides = data.templateTextOverrides || {};
-        const value = Object.prototype.hasOwnProperty.call(overrides, item.key) ? overrides[item.key] : item.defaultValue;
+        const rawValue = Object.prototype.hasOwnProperty.call(overrides, item.key) ? overrides[item.key] : item.defaultValue;
+        const value = item.inputMode === 'numeric' ? String(rawValue ?? '').replace(/\D/g, '') : String(rawValue ?? '');
         const preview = String(item.defaultValue || '').replace(/\s+/g, ' ').trim();
         return <Field key={item.key} label={preview ? `«${preview.slice(0, 42)}${preview.length > 42 ? '…' : ''}»` : `${t('editorText')} ${index + 1}`} editorField={`templateTextOverrides.${item.key}`}>
-          <textarea rows={value.length > 70 ? 3 : 2} value={value} onChange={(event) => updateTemplateText(item.key, event.target.value)} />
+          {item.inputMode === 'numeric'
+            ? <input type="text" inputMode="numeric" pattern="[0-9]*" value={value} onChange={(event) => updateTemplateText(item.key, event.target.value.replace(/\D/g, ''))} />
+            : <textarea rows={value.length > 70 ? 3 : 2} value={value} onChange={(event) => updateTemplateText(item.key, event.target.value)} />}
         </Field>;
       })}
     </div>;
@@ -271,20 +343,26 @@ export default function ContentPanel() {
         </div>
         <Field label={t('editorButtonText')} editorField="rsvpSettings.submitLabel"><input value={data.rsvpSettings?.submitLabel || ''} onChange={(event) => update((draft) => { draft.rsvpSettings.submitLabel = event.target.value; })} /></Field>
         <Field label={t('editorExtraQuestion')} hint={t('optional')} editorField="rsvpQuestion"><textarea rows="2" value={data.rsvpQuestion || ''} onChange={(event) => setField('rsvpQuestion', event.target.value)} /></Field>
-        <div className="invite-editor-toggle-row"><span>{t('editorAskGuestCount')}</span><Toggle checked={data.rsvpSettings?.askGuestCount !== false} onChange={(value) => update((draft) => { draft.rsvpSettings.askGuestCount = value; })} label={t('guestCount')} /></div>
-        <div className="invite-editor-toggle-row"><span>{t('editorAskMeal')}</span><Toggle checked={data.rsvpSettings?.askMeal === true} onChange={(value) => update((draft) => { draft.rsvpSettings.askMeal = value; })} label={t('editorMealPreference')} /></div>
+        <div className="invite-editor-toggle-row"><span>{t('editorAskGuestCount')}</span><Toggle checked={data.rsvpSettings?.askGuestCount !== false} onChange={(value) => update((draft) => { draft.rsvpSettings = { ...(draft.rsvpSettings || {}), askGuestCount: value }; })} label={t('guestCount')} /></div>
+        <div className="invite-editor-toggle-row"><span>{t('editorAskMeal')}</span><Toggle checked={data.rsvpSettings?.askMeal === true} onChange={(value) => update((draft) => { draft.rsvpSettings = { ...(draft.rsvpSettings || {}), askMeal: value }; })} label={t('editorMealPreference')} /></div>
         {renderTemplateTextFields('rsvp')}
       </CollapsibleSection>
 
       {capabilities.dress && <CollapsibleSection {...sectionProps('dress', t('editorDressCode'), Shirt, 'dressCodeVisible', capabilities.dressCodeVisible)}>
           <Field label={t('editorDressCode')} editorField="dressCode"><textarea rows="3" value={data.dressCode || ''} onChange={(event) => setField('dressCode', event.target.value)} /></Field>
           {capabilities.dressPalette && <div className="invite-editor-dress-colors">
-            <div className="invite-editor-list-heading"><strong>{t('editorDressCodeColors')}</strong><button type="button" disabled={(data.dressCodeColors || []).length >= 8} onClick={() => update((draft) => { draft.dressCodeColors.push({ name: t('editorNewColor'), hex: '#d8b98e' }); })}><Plus size={15} /> {t('add')}</button></div>
+            <div className="invite-editor-list-heading"><strong>{t('editorDressCodeColors')}</strong><button type="button" disabled={(data.dressCodeColors || []).length >= MAX_DRESS_CODE_COLORS} onClick={() => update((draft) => {
+              if (!Array.isArray(draft.dressCodeColors)) draft.dressCodeColors = [];
+              draft.dressCodeColors.push({ name: t('editorNewColor'), hex: '#d8b98e' });
+            })}><Plus size={15} /> {t('add')}</button></div>
             {(data.dressCodeColors || []).map((color, index) => <article key={index} data-editor-field={`dressCodeColors.${index}`}>
-              <label className="invite-editor-color-picker" aria-label={`${t('editorDressColor')} ${index + 1}`}>
-                <input type="color" value={color.hex || '#d8b98e'} onChange={(event) => update((draft) => { draft.dressCodeColors[index].hex = event.target.value; })} />
-                <span style={{ backgroundColor: color.hex || '#d8b98e' }} aria-hidden="true" />
-              </label>
+              <DressColorPicker
+                value={color.hex}
+                label={`${t('editorDressColor')} ${index + 1}`}
+                onCommit={(hex) => update((draft) => {
+                  if (draft.dressCodeColors?.[index]) draft.dressCodeColors[index].hex = hex;
+                })}
+              />
               <Field label={`${t('editorDressColor')} ${index + 1}`} editorField={`dressCodeColors.${index}.name`}><input value={color.name || ''} onChange={(event) => update((draft) => { draft.dressCodeColors[index].name = event.target.value; })} /></Field>
               <button type="button" className="is-danger" onClick={() => update((draft) => { draft.dressCodeColors.splice(index, 1); })} aria-label={`${t('delete')}: ${color.name || `${t('editorDressColor')} ${index + 1}`}`}><Trash2 size={15} /></button>
             </article>)}

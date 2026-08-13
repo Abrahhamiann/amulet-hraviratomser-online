@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace server\" \"npm run dev --workspace client\" \"npm run dev:bot\"",
     "dev:web": "concurrently \"npm run dev --workspace server\" \"npm run dev --workspace client\"",
-    "dev:bot": "python telegram_bot/bot.py",
+    "dev:bot": "node server/telegram-bot/bot.js",
+    "check:bot": "node server/telegram-bot/bot.js --check",
     "dev:all": "npm run dev",
     "dev:admin": "npm run dev --prefix admin",
     "install:all": "npm install",

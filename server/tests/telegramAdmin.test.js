@@ -8,6 +8,7 @@ import {
 } from '../controllers/telegramController.js';
 import ContactMessage from '../models/ContactMessage.js';
 import Order from '../models/Order.js';
+import Setting from '../models/Setting.js';
 import User from '../models/User.js';
 import { notifyAdminsOfOrder, notifyAdminsOfUnansweredContactMessage } from '../utils/adminTelegram.js';
 import { getTelegramAdminChatIds, isTelegramAdmin, notifyInvitationOwnerOfRsvp } from '../utils/telegram.js';
@@ -26,6 +27,8 @@ const ORIGINAL_DELETE_MANY = ContactMessage.deleteMany;
 const ORIGINAL_USER_FIND_ONE = User.findOne;
 const ORIGINAL_USER_FIND_ONE_AND_UPDATE = User.findOneAndUpdate;
 const ORIGINAL_ORDER_FIND_BY_ID = Order.findById;
+const ORIGINAL_SETTING_FIND_ONE = Setting.findOne;
+const ORIGINAL_SETTING_FIND_ONE_AND_UPDATE = Setting.findOneAndUpdate;
 
 const restoreEnv = (key, value) => {
   if (value === undefined) delete process.env[key];
@@ -45,11 +48,14 @@ test.afterEach(() => {
   User.findOne = ORIGINAL_USER_FIND_ONE;
   User.findOneAndUpdate = ORIGINAL_USER_FIND_ONE_AND_UPDATE;
   Order.findById = ORIGINAL_ORDER_FIND_BY_ID;
+  Setting.findOne = ORIGINAL_SETTING_FIND_ONE;
+  Setting.findOneAndUpdate = ORIGINAL_SETTING_FIND_ONE_AND_UPDATE;
 });
 
 test('reports Telegram available only after the bot heartbeat reaches the server', async () => {
   process.env.TELEGRAM_SHARED_BOT_TOKEN = 'test-token';
   process.env.TELEGRAM_SHARED_BOT_USERNAME = 'amulet_test_bot';
+  Setting.findOneAndUpdate = async () => ({ value: { at: new Date() } });
 
   let heartbeatPayload;
   await registerTelegramBotHeartbeat(
@@ -73,7 +79,6 @@ test('reports Telegram available only after the bot heartbeat reaches the server
 
 test('deletes every contact message from MongoDB for a Telegram administrator', async () => {
   process.env.TELEGRAM_ADMIN_CHAT_IDS = '111';
-  User.findOne = () => ({ select: async () => ({ _id: 'super-admin-user' }) });
   let receivedFilter;
   ContactMessage.deleteMany = async (filter) => {
     receivedFilter = filter;
@@ -101,9 +106,31 @@ test('deletes every contact message from MongoDB for a Telegram administrator', 
   });
 });
 
-test('rejects a configured Telegram chat unless it belongs to a linked super administrator', async () => {
+test('allows a configured Telegram administrator without requiring a linked website account', async () => {
   process.env.TELEGRAM_ADMIN_CHAT_IDS = '111';
-  User.findOne = () => ({ select: async () => null });
+  let deleteCalled = false;
+  ContactMessage.deleteMany = async () => {
+    deleteCalled = true;
+    return { deletedCount: 1 };
+  };
+  const response = {
+    statusCode: 200,
+    status(value) { this.statusCode = value; return this; },
+    json() { return this; }
+  };
+
+  await deleteTelegramAdminMessages(
+    { body: { chatId: '111' } },
+    response,
+    (error) => { throw error; }
+  );
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(deleteCalled, true);
+});
+
+test('rejects a Telegram chat that is not configured as an administrator', async () => {
+  process.env.TELEGRAM_ADMIN_CHAT_IDS = '111';
   let deleteCalled = false;
   ContactMessage.deleteMany = async () => {
     deleteCalled = true;
@@ -117,7 +144,7 @@ test('rejects a configured Telegram chat unless it belongs to a linked super adm
 
   await assert.rejects(
     deleteTelegramAdminMessages(
-      { body: { chatId: '111' } },
+      { body: { chatId: '999' } },
       response,
       (error) => { throw error; }
     ),

@@ -2,7 +2,7 @@ import { wedding } from "@/data/wedding";
 import { Reveal } from "./Reveal";
 import { Ornament } from "./Ornament";
 
-export function ClosingSection() {
+export function ClosingSection({ dateShort }: { dateShort?: string } = {}) {
   const { closing, couple, date, hero } = wedding;
   return (
     <section className="relative isolate overflow-hidden px-5 py-28 text-center sm:py-40">
@@ -29,7 +29,7 @@ export function ClosingSection() {
             {couple.groom.name} <span className="text-gold italic">&amp;</span> {couple.bride.name}
           </p>
           <p className="mt-6 text-xs tracking-[0.34em] uppercase text-muted-foreground">
-            {date.short}
+            {dateShort ?? date.short}
           </p>
         </Reveal>
       </div>

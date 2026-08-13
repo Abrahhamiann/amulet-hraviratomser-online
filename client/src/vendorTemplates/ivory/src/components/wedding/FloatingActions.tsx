@@ -1,8 +1,8 @@
 import { CalendarPlus, MapPin } from "lucide-react";
 import { wedding } from "@/data/wedding";
 
-function buildIcs() {
-  const start = new Date(wedding.date.iso);
+function buildIcs(dateISO: string) {
+  const start = new Date(dateISO);
   const end = new Date(start.getTime() + 8 * 60 * 60 * 1000);
   const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
   const venue = wedding.venues[0];
@@ -19,11 +19,11 @@ function buildIcs() {
   ].join("\r\n");
 }
 
-export function FloatingActions() {
+export function FloatingActions({ dateISO = wedding.date.iso }: { dateISO?: string }) {
   const venue = wedding.venues[0];
 
   function addToCalendar() {
-    const blob = new Blob([buildIcs()], { type: "text/calendar;charset=utf-8" });
+    const blob = new Blob([buildIcs(dateISO)], { type: "text/calendar;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;

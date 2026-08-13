@@ -5,6 +5,7 @@ import baptismSong from '../../assets/audio/yiruma-river-flows-in-you.mp3';
 export const MAX_GALLERY_IMAGES = 10;
 export const MAX_CUSTOM_TRACKS = 3;
 export const MAX_AUDIO_BYTES = 5 * 1024 * 1024;
+export const MAX_DRESS_CODE_COLORS = 16;
 
 export const builtInTracks = [
   { id: 'perfect', title: 'Perfect', artist: 'Ed Sheeran', meta: 'Amulet ընտրանի', src: weddingSong },
@@ -197,7 +198,7 @@ export const prepareEditorDraft = (draft = {}) => ({
   rsvpQuestion: draft.rsvpQuestion || '',
   dressCode: draft.dressCode || '',
   dressCodeColors: Array.isArray(draft.dressCodeColors)
-    ? draft.dressCodeColors.slice(0, 8).map((color, index) => ({
+    ? draft.dressCodeColors.slice(0, MAX_DRESS_CODE_COLORS).map((color, index) => ({
       name: String(color?.name || `Color ${index + 1}`),
       hex: /^#[0-9a-f]{6}$/i.test(String(color?.hex || '')) ? color.hex : '#d8b98e'
     }))

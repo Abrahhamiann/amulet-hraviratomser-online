@@ -14,15 +14,15 @@ function parts(target: number, now: number) {
   ];
 }
 
-export function Countdown() {
-  const target = new Date(wedding.date.iso).getTime();
+export function Countdown({ dateISO = wedding.date.iso }: { dateISO?: string }) {
+  const target = new Date(dateISO).getTime();
   const [now, setNow] = useState(() => target);
 
   useEffect(() => {
     setNow(Date.now());
     const id = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(id);
-  }, []);
+  }, [target]);
 
   const items = parts(target, now);
 
@@ -32,7 +32,7 @@ export function Countdown() {
         <SectionHeading eyebrow={wedding.date.short} title="Until Our Special Day" />
 
         <Reveal delay={120}>
-          <div className="mt-14 grid grid-cols-2 gap-y-10 sm:grid-cols-4">
+          <div className="mt-14 grid grid-cols-2 gap-y-10 sm:grid-cols-4" data-editor-ignore="countdown">
             {items.map((item, i) => (
               <div
                 key={item.label}

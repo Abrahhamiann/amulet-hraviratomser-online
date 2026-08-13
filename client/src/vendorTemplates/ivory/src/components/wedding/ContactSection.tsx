@@ -1,4 +1,3 @@
-import { Phone, MessageCircle, Send } from "lucide-react";
 import { wedding } from "@/data/wedding";
 import { Reveal } from "./Reveal";
 import { SectionHeading } from "./SectionHeading";
@@ -15,24 +14,6 @@ function Person({ role, name, phone, delay }: { role: string; name: string; phon
       >
         {phone}
       </a>
-      <div className="mt-5 flex items-center justify-center gap-3">
-        {[
-          { href: `tel:+${digits}`, Icon: Phone, label: `Զանգահարել՝ ${name}` },
-          { href: `https://wa.me/${digits}`, Icon: MessageCircle, label: `WhatsApp-ով գրել՝ ${name}` },
-          { href: `https://t.me/+${digits}`, Icon: Send, label: `Telegram-ով գրել՝ ${name}` },
-        ].map(({ href, Icon, label }) => (
-          <a
-            key={label}
-            href={href}
-            aria-label={label}
-            target={href.startsWith("http") ? "_blank" : undefined}
-            rel="noreferrer noopener"
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-gold/45 text-gold transition-colors duration-500 hover:bg-gold/12"
-          >
-            <Icon className="h-4 w-4" strokeWidth={1.2} />
-          </a>
-        ))}
-      </div>
     </Reveal>
   );
 }

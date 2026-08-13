@@ -31,23 +31,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, '.env') });
-// Local development can share bot credentials without duplicating secrets.
-// Values defined in server/.env remain authoritative because dotenv does not override them.
-const telegramBotEnv = dotenv.config({ path: path.join(__dirname, '..', 'telegram_bot', '.env') });
-if (telegramBotEnv.parsed?.TELEGRAM_BOT_API_SECRET) {
-  process.env.TELEGRAM_SHARED_BOT_API_SECRET = telegramBotEnv.parsed.TELEGRAM_BOT_API_SECRET;
-}
-if (telegramBotEnv.parsed?.TELEGRAM_BOT_TOKEN) {
-  process.env.TELEGRAM_SHARED_BOT_TOKEN = telegramBotEnv.parsed.TELEGRAM_BOT_TOKEN;
-}
-if (telegramBotEnv.parsed?.TELEGRAM_BOT_USERNAME) {
-  process.env.TELEGRAM_SHARED_BOT_USERNAME = telegramBotEnv.parsed.TELEGRAM_BOT_USERNAME;
-}
-['TELEGRAM_ADMIN_CHAT_IDS', 'TELEGRAM_ADMIN_1_ID', 'TELEGRAM_ADMIN_2_ID'].forEach((key) => {
-  if (!process.env[key] && telegramBotEnv.parsed?.[key]) {
-    process.env[key] = telegramBotEnv.parsed[key];
-  }
-});
 
 const app = express();
 const PORT = process.env.PORT || 5000;

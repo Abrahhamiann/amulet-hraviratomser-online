@@ -72,7 +72,7 @@ export function Countdown({ dateISO }: { dateISO: string }) {
         </Reveal>
 
         <Reveal delay={0.15}>
-          <div className="mt-12 grid grid-cols-4 gap-2 sm:gap-5">
+          <div className="mt-12 grid grid-cols-4 gap-2 sm:gap-5" data-editor-ignore="countdown">
             <Unit value={parts?.days ?? null} label="Օր" />
             <Unit value={parts?.hours ?? null} label="Ժամ" />
             <Unit value={parts?.minutes ?? null} label="Րոպե" />

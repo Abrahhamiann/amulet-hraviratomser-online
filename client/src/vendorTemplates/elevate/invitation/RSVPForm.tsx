@@ -14,6 +14,7 @@ const schema = z.object({
   phone: z.string().trim().max(40).optional(),
   attending: z.enum(["yes", "no"]),
   guests: z.coerce.number().int().min(0).max(10),
+  meal: z.string().trim().max(120).optional(),
   message: z.string().trim().max(600).optional(),
 });
 
@@ -63,7 +64,9 @@ type RsvpSubmit = (data: {
   message: string;
 }) => Promise<unknown>;
 
-export function RSVPForm({ data, onSubmit }: { data: InvitationData; onSubmit?: RsvpSubmit }) {
+type EditorRsvpSettings = { askGuestCount?: boolean; askMeal?: boolean };
+
+export function RSVPForm({ data, onSubmit, settings = {} }: { data: InvitationData; onSubmit?: RsvpSubmit; settings?: EditorRsvpSettings }) {
   const { rsvp } = data;
   const [attending, setAttending] = useState<"yes" | "no">("yes");
   const [guests, setGuests] = useState("1");
@@ -74,15 +77,19 @@ export function RSVPForm({ data, onSubmit }: { data: InvitationData; onSubmit?: 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    // FormData returns null for controls hidden by RSVP settings. Normalize
+    // every text value before Zod validation so optional fields stay strings.
+    const text = (name: string) => String(fd.get(name) ?? "");
     const parsed = schema.safeParse({
-      fullName: fd.get("fullName"),
-      company: fd.get("company"),
-      position: fd.get("position"),
-      email: fd.get("email"),
-      phone: fd.get("phone"),
+      fullName: text("fullName"),
+      company: text("company"),
+      position: text("position"),
+      email: text("email"),
+      phone: text("phone"),
       attending,
       guests: attending === "yes" ? guests : 0,
-      message: fd.get("message"),
+      meal: text("meal"),
+      message: text("message"),
     });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Խնդրում ենք ստուգել լրացված տվյալները");
@@ -95,6 +102,7 @@ export function RSVPForm({ data, onSubmit }: { data: InvitationData; onSubmit?: 
         parsed.data.company ? `Ընկերություն՝ ${parsed.data.company}` : "",
         parsed.data.position ? `Պաշտոն՝ ${parsed.data.position}` : "",
         parsed.data.email ? `Էլ․ հասցե՝ ${parsed.data.email}` : "",
+        parsed.data.meal ? `Սննդի նախընտրություն՝ ${parsed.data.meal}` : "",
         parsed.data.message || ""
       ].filter(Boolean).join("\n");
       await onSubmit?.({
@@ -199,7 +207,7 @@ export function RSVPForm({ data, onSubmit }: { data: InvitationData; onSubmit?: 
                 </div>
               </fieldset>
 
-              {attending === "yes" && (
+              {attending === "yes" && settings.askGuestCount !== false && (
                 <div className="flex items-center justify-between border-b border-input pb-3">
                   <label htmlFor="guests" className="text-sm text-muted-foreground">
                     Հյուրերի քանակ
@@ -218,6 +226,10 @@ export function RSVPForm({ data, onSubmit }: { data: InvitationData; onSubmit?: 
                   </select>
                 </div>
               )}
+
+              {attending === "yes" && settings.askMeal === true ? (
+                <Field id="meal" label="Սննդի նախընտրություն" />
+              ) : null}
 
               <div className="relative pt-3">
                 <textarea

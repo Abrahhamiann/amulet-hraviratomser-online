@@ -9,13 +9,13 @@ export const getPublicReviews = asyncHandler(async (req, res) => {
   if (language) filter.$or = [{ language }, { language: 'all' }];
 
   let reviews = await Review.find(filter)
-    .select('customer rating text target language source status publishedAt createdAt')
+    .select('staticKey customer rating text target language source status publishedAt createdAt')
     .sort({ status: -1, publishedAt: -1, createdAt: -1 })
     .limit(60);
 
   if (!reviews.length && language && language !== 'hy') {
     reviews = await Review.find({ status: { $in: ['approved', 'featured'] } })
-      .select('customer rating text target language source status publishedAt createdAt')
+      .select('staticKey customer rating text target language source status publishedAt createdAt')
       .sort({ status: -1, publishedAt: -1, createdAt: -1 })
       .limit(60);
   }

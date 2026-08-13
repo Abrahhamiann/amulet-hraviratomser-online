@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
 import { MessageCircle, X } from 'lucide-react';
-import callIcon from '../assets/contact/call.png';
-import telegramIcon from '../assets/contact/telegram.png';
-import whatsappIcon from '../assets/contact/whatsapp-user.png';
-import { CONTACT_TELEGRAM_HANDLE, CONTACT_PHONE_E164, CONTACT_TELEGRAM_URL, CONTACT_WHATSAPP_URL } from '../data/contact.js';
+import callIcon from '../assets/contact/call-3d.png';
+import instagramIcon from '../assets/contact/instagram-3d.png';
+import telegramIcon from '../assets/contact/telegram-3d.png';
+import whatsappIcon from '../assets/contact/whatsapp-3d.png';
+import {
+  CONTACT_INSTAGRAM_HANDLE,
+  CONTACT_INSTAGRAM_URL,
+  CONTACT_PHONE_E164,
+  CONTACT_TELEGRAM_HANDLE,
+  CONTACT_TELEGRAM_URL,
+  CONTACT_WHATSAPP_URL
+} from '../data/contact.js';
 
 export default function FloatingContact() {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,6 +28,9 @@ export default function FloatingContact() {
           </a>
           <a className="floating-contact-link is-whatsapp" href={CONTACT_WHATSAPP_URL} target="_blank" rel="noreferrer" aria-label={`WhatsApp ${CONTACT_PHONE_E164}`}>
             <img src={whatsappIcon} alt="" aria-hidden="true" />
+          </a>
+          <a className="floating-contact-link is-instagram" href={CONTACT_INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label={`Instagram @${CONTACT_INSTAGRAM_HANDLE}`}>
+            <img src={instagramIcon} alt="" aria-hidden="true" />
           </a>
         </>
       )}

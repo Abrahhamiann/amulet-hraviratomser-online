@@ -52,7 +52,7 @@ export function WeddingCountdown({ iso }: { iso: string }) {
       </Reveal>
 
       <Reveal delay={0.15}>
-        <div className="mx-auto mt-14 flex max-w-3xl items-start justify-center divide-x divide-border">
+        <div className="mx-auto mt-14 flex max-w-3xl items-start justify-center divide-x divide-border" data-editor-ignore="countdown">
           <Unit value={time.days} label="Օր" />
           <Unit value={time.hours} label="Ժամ" />
           <Unit value={time.minutes} label="Րոպե" />

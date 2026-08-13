@@ -62,7 +62,7 @@ export function Countdown({ data }: { data: InvitationData }) {
               {data.countdown.finishedLabel}
             </p>
           ) : (
-            <div className="mt-14 flex items-stretch gap-2 sm:mt-20 sm:gap-4">
+            <div className="mt-14 flex items-stretch gap-2 sm:mt-20 sm:gap-4" data-editor-ignore="countdown">
               <Unit value={t.days} label="Օր" />
               <Unit value={t.hours} label="Ժամ" />
               <Unit value={t.minutes} label="Րոպե" />

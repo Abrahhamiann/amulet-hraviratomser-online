@@ -18,7 +18,12 @@ type RsvpSubmit = (data: {
   message: string;
 }) => Promise<unknown>;
 
-export function RSVPSection({ onSubmit }: { onSubmit?: RsvpSubmit }) {
+type EditorRsvpSettings = {
+  askGuestCount?: boolean;
+  askMeal?: boolean;
+};
+
+export function RSVPSection({ onSubmit, settings = {} }: { onSubmit?: RsvpSubmit; settings?: EditorRsvpSettings }) {
   const [attending, setAttending] = useState<"yes" | "no" | null>(null);
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -36,7 +41,10 @@ export function RSVPSection({ onSubmit }: { onSubmit?: RsvpSubmit }) {
         phone: String(form.get("phone") || "").trim(),
         status: attending === "yes" ? "attending" : "declined",
         guestCount: Number(form.get("guests") || 1),
-        message: String(form.get("note") || "").trim()
+        message: [
+          String(form.get("note") || "").trim(),
+          form.get("meal") ? `Սննդի նախընտրություն՝ ${String(form.get("meal")).trim()}` : ""
+        ].filter(Boolean).join("\n")
       });
       setSent(true);
     } catch {
@@ -115,7 +123,7 @@ export function RSVPSection({ onSubmit }: { onSubmit?: RsvpSubmit }) {
                 </div>
 
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                  <div>
+                  {settings.askGuestCount !== false ? <div>
                     <label className={labelClass} htmlFor="rsvp-guests">
                       Հյուրերի քանակ
                     </label>
@@ -127,7 +135,7 @@ export function RSVPSection({ onSubmit }: { onSubmit?: RsvpSubmit }) {
                       defaultValue={1}
                       className={fieldClass}
                     />
-                  </div>
+                  </div> : null}
                   <div>
                     <label className={labelClass} htmlFor="rsvp-phone">
                       Հեռախոսահամար
@@ -135,6 +143,11 @@ export function RSVPSection({ onSubmit }: { onSubmit?: RsvpSubmit }) {
                     <input id="rsvp-phone" name="phone" type="tel" className={fieldClass} />
                   </div>
                 </div>
+
+                {settings.askMeal === true ? <div>
+                  <label className={labelClass} htmlFor="rsvp-meal">Սննդի նախընտրություն</label>
+                  <input id="rsvp-meal" name="meal" className={fieldClass} />
+                </div> : null}
 
                 <div>
                   <label className={labelClass} htmlFor="rsvp-note">

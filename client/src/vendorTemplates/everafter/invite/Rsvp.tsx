@@ -14,11 +14,14 @@ type RsvpSubmit = (data: {
 const fieldClass =
   "peer w-full rounded-xl border border-gold/35 bg-card/70 px-4 py-3.5 font-sans text-sm text-foreground outline-none transition-all duration-500 ease-[var(--ease-silk)] placeholder:text-muted-foreground/70 focus:border-gold focus:shadow-[0_0_0_4px_color-mix(in_oklab,var(--gold)_18%,transparent)]";
 
-export function Rsvp({ onSubmit }: { onSubmit?: RsvpSubmit }) {
+type EditorRsvpSettings = { askGuestCount?: boolean; askMeal?: boolean };
+
+export function Rsvp({ onSubmit, settings = {} }: { onSubmit?: RsvpSubmit; settings?: EditorRsvpSettings }) {
   const [answer, setAnswer] = useState<Answer>(null);
   const [guests, setGuests] = useState(2);
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
+  const [meal, setMeal] = useState("");
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,8 +35,8 @@ export function Rsvp({ onSubmit }: { onSubmit?: RsvpSubmit }) {
       await onSubmit?.({
         guestName: name.trim(),
         status: answer === "accept" ? "attending" : "declined",
-        guestCount: guests,
-        message: message.trim()
+        guestCount: settings.askGuestCount === false ? 1 : guests,
+        message: [message.trim(), meal.trim() ? `Սննդի նախընտրություն՝ ${meal.trim()}` : ""].filter(Boolean).join("\n")
       });
       setSent(true);
     } catch {
@@ -135,7 +138,7 @@ export function Rsvp({ onSubmit }: { onSubmit?: RsvpSubmit }) {
                   </div>
                 </div>
 
-                <div>
+                {settings.askGuestCount !== false ? <div>
                   <p className="eyebrow">Հյուրերի քանակ</p>
                   <div className="mt-3 flex items-center gap-5">
                     <button
@@ -164,7 +167,12 @@ export function Rsvp({ onSubmit }: { onSubmit?: RsvpSubmit }) {
                       <Plus className="h-4 w-4" strokeWidth={1.4} />
                     </button>
                   </div>
-                </div>
+                </div> : null}
+
+                {settings.askMeal === true ? <div>
+                  <label htmlFor="rsvp-meal" className="eyebrow">Սննդի նախընտրություն</label>
+                  <input id="rsvp-meal" value={meal} onChange={(e) => setMeal(e.target.value)} className={`${fieldClass} mt-3`} />
+                </div> : null}
 
                 <div>
                   <label htmlFor="rsvp-message" className="eyebrow">

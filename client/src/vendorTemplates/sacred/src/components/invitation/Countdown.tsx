@@ -46,7 +46,7 @@ export function Countdown({ data }: { data: InvitationData }) {
           <GoldRule className="mt-7" />
         </Reveal>
 
-        <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
+        <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6" data-editor-ignore="countdown">
           {units.map((u, i) => (
             <Reveal key={u.label} delay={i * 120}>
               <div

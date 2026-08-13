@@ -2663,11 +2663,11 @@ body { background: #fff; }
   display: flex;
   gap: 16px;
   width: max-content;
-  animation: testimonialMarquee 101s linear infinite;
+  animation: testimonialMarquee 76s linear infinite;
 }
 .testimonial-v2-row.reverse {
   animation-direction: reverse;
-  animation-duration: 114s;
+  animation-duration: 86s;
 }
 .customer-testimonials-section.is-paused .testimonial-v2-row {
   animation-play-state: paused;
@@ -4344,6 +4344,7 @@ body.templates-route .catalog-sort-picker > button {
   bottom: max(18px, env(safe-area-inset-bottom));
   z-index: 60;
   display: grid;
+  justify-items: center;
   gap: 12px;
 }
 .floating-help.expanded {
@@ -4369,22 +4370,53 @@ body.templates-route .catalog-sort-picker > button {
   box-shadow: 0 15px 28px rgba(0,0,0,.22);
 }
 .floating-contact-link {
+  position: relative;
   overflow: hidden;
+  isolation: isolate;
+  clip-path: circle(50% at 50% 50%);
+  background: transparent;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, .14) !important;
 }
-.floating-contact-link.is-phone { background: #45bd5b; }
-.floating-contact-link.is-telegram { background: #229ed9; animation-delay: .05s; }
-.floating-contact-link.is-whatsapp { background: #28df58; animation-delay: .1s; }
+.floating-contact-link.is-phone {
+  background: #12d763;
+}
+.floating-contact-link.is-telegram { background: transparent; animation-delay: .05s; }
+.floating-contact-link.is-whatsapp {
+  background: #08ce50;
+  animation-delay: .1s;
+}
+.floating-contact-link.is-instagram {
+  background: radial-gradient(circle at 30% 105%, #ffd600 0 18%, #ff4d27 38%, #e800a8 62%, #5a36f0 100%);
+  animation-delay: .15s;
+}
 .floating-contact-link img {
+  position: absolute;
+  inset: 0;
+  margin: auto;
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: inherit;
+  max-width: none;
   object-fit: cover;
+  transform: scale(1.04);
+  transform-origin: center;
+  pointer-events: none;
 }
+
+.floating-contact-link.is-phone img {
+  transform: scale(1.04);
+}
+
+.floating-contact-link.is-telegram img {
+  transform: scale(1.1);
+}
+
 .floating-contact-link.is-whatsapp img {
-  object-fit: contain;
-  padding: 7px;
-  background: #fff;
+  transform: scale(1.04);
+}
+
+.floating-contact-link.is-instagram img {
+  transform: scale(1.04);
 }
 .floating-chat {
   background: #59d800;
@@ -4734,6 +4766,277 @@ body.templates-route .catalog-sort-picker > button {
   }
   .nav-overlay {
     padding-top: 66px;
+  }
+}
+
+/* Profile invitation cards: compact side actions and share dialog. */
+.account-invitation-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 164px;
+  align-items: stretch;
+  gap: 12px;
+  padding: 12px;
+}
+
+.account-invitation-main {
+  display: block;
+  min-width: 0;
+}
+
+.account-invitation-main .account-invitation-card {
+  min-height: 100%;
+  padding-right: 14px;
+}
+
+.account-invitation-side-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding-top: 42px;
+}
+
+.account-invitation-action {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 11px;
+  border: 1px solid rgba(144, 100, 49, .2);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #e5c89e, #d8b98e);
+  box-shadow: 0 7px 18px rgba(122, 82, 38, .12);
+  color: #34271d;
+  font: inherit;
+  font-size: .79rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.account-invitation-action svg {
+  flex: 0 0 auto;
+  color: currentColor;
+}
+
+.account-invitation-action:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #ebd2ad, #dfbf90);
+  box-shadow: 0 10px 22px rgba(122, 82, 38, .18);
+}
+
+.account-invitation-action:focus-visible,
+.account-share-close:focus-visible,
+.account-share-link-block button:focus-visible {
+  outline: 3px solid rgba(216, 185, 142, .42);
+  outline-offset: 2px;
+}
+
+.account-invitation-action.is-complete {
+  border-color: rgba(30, 132, 79, .18);
+  background: #edf8f1;
+  box-shadow: none;
+  color: #1d7548;
+  cursor: default;
+}
+
+.account-invitation-action.is-share {
+  background: #29231f;
+  color: #fffaf2;
+}
+
+.account-invitation-action.is-share:hover {
+  background: #3a302a;
+}
+
+.account-share-backdrop {
+  z-index: 1500;
+  padding: 20px;
+  background: rgba(27, 22, 18, .48);
+  backdrop-filter: blur(7px);
+}
+
+.account-modal.account-share-modal {
+  position: relative;
+  width: min(620px, 100%);
+  max-width: 620px;
+  padding: 30px;
+  border-color: rgba(216, 185, 142, .5);
+  border-radius: 22px;
+  text-align: center;
+}
+
+.account-share-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid rgba(68, 52, 41, .12);
+  border-radius: 50%;
+  background: #fffaf4;
+  color: #4b3b30;
+  cursor: pointer;
+}
+
+.account-share-heading-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 12px;
+  border: 2px solid rgba(216, 185, 142, .65);
+  border-radius: 50%;
+  background: #fffaf3;
+  color: #b08249;
+}
+
+.account-share-heading-icon svg,
+.account-share-close svg {
+  color: currentColor;
+}
+
+.account-share-modal > p {
+  max-width: 460px;
+  margin: 7px auto 20px;
+}
+
+.account-share-content {
+  display: grid;
+  grid-template-columns: 184px minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+  padding: 16px;
+  border: 1px solid rgba(216, 185, 142, .42);
+  border-radius: 16px;
+  background: #fffaf3;
+  text-align: left;
+}
+
+.account-share-qr {
+  overflow: hidden;
+  border: 8px solid #fff;
+  border-radius: 14px;
+  box-shadow: 0 8px 22px rgba(67, 48, 31, .09);
+}
+
+.account-share-qr img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.account-share-link-block {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.account-share-link-block > strong {
+  color: #34271d;
+  font-size: .95rem;
+}
+
+.account-share-link-block > a {
+  overflow-wrap: anywhere;
+  color: #766558;
+  font-size: .8rem;
+  line-height: 1.45;
+}
+
+.account-share-link-block > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 9px 14px;
+  border: 1px solid rgba(180, 137, 81, .32);
+  border-radius: 11px;
+  background: #fff;
+  color: #6f4f2d;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.account-share-link-block > button.is-copied {
+  border-color: rgba(30, 132, 79, .2);
+  background: #edf8f1;
+  color: #1d7548;
+}
+
+.account-share-link-block > small {
+  color: #b13f3f;
+  font-size: .76rem;
+}
+
+@media (max-width: 760px) {
+  .account-invitation-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 9px;
+    padding: 10px;
+  }
+
+  .account-invitation-main .account-invitation-card {
+    padding-right: 48px;
+  }
+
+  .account-invitation-side-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    padding-top: 0;
+  }
+
+  .account-invitation-action {
+    justify-content: center;
+    padding-inline: 8px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .account-share-backdrop {
+    align-items: flex-end;
+    padding: 10px;
+  }
+
+  .account-modal.account-share-modal {
+    max-height: calc(100dvh - 20px);
+    overflow-y: auto;
+    padding: 25px 16px 18px;
+    border-radius: 20px;
+  }
+
+  .account-share-content {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .account-share-qr {
+    width: min(190px, 72vw);
+    margin-inline: auto;
+  }
+}
+
+@media (max-width: 390px) {
+  .account-invitation-side-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-invitation-action {
+    transition: none;
   }
 }
 
@@ -14306,7 +14609,7 @@ body.templates-route.templates-route .catalog-template-preview {
 }
 
 body.templates-route.templates-route .catalog-template-preview > img {
-  transition: transform 22s linear, filter .45s ease, opacity .32s ease;
+  transition: transform 26s linear, filter .45s ease, opacity .32s ease;
 }
 
 body.templates-route.templates-route .catalog-template-preview > .catalog-template-final-cover {
@@ -14476,7 +14779,7 @@ body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-vi
   object-fit: contain;
   object-position: top center;
   will-change: transform;
-  animation: templateQrAutoScroll 29s .65s linear both;
+  animation: templateQrAutoScroll 34s .65s linear both;
   transition: opacity .42s ease;
 }
 
@@ -14729,4 +15032,58 @@ html:not([lang="hy"]) .nav-overlay :is(a, button) {
   .faq-amulet .faq-stack .faq-item.is-open > button { min-height: 52px; padding-bottom: 0; }
   .faq-amulet .faq-stack .faq-answer > p { padding: 0 14px 14px 61px; }
   .faq-amulet .faq-stack .faq-item.is-open .faq-answer > p { margin-top: -10px; padding-bottom: 10px; }
+}
+
+/* The invitation preview and its actions share one card surface. */
+.account-invitation-row {
+  grid-template-columns: minmax(0, 1fr) 164px;
+  gap: 12px;
+  padding: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(216, 185, 142, .28);
+  background: #fff;
+}
+
+.account-invitation-link {
+  min-width: 0;
+  min-height: 100%;
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  text-decoration: none;
+  transition: background .2s ease;
+}
+
+.account-invitation-link:not(.is-disabled):hover {
+  background: rgba(216, 185, 142, .08);
+}
+
+.account-invitation-link.is-disabled {
+  opacity: .72;
+}
+
+@media (max-width: 980px) {
+  .account-invitation-row { padding: 12px; }
+  .account-invitation-link { grid-template-columns: minmax(128px, 34%) minmax(0, 1fr); }
+}
+
+@media (max-width: 760px) {
+  .account-invitation-row { grid-template-columns: minmax(0, 1fr); gap: 9px; padding: 10px; }
+  .account-invitation-link {
+    grid-template-columns: 126px minmax(0, 1fr);
+    gap: 14px;
+    padding-right: 48px;
+  }
+}
+
+/* Profile action labels and icons stay white on the brand action buttons. */
+.account-invitation-action,
+.account-invitation-action svg,
+.account-invitation-action span {
+  color: #fff;
 }

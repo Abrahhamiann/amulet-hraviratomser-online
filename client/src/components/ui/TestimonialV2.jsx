@@ -489,6 +489,20 @@ export function makeTestimonials(language) {
   }));
 }
 
+function localizePublishedReview(item, language) {
+  const curatedMatch = /^curated-(\d+)$/.exec(item.staticKey || '');
+  const curatedIndex = curatedMatch ? Number(curatedMatch[1]) - 1 : -1;
+  const translatedText = (localizedTexts[language] || localizedTexts.en)?.[curatedIndex];
+  const translatedName = language === 'hy' ? hyNames[curatedIndex] : latinNames[curatedIndex];
+
+  return {
+    id: item._id,
+    name: translatedName || item.customer,
+    text: translatedText || item.text,
+    rating: item.rating
+  };
+}
+
 function ReviewCard({ item, onPause, onResume }) {
   return (
     <article className="customer-review-card" onPointerEnter={onPause} onPointerLeave={onResume} onPointerDown={onPause} onPointerUp={onResume} onPointerCancel={onResume}>
@@ -509,12 +523,7 @@ export default function TestimonialV2() {
     api.get(`/reviews/public?language=${encodeURIComponent(language)}`)
       .then(({ data }) => {
         if (!active) return;
-        setPublishedReviews(data.map((item) => ({
-          id: item._id,
-          name: item.customer,
-          text: item.text,
-          rating: item.rating
-        })));
+        setPublishedReviews(data.map((item) => localizePublishedReview(item, language)));
       })
       .catch(() => {
         if (active) setPublishedReviews(null);
