@@ -163,15 +163,15 @@ export default function AuthPage() {
     <section className="auth-page">
       <div className="auth-panel">
         <div className="auth-brand">
-          {verificationEmail ? <Mail size={24} /> : <ShieldCheck size={24} />}
-          <h1>{verificationEmail ? t('authVerifyTitle') : t('login')}</h1>
+          {verificationEmail && <Mail size={24} aria-hidden="true" />}
+          <h1>{verificationEmail ? t('authVerifyTitle') : mode === 'register' ? t('authRegister') : t('login')}</h1>
           <p>{verificationEmail ? t('authVerifyIntro').replace('{email}', verificationEmail) : t('authIntro')}</p>
         </div>
         {!verificationEmail ? (
           <>
             <div className="auth-tabs">
-              <button type="button" className={mode === 'login' ? 'is-active' : ''} onClick={() => changeMode('login')}><LogIn size={16} />{t('login')}</button>
-              <button type="button" className={mode === 'register' ? 'is-active' : ''} onClick={() => changeMode('register')}><UserPlus size={16} />{t('authRegister')}</button>
+              <button type="button" aria-pressed={mode === 'login'} className={mode === 'login' ? 'is-active' : ''} onClick={() => changeMode('login')}><LogIn size={16} />{t('login')}</button>
+              <button type="button" aria-pressed={mode === 'register'} className={mode === 'register' ? 'is-active' : ''} onClick={() => changeMode('register')}><UserPlus size={16} />{t('authRegister')}</button>
             </div>
             <form className="auth-form" onSubmit={submit}>
               {mode === 'register' && <label><span>{t('contactName')}</span><input autoComplete="name" value={form.name} onChange={(event) => update('name', event.target.value)} placeholder={t('authNamePlaceholder')} required /></label>}
@@ -189,7 +189,7 @@ export default function AuthPage() {
                 </>
               )}
               {mode === 'login' && <Link className="auth-forgot-link" to="/forgot-password">{t('authForgotPassword')}</Link>}
-              <button className="auth-submit" type="submit" disabled={busy}>{mode === 'register' ? <UserPlus size={18} /> : <LogIn size={18} />}<span>{busy ? t('authWait') : mode === 'register' ? t('authCreateAccount') : t('authSignIn')}</span></button>
+              <button className="auth-submit" type="submit" disabled={busy}>{mode === 'register' ? <UserPlus size={18} /> : <LogIn size={18} />}<span>{busy ? t('authWait') : mode === 'register' ? t('authRegister') : t('login')}</span></button>
             </form>
             <div className="auth-divider"><span>{t('authOr')}</span></div>
             <div className="google-auth-slot" ref={googleRef}>{!googleClientId && <span>{t('authGoogleMissing')}</span>}</div>
