@@ -11,7 +11,7 @@ import LanguageSelector from './LanguageSelector.jsx';
 
 export default function Header() {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, initialized } = useAuth();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const links = [
@@ -140,14 +140,18 @@ export default function Header() {
           <LanguageSelector />
         </nav>
         <div className="mobile-header-actions">
-          {user && (
-            <NavLink className="icon-btn profile-btn" to="/account" onClick={() => setOpen(false)} aria-label={t('accountTitle')}>
-              <UserCircle size={22} />
-            </NavLink>
-          )}
           <div className="mobile-header-language">
             <LanguageSelector compact />
           </div>
+          {initialized && (user ? (
+            <NavLink className="icon-btn profile-btn" to="/account" onClick={() => setOpen(false)} aria-label={t('accountTitle')}>
+              <UserCircle size={22} aria-hidden="true" />
+            </NavLink>
+          ) : (
+            <NavLink className="icon-btn header-auth-btn" to="/login" onClick={() => setOpen(false)}>
+              {t('menuLogin')}
+            </NavLink>
+          ))}
           <button className="icon-btn menu-btn" onClick={() => setOpen((value) => !value)} aria-label="Menu">
             {open ? <X size={22} /> : <Menu size={22} />}
           </button>

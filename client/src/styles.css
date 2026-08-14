@@ -3516,7 +3516,14 @@ body.templates-route .catalog-sort-picker > button {
   font-weight: 750;
   text-align: center;
 }
-.google-auth-slot > div { max-width: 100%; }
+.google-auth-slot > div,
+.google-auth-slot iframe { max-width: 100% !important; }
+
+@media (max-width: 600px) {
+  .google-auth-slot {
+    width: min(280px, 100%);
+  }
+}
 .auth-status,
 .auth-error {
   display: flex;
@@ -15086,4 +15093,48 @@ html:not([lang="hy"]) .nav-overlay :is(a, button) {
 .account-invitation-action svg,
 .account-invitation-action span {
   color: #fff;
+}
+
+/* Header authentication action: guests see Login, authenticated users see Profile. */
+.header-auth-btn {
+  width: auto;
+  min-width: max-content;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color .2s ease, background-color .2s ease, border-color .2s ease;
+}
+
+.header-auth-btn:hover {
+  color: var(--amulet-cream-text);
+  background: #f2f0ee;
+}
+
+@media (max-width: 880px) {
+  .site-header .profile-btn {
+    display: inline-grid !important;
+  }
+
+  .site-header .header-auth-btn {
+    width: auto;
+    min-width: 68px;
+    height: 46px;
+    min-height: 46px;
+    display: inline-flex;
+    flex: 0 0 auto;
+    padding: 0 14px;
+    border-radius: 14px;
+  }
+}
+
+@media (max-width: 340px) {
+  .site-header .header-auth-btn {
+    min-width: 60px;
+    height: 44px;
+    min-height: 44px;
+    padding-inline: 10px;
+  }
 }

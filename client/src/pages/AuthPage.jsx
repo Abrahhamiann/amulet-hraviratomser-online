@@ -71,6 +71,8 @@ export default function AuthPage() {
       document.head.appendChild(script);
     });
     let cancelled = false;
+    let resizeObserver;
+    let renderFrame = 0;
     loadGoogle().then(() => {
       if (cancelled || !window.google?.accounts?.id || !googleRef.current) return;
       window.google.accounts.id.initialize({
@@ -84,13 +86,33 @@ export default function AuthPage() {
           finally { setBusy(false); }
         }
       });
-      googleRef.current.innerHTML = '';
-      window.google.accounts.id.renderButton(googleRef.current, {
-        theme: 'outline', size: 'large', shape: 'pill', text: mode === 'register' ? 'signup_with' : 'signin_with',
-        width: Math.min(Math.max(googleRef.current.offsetWidth || 320, 240), 400)
-      });
+      let renderedWidth = 0;
+      const renderGoogleButton = () => {
+        const slot = googleRef.current;
+        if (cancelled || !slot) return;
+        const availableWidth = Math.floor(slot.getBoundingClientRect().width);
+        const width = Math.min(400, Math.max(200, availableWidth || 280));
+        if (width === renderedWidth && slot.querySelector('iframe')) return;
+        renderedWidth = width;
+        slot.innerHTML = '';
+        window.google.accounts.id.renderButton(slot, {
+          theme: 'outline', size: 'large', shape: 'pill', text: mode === 'register' ? 'signup_with' : 'signin_with',
+          width
+        });
+      };
+      const scheduleRender = () => {
+        window.cancelAnimationFrame(renderFrame);
+        renderFrame = window.requestAnimationFrame(renderGoogleButton);
+      };
+      renderGoogleButton();
+      resizeObserver = new ResizeObserver(scheduleRender);
+      resizeObserver.observe(googleRef.current);
     });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      resizeObserver?.disconnect();
+      window.cancelAnimationFrame(renderFrame);
+    };
   }, [mode]);
 
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
