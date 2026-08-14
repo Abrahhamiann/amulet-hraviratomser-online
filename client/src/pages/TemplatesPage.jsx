@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDown, Search, Sparkles } from 'lucide-react';
+import { ChevronDown, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../api/axios.js';
@@ -71,7 +71,6 @@ export default function TemplatesPage() {
   return (
     <section className="templates-catalog-page">
       <div className="templates-catalog-hero">
-        <span><Sparkles size={16} /> {t('templateCatalogKicker')}</span>
         <h1>{t('templates')}</h1>
         <p>{t('catalogIntro')}</p>
       </div>

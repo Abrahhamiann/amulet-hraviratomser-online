@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, CheckCircle2, ChevronDown, Eye, Images, LayoutGrid, Monitor, PanelLeftClose, PanelLeftOpen, Pencil, Redo2, RotateCcw, ShoppingBag, Smartphone, Sparkles, Tablet, Undo2, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import iphoneDeviceFrame from '../../assets/editor-devices/iphone-device-frame-clean.png';
 import ipadDeviceFrame from '../../assets/editor-devices/ipad-device-frame-clean.png';
+import logoImage from '../../assets/logo.png';
 import { EditorProvider, useEditor } from './EditorContext.jsx';
 import TemplatesPanel from './TemplatesPanel.jsx';
 import ContentPanel from './ContentPanel.jsx';
@@ -991,7 +993,9 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
       </header>
 
       <nav className="invite-editor-rail" aria-label={t('editorSections')}>
-        <strong aria-hidden="true">A</strong>
+        <Link className="invite-editor-home-logo" to="/" aria-label={`${t('brand')} — ${t('home')}`} title={t('home')}>
+          <img src={logoImage} alt="" width="34" height="34" />
+        </Link>
         {navItems.map(([value, Icon, label]) => <button key={value} type="button" className={tab === value ? 'is-active' : ''} onClick={() => selectTab(value)} aria-current={tab === value ? 'page' : undefined} aria-label={label} title={label}><Icon size={20} /></button>)}
         <button type="button" className="invite-editor-back" onClick={requestClose} aria-label={t('back')} title={t('back')}><ArrowLeft size={19} /></button>
       </nav>

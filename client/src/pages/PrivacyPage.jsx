@@ -1,5 +1,4 @@
 import React from 'react';
-import { ShieldCheck } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 export default function PrivacyPage() {
@@ -9,7 +8,6 @@ export default function PrivacyPage() {
   return (
     <section className="privacy-page">
       <div className="privacy-hero">
-        <span><ShieldCheck size={18} /> {t('menuPrivacy')}</span>
         <h1>{t('privacyTitle')}</h1>
         <p>{t('privacyUpdated')}</p>
       </div>

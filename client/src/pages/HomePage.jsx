@@ -188,7 +188,6 @@ export default function HomePage() {
 
       <nav className="occasion-browser-section" aria-labelledby="occasion-browser-title">
         <div className="occasion-browser-heading">
-          <span>{t('occasionBrowserKicker')}</span>
           <h2 id="occasion-browser-title" className="home-section-heading">{t('occasionBrowserTitle')}</h2>
         </div>
         <div className="occasion-browser-list">
@@ -246,7 +245,6 @@ export default function HomePage() {
 
       <section className="events-testimonials-section" aria-labelledby="events-testimonials-title">
         <div className="events-testimonials-heading">
-          <p>{t('eventsKicker')}</p>
           <h2 id="events-testimonials-title" className="home-section-heading">{t('eventsTitle')}</h2>
         </div>
         <CircularTestimonials
@@ -272,7 +270,6 @@ export default function HomePage() {
 
       <section className="faq-amulet" id="faq" ref={faqRef} aria-labelledby="faq-title">
         <header className="faq-amulet-heading faq-reveal">
-          <span>{t('faq')}</span>
           <h2 className="home-section-heading" id="faq-title">{t('faqTitle')}</h2>
           <p>{t('faqSubtitle')}</p>
         </header>

@@ -1,8 +1,7 @@
 import React from 'react';
-export default function SectionTitle({ eyebrow, title, text }) {
+export default function SectionTitle({ title, text }) {
   return (
     <div className="section-title reveal">
-      {eyebrow && <span className="eyebrow">{eyebrow}</span>}
       <h2>{title}</h2>
       {text && <p>{text}</p>}
     </div>

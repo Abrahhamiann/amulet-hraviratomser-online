@@ -552,7 +552,6 @@ export default function TestimonialV2() {
       aria-labelledby="customer-testimonials-title"
     >
       <div className="customer-testimonials-heading">
-        <span>{t('customerTestimonialsKicker')}</span>
         <h2 id="customer-testimonials-title" className="home-section-heading">{t('customerTestimonialsTitle')}</h2>
         <p>{t('customerTestimonialsSubtitle')}</p>
       </div>

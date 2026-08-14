@@ -4838,10 +4838,10 @@ body.templates-route .catalog-sort-picker > button {
 }
 
 .account-invitation-action.is-complete {
-  border-color: rgba(30, 132, 79, .18);
-  background: #edf8f1;
-  box-shadow: none;
-  color: #1d7548;
+  border-color: #1d633f;
+  background: #237a4b;
+  box-shadow: 0 7px 18px rgba(35, 122, 75, .2);
+  color: #fff;
   cursor: default;
 }
 

@@ -37,7 +37,6 @@ export default function TemplateDetailsPage() {
         <img src={mainImage} alt={template.title} />
       </div>
       <div className="details-copy">
-        <span className="eyebrow">{t(template.category)}</span>
         <h1>{template.title}</h1>
         <strong className="price">{Number(template.price).toLocaleString()} AMD</strong>
         <h3>{t('features')}</h3>
