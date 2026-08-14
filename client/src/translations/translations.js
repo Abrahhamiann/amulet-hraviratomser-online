@@ -2333,4 +2333,20 @@ Object.assign(it, {
   accountInvitationActions: 'Azioni invito', shareInvitation: 'Condividi', shareInvitationTitle: 'Condividi il tuo invito', shareInvitationText: 'Invia il codice QR agli ospiti oppure copia il link.', shareInvitationQrAlt: 'Codice QR dell’invito', shareInvitationLink: 'Link del tuo invito', shareInvitationCopy: 'Copia link', shareInvitationCopied: 'Link copiato', shareInvitationCopyError: 'Impossibile copiare il link. Selezionalo e copialo manualmente.'
 });
 
+Object.assign(hy, { validationRequired: 'Պարտադիր դաշտ է' });
+Object.assign(en, { validationRequired: 'This field is required' });
+Object.assign(ru, { validationRequired: 'Обязательное поле' });
+Object.assign(es, { validationRequired: 'Este campo es obligatorio' });
+Object.assign(fr, { validationRequired: 'Ce champ est obligatoire' });
+Object.assign(de, { validationRequired: 'Dieses Feld ist erforderlich' });
+Object.assign(it, { validationRequired: 'Questo campo è obbligatorio' });
+
+Object.assign(hy, { editorViewInvitation: 'Տեսնել հրավերը' });
+Object.assign(en, { editorViewInvitation: 'View invitation' });
+Object.assign(ru, { editorViewInvitation: 'Посмотреть приглашение' });
+Object.assign(es, { editorViewInvitation: 'Ver invitación' });
+Object.assign(fr, { editorViewInvitation: 'Voir l’invitation' });
+Object.assign(de, { editorViewInvitation: 'Einladung ansehen' });
+Object.assign(it, { editorViewInvitation: 'Vedi invito' });
+
 export const translations = { hy, en, ru, es, fr, de, it };

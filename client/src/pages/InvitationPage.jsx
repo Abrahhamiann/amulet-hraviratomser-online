@@ -63,7 +63,7 @@ export default function InvitationPage() {
       guestCount: Number.isFinite(Number(data?.guestCount)) ? Number(data.guestCount) : 1,
       message: String(data?.message ?? '').trim()
     };
-    const nextErrors = required(normalizedData, ['guestName', 'status']);
+    const nextErrors = required(normalizedData, ['guestName', 'status'], t('validationRequired'));
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) throw new Error('Missing RSVP fields');
     setRsvpStatus('loading');

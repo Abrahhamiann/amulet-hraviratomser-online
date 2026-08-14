@@ -56,7 +56,11 @@ export default function OrderPage() {
     event.preventDefault();
     const formElement = event.currentTarget;
     const data = cleanOrderPayload(toForm(event));
-    const nextErrors = required(data, ['fullName', 'phone', 'email', 'eventType', 'eventDate', 'eventTime', 'eventLocation', 'mainNames']);
+    const nextErrors = required(
+      data,
+      ['fullName', 'phone', 'email', 'eventType', 'eventDate', 'eventTime', 'eventLocation', 'mainNames'],
+      t('validationRequired')
+    );
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
     setStatus('loading');

@@ -668,6 +668,23 @@ function PreviewWorkspace({ PreviewComponent }) {
     getPreviewRoots(root).forEach((scope) => scope.querySelectorAll('.is-editor-active, .is-editor-section-active').forEach((element) => {
       element.classList.remove('is-editor-active', 'is-editor-section-active');
     }));
+    const previewScroll = root.querySelector('.invite-editor-preview-scroll');
+    const previewFrame = previewScroll?.ownerDocument?.defaultView?.frameElement;
+    const editorSheet = document.querySelector('.invite-editor-sidebar:not(.is-collapsed)');
+    const isCompactViewport = window.matchMedia('(max-width: 1024px)').matches;
+    if (previewScroll) {
+      if (isCompactViewport && mobileSheet !== 'collapsed' && previewFrame && editorSheet) {
+        const frameRect = previewFrame.getBoundingClientRect();
+        const sheetRect = editorSheet.getBoundingClientRect();
+        const scale = frameRect.width / previewFrame.offsetWidth || 1;
+        const occludedHeight = Math.max(0, frameRect.bottom - sheetRect.top) / scale;
+        previewScroll.style.boxSizing = 'border-box';
+        previewScroll.style.paddingBottom = `${occludedHeight + 24}px`;
+      } else {
+        previewScroll.style.boxSizing = '';
+        previewScroll.style.paddingBottom = '';
+      }
+    }
     let target = activeField ? findPreviewElement(root, `[data-editor-field="${activeField}"]`) : null;
     if (!target && activeSection === 'media') target = findPreviewElement(root, '[data-editor-kind="image"]');
     if (!target && activeSection) target = findPreviewElement(root, `[data-editor-section="${activeSection}"]`);
@@ -676,8 +693,39 @@ function PreviewWorkspace({ PreviewComponent }) {
     void target.offsetWidth;
     target.classList.add('is-editor-active');
     if (activeBlock !== target) activeBlock.classList.add('is-editor-section-active');
-    if (shouldScrollPreview) target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-  }, [activeField, activeSection, data, previewFocusRequest, previewReady]);
+    if (shouldScrollPreview) {
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (isCompactViewport && mobileSheet !== 'collapsed' && previewScroll && previewFrame && editorSheet) {
+        const alignWithVisiblePreview = (behavior) => {
+          const frameRect = previewFrame.getBoundingClientRect();
+          const sheetRect = editorSheet.getBoundingClientRect();
+          const scrollRect = previewScroll.getBoundingClientRect();
+          const scale = frameRect.width / previewFrame.offsetWidth || 1;
+          const visibleHeight = Math.max(88, Math.min(frameRect.height, sheetRect.top - frameRect.top)) / scale;
+          const targetRect = target.getBoundingClientRect();
+          const targetCenter = previewScroll.scrollTop + targetRect.top - scrollRect.top + (targetRect.height / 2);
+          previewScroll.scrollTo({
+            top: Math.max(0, targetCenter - (visibleHeight / 2)),
+            behavior
+          });
+        };
+        alignWithVisiblePreview(prefersReducedMotion ? 'auto' : 'smooth');
+        // Opening the mobile sheet animates its top edge for 240ms. Recompute
+        // once it has settled so the focused preview target is not left behind
+        // the final sheet position.
+        window.setTimeout(
+          () => {
+            if (!target.isConnected || !previewScroll.isConnected || !editorSheet.isConnected) return;
+            alignWithVisiblePreview(prefersReducedMotion ? 'auto' : 'smooth');
+          },
+          prefersReducedMotion ? 0 : 280
+        );
+      } else {
+        target.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'center', inline: 'nearest' });
+      }
+    }
+  }, [activeField, activeSection, data, mobileSheet, previewFocusRequest, previewReady]);
 
   const openPreviewImagePicker = (field) => {
     if (!field) return;
@@ -1011,7 +1059,18 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
         }}><i /><button type="button" onClick={() => setMobileSheet('collapsed')} aria-label={t('editorClosePanel')}><ChevronDown size={17} /></button></div>
         <EditorPanel isSingleImageTemplate={isSingleImageTemplate} />
         </div>
-        <footer><button type="button" onClick={() => actions.onBuy?.(data)} disabled={actions.saving}><ShoppingBag size={16} /> {t('editorBuy')}</button></footer>
+        <footer>
+          {compactViewport && (
+            <button className="invite-editor-footer-preview" type="button" onClick={() => void showModifiedPreview()} disabled={actions.saving}>
+              <Eye size={16} />
+              <span>{t('editorViewInvitation')}</span>
+            </button>
+          )}
+          <button className="invite-editor-footer-buy" type="button" onClick={() => actions.onBuy?.(data)} disabled={actions.saving}>
+            <ShoppingBag size={16} />
+            <span>{t('editorBuy')}</span>
+          </button>
+        </footer>
       </aside>
 
       <PreviewWorkspace PreviewComponent={PreviewComponent} />

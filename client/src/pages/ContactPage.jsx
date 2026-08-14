@@ -18,7 +18,7 @@ export default function ContactPage() {
     event.preventDefault();
     const formElement = event.currentTarget;
     const data = toForm(event);
-    const nextErrors = required(data, ['name', 'phone', 'email', 'message']);
+    const nextErrors = required(data, ['name', 'phone', 'email', 'message'], t('validationRequired'));
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
     setStatus('loading');

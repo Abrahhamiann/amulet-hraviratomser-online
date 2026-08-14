@@ -1,7 +1,7 @@
-export const required = (data, fields) => {
+export const required = (data, fields, message) => {
   const errors = {};
   fields.forEach((field) => {
-    if (!data[field]) errors[field] = 'Required';
+    if (!data[field]) errors[field] = message;
   });
   return errors;
 };
