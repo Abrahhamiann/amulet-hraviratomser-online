@@ -1,14 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Copy, Eye, Mail, Megaphone, MoreHorizontal, Search, Send, UserPlus } from "lucide-react";
+import { Copy, Eye, Mail, Megaphone, MoreHorizontal, Search, Send, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -32,10 +42,12 @@ function CustomersPage() {
   const [broadcastOpen, setBroadcastOpen] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [emailTarget, setEmailTarget] = useState<any>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
   const [form, setForm] = useState({ name: "", email: "", phone: "", password: "Useramulet2026!" });
   const [emailForm, setEmailForm] = useState({ subject: "", message: "" });
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const filtered = useMemo(
     () => customers.filter((customer: any) => q === "" || customer.name.toLowerCase().includes(q.toLowerCase()) || customer.email.includes(q)),
     [customers, q],
@@ -91,6 +103,36 @@ function CustomersPage() {
       toast.error(err instanceof Error ? err.message : t("failed"));
     } finally {
       setSending(false);
+    }
+  };
+
+  const deleteCustomer = async () => {
+    if (!deleteTarget || deleting) return;
+
+    const customerId = deleteTarget.id;
+    setDeleting(true);
+    try {
+      await adminApi.deleteUser(customerId);
+      queryClient.setQueryData<any[]>(["admin", "customers"], (current) =>
+        current?.filter((customer) => customer.id !== customerId),
+      );
+      await queryClient.invalidateQueries({ queryKey: ["admin", "customers"] });
+
+      if (profile?.id === customerId) {
+        setProfileOpen(false);
+        setProfile(null);
+      }
+      if (emailTarget?.id === customerId) {
+        setEmailOpen(false);
+        setEmailTarget(null);
+      }
+
+      toast.success(t("customerDeleted"));
+      setDeleteTarget(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("failed"));
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -195,6 +237,13 @@ function CustomersPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => openEmail(customer)}><Mail className="h-4 w-4 mr-2" />{t("sendEmail")}</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => openProfile(customer)}><Eye className="h-4 w-4 mr-2" />{t("viewProfile")}</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => setDeleteTarget(customer)}
+                          className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />{t("delete")}
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -205,6 +254,41 @@ function CustomersPage() {
           {!filtered.length && <div className="p-10 text-center text-sm text-muted-foreground">{t("noCustomers")}</div>}
         </div>
       </Card>
+
+      <AlertDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen && !deleting) setDeleteTarget(null);
+        }}
+      >
+        <AlertDialogContent className="max-w-md rounded-2xl">
+          <AlertDialogHeader>
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive sm:mx-0" aria-hidden="true">
+              <Trash2 className="h-5 w-5" />
+            </div>
+            <AlertDialogTitle className="font-display text-2xl">{t("deleteCustomerTitle")}</AlertDialogTitle>
+            <AlertDialogDescription className="leading-6">
+              {t("deleteCustomerDescription")
+                .replace("{name}", deleteTarget?.name || "")
+                .replace("{email}", deleteTarget?.email || "")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting}
+              onClick={(event) => {
+                event.preventDefault();
+                void deleteCustomer();
+              }}
+              className="gap-2 bg-destructive text-destructive-foreground hover:bg-destructive/90 focus-visible:ring-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+              {deleting ? t("deleting") : t("delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
         <EmailDialogContent
