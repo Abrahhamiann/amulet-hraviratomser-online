@@ -26,13 +26,38 @@ PORT=5000
 CLIENT_URL=http://localhost:5173
 ```
 
-3. Seed sample data:
+3. Create or update only a super administrator (does not delete any database data):
+
+Linux/macOS:
+
+```bash
+SUPER_ADMIN_NAME="Site Owner" \
+SUPER_ADMIN_EMAIL="owner@example.com" \
+SUPER_ADMIN_PASSWORD="Use-A-Strong-Password1!" \
+npm run super-admin:create
+```
+
+PowerShell:
+
+```powershell
+$env:SUPER_ADMIN_NAME = "Site Owner"
+$env:SUPER_ADMIN_EMAIL = "owner@example.com"
+$env:SUPER_ADMIN_PASSWORD = "Use-A-Strong-Password1!"
+npm run super-admin:create
+Remove-Item Env:SUPER_ADMIN_NAME, Env:SUPER_ADMIN_EMAIL, Env:SUPER_ADMIN_PASSWORD
+```
+
+Running the same command with an existing super-admin email changes that account's password and revokes its existing sessions. For safety, it refuses to promote an existing regular user or admin automatically.
+
+> Warning: `npm run seed` is the destructive demo-data seed. It deletes users, templates, orders, invitations, RSVPs, and contact messages before recreating sample data. Use it only on a new/disposable database.
+
+4. Optional: seed sample data on a new/disposable database only:
 
 ```bash
 npm run seed
 ```
 
-4. Run the app:
+5. Run the app:
 
 ```bash
 npm run dev

@@ -102,11 +102,11 @@ export function RSVPForm({ rsvp, onSubmit, settings = {} }: { rsvp: WeddingConfi
             <motion.form
               key="form"
               onSubmit={handleSubmit}
+              noValidate
               className="space-y-8"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              noValidate
             >
               <div>
                 <label className="eyebrow text-[0.55rem]" htmlFor="rsvp-name">

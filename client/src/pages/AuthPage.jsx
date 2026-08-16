@@ -173,7 +173,7 @@ export default function AuthPage() {
               <button type="button" aria-pressed={mode === 'login'} className={mode === 'login' ? 'is-active' : ''} onClick={() => changeMode('login')}><LogIn size={16} />{t('login')}</button>
               <button type="button" aria-pressed={mode === 'register'} className={mode === 'register' ? 'is-active' : ''} onClick={() => changeMode('register')}><UserPlus size={16} />{t('authRegister')}</button>
             </div>
-            <form className="auth-form" onSubmit={submit}>
+            <form className="auth-form" onSubmit={submit} noValidate>
               {mode === 'register' && <label><span>{t('contactName')}</span><input autoComplete="name" value={form.name} onChange={(event) => update('name', event.target.value)} placeholder={t('authNamePlaceholder')} required /></label>}
               {mode === 'register' ? (
                 <>
@@ -195,7 +195,7 @@ export default function AuthPage() {
             <div className="google-auth-slot" ref={googleRef}>{!googleClientId && <span>{t('authGoogleMissing')}</span>}</div>
           </>
         ) : (
-          <form className={verificationComplete ? 'verification-form is-complete' : 'verification-form'} onSubmit={verifyCode}>
+          <form className={verificationComplete ? 'verification-form is-complete' : 'verification-form'} onSubmit={verifyCode} noValidate>
             <div className="verification-code-row" aria-label="Verification code">
               {code.map((digit, index) => <input key={index} ref={(element) => { codeRefs.current[index] = element; }} value={digit} inputMode="numeric" maxLength={1} onChange={(event) => updateCode(index, event.target.value)} onKeyDown={(event) => { if (event.key === 'Backspace' && !code[index] && index > 0) codeRefs.current[index - 1]?.focus(); }} disabled={verificationComplete} />)}
             </div>

@@ -178,7 +178,7 @@ export default function InvitationPage() {
 
       <section className="rsvp-panel">
         <h2>{t('rsvp')}</h2>
-        <form className="panel-form compact" onSubmit={submit}>
+        <form className="panel-form compact" onSubmit={submit} noValidate>
           <Input label={t('guestName')} name="guestName" error={errors.guestName} />
           <Input label={t('phone')} name="phone" type="tel" error={errors.phone} />
           <Input label={t('attendance')} name="status" as="select" error={errors.status}>

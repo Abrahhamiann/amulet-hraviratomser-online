@@ -83,6 +83,7 @@ export function RSVPSection({ onSubmit, settings = {} }: { onSubmit?: RsvpSubmit
               <motion.form
                 key="form"
                 onSubmit={submit}
+                noValidate
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0, y: -12 }}

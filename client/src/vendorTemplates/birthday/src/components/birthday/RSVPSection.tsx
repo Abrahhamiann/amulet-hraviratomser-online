@@ -105,6 +105,7 @@ export function RSVPSection({ onSubmit, settings = {}, question = '' }: { onSubm
                 <motion.form
                   key="form"
                   onSubmit={handleSubmit}
+                  noValidate
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}

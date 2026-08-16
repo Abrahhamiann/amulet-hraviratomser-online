@@ -341,13 +341,18 @@ python3 -m venv .venv
 
 > **Если `admin/.output/server/index.mjs` не появился** — см. раздел «Админка не собралась» внизу.
 
-### 6.1 Наполнение базы (только первый раз)
+### 6.1 Создание super admin без удаления данных
 
 ```bash
-npm run seed --workspace server
+SUPER_ADMIN_NAME="Site Owner" \
+SUPER_ADMIN_EMAIL="owner@example.com" \
+SUPER_ADMIN_PASSWORD="Use-A-Strong-Password1!" \
+npm run super-admin:create
 ```
 
-Создаёт супер-админа `admin@einvite.local` / `Admin123!` — **сразу зайди в `admin.amulet.am` и смени пароль/создай своего админа, а этого удали.**
+Команда создаёт только super admin и не удаляет данные. Повторный запуск с тем же email меняет пароль этого super admin и завершает его старые сессии. Если пользователь с таким email уже существует, но не является super admin, команда безопасно завершится с ошибкой и не повысит его роль.
+
+> **Опасно:** `npm run seed` — это только demo seed для новой/одноразовой базы. Он удаляет пользователей, шаблоны, заказы, приглашения, RSVP и сообщения перед созданием тестовых данных. Не запускай его на рабочей базе.
 
 ---
 

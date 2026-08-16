@@ -7,6 +7,7 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "seed": "node seed/seed.js",
+    "super-admin:create": "node seed/createSuperAdmin.js",
     "test": "node --test tests/*.test.js"
   },
   "dependencies": {

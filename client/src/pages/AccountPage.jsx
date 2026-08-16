@@ -579,7 +579,7 @@ export default function AccountPage() {
 
       {reviewTarget && (
         <div className="account-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="review-title">
-          <form className={`account-modal account-review-modal${reviewState === 'success' ? ' is-success' : ''}`} onSubmit={submitReview}>
+          <form className={`account-modal account-review-modal${reviewState === 'success' ? ' is-success' : ''}`} onSubmit={submitReview} noValidate>
             {reviewState === 'success' ? <CheckCircle2 size={38} /> : <Star size={30} />}
             <h2 id="review-title">{reviewState === 'success' ? t('reviewThankYou') : t('addReview')}</h2>
             <p>{reviewTarget.mainNames}</p>

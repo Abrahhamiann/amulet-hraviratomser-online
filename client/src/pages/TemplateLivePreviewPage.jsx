@@ -643,7 +643,7 @@ export default function TemplateLivePreviewPage() {
             <h2 id="promo-modal-title">{promoResult ? t('promoCongratulations') : t('promoQuestion')}</h2>
             {!promoResult && <p>{t('promoQuestionText')}</p>}
             {!promoResult ? (
-              <form onSubmit={validatePromo} className="promo-modal-form">
+              <form onSubmit={validatePromo} className="promo-modal-form" noValidate>
                 <label htmlFor="checkout-promo">{t('promoCodeLabel')}</label>
                 <div><input id="checkout-promo" value={promoCode} onChange={(event) => setPromoCode(event.target.value.toUpperCase())} autoComplete="off" maxLength={32} /><button type="submit" disabled={promoChecking || !promoCode.trim()}>{promoChecking ? t('loading') : t('promoApply')}</button></div>
                 {promoError && <span className="promo-modal-error" role="alert">{promoError}</span>}

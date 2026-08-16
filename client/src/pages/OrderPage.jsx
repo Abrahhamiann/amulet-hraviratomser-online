@@ -79,7 +79,7 @@ export default function OrderPage() {
   return (
     <section className="section page-top form-page">
       <SectionTitle title={t('orderCustom')} text={t('orderIntro')} />
-      <form className="panel-form custom-design-form" onSubmit={submit} key={user?.id || 'guest'}>
+      <form className="panel-form custom-design-form" onSubmit={submit} key={user?.id || 'guest'} noValidate>
         <input type="hidden" name="requestType" value="custom_design" />
         <Input label={t('fullName')} name="fullName" defaultValue={user?.name || ''} autoComplete="name" error={errors.fullName} />
         <Input label={t('phone')} name="phone" type="tel" defaultValue={user?.phone || ''} autoComplete="tel" error={errors.phone} />

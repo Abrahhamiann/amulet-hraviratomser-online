@@ -110,7 +110,7 @@ function LoginPage() {
             </DropdownMenu>
           </div>
 
-          <form onSubmit={submit} className="mt-8 space-y-4">
+          <form onSubmit={submit} className="mt-8 space-y-4" noValidate>
             <div className="space-y-2">
               <Label htmlFor="email">{t("email")}</Label>
               <Input

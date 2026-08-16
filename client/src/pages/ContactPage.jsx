@@ -42,7 +42,7 @@ export default function ContactPage() {
           <span><Instagram size={18} /> {t('contactInstagramValue')}</span>
         </div>
       </div>
-      <form className="panel-form" onSubmit={submit}>
+      <form className="panel-form" onSubmit={submit} noValidate>
         <Input label={t('contactName')} name="name" error={errors.name} />
         <Input label={t('phone')} name="phone" type="tel" error={errors.phone} />
         <Input label={t('email')} name="email" type="email" error={errors.email} />

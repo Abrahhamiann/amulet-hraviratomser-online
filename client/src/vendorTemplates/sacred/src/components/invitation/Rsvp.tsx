@@ -69,7 +69,7 @@ export function Rsvp({ data, onSubmit }: { data: InvitationData; onSubmit?: Rsvp
           </Reveal>
         ) : (
           <Reveal delay={160}>
-            <form onSubmit={submit} className="mt-12 space-y-5">
+            <form onSubmit={submit} className="mt-12 space-y-5" noValidate>
               <div>
                 <label htmlFor="rsvp-name" className="mb-2 block text-[0.65rem] tracking-[0.3em] text-muted-foreground uppercase">
                   Full Name

@@ -16,7 +16,8 @@
     "install:all": "npm install",
     "build": "npm run build --workspace client",
     "build:admin": "npm run build --prefix admin",
-    "seed": "npm run seed --workspace server"
+    "seed": "npm run seed --workspace server",
+    "super-admin:create": "npm run super-admin:create --workspace server"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

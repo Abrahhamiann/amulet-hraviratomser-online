@@ -160,7 +160,7 @@ function ReviewsPage() {
             <div className="grid h-11 w-11 place-items-center rounded-xl bg-[color:var(--cream)] text-[color:var(--gold)]"><Star className="h-5 w-5" /></div>
             <div><h2 className="font-display text-xl">{editingId ? labels.edit : labels.add}</h2><p className="text-xs text-muted-foreground">{labels.formHelp}</p></div>
           </div>
-          <form className="grid gap-4" onSubmit={save}>
+          <form className="grid gap-4" onSubmit={save} noValidate>
             <label className="grid gap-2"><Label htmlFor="review-customer">{labels.customer}</Label><Input id="review-customer" value={form.customer} onChange={(e) => setForm({ ...form, customer: e.target.value })} minLength={2} maxLength={120} required /></label>
             <label className="grid gap-2"><Label htmlFor="review-text">{labels.text}</Label><Textarea id="review-text" value={form.text} onChange={(e) => setForm({ ...form, text: e.target.value })} minLength={8} maxLength={1200} rows={6} required /></label>
             <label className="grid gap-2"><Label htmlFor="review-target">{labels.target}</Label><Input id="review-target" value={form.target} onChange={(e) => setForm({ ...form, target: e.target.value })} /></label>

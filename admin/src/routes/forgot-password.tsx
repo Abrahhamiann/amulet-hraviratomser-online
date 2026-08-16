@@ -24,7 +24,7 @@ function ForgotPassword() {
         </div>
         <h2 className="font-display text-3xl">{t("password")}</h2>
         <p className="text-sm text-muted-foreground mt-1">{t("contactSupportReset")}</p>
-        <form className="mt-8 space-y-4" onSubmit={(event) => {
+        <form className="mt-8 space-y-4" noValidate onSubmit={(event) => {
           event.preventDefault();
           const form = new FormData(event.currentTarget);
           const email = String(form.get("email") || "");

@@ -119,7 +119,7 @@ function PromoCodesPage() {
               <p className="text-xs text-muted-foreground">{t("promoFormHelp")}</p>
             </div>
           </div>
-          <form className="grid gap-4" onSubmit={save}>
+          <form className="grid gap-4" onSubmit={save} noValidate>
             <label className="grid gap-2">
               <Label htmlFor="promo-code">{t("promoCode")}</Label>
               <Input

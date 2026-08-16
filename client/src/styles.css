@@ -13213,68 +13213,29 @@ body.templates-route .templates-catalog-hero h1 {
 }
 
 .photo-gallery-hero .home-intro-media {
-  animation: homeHeroMediaIn 1.15s cubic-bezier(.2, .78, .2, 1) both;
+  animation: homeHeroRevealIn .82s cubic-bezier(.22, 1, .36, 1) both;
+  transform-origin: center;
 }
 
 .photo-gallery-hero .home-intro-copy {
-  animation: homeHeroCopyIn 1.05s cubic-bezier(.2, .78, .2, 1) .18s both;
+  animation: homeHeroRevealIn .76s cubic-bezier(.22, 1, .36, 1) .1s both;
+  transform-origin: center;
 }
 
-@keyframes homeHeroMediaIn {
-  from {
+@keyframes homeHeroRevealIn {
+  0% {
     opacity: 0;
-    transform: translate3d(-24px, 22px, 0) scale(.985);
+    transform: scale(.96);
   }
 
-  to {
+  68% {
     opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-}
-
-@keyframes homeHeroCopyIn {
-  from {
-    opacity: 0;
-    transform: translate3d(24px, 24px, 0);
+    transform: scale(1.008);
   }
 
-  to {
+  100% {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@media (max-width: 880px) {
-  .photo-gallery-hero .home-intro-media {
-    animation-name: homeHeroMediaInMobile;
-  }
-
-  .photo-gallery-hero .home-intro-copy {
-    animation-name: homeHeroCopyInMobile;
-  }
-}
-
-@keyframes homeHeroMediaInMobile {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 20px, 0) scale(.985);
-  }
-
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-}
-
-@keyframes homeHeroCopyInMobile {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 22px, 0);
-  }
-
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
+    transform: scale(1);
   }
 }
 
