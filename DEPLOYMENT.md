@@ -7,7 +7,7 @@
 | `amulet.am`, `www.amulet.am` | публичный сайт (React/Vite SPA) | nginx отдаёт статику из `client/dist` |
 | `server.amulet.am` | API (Node/Express) | nginx → `127.0.0.1:5000` (PM2) |
 | `admin.amulet.am` | админка (TanStack Start / Nitro SSR) | nginx → `127.0.0.1:3000` (PM2) |
-| — | Telegram-бот (Python, long polling) | PM2, ходит в API на `127.0.0.1:5000`, порт наружу не нужен |
+| — | Telegram-бот (Node.js, long polling) | PM2 запускает `server/telegram-bot/bot.js`; бот ходит в API на `127.0.0.1:5000`, порт наружу не нужен |
 | — | MongoDB | только `127.0.0.1:27017`, наружу закрыт |
 
 Все три сайта живут на **одном** VPS. Всё, что зависит от окружения (адреса, ключи, контакты), задаётся **только в `.env`-файлах** — в коде хардкода адресов нет.
@@ -110,14 +110,7 @@ sudo apt install -y nodejs
 node -v && npm -v          # ожидаем v20.x
 ```
 
-### 3.2 Python 3 + venv (для бота)
-
-```bash
-sudo apt install -y python3 python3-venv python3-pip
-python3 --version          # 3.12.x
-```
-
-### 3.3 MongoDB 8.0
+### 3.2 MongoDB 8.0
 
 ```bash
 curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | \
@@ -163,7 +156,7 @@ sudo systemctl restart mongod
 Тогда в `server/.env` строка подключения будет:
 `MONGO_URI=mongodb://amulet_admin:ПАРОЛЬ@127.0.0.1:27017/amulet?authSource=admin`
 
-### 3.4 nginx и Certbot
+### 3.3 nginx и Certbot
 
 ```bash
 sudo apt install -y nginx
@@ -171,7 +164,7 @@ sudo apt install -y certbot python3-certbot-nginx
 sudo systemctl enable --now nginx
 ```
 
-### 3.5 PM2
+### 3.4 PM2
 
 ```bash
 sudo npm install -g pm2
@@ -197,7 +190,7 @@ cd amulet-hraviratomser-online
 
 ---
 
-## 5. Секреты и `.env` (самый важный шаг)
+## 5. Переменные окружения и секреты (самый важный шаг)
 
 Сгенерируй два случайных секрета:
 
@@ -243,8 +236,11 @@ STRIPE_SECRET_KEY=sk_live_...
 TELEGRAM_BOT_TOKEN=<токен от @BotFather>
 TELEGRAM_BOT_USERNAME=<имя бота без @>
 TELEGRAM_BOT_API_SECRET=<второй openssl rand -hex 32>
+TELEGRAM_BOT_API_URL=http://127.0.0.1:5000/api/telegram/bot
 TELEGRAM_ADMIN_CHAT_IDS=<твой chat id>,<второй chat id>
 ```
+
+`server/.env` — единый файл окружения для API и Node.js Telegram-бота. Отдельного `telegram_bot/.env` нет: `server/server.js` и `server/telegram-bot/bot.js` читают одни и те же настройки. Локальный `TELEGRAM_BOT_API_URL` позволяет боту обращаться к API напрямую, минуя nginx и внешний SSL.
 
 ### 5.2 `client/.env`
 
@@ -286,26 +282,7 @@ VITE_CLIENT_URL=https://amulet.am
 PORT=3000
 ```
 
-### 5.4 `telegram_bot/.env`
-
-```bash
-cp telegram_bot/.env.example telegram_bot/.env
-nano telegram_bot/.env
-```
-
-```env
-TELEGRAM_BOT_TOKEN=<тот же токен, что в server/.env>
-TELEGRAM_BOT_USERNAME=<имя бота без @>
-TELEGRAM_BOT_API_URL=http://127.0.0.1:5000/api/telegram/bot
-TELEGRAM_BOT_API_SECRET=<тот же секрет, что в server/.env>
-AMULET_SITE_URL=https://amulet.am
-TELEGRAM_ADMIN_CHAT_IDS=<твой chat id>,<второй chat id>
-```
-
-> `TELEGRAM_BOT_API_SECRET` в `server/.env` и `telegram_bot/.env` **обязан совпадать** — иначе API отвергнет запросы бота с 401.
-> Бот ходит в API напрямую по `127.0.0.1:5000`, минуя nginx — это быстрее и не зависит от сертификатов.
-
-### 5.5 Проверка, что `.env` не уедут в git
+### 5.4 Проверка, что `.env` не уедут в git
 
 ```bash
 git status --short          # .env файлов в списке быть не должно
@@ -330,10 +307,8 @@ npm install --prefix admin
 cd admin && NITRO_PRESET=node-server npm run build && cd ..
 ls admin/.output/server/index.mjs  # должен существовать
 
-# бот
-python3 -m venv .venv
-.venv/bin/pip install --upgrade pip
-.venv/bin/pip install -r telegram_bot/requirements.txt
+# Node.js Telegram-бот входит в server и использует server/.env
+node --check server/telegram-bot/bot.js
 ```
 
 > **Если сборка клиента падает по памяти** (`JavaScript heap out of memory`):
@@ -365,7 +340,7 @@ pm2 status
 pm2 logs --lines 50
 ```
 
-Должны быть три `online`-процесса: `amulet-api`, `amulet-admin`, `amulet-bot`.
+Должны быть три `online`-процесса: `amulet-api`, `amulet-admin`, `amulet-bot`. В `ecosystem.config.cjs` процесс `amulet-bot` запускает Node.js-файл `server/telegram-bot/bot.js` в одном экземпляре; Python/venv не используются.
 
 Автозапуск после перезагрузки сервера:
 
@@ -459,7 +434,8 @@ Google Cloud Console → APIs & Services → Credentials → твой OAuth Clie
 
 ### Telegram
 - У @BotFather: `/setcommands`, `/setdescription` — по желанию.
-- Бот работает на **long polling**, вебхук настраивать не нужно, порт наружу не нужен.
+- Node.js-бот находится в `server/telegram-bot/bot.js`, работает на **long polling**, вебхук настраивать не нужно, порт наружу не нужен.
+- API и бот используют общий `server/.env`; отдельный env-файл для бота создавать не нужно.
 - Свой `chat id` узнать: написать боту `/start`, затем `pm2 logs amulet-bot`.
 
 ### SMTP (Gmail)
@@ -475,7 +451,7 @@ cd /var/www/amulet/amulet-hraviratomser-online
 bash deploy/deploy.sh
 ```
 
-Скрипт делает: `git pull` → `npm install` → сборка клиента → сборка админки → `pip install -r` → `pm2 reload` → health-check.
+`deploy/deploy.sh` использует текущий Node.js flow: `git pull` → `npm install` → сборка клиента → установка и сборка админки → перезапуск API, админки и Node.js Telegram-бота через `ecosystem.config.cjs` → health-check. Python/venv в деплое не нужны.
 
 Вручную то же самое:
 
@@ -484,11 +460,11 @@ git pull
 npm install
 npm run build --workspace client
 npm install --prefix admin && (cd admin && NITRO_PRESET=node-server npm run build)
-.venv/bin/pip install -r telegram_bot/requirements.txt
+node --check server/telegram-bot/bot.js
 pm2 reload ecosystem.config.cjs --update-env
 ```
 
-**Правило:** поменял `client/.env` или `admin/.env` → нужна **пересборка**. Поменял `server/.env` или `telegram_bot/.env` → достаточно `pm2 reload`.
+**Правило:** поменял `client/.env` или `admin/.env` → нужна **пересборка**. Поменял общий для API и бота `server/.env` → достаточно `pm2 reload ecosystem.config.cjs --update-env`.
 
 ---
 
@@ -549,7 +525,7 @@ sudo journalctl -u mongod -n 100 --no-pager
 Не сработал `try_files ... /index.html` — проверь, что подключён именно `deploy/nginx/amulet.am.conf` и путь `root` указывает на реальный `client/dist`.
 
 **Бот отвечает «Amulet API is unavailable» / 401**
-`pm2 logs amulet-api` — жив ли API; секрет `TELEGRAM_BOT_API_SECRET` совпадает в `server/.env` и `telegram_bot/.env`.
+Проверь `pm2 logs amulet-api` и `pm2 logs amulet-bot`, затем убедись, что в общем `server/.env` заданы корректные `TELEGRAM_BOT_API_URL` и `TELEGRAM_BOT_API_SECRET`. После правки выполни `pm2 reload ecosystem.config.cjs --update-env`.
 
 **Бот падает с `Conflict: terminated by other getUpdates request`**
 Запущено больше одного экземпляра бота (например, локально на компьютере и на сервере, или два процесса PM2). Оставь ровно один: `pm2 delete amulet-bot && pm2 start ecosystem.config.cjs --only amulet-bot`.
@@ -581,12 +557,14 @@ ls -R .output | head -40                 # посмотреть, что реал
 | `server/.env` | `SERVER_URL` | `https://server.amulet.am` | справочно / внешние интеграции |
 | `server/.env` | `CORS_EXTRA_ORIGINS` | `https://www.amulet.am` | дополнительные origin-ы |
 | `server/.env` | `AUTH_COOKIE_DOMAIN` | `.amulet.am` | общая кука на поддоменах |
+| `server/.env` | `TELEGRAM_BOT_TOKEN` | токен от BotFather | при старте Node.js-бота |
+| `server/.env` | `TELEGRAM_BOT_USERNAME` | username без `@` | при старте Node.js-бота |
+| `server/.env` | `TELEGRAM_BOT_API_URL` | `http://127.0.0.1:5000/api/telegram/bot` | локальная связь бота с API |
+| `server/.env` | `TELEGRAM_BOT_API_SECRET` | случайный секрет ≥ 32 символов | аутентификация запросов бота к API |
+| `server/.env` | `TELEGRAM_ADMIN_CHAT_IDS` | chat ID через запятую | права Telegram-администраторов |
 | `client/.env` | `VITE_API_URL` | `https://server.amulet.am/api` | **на сборке** |
 | `client/.env` | `VITE_SITE_URL` | `https://amulet.am` | **на сборке** (ссылки на приглашения, QR) |
 | `admin/.env` | `VITE_API_URL` | `https://server.amulet.am/api` | **на сборке** |
 | `admin/.env` | `VITE_CLIENT_URL` | `https://amulet.am` | **на сборке** (превью шаблонов) |
-| `telegram_bot/.env` | `TELEGRAM_BOT_API_URL` | `http://127.0.0.1:5000/api/telegram/bot` | при старте бота |
-| `telegram_bot/.env` | `AMULET_SITE_URL` | `https://amulet.am` | при старте бота |
-
 Точки, где эти значения читаются в коде (единственные — больше нигде адресов нет):
-`server/config/env.js`, `client/src/config/env.js`, `admin/src/lib/env.ts`, `telegram_bot/bot.py`.
+`server/config/env.js`, `server/telegram-bot/config.js`, `client/src/config/env.js`, `admin/src/lib/env.ts`.
