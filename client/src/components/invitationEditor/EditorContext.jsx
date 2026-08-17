@@ -100,8 +100,9 @@ export function EditorProvider({ initialDraft, originalDraft = initialDraft, ini
   }, [actions]);
 
   useEffect(() => {
-    actionsRef.current.onDraftChange?.(history.present);
-    setSaveStatus(JSON.stringify(history.present) === baselineRef.current ? 'original' : 'changed');
+    const hasChanges = JSON.stringify(history.present) !== baselineRef.current;
+    actionsRef.current.onDraftChange?.(history.present, hasChanges);
+    setSaveStatus(hasChanges ? 'changed' : 'original');
   }, [history.present]);
 
   const dirty = JSON.stringify(history.present) !== baselineRef.current;

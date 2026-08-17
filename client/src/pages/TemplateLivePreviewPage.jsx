@@ -33,6 +33,28 @@ import { promoStorageKey, readRememberedPromo } from '../utils/promoStorage.js';
 const previewDate = new Date();
 previewDate.setMonth(previewDate.getMonth() + 1);
 
+const editorAutosaveKey = (templateId) => `amulet_autosave_${templateId}`;
+
+const readEditorAutosave = (templateId) => {
+  if (!templateId) return null;
+  try {
+    const saved = JSON.parse(localStorage.getItem(editorAutosaveKey(templateId)) || 'null');
+    return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : null;
+  } catch {
+    localStorage.removeItem(editorAutosaveKey(templateId));
+    return null;
+  }
+};
+
+const writeEditorAutosave = (templateId, nextDraft) => {
+  if (!templateId || !nextDraft) return;
+  try {
+    localStorage.setItem(editorAutosaveKey(templateId), JSON.stringify(nextDraft));
+  } catch {
+    // Editing must remain available when browser storage is unavailable or full.
+  }
+};
+
 const toDateInputValue = (date) => date.toISOString().slice(0, 10);
 
 const uniqueImages = (images) => [...new Set(images.filter(Boolean))];
@@ -229,11 +251,11 @@ export default function TemplateLivePreviewPage() {
           return;
         }
         const nextTemplate = previewToken ? data.template : data;
-        const initialDraft = previewToken ? data.draft : createInitialDraft(nextTemplate);
-        if (!previewToken) localStorage.removeItem(`amulet_autosave_${nextTemplate._id}`);
+        const savedDraft = previewToken ? null : readEditorAutosave(nextTemplate._id);
+        const initialDraft = savedDraft || (previewToken ? data.draft : createInitialDraft(nextTemplate));
         setTemplate(nextTemplate);
         setDraft(initialDraft);
-        setIsEdited(Boolean(previewToken));
+        setIsEdited(Boolean(previewToken || savedDraft));
         setState('ready');
       })
       .catch(() => {
@@ -323,6 +345,7 @@ export default function TemplateLivePreviewPage() {
       setDraft((current) => {
         const next = cloneEditorDraft(current);
         updateDraftTextField(next, field, value);
+        writeEditorAutosave(template._id, next);
         return next;
       });
       setIsEdited(true);
@@ -343,7 +366,7 @@ export default function TemplateLivePreviewPage() {
       });
       clearPreviewDecorations(root, { removeStyles: true });
     };
-  }, [draft, editing, editorHotspotLabels, isStandalonePreview, state]);
+  }, [draft, editing, editorHotspotLabels, isStandalonePreview, state, template?._id]);
 
   const cleanDraft = (sourceDraft = draft) => {
     const cleanGallery = uniqueImages(sourceDraft.gallery || [])
@@ -368,7 +391,7 @@ export default function TemplateLivePreviewPage() {
       });
       autosaveTokenRef.current = data.token;
       setPrivatePreviewPath(`${data.path}?standalone=1`);
-      localStorage.setItem(`amulet_autosave_${template._id}`, JSON.stringify(nextDraft));
+      writeEditorAutosave(template._id, nextDraft);
       setDraft(nextDraft);
       setIsEdited(true);
       return true;
@@ -500,7 +523,7 @@ export default function TemplateLivePreviewPage() {
 
   const clearEditorSession = () => {
     if (!template?._id) return;
-    localStorage.removeItem(`amulet_autosave_${template._id}`);
+    localStorage.removeItem(editorAutosaveKey(template._id));
     localStorage.removeItem('amulet_pending_draft');
     localStorage.removeItem('amulet_pending_action');
     autosaveTokenRef.current = '';
@@ -517,6 +540,21 @@ export default function TemplateLivePreviewPage() {
     restoreEditorDraft(originalDraft);
     setEditing(false);
     if (previewToken) navigate(`/templates/${template._id}/live`, { replace: true });
+  };
+
+  const persistEditorDraft = (nextDraft, hasChanges) => {
+    setDraft(nextDraft);
+    setIsEdited(hasChanges);
+    if (hasChanges) writeEditorAutosave(template?._id, nextDraft);
+    else if (template?._id) localStorage.removeItem(editorAutosaveKey(template._id));
+  };
+
+  const selectEditorTemplate = (templateId) => {
+    clearEditorSession();
+    setEditing(false);
+    setState('loading');
+    autoEditorOpenedRef.current = false;
+    navigate(`/templates/${templateId}/live?edit=1`);
   };
 
   if (state === 'loading') return <Loading text={t('loading')} />;
@@ -676,8 +714,8 @@ export default function TemplateLivePreviewPage() {
           onPreview={openPrivatePreview}
           previewPath={privatePreviewPath}
           onBuy={buyFromEditor}
-          onDraftChange={setDraft}
-          onSelectTemplate={(templateId) => navigate(`/templates/${templateId}/live?edit=1`)}
+          onDraftChange={persistEditorDraft}
+          onSelectTemplate={selectEditorTemplate}
         />
       )}
 

@@ -1041,7 +1041,7 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
       </header>
 
       <nav className="invite-editor-rail" aria-label={t('editorSections')}>
-        <Link className="invite-editor-home-logo" to="/" aria-label={`${t('brand')} — ${t('home')}`} title={t('home')}>
+        <Link className="invite-editor-home-logo" to="/" onClick={requestClose} aria-label={`${t('brand')} — ${t('home')}`} title={t('home')}>
           <img src={logoImage} alt="" width="34" height="34" />
         </Link>
         {navItems.map(([value, Icon, label]) => <button key={value} type="button" className={tab === value ? 'is-active' : ''} onClick={() => selectTab(value)} aria-current={tab === value ? 'page' : undefined} aria-label={label} title={label}><Icon size={20} /></button>)}
