@@ -1348,6 +1348,8 @@ html[lang="hy"] .test-wedding-card-preview em {
 .field textarea, .panel-form .field:has(textarea) { grid-column: 1 / -1; }
 .input-error { border-color: var(--danger); }
 .field small, .form-error { color: var(--danger); }
+.field-error-message { min-height: 1.25em; line-height: 1.25; }
+.field-error-message[aria-hidden="true"] { visibility: hidden; }
 .success { color: var(--success); font-weight: 800; }
 .panel-form .btn, .panel-form .success, .panel-form .form-error { justify-self: start; }
 .form-success-card {

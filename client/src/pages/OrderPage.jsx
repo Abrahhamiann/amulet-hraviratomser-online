@@ -12,6 +12,7 @@ import { categories } from '../data/categories.js';
 import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
 import { languages } from '../translations/translations.js';
 import { required, toForm } from '../utils/forms.js';
+import { getLocalizedApiError } from '../utils/apiErrors.js';
 
 const normalizeDateValue = (value) => {
   if (!value) return value;
@@ -70,8 +71,10 @@ export default function OrderPage() {
       formElement.reset();
       setStatus('success');
     } catch (error) {
-      const message = error?.response?.data?.message;
-      setServerError(message || (error?.request ? t('orderConnectionError') : t('orderErrorDetails')));
+      setServerError(getLocalizedApiError(error, t, {
+        fallbackKey: 'orderErrorDetails',
+        networkKey: 'orderConnectionError'
+      }));
       setStatus('error');
     }
   };

@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
 import { PasswordRequirements } from './AuthPage.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
+import { getLocalizedApiError } from '../utils/apiErrors.js';
 
 export default function ForgotPasswordPage() {
   const { t } = useLanguage();
@@ -18,7 +19,7 @@ export default function ForgotPasswordPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const checks = { length: password.length >= 8, uppercase: /[A-Z]/.test(password), lowercase: /[a-z]/.test(password), number: /\d/.test(password), special: /[^A-Za-z0-9]/.test(password) };
-  const run = async (action) => { setBusy(true); setError(''); try { await action(); } catch (err) { setError(err.response?.data?.message || err.message || t('error')); } finally { setBusy(false); } };
+  const run = async (action) => { setBusy(true); setError(''); try { await action(); } catch (err) { setError(getLocalizedApiError(err, t)); } finally { setBusy(false); } };
   const sendCode = (event) => { event.preventDefault(); run(async () => { await api.post('/auth/forgot-password', { email }); setStep('code'); window.setTimeout(() => refs.current[0]?.focus(), 100); }); };
   const verifyCode = (event) => { event.preventDefault(); if (code.join('').length !== 6) return setError(t('authCodeLength')); run(async () => { const { data } = await api.post('/auth/verify-reset-code', { email, code: code.join('') }); setResetToken(data.resetToken); setStep('password'); }); };
   const savePassword = (event) => { event.preventDefault(); if (!Object.values(checks).every(Boolean)) return setError(t('authPasswordRulesError')); if (password !== confirmPassword) return setError(t('authPasswordsMismatch')); run(async () => { await api.post('/auth/reset-password', { email, resetToken, password, confirmPassword }); setStep('complete'); window.setTimeout(() => navigate('/login', { replace: true }), 1400); }); };

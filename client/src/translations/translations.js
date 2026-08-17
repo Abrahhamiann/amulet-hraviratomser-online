@@ -2341,12 +2341,63 @@ Object.assign(fr, { validationRequired: 'Ce champ est obligatoire' });
 Object.assign(de, { validationRequired: 'Dieses Feld ist erforderlich' });
 Object.assign(it, { validationRequired: 'Questo campo è obbligatorio' });
 
-Object.assign(hy, { editorViewInvitation: 'Տեսնել հրավերը' });
-Object.assign(en, { editorViewInvitation: 'View invitation' });
-Object.assign(ru, { editorViewInvitation: 'Посмотреть приглашение' });
-Object.assign(es, { editorViewInvitation: 'Ver invitación' });
-Object.assign(fr, { editorViewInvitation: 'Voir l’invitation' });
-Object.assign(de, { editorViewInvitation: 'Einladung ansehen' });
-Object.assign(it, { editorViewInvitation: 'Vedi invito' });
+// Public API errors must stay in the language selected on the website. The server
+// intentionally returns stable English messages; the client maps them to these keys.
+Object.assign(hy, {
+  authFieldsRequired: 'Անունը, email-ը, հեռախոսահամարը, գաղտնաբառը և դրա հաստատումը պարտադիր են։',
+  authEmailInvalid: 'Մուտքագրեք վավեր email հասցե։', authAccountExists: 'Այս տվյալներով հաշիվ արդեն գոյություն ունի։', authPhoneInUse: 'Այս հեռախոսահամարն արդեն օգտագործվում է։',
+  authLoginRequired: 'Email-ը կամ հեռախոսահամարը և գաղտնաբառը պարտադիր են։', authInvalidCredentials: 'Email-ը, հեռախոսահամարը կամ գաղտնաբառը սխալ է։', authVerifyBeforeLogin: 'Մուտք գործելուց առաջ հաստատեք Ձեր email-ը։',
+  authVerificationRequired: 'Email-ը և հաստատման կոդը պարտադիր են։', authCodeExpired: 'Հաստատման կոդի ժամկետը լրացել է։', authTooManyVerificationAttempts: 'Չափազանց շատ փորձեր են կատարվել։ Խնդրում ենք կրկին գրանցվել։',
+  authResetCodeInvalid: 'Վերականգնման կոդը սխալ է կամ ժամկետանց։', authTooManyResetAttempts: 'Չափազանց շատ փորձեր են կատարվել։ Ստացեք նոր կոդ։', authResetRequired: 'Վերականգնման տվյալները և գաղտնաբառը պարտադիր են։', authResetSessionInvalid: 'Գաղտնաբառի վերականգնման հղումը սխալ է կամ ժամկետանց։',
+  authGoogleRequired: 'Google-ի տվյալները բացակայում են։', authGoogleNotConfigured: 'Google մուտքը ժամանակավորապես հասանելի չէ։', authGoogleInvalid: 'Google մուտքի տվյալները սխալ են։', authGoogleAppMismatch: 'Այս Google հաշիվը հնարավոր չէ օգտագործել այստեղ։', authGoogleFailed: 'Չհաջողվեց մուտք գործել Google-ով։',
+  reviewPurchaseRequired: 'Կարծիք թողնելու համար անհրաժեշտ է ավարտված գնում։', reviewTooShort: 'Կարծիքի տեքստը չափազանց կարճ է։', reviewAlreadySubmitted: 'Այս գնման համար արդեն կարծիք եք ուղարկել։'
+});
+Object.assign(en, {
+  authFieldsRequired: 'Name, email, phone, password, and password confirmation are required.', authEmailInvalid: 'Enter a valid email address.', authAccountExists: 'An account with these details already exists.', authPhoneInUse: 'This phone number is already in use.',
+  authLoginRequired: 'Email or phone and password are required.', authInvalidCredentials: 'The email, phone number, or password is incorrect.', authVerifyBeforeLogin: 'Verify your email before signing in.', authVerificationRequired: 'Email and verification code are required.', authCodeExpired: 'The verification code has expired.', authTooManyVerificationAttempts: 'Too many attempts. Please register again.',
+  authResetCodeInvalid: 'The reset code is invalid or expired.', authTooManyResetAttempts: 'Too many attempts. Request a new code.', authResetRequired: 'Reset details and password are required.', authResetSessionInvalid: 'The password reset session is invalid or expired.',
+  authGoogleRequired: 'Google sign-in details are missing.', authGoogleNotConfigured: 'Google sign-in is temporarily unavailable.', authGoogleInvalid: 'The Google sign-in details are invalid.', authGoogleAppMismatch: 'This Google account cannot be used with this app.', authGoogleFailed: 'Google sign-in failed.',
+  reviewPurchaseRequired: 'A completed purchase is required to add a review.', reviewTooShort: 'The review text is too short.', reviewAlreadySubmitted: 'A review has already been submitted for this purchase.'
+});
+Object.assign(ru, {
+  authFieldsRequired: 'Укажите имя, email, телефон, пароль и подтверждение пароля.', authEmailInvalid: 'Введите корректный email.', authAccountExists: 'Аккаунт с такими данными уже существует.', authPhoneInUse: 'Этот номер телефона уже используется.',
+  authLoginRequired: 'Укажите email или телефон и пароль.', authInvalidCredentials: 'Неверный email, номер телефона или пароль.', authVerifyBeforeLogin: 'Подтвердите email перед входом.', authVerificationRequired: 'Укажите email и код подтверждения.', authCodeExpired: 'Срок действия кода подтверждения истёк.', authTooManyVerificationAttempts: 'Слишком много попыток. Зарегистрируйтесь повторно.',
+  authResetCodeInvalid: 'Код восстановления неверен или истёк.', authTooManyResetAttempts: 'Слишком много попыток. Запросите новый код.', authResetRequired: 'Укажите данные восстановления и пароль.', authResetSessionInvalid: 'Сеанс восстановления пароля недействителен или истёк.',
+  authGoogleRequired: 'Отсутствуют данные для входа через Google.', authGoogleNotConfigured: 'Вход через Google временно недоступен.', authGoogleInvalid: 'Недействительные данные входа Google.', authGoogleAppMismatch: 'Этот аккаунт Google нельзя использовать в приложении.', authGoogleFailed: 'Не удалось войти через Google.',
+  reviewPurchaseRequired: 'Оставить отзыв можно только после завершённой покупки.', reviewTooShort: 'Текст отзыва слишком короткий.', reviewAlreadySubmitted: 'Отзыв об этой покупке уже отправлен.',
+  checkoutError: 'Не удалось открыть страницу оплаты. Попробуйте снова.', paymentSuccessErrorTitle: 'Не удалось подтвердить оплату', paymentSuccessErrorText: 'Не удалось подтвердить этот платёж. Откройте профиль или попробуйте снова.'
+});
+Object.assign(es, {
+  authFieldsRequired: 'El nombre, el email, el teléfono, la contraseña y su confirmación son obligatorios.', authEmailInvalid: 'Introduce un email válido.', authAccountExists: 'Ya existe una cuenta con estos datos.', authPhoneInUse: 'Este número de teléfono ya está en uso.',
+  authLoginRequired: 'El email o teléfono y la contraseña son obligatorios.', authInvalidCredentials: 'El email, el teléfono o la contraseña son incorrectos.', authVerifyBeforeLogin: 'Confirma tu email antes de iniciar sesión.', authVerificationRequired: 'El email y el código de verificación son obligatorios.', authCodeExpired: 'El código de verificación ha caducado.', authTooManyVerificationAttempts: 'Demasiados intentos. Regístrate de nuevo.',
+  authResetCodeInvalid: 'El código de recuperación no es válido o ha caducado.', authTooManyResetAttempts: 'Demasiados intentos. Solicita un código nuevo.', authResetRequired: 'Los datos de recuperación y la contraseña son obligatorios.', authResetSessionInvalid: 'La sesión de recuperación no es válida o ha caducado.',
+  authGoogleRequired: 'Faltan los datos de acceso de Google.', authGoogleNotConfigured: 'El acceso con Google no está disponible temporalmente.', authGoogleInvalid: 'Los datos de acceso de Google no son válidos.', authGoogleAppMismatch: 'Esta cuenta de Google no se puede usar en la aplicación.', authGoogleFailed: 'No se pudo iniciar sesión con Google.',
+  reviewPurchaseRequired: 'Debes completar una compra para dejar una reseña.', reviewTooShort: 'El texto de la reseña es demasiado corto.', reviewAlreadySubmitted: 'Ya enviaste una reseña para esta compra.',
+  orderErrorDetails: 'Comprueba los campos obligatorios e inténtalo de nuevo.', orderConnectionError: 'No se pudo conectar con el servidor. Inténtalo de nuevo más tarde.', checkoutError: 'No se pudo abrir el pago. Inténtalo de nuevo.', paymentSuccessErrorTitle: 'No se pudo confirmar el pago', paymentSuccessErrorText: 'No pudimos confirmar este pago. Abre tu perfil o inténtalo de nuevo.'
+});
+Object.assign(fr, {
+  authFieldsRequired: 'Le nom, l’email, le téléphone, le mot de passe et sa confirmation sont obligatoires.', authEmailInvalid: 'Saisissez une adresse email valide.', authAccountExists: 'Un compte avec ces informations existe déjà.', authPhoneInUse: 'Ce numéro de téléphone est déjà utilisé.',
+  authLoginRequired: 'L’email ou le téléphone et le mot de passe sont obligatoires.', authInvalidCredentials: 'L’email, le téléphone ou le mot de passe est incorrect.', authVerifyBeforeLogin: 'Confirmez votre email avant de vous connecter.', authVerificationRequired: 'L’email et le code de vérification sont obligatoires.', authCodeExpired: 'Le code de vérification a expiré.', authTooManyVerificationAttempts: 'Trop de tentatives. Inscrivez-vous à nouveau.',
+  authResetCodeInvalid: 'Le code de réinitialisation est invalide ou expiré.', authTooManyResetAttempts: 'Trop de tentatives. Demandez un nouveau code.', authResetRequired: 'Les informations de réinitialisation et le mot de passe sont obligatoires.', authResetSessionInvalid: 'La session de réinitialisation est invalide ou expirée.',
+  authGoogleRequired: 'Les informations de connexion Google sont manquantes.', authGoogleNotConfigured: 'La connexion Google est temporairement indisponible.', authGoogleInvalid: 'Les informations de connexion Google sont invalides.', authGoogleAppMismatch: 'Ce compte Google ne peut pas être utilisé avec cette application.', authGoogleFailed: 'La connexion avec Google a échoué.',
+  reviewPurchaseRequired: 'Un achat finalisé est nécessaire pour laisser un avis.', reviewTooShort: 'Le texte de l’avis est trop court.', reviewAlreadySubmitted: 'Un avis a déjà été envoyé pour cet achat.',
+  orderErrorDetails: 'Vérifiez les champs obligatoires et réessayez.', orderConnectionError: 'Impossible de joindre le serveur. Réessayez plus tard.', checkoutError: 'Impossible d’ouvrir le paiement. Réessayez.', paymentSuccessErrorTitle: 'Échec de la confirmation du paiement', paymentSuccessErrorText: 'Nous n’avons pas pu confirmer ce paiement. Ouvrez votre profil ou réessayez.'
+});
+Object.assign(de, {
+  authFieldsRequired: 'Name, E-Mail, Telefon, Passwort und Passwortbestätigung sind erforderlich.', authEmailInvalid: 'Geben Sie eine gültige E-Mail-Adresse ein.', authAccountExists: 'Ein Konto mit diesen Daten existiert bereits.', authPhoneInUse: 'Diese Telefonnummer wird bereits verwendet.',
+  authLoginRequired: 'E-Mail oder Telefon und Passwort sind erforderlich.', authInvalidCredentials: 'E-Mail, Telefonnummer oder Passwort ist falsch.', authVerifyBeforeLogin: 'Bestätigen Sie vor der Anmeldung Ihre E-Mail-Adresse.', authVerificationRequired: 'E-Mail und Bestätigungscode sind erforderlich.', authCodeExpired: 'Der Bestätigungscode ist abgelaufen.', authTooManyVerificationAttempts: 'Zu viele Versuche. Registrieren Sie sich erneut.',
+  authResetCodeInvalid: 'Der Wiederherstellungscode ist ungültig oder abgelaufen.', authTooManyResetAttempts: 'Zu viele Versuche. Fordern Sie einen neuen Code an.', authResetRequired: 'Wiederherstellungsdaten und Passwort sind erforderlich.', authResetSessionInvalid: 'Die Sitzung zur Passwortwiederherstellung ist ungültig oder abgelaufen.',
+  authGoogleRequired: 'Die Google-Anmeldedaten fehlen.', authGoogleNotConfigured: 'Die Google-Anmeldung ist vorübergehend nicht verfügbar.', authGoogleInvalid: 'Die Google-Anmeldedaten sind ungültig.', authGoogleAppMismatch: 'Dieses Google-Konto kann nicht mit dieser App verwendet werden.', authGoogleFailed: 'Die Google-Anmeldung ist fehlgeschlagen.',
+  reviewPurchaseRequired: 'Für eine Bewertung ist ein abgeschlossener Kauf erforderlich.', reviewTooShort: 'Der Bewertungstext ist zu kurz.', reviewAlreadySubmitted: 'Für diesen Kauf wurde bereits eine Bewertung abgegeben.',
+  orderErrorDetails: 'Prüfen Sie die Pflichtfelder und versuchen Sie es erneut.', orderConnectionError: 'Der Server ist nicht erreichbar. Versuchen Sie es später erneut.', checkoutError: 'Die Zahlung konnte nicht geöffnet werden. Versuchen Sie es erneut.', paymentSuccessErrorTitle: 'Zahlungsbestätigung fehlgeschlagen', paymentSuccessErrorText: 'Diese Zahlung konnte nicht bestätigt werden. Öffnen Sie Ihr Profil oder versuchen Sie es erneut.'
+});
+Object.assign(it, {
+  authFieldsRequired: 'Nome, email, telefono, password e conferma della password sono obbligatori.', authEmailInvalid: 'Inserisci un indirizzo email valido.', authAccountExists: 'Esiste già un account con questi dati.', authPhoneInUse: 'Questo numero di telefono è già in uso.',
+  authLoginRequired: 'Email o telefono e password sono obbligatori.', authInvalidCredentials: 'Email, numero di telefono o password non sono corretti.', authVerifyBeforeLogin: 'Conferma la tua email prima di accedere.', authVerificationRequired: 'Email e codice di verifica sono obbligatori.', authCodeExpired: 'Il codice di verifica è scaduto.', authTooManyVerificationAttempts: 'Troppi tentativi. Registrati di nuovo.',
+  authResetCodeInvalid: 'Il codice di recupero non è valido o è scaduto.', authTooManyResetAttempts: 'Troppi tentativi. Richiedi un nuovo codice.', authResetRequired: 'I dati di recupero e la password sono obbligatori.', authResetSessionInvalid: 'La sessione di recupero password non è valida o è scaduta.',
+  authGoogleRequired: 'Mancano i dati di accesso Google.', authGoogleNotConfigured: 'L’accesso con Google non è temporaneamente disponibile.', authGoogleInvalid: 'I dati di accesso Google non sono validi.', authGoogleAppMismatch: 'Questo account Google non può essere usato con l’app.', authGoogleFailed: 'Accesso con Google non riuscito.',
+  reviewPurchaseRequired: 'Per lasciare una recensione è necessario un acquisto completato.', reviewTooShort: 'Il testo della recensione è troppo breve.', reviewAlreadySubmitted: 'Hai già inviato una recensione per questo acquisto.',
+  orderErrorDetails: 'Controlla i campi obbligatori e riprova.', orderConnectionError: 'Impossibile connettersi al server. Riprova più tardi.', checkoutError: 'Impossibile aprire il pagamento. Riprova.', paymentSuccessErrorTitle: 'Conferma del pagamento non riuscita', paymentSuccessErrorText: 'Non è stato possibile confermare il pagamento. Apri il profilo o riprova.'
+});
 
 export const translations = { hy, en, ru, es, fr, de, it };

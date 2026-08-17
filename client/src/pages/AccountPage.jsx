@@ -20,6 +20,7 @@ import {
 import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
+import { getLocalizedApiError } from '../utils/apiErrors.js';
 import telegramLogo from '../assets/telegram-logo.png';
 import Loading from '../components/Loading.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -236,7 +237,7 @@ export default function AccountPage() {
       window.setTimeout(() => setReviewTarget(null), 700);
     } catch (error) {
       setReviewState('error');
-      setReviewError(error.response?.data?.message || t('reviewSubmitError'));
+      setReviewError(getLocalizedApiError(error, t, { fallbackKey: 'reviewSubmitError' }));
     }
   };
   const openShareModal = (order, invitationHref) => {

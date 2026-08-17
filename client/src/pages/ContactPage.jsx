@@ -43,10 +43,10 @@ export default function ContactPage() {
         </div>
       </div>
       <form className="panel-form" onSubmit={submit} noValidate>
-        <Input label={t('contactName')} name="name" error={errors.name} />
-        <Input label={t('phone')} name="phone" type="tel" error={errors.phone} />
-        <Input label={t('email')} name="email" type="email" error={errors.email} />
-        <Input label={t('message')} name="message" as="textarea" rows="5" error={errors.message} />
+        <Input label={t('contactName')} name="name" error={errors.name} reserveErrorSpace />
+        <Input label={t('phone')} name="phone" type="tel" error={errors.phone} reserveErrorSpace />
+        <Input label={t('email')} name="email" type="email" error={errors.email} reserveErrorSpace />
+        <Input label={t('message')} name="message" as="textarea" rows="5" error={errors.message} reserveErrorSpace />
         <Button disabled={status === 'loading'}>{status === 'loading' ? t('loading') : t('submit')}</Button>
         {status === 'success' && (
           <div className="form-success-card" role="status" aria-live="polite">

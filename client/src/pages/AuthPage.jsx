@@ -6,6 +6,7 @@ import Loading from '../components/Loading.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { startStripeCheckout } from '../utils/checkout.js';
+import { getLocalizedApiError } from '../utils/apiErrors.js';
 
 import { GOOGLE_CLIENT_ID as googleClientId } from '../config/env.js';
 
@@ -82,7 +83,7 @@ export default function AuthPage() {
             setError(''); setBusy(true);
             const { data } = await api.post('/auth/google', { idToken: credential });
             saveSession(data);
-          } catch (err) { setError(err.response?.data?.message || 'Google sign-in failed'); }
+          } catch (err) { setError(getLocalizedApiError(err, t, { fallbackKey: 'authGoogleFailed' })); }
           finally { setBusy(false); }
         }
       });
@@ -134,7 +135,7 @@ export default function AuthPage() {
       }
       const { data } = await api.post('/auth/login', { identifier: form.identifier, password: form.password });
       saveSession(data);
-    } catch (err) { setError(err.response?.data?.message || err.message || t('error')); }
+    } catch (err) { setError(getLocalizedApiError(err, t)); }
     finally { setBusy(false); }
   };
 
@@ -152,7 +153,7 @@ export default function AuthPage() {
       const { data } = await api.post('/auth/verify-email', { email: verificationEmail, code: code.join('') });
       setVerificationComplete(true);
       window.setTimeout(() => saveSession(data), 900);
-    } catch (err) { setError(err.response?.data?.message || t('authCodeWrong')); }
+    } catch (err) { setError(getLocalizedApiError(err, t, { fallbackKey: 'authCodeWrong' })); }
     finally { setBusy(false); }
   };
 

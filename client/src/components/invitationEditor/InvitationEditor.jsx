@@ -1063,7 +1063,7 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
           {compactViewport && (
             <button className="invite-editor-footer-preview" type="button" onClick={() => void showModifiedPreview()} disabled={actions.saving}>
               <Eye size={16} />
-              <span>{t('editorViewInvitation')}</span>
+              <span>{t('editorViewChanges')}</span>
             </button>
           )}
           <button className="invite-editor-footer-buy" type="button" onClick={() => actions.onBuy?.(data)} disabled={actions.saving}>
