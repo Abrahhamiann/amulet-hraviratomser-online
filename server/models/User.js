@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
       firstName: { type: String, default: '' },
       language: {
         type: String,
-        enum: ['hy', 'en', 'ru', 'es', 'fr', 'de', 'it'],
+        enum: ['hy', 'en', 'ru'],
         default: 'hy'
       },
       notificationsEnabled: { type: Boolean, default: true },

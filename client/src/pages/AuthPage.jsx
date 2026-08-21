@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Check, LogIn, Mail, Phone, ShieldCheck, UserPlus, X } from 'lucide-react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
 import Loading from '../components/Loading.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -11,6 +11,7 @@ import { getLocalizedApiError } from '../utils/apiErrors.js';
 import { GOOGLE_CLIENT_ID as googleClientId } from '../config/env.js';
 
 export default function AuthPage() {
+  const location = useLocation();
   const navigate = useNavigate();
   const { initialized, setAuthenticatedUser, user } = useAuth();
   const { t } = useLanguage();
@@ -24,6 +25,11 @@ export default function AuthPage() {
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const requestedPath = typeof location.state?.returnTo === 'string'
+    && location.state.returnTo.startsWith('/')
+    && !location.state.returnTo.startsWith('//')
+    ? location.state.returnTo
+    : '/';
   const passwordChecks = {
     length: form.password.length >= 8,
     uppercase: /[A-Z]/.test(form.password),
@@ -57,7 +63,7 @@ export default function AuthPage() {
       startStripeCheckout(pendingTemplate, parsedDraft, { promoCode: pendingPromo || '' }).catch(() => navigate(`/templates/${pendingTemplate}/live`, { replace: true }));
       return;
     }
-    navigate('/', { replace: true });
+    navigate(requestedPath, { replace: true });
   };
 
   useEffect(() => {
@@ -74,6 +80,7 @@ export default function AuthPage() {
     let cancelled = false;
     let resizeObserver;
     let renderFrame = 0;
+    let scheduleRender = () => {};
     loadGoogle().then(() => {
       if (cancelled || !window.google?.accounts?.id || !googleRef.current) return;
       window.google.accounts.id.initialize({
@@ -92,7 +99,8 @@ export default function AuthPage() {
         const slot = googleRef.current;
         if (cancelled || !slot) return;
         const availableWidth = Math.floor(slot.getBoundingClientRect().width);
-        const width = Math.min(400, Math.max(200, availableWidth || 280));
+        if (availableWidth < 1) return;
+        const width = Math.min(400, availableWidth);
         if (width === renderedWidth && slot.querySelector('iframe')) return;
         renderedWidth = width;
         slot.innerHTML = '';
@@ -101,17 +109,22 @@ export default function AuthPage() {
           width
         });
       };
-      const scheduleRender = () => {
+      scheduleRender = () => {
         window.cancelAnimationFrame(renderFrame);
         renderFrame = window.requestAnimationFrame(renderGoogleButton);
       };
       renderGoogleButton();
-      resizeObserver = new ResizeObserver(scheduleRender);
-      resizeObserver.observe(googleRef.current);
+      if (typeof ResizeObserver !== 'undefined') {
+        resizeObserver = new ResizeObserver(scheduleRender);
+        resizeObserver.observe(googleRef.current);
+      }
+      window.addEventListener('resize', scheduleRender);
+      document.fonts?.ready?.then(scheduleRender);
     });
     return () => {
       cancelled = true;
       resizeObserver?.disconnect();
+      window.removeEventListener('resize', scheduleRender);
       window.cancelAnimationFrame(renderFrame);
     };
   }, [mode]);
@@ -158,7 +171,7 @@ export default function AuthPage() {
   };
 
   if (!initialized) return <Loading text={t('loading')} />;
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to={requestedPath} replace />;
 
   return (
     <section className="auth-page">

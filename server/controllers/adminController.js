@@ -28,7 +28,7 @@ const userRoles = ['user', ...adminRoles];
 const DEFAULT_DESIGN_KEY = 'ivory-vows';
 const FAQ_SETTING_KEY = 'faqItems';
 const REVENUE_RESET_SETTING_KEY = 'revenueResetAt';
-const FAQ_LANGUAGES = ['hy', 'en', 'ru', 'es', 'fr', 'de', 'it'];
+const FAQ_LANGUAGES = ['hy', 'en', 'ru'];
 const FAQ_IDS = [
   'faq-price-includes', 'faq-production-time', 'faq-sharing', 'faq-languages',
   'faq-edit-after-purchase', 'faq-responsive', 'faq-rsvp', 'faq-location-map',

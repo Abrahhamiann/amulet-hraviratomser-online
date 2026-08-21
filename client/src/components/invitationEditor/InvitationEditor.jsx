@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { ArrowLeft, CheckCircle2, ChevronDown, Eye, Images, LayoutGrid, Monitor, PanelLeftClose, PanelLeftOpen, Pencil, Redo2, RotateCcw, ShoppingBag, Smartphone, Sparkles, Tablet, Undo2, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import editorExitAlert from '../../assets/animations/editor-exit-alert.lottie?url';
 import iphoneDeviceFrame from '../../assets/editor-devices/iphone-device-frame-clean.png';
 import ipadDeviceFrame from '../../assets/editor-devices/ipad-device-frame-clean.png';
 import logoImage from '../../assets/logo.png';
@@ -905,12 +907,20 @@ function PreviewWorkspace({ PreviewComponent }) {
 }
 
 function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
-  const { activeField, activeSection, actions, canRedo, canUndo, data, device, discardChanges, dirty, mobileSheet, previewFocusRequest, redo, restoreOriginal, saveStatus, setDevice, setMobileSheet, setSidebarOpen, setTab, sidebarOpen, tab, undo } = useEditor();
+  const { activeField, activeSection, actions, canRedo, canUndo, data, device, dirty, mobileSheet, previewFocusRequest, redo, restoreOriginal, saveStatus, setDevice, setMobileSheet, setSidebarOpen, setTab, sidebarOpen, tab, undo } = useEditor();
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [compactViewport, setCompactViewport] = useState(() => window.matchMedia('(max-width: 1024px)').matches);
   const [restoreOpen, setRestoreOpen] = useState(false);
+  const [exitRequest, setExitRequest] = useState(null);
   const sheetStart = useRef(null);
   const restoreCancelRef = useRef(null);
+  const exitSaveRef = useRef(null);
+  const sessionBaselineRef = useRef(JSON.stringify(data));
+  const hasSessionChanges = JSON.stringify(data) !== sessionBaselineRef.current;
+  const dirtyRef = useRef(hasSessionChanges);
+  const closeActionRef = useRef(actions.onClose);
+  const historyGuardRef = useRef({ active: false, allowExit: false, marker: `amulet-editor-${Date.now()}-${Math.random().toString(16).slice(2)}` });
   const navItems = useMemo(() => [
     ['templates', LayoutGrid, t('editorTemplates')],
     ['content', Pencil, t('editorEdit')],
@@ -934,10 +944,83 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
     };
   }, [setDevice]);
 
-  const requestClose = useCallback(() => {
-    discardChanges();
-    actions.onClose?.();
-  }, [actions, discardChanges]);
+  useEffect(() => { dirtyRef.current = hasSessionChanges; }, [hasSessionChanges]);
+  useEffect(() => { closeActionRef.current = actions.onClose; }, [actions.onClose]);
+
+  useEffect(() => {
+    const guard = historyGuardRef.current;
+    const existingMarker = window.history.state?.amuletEditorGuard;
+    if (existingMarker) guard.marker = existingMarker;
+    else window.history.pushState({ ...(window.history.state || {}), amuletEditorGuard: guard.marker }, '', window.location.href);
+    guard.active = true;
+    guard.allowExit = false;
+
+    const handleBrowserBack = () => {
+      if (guard.allowExit || !guard.active) return;
+      guard.active = false;
+      if (dirtyRef.current) {
+        setExitRequest({ destination: '', historyBack: true });
+        return;
+      }
+      guard.allowExit = true;
+      closeActionRef.current?.();
+      window.setTimeout(() => window.history.back(), 0);
+    };
+
+    window.addEventListener('popstate', handleBrowserBack);
+    return () => window.removeEventListener('popstate', handleBrowserBack);
+  }, []);
+
+  const finishExit = useCallback((destination = '', continueBrowserBack = false) => {
+    const guard = historyGuardRef.current;
+    const finalize = () => {
+      actions.onClose?.();
+      if (continueBrowserBack) window.setTimeout(() => window.history.back(), 0);
+      else if (destination) navigate(destination);
+    };
+
+    guard.allowExit = true;
+    if (guard.active) {
+      guard.active = false;
+      window.addEventListener('popstate', finalize, { once: true });
+      window.history.back();
+      return;
+    }
+    finalize();
+  }, [actions, navigate]);
+
+  const requestClose = useCallback((destination = '') => {
+    if (!hasSessionChanges) {
+      finishExit(destination);
+      return;
+    }
+    setExitRequest({ destination, historyBack: false });
+  }, [finishExit, hasSessionChanges]);
+
+  const saveAndExit = useCallback(() => {
+    if (!exitRequest) return;
+    actions.onDraftChange?.(data, true);
+    setExitRequest(null);
+    finishExit('/templates');
+  }, [actions, data, exitRequest, finishExit]);
+
+  const discardAndExit = useCallback(() => {
+    if (!exitRequest) return;
+    const { destination, historyBack = false } = exitRequest;
+    setExitRequest(null);
+    restoreOriginal();
+    finishExit(destination, historyBack);
+  }, [exitRequest, finishExit, restoreOriginal]);
+
+  const cancelExit = useCallback(() => {
+    const guard = historyGuardRef.current;
+    if (exitRequest?.historyBack && !guard.active) {
+      window.history.pushState({ ...(window.history.state || {}), amuletEditorGuard: guard.marker }, '', window.location.href);
+      guard.active = true;
+      guard.allowExit = false;
+    }
+    setExitRequest(null);
+  }, [exitRequest]);
 
   const showModifiedPreview = useCallback(async () => {
     const opened = await actions.onPreview?.(data);
@@ -954,13 +1037,18 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
   }, [restoreOpen]);
 
   useEffect(() => {
+    if (exitRequest) exitSaveRef.current?.focus();
+  }, [exitRequest]);
+
+  useEffect(() => {
     const previousBodyOverflow = document.body.style.overflow;
     const previousRootOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
     const onEscape = (event) => {
       if (event.key !== 'Escape') return;
-      if (restoreOpen) setRestoreOpen(false);
+      if (exitRequest) cancelExit();
+      else if (restoreOpen) setRestoreOpen(false);
       else requestClose();
     };
     window.addEventListener('keydown', onEscape);
@@ -969,7 +1057,7 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
       document.documentElement.style.overflow = previousRootOverflow;
       window.removeEventListener('keydown', onEscape);
     };
-  }, [requestClose, restoreOpen]);
+  }, [cancelExit, exitRequest, requestClose, restoreOpen]);
 
   useEffect(() => {
     if (!previewFocusRequest.scrollSidebar && !previewFocusRequest.focusSidebar) return undefined;
@@ -1036,16 +1124,16 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
           <small aria-live="polite">{saveStatus === 'changed' ? t('editorSessionChanges') : t('editorOriginalState')}</small>
           <button className="invite-editor-restore-trigger" type="button" onClick={() => setRestoreOpen(true)} disabled={!dirty}><RotateCcw size={17} /><span>{t('editorRestore')}</span></button>
           <button type="button" onClick={() => void showModifiedPreview()} disabled={actions.saving}><Eye size={17} /><span>{t('editorViewChanges')}</span></button>
-          <button type="button" onClick={requestClose} aria-label={t('editorClose')}><X size={24} /></button>
+          <button type="button" onClick={() => requestClose()} aria-label={t('editorClose')}><X size={24} /></button>
         </div>
       </header>
 
       <nav className="invite-editor-rail" aria-label={t('editorSections')}>
-        <Link className="invite-editor-home-logo" to="/" onClick={requestClose} aria-label={`${t('brand')} — ${t('home')}`} title={t('home')}>
+        <Link className="invite-editor-home-logo" to="/" onClick={(event) => { event.preventDefault(); requestClose('/'); }} aria-label={`${t('brand')} — ${t('home')}`} title={t('home')}>
           <img src={logoImage} alt="" width="34" height="34" />
         </Link>
         {navItems.map(([value, Icon, label]) => <button key={value} type="button" className={tab === value ? 'is-active' : ''} onClick={() => selectTab(value)} aria-current={tab === value ? 'page' : undefined} aria-label={label} title={label}><Icon size={20} /></button>)}
-        <button type="button" className="invite-editor-back" onClick={requestClose} aria-label={t('back')} title={t('back')}><ArrowLeft size={19} /></button>
+        <button type="button" className="invite-editor-back" onClick={() => requestClose()} aria-label={t('back')} title={t('back')}><ArrowLeft size={19} /></button>
       </nav>
 
       <aside id="invite-editor-sidebar" className={`invite-editor-sidebar is-${mobileSheet}`}>
@@ -1084,6 +1172,23 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
             <div>
               <button ref={restoreCancelRef} type="button" onClick={() => setRestoreOpen(false)}>{t('cancel')}</button>
               <button className="is-destructive" type="button" onClick={confirmRestore}>{t('editorRestoreConfirm')}</button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {exitRequest && (
+        <div className="invite-editor-confirm-backdrop" role="presentation">
+          <section className="invite-editor-confirm invite-editor-exit-confirm" role="alertdialog" aria-modal="true" aria-labelledby="editor-exit-title" aria-describedby="editor-exit-description">
+            <button className="invite-editor-confirm-close" type="button" onClick={cancelExit} aria-label={t('cancel')}><X size={20} /></button>
+            <div className="invite-editor-exit-animation" aria-hidden="true">
+              <DotLottieReact src={editorExitAlert} autoplay={!window.matchMedia('(prefers-reduced-motion: reduce)').matches} loop={!window.matchMedia('(prefers-reduced-motion: reduce)').matches} />
+            </div>
+            <h2 id="editor-exit-title">{t('editorExitTitle')}</h2>
+            <p id="editor-exit-description">{t('editorExitDescription')}</p>
+            <div className="invite-editor-exit-actions">
+              <button className="is-destructive" type="button" onClick={discardAndExit}>{t('editorExitDiscard')}</button>
+              <button ref={exitSaveRef} className="is-primary" type="button" onClick={saveAndExit}>{t('editorExitSave')}</button>
             </div>
           </section>
         </div>

@@ -21,10 +21,10 @@ type FaqItem = {
   active: boolean;
 };
 
-const faqLanguages = ["hy", "en", "ru", "es", "fr", "de", "it"] as const;
+const faqLanguages = ["hy", "en", "ru"] as const;
 type FaqLanguage = (typeof faqLanguages)[number];
 const faqLanguageLabels: Record<FaqLanguage, string> = {
-  hy: "Հայերեն", en: "English", ru: "Русский", es: "Español", fr: "Français", de: "Deutsch", it: "Italiano",
+  hy: "Հայերեն", en: "English", ru: "Русский",
 };
 const emptyTranslations = () => Object.fromEntries(
   faqLanguages.map((language) => [language, { question: "", answer: "" }]),

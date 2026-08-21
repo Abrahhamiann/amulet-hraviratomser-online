@@ -16,7 +16,7 @@ import {
   X
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import api from '../api/axios.js';
 import ErrorState from '../components/ErrorState.jsx';
 import InvitationEditor, { clearPreviewDecorations, decoratePreview, updateDraftTextField } from '../components/invitationEditor/InvitationEditor.jsx';
@@ -34,6 +34,7 @@ const previewDate = new Date();
 previewDate.setMonth(previewDate.getMonth() + 1);
 
 const editorAutosaveKey = (templateId) => `amulet_autosave_${templateId}`;
+const editorOpenKey = (templateId) => `amulet_editor_open_${templateId}`;
 
 const readEditorAutosave = (templateId) => {
   if (!templateId) return null;
@@ -215,12 +216,13 @@ function EditRequiredModal({ onClose, onEdit, t }) {
 }
 
 export default function TemplateLivePreviewPage() {
+  const location = useLocation();
   const navigate = useNavigate();
   const { id, previewToken } = useParams();
   const [searchParams] = useSearchParams();
   const isStandalonePreview = Boolean(previewToken && searchParams.get('standalone') === '1');
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { initialized, user } = useAuth();
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const [template, setTemplate] = useState(null);
   const [draft, setDraft] = useState(null);
@@ -243,6 +245,16 @@ export default function TemplateLivePreviewPage() {
   const editorHotspotLabels = useMemo(() => ({ image: t('image'), map: t('map'), edit: t('editorEdit'), changeImage: t('editorChangeImage'), editMap: t('editorEditMap'), editSection: t('editorEditSection'), heroImage: t('editorHeroImage'), galleryImage: t('editorGalleryImage'), participantImage: t('editorParticipantImage'), venueImage: t('editorVenueImage'), closingImage: t('editorClosingImage'), invitationImage: t('editorInvitationImage') }), [t]);
 
   useEffect(() => {
+    if (initialized && !user) {
+      navigate('/login', {
+        replace: true,
+        state: { returnTo: `${location.pathname}${location.search}` }
+      });
+    }
+  }, [initialized, location.pathname, location.search, navigate, user]);
+
+  useEffect(() => {
+    if (!initialized || !user) return undefined;
     const request = previewToken ? api.get(`/previews/${previewToken}`) : api.get(`/templates/${id}`);
     request
       .then(({ data }) => {
@@ -262,14 +274,16 @@ export default function TemplateLivePreviewPage() {
         if (previewToken) navigate('/', { replace: true });
         else setState('error');
       });
-  }, [id, navigate, previewToken]);
+    return undefined;
+  }, [id, initialized, navigate, previewToken, user]);
 
   useEffect(() => {
-    if (!autoEditorOpenedRef.current && state === 'ready' && draft && searchParams.get('edit') === '1') {
+    const shouldReopenEditor = template?._id && localStorage.getItem(editorOpenKey(template._id)) === '1';
+    if (!autoEditorOpenedRef.current && state === 'ready' && draft && (searchParams.get('edit') === '1' || shouldReopenEditor)) {
       autoEditorOpenedRef.current = true;
       openEditor();
     }
-  }, [state, draft, searchParams]);
+  }, [state, draft, searchParams, template?._id]);
 
   useEffect(() => {
     if (!autoBuyOpenedRef.current && state === 'ready' && draft && searchParams.get('buy') === '1') {
@@ -414,6 +428,7 @@ export default function TemplateLivePreviewPage() {
       autosaveTokenRef.current = data.token;
       setDraft(nextDraft);
       setIsEdited(true);
+      localStorage.removeItem(editorOpenKey(template._id));
       setEditing(false);
       setCheckoutState('idle');
       setPromoError('');
@@ -439,7 +454,13 @@ export default function TemplateLivePreviewPage() {
       Object.hasOwn(target, 'section') || Object.hasOwn(target, 'field') || Object.hasOwn(target, 'targetTab')
     );
     setEditorInitialTarget(isEditorTarget ? target : {});
+    if (template?._id) localStorage.setItem(editorOpenKey(template._id), '1');
     setEditing(true);
+  };
+
+  const closeEditor = () => {
+    if (template?._id) localStorage.removeItem(editorOpenKey(template._id));
+    setEditing(false);
   };
 
   const orderTemplate = async () => {
@@ -530,6 +551,7 @@ export default function TemplateLivePreviewPage() {
   const clearEditorSession = () => {
     if (!template?._id) return;
     localStorage.removeItem(editorAutosaveKey(template._id));
+    localStorage.removeItem(editorOpenKey(template._id));
     localStorage.removeItem('amulet_pending_draft');
     localStorage.removeItem('amulet_pending_action');
     autosaveTokenRef.current = '';
@@ -563,7 +585,7 @@ export default function TemplateLivePreviewPage() {
     navigate(`/templates/${templateId}/live?edit=1`);
   };
 
-  if (state === 'loading') return <Loading text={t('loading')} />;
+  if (!initialized || !user || state === 'loading') return <Loading text={t('loading')} />;
   if (state === 'error') return <ErrorState text={t('error')} />;
 
   const occasionTemplate = getOccasionTemplate(template);
@@ -584,7 +606,7 @@ export default function TemplateLivePreviewPage() {
             draft={draft}
             price={template.price}
             loading={checkoutState === 'loading'}
-            mode={isStandalonePreview ? 'studio' : undefined}
+            mode={isStandalonePreview ? 'preview' : undefined}
             onHome={() => navigate('/')}
             onEdit={openEditor}
             onOrder={orderTemplate}
@@ -645,7 +667,7 @@ export default function TemplateLivePreviewPage() {
           )}
         </section>
 
-        {!isStandalonePreview && <section className="template-live-footer">
+        <section className="template-live-footer">
           <div>
             <span>{t('invitationPrice')}</span>
             <strong>{Number(template.price).toLocaleString()} AMD</strong>
@@ -663,12 +685,12 @@ export default function TemplateLivePreviewPage() {
               {checkoutState === 'loading' ? t('loading') : t('orderThis')}
             </button>
           </div>
-        </section>}
+        </section>
         {checkoutState === 'error' && <p className="template-live-error">{t('checkoutError')}</p>}
       </article>
       )}
 
-      {!isStandalonePreview && editRequiredOpen && (
+      {editRequiredOpen && (
         <EditRequiredModal
           t={t}
           onClose={() => setEditRequiredOpen(false)}
@@ -676,7 +698,7 @@ export default function TemplateLivePreviewPage() {
         />
       )}
 
-      {!isStandalonePreview && promoOpen && (
+      {promoOpen && (
         <div className="promo-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="promo-modal-title">
           <section className="promo-modal">
             <button className="promo-modal-close" type="button" onClick={() => setPromoOpen(false)} aria-label={t('close')}><X size={20} /></button>
@@ -704,7 +726,7 @@ export default function TemplateLivePreviewPage() {
         </div>
       )}
 
-      {!isStandalonePreview && editing && draft && LivePreview && (
+      {editing && draft && LivePreview && (
         <InvitationEditor
           key={template._id}
           draft={draft}
@@ -714,7 +736,7 @@ export default function TemplateLivePreviewPage() {
           PreviewComponent={LivePreview}
           isSingleImageTemplate={isSingleImageTemplate}
           saving={checkoutState === 'loading'}
-          onClose={() => setEditing(false)}
+          onClose={closeEditor}
           onDiscard={discardEditorDraft}
           onRestore={restoreEditorDraft}
           onPreview={openPrivatePreview}

@@ -675,7 +675,7 @@ p { color: var(--muted); margin: 0; }
 
 .faq-amulet-heading {
   max-width: 720px;
-  margin-bottom: clamp(32px, 5vw, 52px);
+  margin-bottom: clamp(20px, 3vw, 32px);
   position: relative;
   z-index: 1;
   opacity: 0;
@@ -740,7 +740,7 @@ p { color: var(--muted); margin: 0; }
 
 @media (max-width: 480px) {
   .faq-amulet { width: calc(100% - 20px); padding: 32px 12px; border-radius: 0; }
-  .faq-amulet-heading { padding-inline: 6px; margin-bottom: 26px; }
+  .faq-amulet-heading { padding-inline: 6px; margin-bottom: 18px; }
   .faq-amulet .faq-amulet-heading h2 { font-size: clamp(1.72rem, 9vw, 2.15rem); }
   .faq-amulet .faq-stack .faq-item button { min-height: 72px; grid-template-columns: 38px minmax(0, 1fr) 30px; gap: 11px; padding: 12px 10px 12px 12px; font-size: .96rem; }
   .faq-amulet .faq-stack .faq-item button .faq-item-icon { width: 38px; height: 38px; }
@@ -3244,18 +3244,6 @@ body.templates-route .catalog-sort-picker > button {
   color: rgba(255,255,255,.62);
   font-size: 1.05rem;
 }
-.template-qr-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.template-qr-tags span {
-  border: 1px solid rgba(255,255,255,.16);
-  border-radius: 999px;
-  padding: 4px 10px;
-  color: rgba(255,255,255,.78);
-  font-size: .82rem;
-}
 .template-qr-content h3 {
   color: rgba(255,255,255,.72);
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
@@ -3325,6 +3313,93 @@ body.templates-route .catalog-sort-picker > button {
 @keyframes modalFade {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+.auth-required-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(0, 0, 0, .68);
+  backdrop-filter: blur(8px);
+  animation: modalFade .18s ease both;
+}
+
+.auth-required-modal {
+  position: relative;
+  width: min(420px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 32px;
+  border: 1px solid rgba(216, 185, 142, .28);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 28px 70px rgba(35, 30, 24, .24);
+  color: var(--amulet-ink, #17202b);
+  text-align: center;
+}
+
+.auth-required-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #f6f3ee;
+  color: #625852;
+  cursor: pointer;
+}
+
+.auth-required-animation {
+  width: clamp(82px, 18vw, 104px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.auth-required-animation > * {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.auth-required-modal h2 {
+  padding-inline: 32px;
+  color: var(--amulet-ink, #17202b);
+  font-size: clamp(1.4rem, 4vw, 1.8rem);
+  line-height: 1.2;
+}
+
+.auth-required-modal p {
+  max-width: 340px;
+  color: #625852;
+  line-height: 1.6;
+}
+
+.auth-required-login {
+  width: min(240px, 100%);
+  min-height: 48px;
+  margin-top: 4px;
+  border-radius: 10px;
+}
+
+.auth-required-close:hover,
+.auth-required-close:focus-visible {
+  background: rgba(216, 185, 142, .22);
+  color: #8b632f;
+}
+
+@media (max-width: 480px) {
+  .auth-required-backdrop { padding: 12px; }
+  .auth-required-modal { padding: 28px 20px 22px; border-radius: 16px; }
+  .auth-required-animation { width: clamp(76px, 24vw, 92px); }
 }
 
 @media (max-width: 1180px) and (min-width: 881px) {
@@ -3507,30 +3582,44 @@ body.templates-route .catalog-sort-picker > button {
   background: rgba(23,32,43,.08);
 }
 .google-auth-slot {
-  min-height: 46px;
-  display: grid;
-  place-items: center;
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   max-width: 400px;
   justify-self: center;
-  overflow: hidden;
+  padding-block: 2px;
+  overflow: visible;
+  box-sizing: border-box;
   color: #7b8492;
   font-weight: 750;
   text-align: center;
 }
 .google-auth-slot > div {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   width: 100% !important;
   min-width: 0 !important;
   max-width: 100% !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
 }
 .google-auth-slot iframe {
+  display: block !important;
   width: 100% !important;
   min-width: 0 !important;
   max-width: 100% !important;
+  height: 44px !important;
+  max-height: 44px !important;
+  border: 0 !important;
+  box-sizing: border-box !important;
 }
 @media (max-width: 600px) {
   .google-auth-slot {
-    min-height: 44px;
+    min-height: 48px;
   }
 }
 .auth-status,
@@ -13012,15 +13101,6 @@ body.templates-route .template-type-dock button:focus-visible {
     line-height: 1.45;
   }
 
-  .template-qr-tags {
-    gap: 6px;
-  }
-
-  .template-qr-tags span {
-    padding: 3px 8px;
-    font-size: .74rem;
-  }
-
   .template-qr-scan {
     grid-template-columns: 80px minmax(0, 1fr);
     gap: 10px;
@@ -13267,6 +13347,12 @@ body.templates-route .templates-catalog-hero h1 {
 .template-qr-info {
   overflow-wrap: anywhere;
   white-space: pre-line;
+  color: rgba(255, 255, 255, .96) !important;
+  font-size: clamp(1.25rem, 2.4vw, 1.55rem) !important;
+  font-weight: 850;
+  line-height: 1.25;
+  letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
 }
 
 .catalog-category-picker {
@@ -13672,7 +13758,7 @@ html:not([lang="hy"]):not([lang="ru"]) h6 {
 }
 
 .occasion-browser-section + .creation-flow-section,
-.creation-flow-section + .events-testimonials-section,
+.creation-flow-section + .customer-testimonials-section,
 .events-testimonials-section + .customer-testimonials-section,
 .customer-testimonials-section + .faq-amulet {
   border-top: 1px solid rgba(216, 185, 142, .15);
@@ -14496,6 +14582,13 @@ body.templates-route.templates-route :where(.nav-links > a:not(.btn), .language-
   background: #f7f7f9;
 }
 
+body.templates-route.templates-route .site-header .language-select {
+  color: var(--amulet-cream-text, #d8b98e);
+  background-color: rgba(255, 255, 255, .76);
+  border: 1px solid rgba(216, 185, 142, .45);
+  box-shadow: inset 0 0 0 1px rgba(216, 185, 142, .18);
+}
+
 body.templates-route.templates-route .mobile-header-actions .profile-btn {
   color: var(--amulet-gold, #d8b98e);
 }
@@ -14911,6 +15004,14 @@ body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-vi
   background: transparent;
   color: #a87534;
   transform: none;
+}
+
+.faq-amulet .faq-stack .faq-item button .faq-item-icon > img {
+  width: 29px;
+  height: 29px;
+  display: block;
+  object-fit: contain;
+  opacity: .82;
 }
 
 .faq-amulet .faq-stack .faq-item button > svg {

@@ -72,7 +72,6 @@ export default function TemplatesPage() {
     <section className="templates-catalog-page">
       <div className="templates-catalog-hero">
         <h1>{t('templates')}</h1>
-        <p>{t('catalogIntro')}</p>
       </div>
 
       <div className="templates-search-shell">

@@ -3,19 +3,16 @@ import { Pencil, Search, Share2, Sparkles } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CREATION_VIDEO_URL } from '../config/env.js';
-import baptismChurch from '../assets/morph/baptism-church.webp';
 import baptismLift from '../assets/morph/baptism-lift.jpg';
 import birthdayCakeLights from '../assets/morph/birthday-cake-lights.jpg';
 import corporateEvent from '../assets/morph/corporate-event.jpg';
 import engagementSmile from '../assets/morph/engagement-smile.jpg';
-import weddingForest from '../assets/morph/wedding-forest-optimized.jpg';
 import weddingTemple from '../assets/morph/wedding-temple.jpg';
 import homeDeviceSuite from '../assets/home/amulet-device-suite.png';
 import api from '../api/axios.js';
 import Button from '../components/Button.jsx';
 import FAQItem from '../components/FAQItem.jsx';
 import TestimonialV2 from '../components/ui/TestimonialV2.jsx';
-import CircularTestimonials from '../components/ui/CircularTestimonials.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 const occasionLinks = [
@@ -80,7 +77,6 @@ export default function HomePage() {
   const creationFlowRef = useRef(null);
   const faqRef = useRef(null);
   const [activeFaqIndex, setActiveFaqIndex] = useState(null);
-  const [activeEventIndex, setActiveEventIndex] = useState(0);
   const [managedFaqItems, setManagedFaqItems] = useState(null);
 
   useEffect(() => {
@@ -150,25 +146,6 @@ export default function HomePage() {
     ? managedFaqItems.map((item) => [item.question, item.answer])
     : t('faqItems');
   const creationSteps = t('creationSteps');
-  const eventTestimonials = t('eventTestimonials').map((item) => ({
-    ...item,
-    category: {
-      wedding: 'wedding',
-      baptism: 'baptism',
-      birth: 'birth',
-      corporate: 'corporate',
-      partners: 'corporate'
-    }[item.image],
-    src: {
-      wedding: weddingForest,
-      baptism: baptismChurch,
-      birth: birthdayCakeLights,
-      corporate: corporateEvent,
-      partners: engagementSmile
-    }[item.image]
-  }));
-  const activeEventCategory = eventTestimonials[activeEventIndex]?.category || '';
-  const activeInvitationPath = activeEventCategory ? `/templates?category=${activeEventCategory}` : '/templates';
 
   return (
     <>
@@ -210,7 +187,6 @@ export default function HomePage() {
       <section className="creation-flow-section" aria-labelledby="creation-flow-title" ref={creationFlowRef}>
         <div className="creation-flow-heading">
           <h2 id="creation-flow-title" className="home-section-heading">{t('creationFlowTitle')}</h2>
-          <p>{t('creationFlowSubtitle')}</p>
         </div>
         <div className="creation-flow-layout">
           <div className="creation-flow-steps">
@@ -243,35 +219,11 @@ export default function HomePage() {
         <Button to="/templates" className="red-pill creation-flow-cta">{t('startCreating')}</Button>
       </section>
 
-      <section className="events-testimonials-section" aria-labelledby="events-testimonials-title">
-        <div className="events-testimonials-heading">
-          <h2 id="events-testimonials-title" className="home-section-heading">{t('eventsTitle')}</h2>
-        </div>
-        <CircularTestimonials
-          testimonials={eventTestimonials}
-          autoplay
-          colors={{
-            name: '#17202b',
-            designation: '#d8b98e',
-            testimony: '#4a5565',
-            arrowBackground: '#17202b',
-            arrowForeground: '#ffffff',
-            arrowHoverBackground: '#d8b98e'
-          }}
-          onActiveChange={setActiveEventIndex}
-        />
-        <div className="events-testimonials-actions">
-          <Button to={activeInvitationPath} className="red-pill">{t('chooseInvitation')}</Button>
-          <Button to="/contact" variant="ghost" className="events-contact-link">{t('menuPartners')}</Button>
-        </div>
-      </section>
-
       <TestimonialV2 />
 
       <section className="faq-amulet" id="faq" ref={faqRef} aria-labelledby="faq-title">
         <header className="faq-amulet-heading faq-reveal">
           <h2 className="home-section-heading" id="faq-title">{t('faqTitle')}</h2>
-          <p>{t('faqSubtitle')}</p>
         </header>
         <div className="faq-stack">
           {[0, 1].map((column) => (

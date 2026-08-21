@@ -1,8 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Eye, Pencil, X } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { Eye, LogIn, Pencil, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
+import alertGuruAnimation from '../assets/animations/editor-exit-alert.lottie?url';
 import { qrImageUrl, siteUrl } from '../config/env.js';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
 import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
@@ -10,9 +13,14 @@ import { getTemplatePagePreview } from '../occasionTemplates/templatePagePreview
 
 export default function TemplateCard({ template }) {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const [qrOpen, setQrOpen] = useState(false);
+  const [authWarningOpen, setAuthWarningOpen] = useState(false);
+  const [authReturnPath, setAuthReturnPath] = useState('/templates');
   const [catalogWalkthroughComplete, setCatalogWalkthroughComplete] = useState(false);
   const [modalWalkthroughComplete, setModalWalkthroughComplete] = useState(false);
+  const loginButtonRef = useRef(null);
   const occasionTemplate = getOccasionTemplate(template);
   const CardPreview = occasionTemplate?.CardPreview;
   const imagePosition = template.imagePosition || {};
@@ -33,12 +41,23 @@ export default function TemplateCard({ template }) {
     setModalWalkthroughComplete(false);
     setQrOpen(false);
   };
+  const requireAuthenticatedAction = (event, returnPath) => {
+    if (user) return false;
+    event.preventDefault();
+    event.stopPropagation();
+    closeQr();
+    setAuthReturnPath(returnPath);
+    setAuthWarningOpen(true);
+    return true;
+  };
 
   useEffect(() => {
-    if (!qrOpen) return undefined;
+    if (!qrOpen && !authWarningOpen) return undefined;
 
     const closeOnEscape = (event) => {
-      if (event.key === 'Escape') setQrOpen(false);
+      if (event.key !== 'Escape') return;
+      if (authWarningOpen) setAuthWarningOpen(false);
+      else closeQr();
     };
 
     document.documentElement.classList.add('template-modal-lock');
@@ -50,7 +69,11 @@ export default function TemplateCard({ template }) {
       document.body.classList.remove('template-modal-lock');
       window.removeEventListener('keydown', closeOnEscape);
     };
-  }, [qrOpen]);
+  }, [authWarningOpen, qrOpen]);
+
+  useEffect(() => {
+    if (authWarningOpen) loginButtonRef.current?.focus();
+  }, [authWarningOpen]);
 
   return (
     <article
@@ -115,7 +138,16 @@ export default function TemplateCard({ template }) {
         <p>{Number(template.price).toLocaleString()} AMD</p>
       </div>
       {qrOpen && createPortal(
-        <div className="template-qr-backdrop" role="dialog" aria-modal="true" aria-labelledby={`template-qr-${template._id}`} onClick={closeQr}>
+        <div
+          className="template-qr-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={`template-qr-${template._id}`}
+          onClick={(event) => {
+            event.stopPropagation();
+            closeQr();
+          }}
+        >
           <div className="template-qr-modal" onClick={(event) => event.stopPropagation()}>
             <button className="template-qr-close" type="button" onClick={closeQr} aria-label={t('close')}>
               <X size={22} />
@@ -148,11 +180,6 @@ export default function TemplateCard({ template }) {
             <div className="template-qr-content">
               <h2 id={`template-qr-${template._id}`}>{template.code ? `${t('templateCodeLabel')} ${template.code}` : template.title}</h2>
               <p className="template-qr-info">{Number(template.price).toLocaleString()} AMD</p>
-              <div className="template-qr-tags">
-                <span>{t(template.category)}</span>
-                <span>{t('customDesign')}</span>
-                <span>{Number(template.price).toLocaleString()} AMD</span>
-              </div>
               {template.description && <p className="template-qr-description">{template.description}</p>}
               <div className="template-qr-scan">
                 <img src={qrUrl} alt={t('scanQr')} />
@@ -163,17 +190,71 @@ export default function TemplateCard({ template }) {
                 <span>{t('templateSwitchNote')}</span>
               </div>
               <div className="template-qr-actions">
-                <Link className="btn btn-primary" to={`/templates/${template._id}/live?edit=1`} onClick={closeQr}>
+                <Link
+                  className="btn btn-primary"
+                  to={`/templates/${template._id}/live?edit=1`}
+                  onClick={(event) => {
+                    if (!requireAuthenticatedAction(event, `/templates/${template._id}/live?edit=1`)) closeQr();
+                  }}
+                >
                   <Pencil size={17} />
                   {t('edit')}
                 </Link>
-                <a className="btn btn-ghost" href={previewPath} target="_blank" rel="noreferrer">
+                <a
+                  className="btn btn-ghost"
+                  href={previewPath}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(event) => requireAuthenticatedAction(event, previewPath)}
+                >
                   <Eye size={17} />
                   {t('preview')}
                 </a>
               </div>
             </div>
           </div>
+        </div>,
+        document.body
+      )}
+      {authWarningOpen && createPortal(
+        <div
+          className="auth-required-backdrop"
+          onClick={(event) => {
+            event.stopPropagation();
+            setAuthWarningOpen(false);
+          }}
+        >
+          <section
+            className="auth-required-modal"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="auth-required-title"
+            aria-describedby="auth-required-description"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button className="auth-required-close" type="button" onClick={() => setAuthWarningOpen(false)} aria-label={t('close')}>
+              <X size={20} />
+            </button>
+            <span className="auth-required-animation" aria-hidden="true">
+              <DotLottieReact
+                src={alertGuruAnimation}
+                autoplay={!prefersReducedMotion}
+                loop={!prefersReducedMotion}
+              />
+            </span>
+            <h2 id="auth-required-title">{t('templateAuthRequiredTitle')}</h2>
+            <p id="auth-required-description">{t('templateAuthRequiredText')}</p>
+            <Link
+              ref={loginButtonRef}
+              className="btn btn-primary auth-required-login"
+              to="/login"
+              state={{ returnTo: authReturnPath }}
+              onClick={() => setAuthWarningOpen(false)}
+            >
+              <LogIn size={18} />
+              {t('login')}
+            </Link>
+          </section>
         </div>,
         document.body
       )}

@@ -2,7 +2,7 @@ import Order from '../models/Order.js';
 import User from '../models/User.js';
 import { clientUrl as resolveClientUrl } from '../config/env.js';
 
-export const TELEGRAM_LANGUAGES = ['hy', 'en', 'ru', 'es', 'fr', 'de', 'it'];
+export const TELEGRAM_LANGUAGES = ['hy', 'en', 'ru'];
 
 export const normalizeTelegramLanguage = (language, fallback = 'hy') => (
   TELEGRAM_LANGUAGES.includes(language) ? language : fallback
@@ -118,58 +118,6 @@ const labels = {
     unsure: 'Пока не уверен(а)',
     open: 'Открыть ответы гостей'
   },
-  es: {
-    title: 'Nueva respuesta de invitado',
-    invitation: 'Invitación',
-    guest: 'Invitado',
-    status: 'Asistencia',
-    count: 'Número de invitados',
-    phone: 'Teléfono',
-    message: 'Mensaje',
-    attending: 'Asistirá',
-    declined: 'No asistirá',
-    unsure: 'Aún no está seguro',
-    open: 'Abrir respuestas'
-  },
-  fr: {
-    title: 'Nouvelle réponse d’un invité',
-    invitation: 'Invitation',
-    guest: 'Invité',
-    status: 'Présence',
-    count: 'Nombre d’invités',
-    phone: 'Téléphone',
-    message: 'Message',
-    attending: 'Présent',
-    declined: 'Absent',
-    unsure: 'Pas encore sûr',
-    open: 'Ouvrir les réponses'
-  },
-  de: {
-    title: 'Neue Gästeantwort',
-    invitation: 'Einladung',
-    guest: 'Gast',
-    status: 'Teilnahme',
-    count: 'Anzahl der Gäste',
-    phone: 'Telefon',
-    message: 'Nachricht',
-    attending: 'Nimmt teil',
-    declined: 'Nimmt nicht teil',
-    unsure: 'Noch unsicher',
-    open: 'Gästeantworten öffnen'
-  },
-  it: {
-    title: 'Nuova risposta di un ospite',
-    invitation: 'Invito',
-    guest: 'Ospite',
-    status: 'Partecipazione',
-    count: 'Numero di ospiti',
-    phone: 'Telefono',
-    message: 'Messaggio',
-    attending: 'Parteciperà',
-    declined: 'Non parteciperà',
-    unsure: 'Non è ancora sicuro',
-    open: 'Apri le risposte'
-  }
 };
 
 export const sendTelegramMessage = async (chatId, text, options = {}) => {
