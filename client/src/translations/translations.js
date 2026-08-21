@@ -360,7 +360,7 @@ const ru = {
   eventsTitle: 'Выбери приглашение для своего события',
   featured: 'Избранные приглашения',
   faq: 'Вопросы',
-  faqTitle: 'Частые вопросыsdfsdfsdf',
+  faqTitle: 'Частые вопросы',
   faqSubtitle: 'Всё важное о создании, персонализации и отправке приглашения — в одном месте.',
   templateCodeLabel: 'Код',
   eventTestimonials: [
