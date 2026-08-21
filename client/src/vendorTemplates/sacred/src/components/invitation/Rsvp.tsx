@@ -86,8 +86,10 @@ export function Rsvp({ data, onSubmit }: { data: InvitationData; onSubmit?: Rsvp
                   name="guests"
                   type="number"
                   min={1}
-                  max={10}
+                  step={1}
+                  inputMode="numeric"
                   defaultValue={1}
+                  required
                   className={inputClass}
                 />
               </div> : null}

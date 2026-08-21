@@ -8,7 +8,7 @@ import { Ornament } from "./Ornament";
 const schema = z.object({
   name: z.string().trim().min(2, "Խնդրում ենք նշել Ձեր անունը").max(80, "Անունը չափազանց երկար է"),
   attending: z.enum(["yes", "no"]),
-  guests: z.number().int().min(1).max(wedding.rsvp.maxGuests),
+  guests: z.number().int().min(1),
   food: z.string().max(40),
   message: z.string().trim().max(500, "Հաղորդագրությունը չափազանց երկար է"),
 });
@@ -139,13 +139,17 @@ export function RSVPForm({ settings = {}, question = '', onSubmit }: { settings?
                     <label htmlFor="guests" className="eyebrow">
                       Number of Guests
                     </label>
-                    <select id="guests" name="guests" defaultValue="1" className={fieldClass}>
-                      {Array.from({ length: rsvp.maxGuests }, (_, i) => i + 1).map((n) => (
-                        <option key={n} value={n}>
-                          {n}
-                        </option>
-                      ))}
-                    </select>
+                    <input
+                      id="guests"
+                      name="guests"
+                      type="number"
+                      min={1}
+                      step={1}
+                      inputMode="numeric"
+                      defaultValue={1}
+                      required
+                      className={fieldClass}
+                    />
                   </div> : null}
                   {settings.askMeal === true ? <div>
                     <label htmlFor="food" className="eyebrow">

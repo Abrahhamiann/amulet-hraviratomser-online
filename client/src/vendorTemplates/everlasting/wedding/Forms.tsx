@@ -11,7 +11,7 @@ const fieldClass =
 const rsvpSchema = z.object({
   name: z.string().trim().min(2, "Խնդրում ենք նշել Ձեր անունը").max(80),
   attending: z.enum(["yes", "no"]),
-  guests: z.coerce.number().int().min(1).max(10),
+  guests: z.coerce.number().int().min(1),
   meal: z.string().max(40),
   message: z.string().trim().max(500).optional(),
 });
@@ -157,8 +157,10 @@ export function RSVPForm({ rsvp, onSubmit, settings = {} }: { rsvp: WeddingConfi
                     name="guests"
                     type="number"
                     min={1}
-                    max={10}
+                    step={1}
+                    inputMode="numeric"
                     defaultValue={1}
+                    required
                     className={fieldClass}
                   />
                 </div> : null}

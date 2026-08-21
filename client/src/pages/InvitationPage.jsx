@@ -187,7 +187,7 @@ export default function InvitationPage() {
             <option value="declined">{t('declined')}</option>
             <option value="unsure">{t('unsure')}</option>
           </Input>
-          <Input label={t('guestCount')} name="guestCount" type="number" min="1" defaultValue="1" />
+          <Input label={t('guestCount')} name="guestCount" type="number" min="1" step="1" inputMode="numeric" defaultValue="1" required />
           <Input label={t('message')} name="message" as="textarea" rows="3" />
           <Button disabled={rsvpStatus === 'loading'}>{rsvpStatus === 'loading' ? t('loading') : t('submit')}</Button>
           {rsvpStatus === 'error' && <p className="form-error">{t('error')}</p>}

@@ -117,3 +117,37 @@ test('returns stored RSVP replies on the purchased invitation owner page', async
   assert.equal(responseBody.invitation, invitation);
   assert.deepEqual(responseBody.rsvps, storedReplies);
 });
+
+test('stores the exact RSVP guest count without an arbitrary upper cap', async () => {
+  const invitation = {
+    _id: '507f1f77bcf86cd799439011',
+    orderId: '507f1f77bcf86cd799439022',
+    names: 'Anna & Armen'
+  };
+  Invitation.findById = async () => invitation;
+
+  let stored;
+  RSVP.create = async (data) => {
+    stored = data;
+    return { ...data, toObject: () => ({ ...data }) };
+  };
+  Order.findById = () => ({ select: async () => ({}) });
+
+  let responseBody;
+  const response = {
+    status() { return this; },
+    json(value) { responseBody = value; return this; }
+  };
+
+  await createRSVP({
+    params: { invitationId: invitation._id },
+    body: {
+      guestName: 'Large party',
+      status: 'attending',
+      guestCount: 500
+    }
+  }, response, (error) => { throw error; });
+
+  assert.equal(stored.guestCount, 500);
+  assert.equal(responseBody.guestCount, 500);
+});

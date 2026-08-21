@@ -19,14 +19,18 @@ export const createRSVP = asyncHandler(async (req, res) => {
     throw new Error('Guest name and attendance status are required');
   }
 
-  const requestedGuestCount = Number.parseInt(req.body?.guestCount, 10);
+  const requestedGuestCount = Number(req.body?.guestCount);
+  if (!Number.isSafeInteger(requestedGuestCount) || requestedGuestCount < 1) {
+    res.status(400);
+    throw new Error('Guest count must be a positive whole number');
+  }
   const rsvp = await RSVP.create({
     invitationId: invitation._id,
     guestName,
     phone,
     status,
     guestSide: ['bride', 'groom', 'other'].includes(req.body?.guestSide) ? req.body.guestSide : 'other',
-    guestCount: Number.isFinite(requestedGuestCount) ? Math.min(20, Math.max(1, requestedGuestCount)) : 1,
+    guestCount: requestedGuestCount,
     message: String(req.body?.message || '').trim().slice(0, 1000)
   });
   let telegramDelivered = false;

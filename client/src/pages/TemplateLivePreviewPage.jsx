@@ -383,19 +383,25 @@ export default function TemplateLivePreviewPage() {
 
   const openPrivatePreview = async (sourceDraft = draft) => {
     const nextDraft = cleanDraft(sourceDraft);
+    const previewWindow = window.open('about:blank', '_blank');
+    if (previewWindow) previewWindow.opener = null;
     try {
       const { data } = await api.post('/previews', {
         templateId: template._id,
         draft: nextDraft,
         previewToken: autosaveTokenRef.current || undefined
       });
+      const nextPreviewPath = `${data.path}?standalone=1`;
       autosaveTokenRef.current = data.token;
-      setPrivatePreviewPath(`${data.path}?standalone=1`);
+      setPrivatePreviewPath(nextPreviewPath);
       writeEditorAutosave(template._id, nextDraft);
       setDraft(nextDraft);
       setIsEdited(true);
+      if (previewWindow && !previewWindow.closed) previewWindow.location.replace(nextPreviewPath);
+      else navigate(nextPreviewPath);
       return true;
     } catch {
+      previewWindow?.close();
       return false;
     }
   };

@@ -16,7 +16,7 @@ export default function BuyPanel() {
     [t('editorCheckMusic'), data.musicEnabled === false || Boolean(data.musicUrl)],
     [t('editorCheckRsvp'), data.questionsVisible !== false]
   ];
-  const previewDisabled = actions.saving || saveStatus === 'saving' || !actions.previewPath;
+  const previewDisabled = actions.saving || saveStatus === 'saving' || previewing;
 
   const openPrivatePreview = async () => {
     setPreviewError('');
@@ -45,19 +45,12 @@ export default function BuyPanel() {
       </section>
       <div className="invite-editor-buy-actions">
         <button type="button" onClick={() => { setDevice('mobile'); setMobileSheet('collapsed'); }}><Smartphone size={16} /> {t('editorCheckOnMobile')}</button>
-        <a
-          href={previewDisabled ? undefined : actions.previewPath}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-disabled={previewDisabled}
-          onClick={(event) => {
-            if (previewDisabled) {
-              event.preventDefault();
-              return;
-            }
-            void openPrivatePreview();
-          }}
-        ><Eye size={16} /> {previewing ? t('editorRefreshing') : t('preview')}</a>
+        <button
+          type="button"
+          disabled={previewDisabled}
+          aria-busy={previewing}
+          onClick={() => void openPrivatePreview()}
+        ><Eye size={16} /> {previewing ? t('editorRefreshing') : t('preview')}</button>
         <button type="button" className="is-primary" onClick={() => actions.onBuy?.(data)} disabled={actions.saving}><ShoppingBag size={18} />{actions.saving ? t('editorPreparing') : `${t('editorBuy')} · ${Number(template.price || 0).toLocaleString()} AMD`}</button>
       </div>
       {previewError && <p className="invite-editor-error" role="alert">{previewError}</p>}

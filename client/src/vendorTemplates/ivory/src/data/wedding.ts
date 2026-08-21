@@ -95,7 +95,6 @@ export const wedding = {
   ],
   rsvp: {
     deadline: "1 օգոստոսի, 2026",
-    maxGuests: 5,
     foodOptions: ["Առանց նախընտրության", "Միս", "Ձուկ", "Բուսակերական", "Վեգան"],
   },
   closing: {

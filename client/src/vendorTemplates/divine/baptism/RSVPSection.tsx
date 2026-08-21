@@ -133,7 +133,10 @@ export function RSVPSection({ onSubmit, settings = {} }: { onSubmit?: RsvpSubmit
                       name="guests"
                       type="number"
                       min={1}
+                      step={1}
+                      inputMode="numeric"
                       defaultValue={1}
+                      required
                       className={fieldClass}
                     />
                   </div> : null}

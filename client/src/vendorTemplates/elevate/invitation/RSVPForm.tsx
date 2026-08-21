@@ -13,7 +13,7 @@ const schema = z.object({
   email: z.string().trim().email("Մուտքագրեք վավեր էլ․ հասցե").max(255),
   phone: z.string().trim().max(40).optional(),
   attending: z.enum(["yes", "no"]),
-  guests: z.coerce.number().int().min(0).max(10),
+  guests: z.coerce.number().int().min(0),
   meal: z.string().trim().max(120).optional(),
   message: z.string().trim().max(600).optional(),
 });
@@ -212,18 +212,18 @@ export function RSVPForm({ data, onSubmit, settings = {} }: { data: InvitationDa
                   <label htmlFor="guests" className="text-sm text-muted-foreground">
                     Հյուրերի քանակ
                   </label>
-                  <select
+                  <input
                     id="guests"
+                    name="guests"
+                    type="number"
+                    min={1}
+                    step={1}
+                    inputMode="numeric"
+                    required
                     value={guests}
                     onChange={(e) => setGuests(e.target.value)}
-                    className="bg-transparent py-2 text-base text-foreground outline-none focus:text-primary"
-                  >
-                    {["1", "2", "3", "4", "5"].map((n) => (
-                      <option key={n} value={n} className="bg-card text-foreground">
-                        {n}
-                      </option>
-                    ))}
-                  </select>
+                    className="min-h-11 w-28 bg-transparent py-2 text-right text-base tabular-nums text-foreground outline-none focus:text-primary"
+                  />
                 </div>
               )}
 

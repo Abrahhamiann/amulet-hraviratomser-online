@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useState, type FormEvent } from "react";
-import { Check, Minus, Plus } from "lucide-react";
+import { Check } from "lucide-react";
 import { GoldRule, Reveal, Section, SectionTitle, TwinRings } from "./decor";
 
 type Answer = "accept" | "decline" | null;
@@ -18,7 +18,7 @@ type EditorRsvpSettings = { askGuestCount?: boolean; askMeal?: boolean };
 
 export function Rsvp({ onSubmit, settings = {} }: { onSubmit?: RsvpSubmit; settings?: EditorRsvpSettings }) {
   const [answer, setAnswer] = useState<Answer>(null);
-  const [guests, setGuests] = useState(2);
+  const [guests, setGuests] = useState("2");
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [meal, setMeal] = useState("");
@@ -35,7 +35,7 @@ export function Rsvp({ onSubmit, settings = {} }: { onSubmit?: RsvpSubmit; setti
       await onSubmit?.({
         guestName: name.trim(),
         status: answer === "accept" ? "attending" : "declined",
-        guestCount: settings.askGuestCount === false ? 1 : guests,
+        guestCount: settings.askGuestCount === false ? 1 : Number(guests),
         message: [message.trim(), meal.trim() ? `Սննդի նախընտրություն՝ ${meal.trim()}` : ""].filter(Boolean).join("\n")
       });
       setSent(true);
@@ -140,34 +140,18 @@ export function Rsvp({ onSubmit, settings = {} }: { onSubmit?: RsvpSubmit; setti
                 </div>
 
                 {settings.askGuestCount !== false ? <div>
-                  <p className="eyebrow">Հյուրերի քանակ</p>
-                  <div className="mt-3 flex items-center gap-5">
-                    <button
-                      type="button"
-                      aria-label="Նվազեցնել հյուրերի քանակը"
-                      onClick={() => setGuests((g) => Math.max(1, g - 1))}
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gold/40 text-gold transition-colors duration-400 hover:bg-blush/40"
-                    >
-                      <Minus className="h-4 w-4" strokeWidth={1.4} />
-                    </button>
-                    <motion.span
-                      key={guests}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4 }}
-                      className="min-w-[2.5rem] text-center font-serif text-3xl font-light tabular-nums text-foreground"
-                    >
-                      {guests}
-                    </motion.span>
-                    <button
-                      type="button"
-                      aria-label="Ավելացնել հյուրերի քանակը"
-                      onClick={() => setGuests((g) => Math.min(10, g + 1))}
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-gold/40 text-gold transition-colors duration-400 hover:bg-blush/40"
-                    >
-                      <Plus className="h-4 w-4" strokeWidth={1.4} />
-                    </button>
-                  </div>
+                  <label htmlFor="rsvp-guests" className="eyebrow">Հյուրերի քանակ</label>
+                  <input
+                    id="rsvp-guests"
+                    type="number"
+                    min={1}
+                    step={1}
+                    inputMode="numeric"
+                    required
+                    value={guests}
+                    onChange={(e) => setGuests(e.target.value)}
+                    className={`${fieldClass} mt-3 tabular-nums`}
+                  />
                 </div> : null}
 
                 {settings.askMeal === true ? <div>

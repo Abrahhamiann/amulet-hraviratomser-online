@@ -140,9 +140,10 @@ export function RSVPSection({ onSubmit, settings = {}, question = '' }: { onSubm
                       name="guests"
                       type="number"
                       min={1}
-                      max={10}
+                      step={1}
                       defaultValue={1}
                       inputMode="numeric"
+                      required
                       className={fieldClass}
                     />
                   </div> : null}

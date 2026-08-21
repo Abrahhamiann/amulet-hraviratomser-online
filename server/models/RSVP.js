@@ -15,7 +15,15 @@ const rsvpSchema = new mongoose.Schema(
       enum: ['attending', 'declined', 'unsure'],
       required: true
     },
-    guestCount: { type: Number, default: 1 },
+    guestCount: {
+      type: Number,
+      default: 1,
+      min: 1,
+      validate: {
+        validator: Number.isSafeInteger,
+        message: 'Guest count must be a positive whole number'
+      }
+    },
     message: { type: String, default: '' }
   },
   { timestamps: true }
