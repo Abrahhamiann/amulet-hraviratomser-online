@@ -8,23 +8,18 @@ import {
   ElevateInviteCardPreview,
   ElevateInviteInvitationView,
   ElevateInviteLivePreview,
-  EverAfterCardPreview,
-  EverAfterInvitationView,
-  EverAfterLivePreview,
   EverlastingVowsCardPreview,
   EverlastingVowsInvitationView,
   EverlastingVowsLivePreview,
   getBirthdaySparkleDraft,
   getDivineBlessingDraft,
   getElevateInviteDraft,
-  getEverAfterDraft,
   getEverlastingVowsDraft,
   getIvoryVowsDraft,
   getSacredBeginningsDraft,
   isBirthdaySparkleTemplate,
   isDivineBlessingTemplate,
   isElevateInviteTemplate,
-  isEverAfterTemplate,
   isEverlastingVowsTemplate,
   isIvoryVowsTemplate,
   isSacredBeginningsTemplate,
@@ -42,7 +37,6 @@ export const availableOccasionTemplates = [
   { key: 'ivory-vows', label: 'Փղոսկրե երդումներ · հարսանիք' },
   { key: 'divine-blessing', label: 'Աստվածային օրհնություն · մկրտություն' },
   { key: 'elevate-invite', label: 'Վերելք · կորպորատիվ միջոցառում' },
-  { key: 'ever-after', label: 'Եվ ապրեցին երջանիկ · նշանադրություն' },
   { key: 'everlasting-vows', label: 'Հավերժական երդումներ · հարսանիք' }
 ];
 
@@ -98,15 +92,6 @@ export const occasionTemplates = [
     LivePreview: ElevateInviteLivePreview,
     PublicView: ElevateInviteInvitationView,
     getInitialDraft: getElevateInviteDraft
-  },
-  {
-    key: 'ever-after',
-    aliases: ['ever-after', 'ever-after-engagement'],
-    match: isEverAfterTemplate,
-    CardPreview: EverAfterCardPreview,
-    LivePreview: EverAfterLivePreview,
-    PublicView: EverAfterInvitationView,
-    getInitialDraft: getEverAfterDraft
   },
   {
     key: 'everlasting-vows',

@@ -1,4 +1,5 @@
 import Template from '../models/Template.js';
+import { templateCategoryForDesign } from './templateDesign.js';
 
 const curatedTemplates = [
   {
@@ -97,21 +98,6 @@ const curatedTemplates = [
     isActive: true
   },
   {
-    title: 'Ever After',
-    slug: 'ever-after',
-    category: 'engagement',
-    editorType: 'engagement',
-    price: 35000,
-    description: 'Նուրբ նշանադրության հրավիրատոմս՝ զույգի պատմությամբ, ծրագրով, վայրով, պատկերասրահով և RSVP բաժնով։',
-    features: ['Responsive ձևավորում', 'Զույգի պատմություն', 'Օրվա ծրագիր', 'Պատկերասրահ', 'RSVP ձև'],
-    designKey: 'ever-after',
-    mainImage: 'asset:curated/ever-after/hero-floral.jpg',
-    gallery: ['asset:curated/ever-after/hero-floral.jpg', 'asset:curated/ever-after/bride.jpg', 'asset:curated/ever-after/groom.jpg', 'asset:curated/ever-after/map.jpg', 'asset:curated/ever-after/gallery-1.jpg', 'asset:curated/ever-after/gallery-2.jpg', 'asset:curated/ever-after/gallery-3.jpg', 'asset:curated/ever-after/gallery-4.jpg', 'asset:curated/ever-after/gallery-5.jpg', 'asset:curated/ever-after/gallery-6.jpg'],
-    galleryConfigured: false,
-    isFeatured: true,
-    isActive: true
-  },
-  {
     title: 'Everlasting Vows',
     slug: 'everlasting-vows',
     category: 'wedding',
@@ -129,11 +115,22 @@ const curatedTemplates = [
 ];
 
 export const ensureCuratedTemplates = async () => {
-  await Promise.all(curatedTemplates.map((template) => Template.updateOne(
-    { slug: template.slug },
-    { $setOnInsert: template },
-    { upsert: true }
-  )));
+  await Promise.all(curatedTemplates.map(async (template) => {
+    const category = templateCategoryForDesign(template.designKey) || template.category;
+    const { category: _category, editorType: _editorType, designKey, ...insertDefaults } = template;
+    await Template.updateMany(
+      { designKey },
+      { $set: { category, editorType: category } }
+    );
+    return Template.updateOne(
+      { slug: template.slug },
+      {
+        $set: { category, editorType: category, designKey },
+        $setOnInsert: insertDefaults
+      },
+      { upsert: true }
+    );
+  }));
 };
 
 export default curatedTemplates;

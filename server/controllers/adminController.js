@@ -10,7 +10,8 @@ import { emailShell, sendMail } from '../utils/mailer.js';
 import { deliverContactReply } from '../utils/contactReply.js';
 import { makeSlug } from '../utils/slug.js';
 import { normalizePhone } from '../utils/accountValidation.js';
-import { ensureTemplateCodes, nextTemplateCode } from '../utils/templateCode.js';
+import { ensureTemplateCodes, nextTemplateCode, reindexTemplateCodes } from '../utils/templateCode.js';
+import { PUBLIC_DESIGN_KEYS, templateCategoryForDesign } from '../utils/templateDesign.js';
 import { createSecureInvitationSlug } from '../utils/invitationSlug.js';
 import { translations as clientTranslations } from '../../client/src/translations/translations.js';
 
@@ -25,15 +26,6 @@ const categoryLabels = {
 const adminRoles = ['admin', 'super_admin'];
 const userRoles = ['user', ...adminRoles];
 const DEFAULT_DESIGN_KEY = 'ivory-vows';
-const PUBLIC_DESIGN_KEYS = [
-  'sacred-beginnings',
-  'birthday-sparkle',
-  'ivory-vows',
-  'divine-blessing',
-  'elevate-invite',
-  'ever-after',
-  'everlasting-vows'
-];
 const FAQ_SETTING_KEY = 'faqItems';
 const REVENUE_RESET_SETTING_KEY = 'revenueResetAt';
 const FAQ_LANGUAGES = ['hy', 'en', 'ru', 'es', 'fr', 'de', 'it'];
@@ -463,16 +455,19 @@ export const updateAdminFaq = asyncHandler(async (req, res) => {
 export const createAdminTemplate = asyncHandler(async (req, res) => {
   const data = req.body;
   const slug = data.slug || makeSlug(data.title);
+  const designKey = PUBLIC_DESIGN_KEYS.includes(data.designKey) ? data.designKey : DEFAULT_DESIGN_KEY;
+  const category = templateCategoryForDesign(designKey) || data.category;
   const template = await Template.create({
     ...data,
-    code: await nextTemplateCode(data.category),
+    category,
+    code: await nextTemplateCode(category),
     slug,
     features: Array.isArray(data.features) ? data.features : String(data.features || '').split('\n').filter(Boolean),
     gallery: Array.isArray(data.gallery) ? data.gallery : String(data.gallery || '').split('\n').filter(Boolean),
     galleryConfigured: Boolean(data.galleryConfigured),
     imagePosition: normalizeImagePosition(data.imagePosition),
-    designKey: PUBLIC_DESIGN_KEYS.includes(data.designKey) ? data.designKey : DEFAULT_DESIGN_KEY,
-    editorType: ['wedding', 'baptism', 'birth', 'corporate', 'engagement'].includes(data.editorType) ? data.editorType : data.category,
+    designKey,
+    editorType: category,
     isActive: data.isActive !== false
   });
   res.status(201).json(mapTemplate(template));
@@ -484,9 +479,12 @@ export const updateAdminTemplate = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Template not found');
   }
+  const previousCategory = template.category;
   const { code: _ignoredCode, ...data } = req.body;
-  data.designKey = PUBLIC_DESIGN_KEYS.includes(data.designKey) ? data.designKey : DEFAULT_DESIGN_KEY;
-  data.editorType = ['wedding', 'baptism', 'birth', 'corporate', 'engagement'].includes(data.editorType) ? data.editorType : (data.category || template.category);
+  data.designKey = PUBLIC_DESIGN_KEYS.includes(data.designKey) ? data.designKey : template.designKey;
+  data.category = templateCategoryForDesign(data.designKey) || data.category || template.category;
+  data.editorType = data.category;
+  if (data.category !== template.category) data.code = await nextTemplateCode(data.category);
   if (typeof data.features === 'string') data.features = data.features.split('\n').filter(Boolean);
   if (typeof data.gallery === 'string') data.gallery = data.gallery.split('\n').filter(Boolean);
   data.galleryConfigured = Boolean(data.galleryConfigured);
@@ -494,6 +492,7 @@ export const updateAdminTemplate = asyncHandler(async (req, res) => {
   Object.assign(template, data);
   if (data.title && !data.slug) template.slug = makeSlug(data.title);
   await template.save();
+  if (previousCategory !== template.category) await reindexTemplateCodes(previousCategory);
   res.json(mapTemplate(template));
 });
 
@@ -503,7 +502,9 @@ export const deleteAdminTemplate = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Template not found');
   }
+  const category = template.category;
   await template.deleteOne();
+  await reindexTemplateCodes(category);
   res.json({ message: 'Template deleted' });
 });
 

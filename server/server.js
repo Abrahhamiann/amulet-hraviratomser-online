@@ -26,6 +26,8 @@ import { startContactReminderScheduler } from './utils/contactReminder.js';
 import { authCookieName } from './utils/authCookie.js';
 import { ensureCuratedTemplates } from './utils/ensureCuratedTemplates.js';
 import { ensureDefaultReviews } from './utils/ensureDefaultReviews.js';
+import { ensureTemplateCodes } from './utils/templateCode.js';
+import { removeLegacyEngagementTemplates } from './utils/removeLegacyEngagementTemplates.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -87,7 +89,9 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'change_this_secret' |
 
 connectDB()
   .then(async () => {
+    await removeLegacyEngagementTemplates();
     await ensureCuratedTemplates();
+    await ensureTemplateCodes();
     await ensureDefaultReviews();
     startContactReminderScheduler();
     const server = app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));

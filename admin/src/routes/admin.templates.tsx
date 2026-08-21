@@ -80,13 +80,12 @@ const defaultImagePosition = {
 };
 
 const staticDesignOptions = [
-  { key: "sacred-beginnings", label: "Սուրբ սկիզբ · մկրտություն" },
-  { key: "birthday-sparkle", label: "Փայլուն տարեդարձ" },
-  { key: "ivory-vows", label: "Փղոսկրե երդումներ · հարսանիք" },
-  { key: "divine-blessing", label: "Աստվածային օրհնություն · մկրտություն" },
-  { key: "elevate-invite", label: "Elevate · գործարար միջոցառում" },
-  { key: "ever-after", label: "Ever After · նշանադրություն" },
-  { key: "everlasting-vows", label: "Հավերժական երդումներ · հարսանիք" },
+  { key: "sacred-beginnings", label: "Սուրբ սկիզբ · մկրտություն", category: "baptism" },
+  { key: "birthday-sparkle", label: "Փայլուն տարեդարձ", category: "birth" },
+  { key: "ivory-vows", label: "Փղոսկրե երդումներ · հարսանիք", category: "wedding" },
+  { key: "divine-blessing", label: "Աստվածային օրհնություն · մկրտություն", category: "baptism" },
+  { key: "elevate-invite", label: "Elevate · գործարար միջոցառում", category: "corporate" },
+  { key: "everlasting-vows", label: "Հավերժական երդումներ · հարսանիք", category: "wedding" },
 ];
 
 const templateAssetPreviews: Record<string, string> = {
@@ -563,6 +562,7 @@ function TemplateForm({ form, setForm }: any) {
   };
   const updateDesignKey = (designKey: string) => {
     setForm((current: any) => {
+      const selectedDesign = staticDesignOptions.find((option) => option.key === designKey);
       const currentGallery = galleryFromText(current.gallery);
       const currentDefaults = getDefaultGalleryForDesign(current.designKey);
       const currentDefaultGallery = [current.mainImage, ...currentDefaults].filter(Boolean);
@@ -575,6 +575,8 @@ function TemplateForm({ form, setForm }: any) {
       return {
         ...current,
         designKey,
+        category: selectedDesign?.category || current.category,
+        editorType: selectedDesign?.category || current.editorType,
         mainImage: shouldUseNextDefaults ? (nextDefaultGallery[0] || current.mainImage) : current.mainImage,
         imagePosition: shouldUseNextDefaults ? defaultImagePosition : current.imagePosition,
         gallery: shouldUseNextDefaults ? nextDefaultGallery.join("\n") : current.gallery,

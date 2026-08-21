@@ -1,17 +1,8 @@
 import asyncHandler from 'express-async-handler';
 import Template from '../models/Template.js';
 import { makeSlug } from '../utils/slug.js';
-import { ensureTemplateCodes, nextTemplateCode } from '../utils/templateCode.js';
-
-const PUBLIC_DESIGN_KEYS = [
-  'sacred-beginnings',
-  'birthday-sparkle',
-  'ivory-vows',
-  'divine-blessing',
-  'elevate-invite',
-  'ever-after',
-  'everlasting-vows'
-];
+import { ensureTemplateCodes, nextTemplateCode, reindexTemplateCodes } from '../utils/templateCode.js';
+import { PUBLIC_DESIGN_KEYS, templateCategoryForDesign } from '../utils/templateDesign.js';
 
 export const getTemplates = asyncHandler(async (req, res) => {
   await ensureTemplateCodes();
@@ -47,7 +38,14 @@ export const getTemplate = asyncHandler(async (req, res) => {
 export const createTemplate = asyncHandler(async (req, res) => {
   const data = req.body;
   const slug = data.slug || makeSlug(data.title);
-  const template = await Template.create({ ...data, code: await nextTemplateCode(data.category), slug });
+  const category = templateCategoryForDesign(data.designKey) || data.category;
+  const template = await Template.create({
+    ...data,
+    category,
+    editorType: category,
+    code: await nextTemplateCode(category),
+    slug
+  });
   res.status(201).json(template);
 });
 
@@ -57,10 +55,16 @@ export const updateTemplate = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Template not found');
   }
+  const previousCategory = template.category;
   const { code: _ignoredCode, ...updates } = req.body;
+  const designKey = updates.designKey || template.designKey;
+  updates.category = templateCategoryForDesign(designKey) || updates.category || template.category;
+  updates.editorType = updates.category;
+  if (updates.category !== template.category) updates.code = await nextTemplateCode(updates.category);
   Object.assign(template, updates);
   if (req.body.title && !req.body.slug) template.slug = makeSlug(req.body.title);
   await template.save();
+  if (previousCategory !== template.category) await reindexTemplateCodes(previousCategory);
   res.json(template);
 });
 
@@ -70,6 +74,8 @@ export const deleteTemplate = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Template not found');
   }
+  const category = template.category;
   await template.deleteOne();
+  await reindexTemplateCodes(category);
   res.json({ message: 'Template deleted' });
 });

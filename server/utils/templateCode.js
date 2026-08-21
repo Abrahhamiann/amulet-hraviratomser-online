@@ -69,3 +69,29 @@ export const nextTemplateCode = async (category) => {
   );
   return templateCodeForCategory(category, counter.value.sequence);
 };
+
+export const reindexTemplateCodes = async (category) => {
+  if (!TEMPLATE_CATEGORY_PREFIX[category]) throw new Error('A valid template category is required');
+
+  const templates = await Template.find({ category })
+    .select('_id')
+    .sort({ createdAt: 1, _id: 1 });
+
+  await Template.updateMany(
+    { _id: { $in: templates.map((template) => template._id) } },
+    { $unset: { code: 1 } }
+  );
+
+  for (let index = 0; index < templates.length; index += 1) {
+    await Template.updateOne(
+      { _id: templates[index]._id },
+      { $set: { code: templateCodeForCategory(category, index + 1) } }
+    );
+  }
+
+  await Setting.findOneAndUpdate(
+    { key: counterKey(category) },
+    { $set: { value: { sequence: templates.length } } },
+    { upsert: true, setDefaultsOnInsert: true }
+  );
+};
