@@ -359,14 +359,21 @@ export function Quote() {
 
 /* -------------------------------- Dress Code -------------------------------- */
 
-export function DressCode() {
+export function DressCode({
+  palette = dressPalette,
+  note = "Մեղմ չեզոք երանգներ, մետաքս և մի փոքր ոսկեգույն․ հագնվեք այնպես, կարծես երեկոն լուսանկար է, որը հավերժ կպահեիք։",
+}: {
+  palette?: Array<{ name: string; value: string }>;
+  note?: string;
+} = {}) {
   return (
     <Section>
       <SectionTitle eyebrow="Մի փոքր խնդրանք" title="Դրես կոդ" script="Էլեգանտ / Կոկտեյլային" />
       <Stagger className="mt-12 flex flex-wrap items-start justify-center gap-6 sm:gap-10">
-        {dressPalette.map((c) => (
+        {palette.map((c, index) => (
           <motion.div key={c.name} variants={staggerChild} className="flex flex-col items-center">
             <motion.span
+              data-dress-color-index={index}
               whileHover={{ scale: 1.08 }}
               transition={{ duration: 0.4 }}
               className="block h-14 w-14 rounded-full border border-gold/40 sm:h-16 sm:w-16"
@@ -378,8 +385,7 @@ export function DressCode() {
       </Stagger>
       <Reveal delay={0.2}>
         <p className="mx-auto mt-10 max-w-md text-center text-sm leading-7 text-muted-foreground">
-          Մեղմ չեզոք երանգներ, մետաքս և մի փոքր ոսկեգույն․ հագնվեք այնպես, կարծես երեկոն
-          լուսանկար է, որը հավերժ կպահեիք։
+          {note}
         </p>
       </Reveal>
     </Section>

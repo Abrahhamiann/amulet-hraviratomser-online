@@ -38,7 +38,7 @@ export function HeroSection({ data, start }: { data: InvitationConfig; start: bo
               : { opacity: 0, scale: 0.86, filter: "blur(8px)" }
           }
           transition={{ duration: 1.15, delay: 0.45, ease }}
-          className="text-gold-gradient mt-3 font-display text-[3.5rem] leading-[0.92] tracking-tight sm:text-[6rem] lg:text-[8rem]"
+          className="birthday-person-name text-gold-gradient mt-3 w-full overflow-visible px-[0.12em] py-[0.16em] font-display text-[3.5rem] leading-[1.18] tracking-tight [overflow-wrap:anywhere] sm:text-[6rem] lg:text-[8rem]"
         >
           {data.birthdayPersonName.toUpperCase()}
         </motion.h1>

@@ -1,0 +1,204 @@
+@import "tailwindcss" source(none);
+@source ".";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Editorial engagement invitation design system.
+ * Warm paper palette, serif/handwritten typography, ink line-art.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-rose: var(--rose);
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-sand: var(--sand);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-display: var(--font-display);
+  --font-hy: var(--font-hy);
+  --font-hy-sans: var(--font-hy-sans);
+  --font-script: var(--font-script);
+}
+
+:root {
+  --radius: 0.25rem;
+
+  --paper: oklch(0.9727 0.0121 84);
+  --sand: oklch(0.9243 0.0208 78);
+  --ink: oklch(0.2434 0.0086 60);
+  --accent-warm: oklch(0.6032 0.0553 47);
+  --accent-soft: oklch(0.7422 0.0405 55);
+  --rose: oklch(0.8106 0.0372 27);
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: oklch(0.9727 0.0121 84);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
+  --primary: var(--accent-warm);
+  --primary-foreground: oklch(0.9838 0.006 84);
+  --secondary: var(--sand);
+  --secondary-foreground: var(--ink);
+  --muted: var(--sand);
+  --muted-foreground: oklch(0.4901 0.0182 55);
+  --accent: var(--accent-soft);
+  --accent-foreground: var(--ink);
+  --destructive: oklch(0.517 0.13 25);
+  --destructive-foreground: oklch(0.98 0.006 84);
+  --border: oklch(0.8663 0.0173 70);
+  --input: oklch(0.8663 0.0173 70);
+  --ring: var(--accent-warm);
+
+  --font-display: "Cormorant Garamond", "Noto Serif Armenian", Georgia, serif;
+  --font-hy: "Noto Serif Armenian", "Cormorant Garamond", Georgia, serif;
+  --font-hy-sans: "Noto Sans Armenian", ui-sans-serif, system-ui, sans-serif;
+  --font-script: "La Belle Aurore", "Noto Serif Armenian", cursive;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    background-color: oklch(0.9243 0.0208 78);
+  }
+
+  body {
+    background-color: oklch(0.9243 0.0208 78);
+    color: var(--color-foreground);
+    font-family: var(--font-hy);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--rose);
+    color: var(--ink);
+  }
+}
+
+/* Paper grain overlay */
+@utility grain {
+  position: relative;
+}
+@utility grain-layer {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.16'/%3E%3C/svg%3E");
+}
+
+/* Typographic helpers */
+@utility caption {
+  font-family: var(--font-hy-sans);
+  font-size: 0.625rem;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+@utility script {
+  font-family: var(--font-script);
+  font-weight: 400;
+  color: var(--accent-warm);
+}
+
+@utility script-hy {
+  font-family: var(--font-hy);
+  font-style: italic;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  color: var(--accent-warm);
+}
+
+@utility rule-thin {
+  height: 1px;
+  background-color: color-mix(in oklab, var(--ink) 22%, transparent);
+}
+
+.forever-vows-template {
+  min-height: 100vh;
+  container-type: inline-size;
+  background-color: var(--background);
+  text-align: center;
+  font-size: clamp(16px, 1.15vw, 19px);
+}
+
+.forever-vows-template * {
+  font-size: max(1rem, 1em);
+}
+
+.forever-vows-template :is(h1, h2, h3, h4, p, figcaption, label, legend) {
+  text-align: center;
+}
+
+.forever-vows-template .caption {
+  font-size: 0.82rem;
+  letter-spacing: 0.24em;
+  line-height: 1.6;
+}
+
+.forever-vows-template input,
+.forever-vows-template textarea {
+  text-align: center;
+}
+
+.forever-vows-template > * {
+  width: min(100%, 430px);
+  margin-inline: auto;
+}
+
+@container (min-width: 640px) {
+  .forever-vows-template > * {
+    width: min(100%, 720px);
+  }
+
+  .forever-vows-template > :is(.forever-vows-hero, .forever-vows-schedule, .forever-vows-dress, .forever-vows-rsvp, .forever-vows-closing) {
+    width: 100%;
+  }
+}
+
+.forever-vows-template :is(a, button, input, textarea):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .forever-vows-template,
+  .forever-vows-template *,
+  .forever-vows-template *::before,
+  .forever-vows-template *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

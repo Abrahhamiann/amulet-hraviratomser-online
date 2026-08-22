@@ -2,7 +2,14 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { parseCookies } from '../middleware/cookies.js';
 import { authCookieOptions } from '../utils/authCookie.js';
-import { isAllowedImage, isAllowedMusic, normalizeDraft } from '../utils/invitationDraft.js';
+import { isAllowedImage, isAllowedMusic, normalizeDraft, normalizeMapUrl } from '../utils/invitationDraft.js';
+
+test('Google Maps links accept raw and Markdown formats while rejecting unsafe URLs', () => {
+  const url = 'https://maps.app.goo.gl/MvP87wSLXXWeeUmw8';
+  assert.equal(normalizeMapUrl(url), url);
+  assert.equal(normalizeMapUrl(`[${url}](${url})`), url);
+  assert.equal(normalizeMapUrl('javascript:alert(1)'), '');
+});
 import { createPreviewToken, hashPreviewToken } from '../utils/previewToken.js';
 import { isStrongPassword, normalizePhone, passwordRequirements } from '../utils/accountValidation.js';
 
@@ -75,7 +82,8 @@ test('editor design, RSVP, and venue settings are normalized without scriptable 
     buttonDesign: { preset: '12', radius: 'lg' },
     textStyles: { names: { fontFamily: 'url(javascript:alert(1))', fontSize: 999, align: 'right', color: '#112233' } },
     rsvpSettings: { title: 'Մասնակցություն', askGuestCount: false, askMeal: true },
-    mapLinks: [{ label: 'Եկեղեցի', url: 'javascript:alert(1)', subtitle: 'Պսակադրություն', icon: 'church', visible: false }]
+    mapLinks: [{ label: 'Եկեղեցի', url: 'javascript:alert(1)', subtitle: 'Պսակադրություն', icon: 'church', visible: false }],
+    dressCodeColors: [{ name: 'Sage', hex: '#A9B49A' }, { name: 'Bad', hex: 'red' }]
   }, template);
   assert.equal(draft.imageFilter, 'cinema');
   assert.deepEqual(draft.buttonDesign, { preset: '12', radius: 'lg' });
@@ -89,6 +97,7 @@ test('editor design, RSVP, and venue settings are normalized without scriptable 
   assert.equal(draft.mapLinks[0].subtitle, 'Պսակադրություն');
   assert.equal(draft.mapLinks[0].icon, 'church');
   assert.equal(draft.mapLinks[0].visible, false);
+  assert.deepEqual(draft.dressCodeColors, [{ name: 'Sage', hex: '#a9b49a' }, { name: 'Bad', hex: '#d8b98e' }]);
 });
 
 test('editor preserves intentional blanks and sanitizes template-wide overrides', () => {

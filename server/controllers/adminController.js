@@ -11,7 +11,7 @@ import { deliverContactReply } from '../utils/contactReply.js';
 import { makeSlug } from '../utils/slug.js';
 import { normalizePhone } from '../utils/accountValidation.js';
 import { ensureTemplateCodes, nextTemplateCode, reindexTemplateCodes } from '../utils/templateCode.js';
-import { PUBLIC_DESIGN_KEYS, templateCategoryForDesign } from '../utils/templateDesign.js';
+import { PUBLIC_DESIGN_KEYS, templateCategoryForDesign, templateEditorTypeForCategory } from '../utils/templateDesign.js';
 import { createSecureInvitationSlug } from '../utils/invitationSlug.js';
 import { translations as clientTranslations } from '../../client/src/translations/translations.js';
 
@@ -20,7 +20,10 @@ const categoryLabels = {
   baptism: 'Baptism',
   birth: 'Birthday',
   corporate: 'Corporate',
-  engagement: 'Engagement'
+  engagement: 'Engagement',
+  new_year: 'New Year',
+  meeting: 'Meeting',
+  military: 'Military occasion'
 };
 
 const adminRoles = ['admin', 'super_admin'];
@@ -157,7 +160,9 @@ const mapTemplate = (template, usage = 0) => ({
   galleryConfigured: Boolean(template.galleryConfigured),
   featured: template.isFeatured,
   active: template.isActive !== false,
-  status: template.isActive === false ? 'inactive' : 'active',
+  deleted: Boolean(template.deletedAt),
+  deletedAt: template.deletedAt || null,
+  status: template.deletedAt ? 'deleted' : template.isActive === false ? 'inactive' : 'active',
   languages: ['HY'],
   usage,
   discount: 0,
@@ -262,7 +267,7 @@ export const getAdminDashboard = asyncHandler(async (req, res) => {
   const periodMessages = filterByPeriod(messages, period);
   const periodRsvps = filterByPeriod(rsvps, period);
   const periodUsers = filterByPeriod(users, period);
-  const visibleTemplates = templates;
+  const visibleTemplates = templates.filter((template) => !template.deletedAt);
 
   const paidPeriodOrders = periodOrders.filter((order) => order.paymentStatus === 'paid');
   const revenue = paidPeriodOrders.reduce((sum, order) => sum + orderAmount(order), 0);
@@ -327,7 +332,10 @@ export const getAdminOrders = asyncHandler(async (req, res) => {
 export const getAdminTemplates = asyncHandler(async (req, res) => {
   await ensureTemplateCodes();
   const [templates, orders] = await Promise.all([
-    Template.find({ designKey: { $in: PUBLIC_DESIGN_KEYS } }).sort({ createdAt: -1 }),
+    Template.find({
+      designKey: { $in: PUBLIC_DESIGN_KEYS },
+      deletedAt: null
+    }).sort({ createdAt: -1 }),
     Order.find()
   ]);
   const usage = orders.reduce((map, order) => {
@@ -456,7 +464,7 @@ export const createAdminTemplate = asyncHandler(async (req, res) => {
   const data = req.body;
   const slug = data.slug || makeSlug(data.title);
   const designKey = PUBLIC_DESIGN_KEYS.includes(data.designKey) ? data.designKey : DEFAULT_DESIGN_KEY;
-  const category = templateCategoryForDesign(designKey) || data.category;
+  const category = data.category || templateCategoryForDesign(designKey);
   const template = await Template.create({
     ...data,
     category,
@@ -467,7 +475,7 @@ export const createAdminTemplate = asyncHandler(async (req, res) => {
     galleryConfigured: Boolean(data.galleryConfigured),
     imagePosition: normalizeImagePosition(data.imagePosition),
     designKey,
-    editorType: category,
+    editorType: data.editorType || templateEditorTypeForCategory(category),
     isActive: data.isActive !== false
   });
   res.status(201).json(mapTemplate(template));
@@ -482,8 +490,12 @@ export const updateAdminTemplate = asyncHandler(async (req, res) => {
   const previousCategory = template.category;
   const { code: _ignoredCode, ...data } = req.body;
   data.designKey = PUBLIC_DESIGN_KEYS.includes(data.designKey) ? data.designKey : template.designKey;
-  data.category = templateCategoryForDesign(data.designKey) || data.category || template.category;
-  data.editorType = data.category;
+  data.category = data.category || template.category;
+  data.editorType = data.editorType || (
+    data.category === template.category
+      ? (template.editorType || templateEditorTypeForCategory(data.category))
+      : templateEditorTypeForCategory(data.category)
+  );
   if (data.category !== template.category) data.code = await nextTemplateCode(data.category);
   if (typeof data.features === 'string') data.features = data.features.split('\n').filter(Boolean);
   if (typeof data.gallery === 'string') data.gallery = data.gallery.split('\n').filter(Boolean);
@@ -502,10 +514,38 @@ export const deleteAdminTemplate = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Template not found');
   }
+  if (template.deletedAt) {
+    res.json({ message: 'Template already deleted' });
+    return;
+  }
   const category = template.category;
-  await template.deleteOne();
+  template.deletedAt = new Date();
+  template.deletedBy = req.user._id;
+  template.isActive = false;
+  template.code = undefined;
+  await template.save();
   await reindexTemplateCodes(category);
   res.json({ message: 'Template deleted' });
+});
+
+export const restoreAdminTemplate = asyncHandler(async (req, res) => {
+  const template = await Template.findById(req.params.id);
+  if (!template) {
+    res.status(404);
+    throw new Error('Template not found');
+  }
+  if (!template.deletedAt) {
+    res.json(mapTemplate(template));
+    return;
+  }
+  const category = template.category;
+  template.deletedAt = null;
+  template.deletedBy = null;
+  template.isActive = true;
+  template.code = await nextTemplateCode(category);
+  await template.save();
+  await reindexTemplateCodes(category);
+  res.json(mapTemplate(await Template.findById(template._id)));
 });
 
 export const deleteAdminOrder = asyncHandler(async (req, res) => {
@@ -727,17 +767,45 @@ export const broadcastAdminEmail = asyncHandler(async (req, res) => {
   }
 
   const users = await User.find({ role: 'user', isEmailVerified: true });
-  await Promise.all(users.map((user) => sendMail({
-    to: user.email,
-    subject,
-    html: emailShell({
-      title: subject,
-      intro: `Hello ${user.name},`,
-      body: String(message).replace(/\n/g, '<br />'),
-      footer: 'Amulet team'
-    }),
-    text: message
-  })));
+  let cursor = 0;
+  let sent = 0;
+  let failed = 0;
+  let infrastructureError = null;
+  const fatalMailCodes = new Set(['EAUTH', 'ECONNECTION', 'ESOCKET', 'ETIMEDOUT', 'EMAIL_TIMEOUT']);
+  const worker = async () => {
+    while (cursor < users.length && !infrastructureError) {
+      const user = users[cursor];
+      cursor += 1;
+      try {
+        await sendMail({
+          to: user.email,
+          subject,
+          html: emailShell({
+            title: subject,
+            intro: `Hello ${user.name},`,
+            body: String(message).replace(/\n/g, '<br />'),
+            footer: 'Amulet team'
+          }),
+          text: message
+        });
+        sent += 1;
+      } catch (error) {
+        failed += 1;
+        if (fatalMailCodes.has(error.code)) infrastructureError = error;
+        else console.error(`Broadcast email to ${user.email} failed:`, error.code || error.message);
+      }
+    }
+  };
 
-  res.json({ sent: users.length });
+  const concurrency = Math.min(3, users.length);
+  await Promise.all(Array.from({ length: concurrency }, worker));
+  if (infrastructureError) failed += users.length - cursor;
+
+  if (users.length > 0 && sent === 0 && infrastructureError) {
+    console.error('Broadcast email infrastructure failure:', infrastructureError.code || infrastructureError.message);
+    res.status(503);
+    throw new Error('Email service is unavailable. Please try again');
+  }
+
+  res.json({ sent, failed, total: users.length });
 });

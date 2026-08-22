@@ -12,6 +12,7 @@ const EXACT_API_ERROR_KEYS = {
   'Verification code expired': 'authCodeExpired',
   'Too many verification attempts. Please register again': 'authTooManyVerificationAttempts',
   'Verification code is incorrect': 'authCodeWrong',
+  'Verification email could not be sent. Please try again': 'authEmailSendFailed',
   'Reset code is invalid or expired': 'authResetCodeInvalid',
   'Too many reset attempts. Request a new code': 'authTooManyResetAttempts',
   'Reset token and password are required': 'authResetRequired',
@@ -29,14 +30,18 @@ const PREFIX_API_ERROR_KEYS = [
   ['Missing fields:', 'orderErrorDetails']
 ];
 
+export function getApiErrorKey(error, fallbackKey = 'error') {
+  const message = String(error?.response?.data?.message || '').trim();
+  const exactKey = EXACT_API_ERROR_KEYS[message];
+  const prefixKey = PREFIX_API_ERROR_KEYS.find(([prefix]) => message.startsWith(prefix))?.[1];
+  return exactKey || prefixKey || fallbackKey;
+}
+
 export function getLocalizedApiError(error, t, { fallbackKey = 'error', networkKey } = {}) {
   if (!error?.response) {
     if (error?.request && networkKey) return t(networkKey);
     return error?.message || t(fallbackKey);
   }
 
-  const message = String(error.response?.data?.message || '').trim();
-  const exactKey = EXACT_API_ERROR_KEYS[message];
-  const prefixKey = PREFIX_API_ERROR_KEYS.find(([prefix]) => message.startsWith(prefix))?.[1];
-  return t(exactKey || prefixKey || fallbackKey);
+  return t(getApiErrorKey(error, fallbackKey));
 }

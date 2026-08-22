@@ -49,6 +49,10 @@ const en = {
   birth: 'Birthday',
   corporate: 'Corporate',
   engagement: 'Engagement',
+  other: 'Other',
+  new_year: 'New Year',
+  meeting: 'Meeting',
+  military: 'Military occasion',
   weddingTitle: 'Wedding and engagement',
   weddingSubtitle: 'The most precious moments begin with an invitation',
   baptismTitle: 'Baptism',
@@ -198,6 +202,10 @@ const hy = {
   birth: 'Ծնունդ',
   corporate: 'Կորպորատիվ',
   engagement: 'Նշանադրություն',
+  other: 'Այլ',
+  new_year: 'Ամանորյա',
+  meeting: 'Հանդիպման',
+  military: 'Բանակի առիթ',
   weddingTitle: 'Հարսանեկան եւ նշանադրության',
   weddingSubtitle: 'Ամենաթանկ ակնթարթները սկսվում են հրավերից',
   baptismTitle: 'Մկրտության',
@@ -345,6 +353,10 @@ const ru = {
   birth: 'День рождения',
   corporate: 'Корпоратив',
   engagement: 'Помолвка',
+  other: 'Другое',
+  new_year: 'Новогодние',
+  meeting: 'Встреча',
+  military: 'Проводы в армию',
   weddingTitle: 'Свадьба и помолвка',
   weddingSubtitle: 'Самые ценные моменты начинаются с приглашения',
   baptismTitle: 'Крещение',
@@ -789,6 +801,10 @@ Object.assign(en, {
   authSignIn: 'Sign in',
   authOr: 'or',
   authGoogleMissing: 'Add VITE_GOOGLE_CLIENT_ID to enable Google sign-in',
+  authGoogleLoading: 'Loading Google sign-in...',
+  authGoogleRetry: 'Google sign-in did not load. Try again',
+  authRequestFailed: 'The request took too long. Please try again.',
+  authEmailSendFailed: 'The verification email could not be sent. Please try again.',
   authVerifyTitle: 'Verify your email',
   authVerifyIntro: 'We sent a 6-digit verification code to {email}.',
   authCodeSent: 'The verification code was sent to your email.',
@@ -818,6 +834,10 @@ Object.assign(hy, {
   authSignIn: 'Մուտք գործել',
   authOr: 'կամ',
   authGoogleMissing: 'Google մուտքի համար ավելացրու VITE_GOOGLE_CLIENT_ID',
+  authGoogleLoading: 'Google մուտքը բեռնվում է...',
+  authGoogleRetry: 'Google մուտքը չբեռնվեց։ Փորձել կրկին',
+  authRequestFailed: 'Հարցումը շատ երկար տևեց։ Փորձիր կրկին։',
+  authEmailSendFailed: 'Չհաջողվեց ուղարկել հաստատման նամակը։ Փորձիր կրկին։',
   authVerifyTitle: 'Հաստատիր email-ը',
   authVerifyIntro: '{email} հասցեին ուղարկել ենք 6 նիշանոց կոդ։ Մուտքագրիր այն՝ գրանցումն ավարտելու համար։',
   authCodeSent: 'Վերիֆիկացիայի կոդը ուղարկվել է email-ին։',
@@ -847,6 +867,10 @@ Object.assign(ru, {
   authSignIn: 'Войти',
   authOr: 'или',
   authGoogleMissing: 'Добавьте VITE_GOOGLE_CLIENT_ID для входа через Google',
+  authGoogleLoading: 'Загрузка входа через Google...',
+  authGoogleRetry: 'Вход через Google не загрузился. Повторить',
+  authRequestFailed: 'Запрос выполнялся слишком долго. Попробуйте ещё раз.',
+  authEmailSendFailed: 'Не удалось отправить письмо с кодом. Попробуйте ещё раз.',
   authVerifyTitle: 'Подтвердите email',
   authVerifyIntro: 'Мы отправили 6-значный код на {email}. Введите его, чтобы завершить регистрацию.',
   authCodeSent: 'Код подтверждения отправлен на ваш email.',
@@ -871,16 +895,16 @@ Object.assign(ru, {
 
 
 Object.assign(hy, {
-  newHeroTitle: 'Քո հրավերը՝ նոր ձևաչափով',
-  newHeroText: 'Ստեղծիր գեղեցիկ և ժամանակակից օնլայն հրավեր՝ նախատեսված հենց քո հիշարժան օրվա համար։ Ընտրիր դիզայնը, ավելացրու անհրաժեշտ տվյալները և ընդամենը մեկ հղումով ուղարկիր այն բոլոր հյուրերին։ Հեշտ, արագ և տպավորիչ։',
-  creationFlowTitle: 'Ստեղծիր օնլայն հրավեր ընդամենը 10 րոպեում',
+  newHeroTitle: 'Հրավիրիր այլ կերպ',
+  newHeroText: 'Ստեղծիր ժամանակակից օնլայն հրավեր՝ նախատեսված հենց քո հիշարժան օրվա համար։ Ընտրիր դիզայնը, ավելացրու անհրաժեշտ տվյալները և ընդամենը մեկ հղումով ուղարկիր այն բոլոր հյուրերին։ Հեշտ, արագ և տպավորիչ։',
+  creationFlowTitle: 'Քո օնլայն հրավերը՝ 10 րոպեում',
   creationSteps: [
-    { title: 'Ընտրիր դիզայնը', text: 'Գտիր քո միջոցառմանը համապատասխան ոճը և բացիր այն հեռախոսի տեսքով։' },
-    { title: 'Լրացրու տվյալները', text: 'Ավելացրու անունները, օրը, ժամը, հասցեն, նկարները և հյուրերի համար կարևոր տեքստերը։' },
+    { title: 'Ընտրիր դիզայնը', text: 'Գտիր քո միջոցառմանը համապատասխան ոճը և բացիր այն։' },
+    { title: 'Լրացրու տվյալները', text: 'Լրացրու անունները, ամսաթիվը, ժամը, հասցեն, նկարներն ու անհրաժեշտ տեղեկությունները։' },
     { title: 'Ուղարկիր հրավերը', text: 'Կիսվիր պատրաստի հղումով WhatsApp-ով, Viber-ով, Telegram-ով կամ ցանկացած հարթակով։' }
   ],
   step: 'Քայլ',
-  startCreating: 'Սկսել ստեղծել',
+  startCreating: 'Ընտրել հրավեր',
   new: 'Նոր',
   close: 'Փակել',
   scanQr: 'Scan QR կոդը',
@@ -894,16 +918,16 @@ Object.assign(hy, {
 });
 
 Object.assign(en, {
-  newHeroTitle: 'Your invitation in a new format',
-  newHeroText: 'Create a beautiful modern online invitation made for your memorable day. Choose a design, add the details, and send it to every guest with one link. Easy, fast, and impressive.',
-  creationFlowTitle: 'Create your online invitation in just 10 minutes',
+  newHeroTitle: 'Invite in a new way',
+  newHeroText: 'Create a modern online invitation made for your memorable day. Choose a design, add the details, and send it to every guest with one link. Easy, fast, and impressive.',
+  creationFlowTitle: 'Your online invitation in just 10 minutes',
   creationSteps: [
-    { title: 'Choose a template', text: 'Find the style that fits your event and preview it as a phone invitation.' },
-    { title: 'Fill in your details', text: 'Add names, date, time, address, photos, and the text your guests need.' },
+    { title: 'Choose a template', text: 'Find the style that fits your event and preview it.' },
+    { title: 'Fill in your details', text: 'Fill in names, date, time, address, photos, and the text your guests need.' },
     { title: 'Send your invitation', text: 'Share the finished link through WhatsApp, Viber, Telegram, or any platform.' }
   ],
   step: 'Step',
-  startCreating: 'Start creating',
+  startCreating: 'Choose invitation',
   new: 'New',
   close: 'Close',
   scanQr: 'Scan QR code',
@@ -917,16 +941,16 @@ Object.assign(en, {
 });
 
 Object.assign(ru, {
-  newHeroTitle: 'Ваше приглашение в новом формате',
-  newHeroText: 'Создайте красивое и современное онлайн-приглашение для вашего памятного дня. Выберите дизайн, добавьте данные и отправьте всем гостям одной ссылкой. Легко, быстро и впечатляюще.',
-  creationFlowTitle: 'Создайте онлайн-приглашение всего за 10 минут',
+  newHeroTitle: 'Приглашайте по-новому',
+  newHeroText: 'Создайте современное онлайн-приглашение для вашего памятного дня. Выберите дизайн, добавьте данные и отправьте всем гостям одной ссылкой. Легко, быстро и впечатляюще.',
+  creationFlowTitle: 'Ваш онлайн-приглашение всего за 10 минут',
   creationSteps: [
-    { title: 'Выберите шаблон', text: 'Найдите стиль для вашего события и посмотрите, как приглашение выглядит на телефоне.' },
+    { title: 'Выберите шаблон', text: 'Найдите стиль для вашего события и посмотрите, как приглашение выглядит.' },
     { title: 'Заполните данные', text: 'Добавьте имена, дату, время, адрес, фотографии и важный текст для гостей.' },
     { title: 'Отправьте приглашение', text: 'Поделитесь готовой ссылкой через WhatsApp, Viber, Telegram или любую платформу.' }
   ],
   step: 'Шаг',
-  startCreating: 'Начать создание',
+  startCreating: 'Выбрать приглашение',
   new: 'Новое',
   close: 'Закрыть',
   scanQr: 'Сканировать QR-код',
@@ -1267,6 +1291,7 @@ Object.assign(ru, { validationRequired: 'Обязательное поле' });
 Object.assign(hy, {
   authFieldsRequired: 'Անունը, email-ը, հեռախոսահամարը, գաղտնաբառը և դրա հաստատումը պարտադիր են։',
   authEmailInvalid: 'Մուտքագրեք վավեր email հասցե։', authAccountExists: 'Այս տվյալներով հաշիվ արդեն գոյություն ունի։', authPhoneInUse: 'Այս հեռախոսահամարն արդեն օգտագործվում է։',
+  authExistingEmailTitle: 'Այս email-ով հաշիվ արդեն կա', authExistingEmailText: 'Այս հասցեով արդեն գրանցված հաշիվ կա։ Մուտք գործեք գործող հաշիվ կամ վերականգնեք գաղտնաբառը։',
   authLoginRequired: 'Email-ը կամ հեռախոսահամարը և գաղտնաբառը պարտադիր են։', authInvalidCredentials: 'Email-ը, հեռախոսահամարը կամ գաղտնաբառը սխալ է։', authVerifyBeforeLogin: 'Մուտք գործելուց առաջ հաստատեք Ձեր email-ը։',
   authVerificationRequired: 'Email-ը և հաստատման կոդը պարտադիր են։', authCodeExpired: 'Հաստատման կոդի ժամկետը լրացել է։', authTooManyVerificationAttempts: 'Չափազանց շատ փորձեր են կատարվել։ Խնդրում ենք կրկին գրանցվել։',
   authResetCodeInvalid: 'Վերականգնման կոդը սխալ է կամ ժամկետանց։', authTooManyResetAttempts: 'Չափազանց շատ փորձեր են կատարվել։ Ստացեք նոր կոդ։', authResetRequired: 'Վերականգնման տվյալները և գաղտնաբառը պարտադիր են։', authResetSessionInvalid: 'Գաղտնաբառի վերականգնման հղումը սխալ է կամ ժամկետանց։',
@@ -1275,6 +1300,7 @@ Object.assign(hy, {
 });
 Object.assign(en, {
   authFieldsRequired: 'Name, email, phone, password, and password confirmation are required.', authEmailInvalid: 'Enter a valid email address.', authAccountExists: 'An account with these details already exists.', authPhoneInUse: 'This phone number is already in use.',
+  authExistingEmailTitle: 'An account already uses this email', authExistingEmailText: 'This email is already registered. Sign in to the existing account or reset its password.',
   authLoginRequired: 'Email or phone and password are required.', authInvalidCredentials: 'The email, phone number, or password is incorrect.', authVerifyBeforeLogin: 'Verify your email before signing in.', authVerificationRequired: 'Email and verification code are required.', authCodeExpired: 'The verification code has expired.', authTooManyVerificationAttempts: 'Too many attempts. Please register again.',
   authResetCodeInvalid: 'The reset code is invalid or expired.', authTooManyResetAttempts: 'Too many attempts. Request a new code.', authResetRequired: 'Reset details and password are required.', authResetSessionInvalid: 'The password reset session is invalid or expired.',
   authGoogleRequired: 'Google sign-in details are missing.', authGoogleNotConfigured: 'Google sign-in is temporarily unavailable.', authGoogleInvalid: 'The Google sign-in details are invalid.', authGoogleAppMismatch: 'This Google account cannot be used with this app.', authGoogleFailed: 'Google sign-in failed.',
@@ -1282,6 +1308,7 @@ Object.assign(en, {
 });
 Object.assign(ru, {
   authFieldsRequired: 'Укажите имя, email, телефон, пароль и подтверждение пароля.', authEmailInvalid: 'Введите корректный email.', authAccountExists: 'Аккаунт с такими данными уже существует.', authPhoneInUse: 'Этот номер телефона уже используется.',
+  authExistingEmailTitle: 'Аккаунт с этой почтой уже существует', authExistingEmailText: 'Этот email уже зарегистрирован. Войдите в существующий аккаунт или восстановите пароль.',
   authLoginRequired: 'Укажите email или телефон и пароль.', authInvalidCredentials: 'Неверный email, номер телефона или пароль.', authVerifyBeforeLogin: 'Подтвердите email перед входом.', authVerificationRequired: 'Укажите email и код подтверждения.', authCodeExpired: 'Срок действия кода подтверждения истёк.', authTooManyVerificationAttempts: 'Слишком много попыток. Зарегистрируйтесь повторно.',
   authResetCodeInvalid: 'Код восстановления неверен или истёк.', authTooManyResetAttempts: 'Слишком много попыток. Запросите новый код.', authResetRequired: 'Укажите данные восстановления и пароль.', authResetSessionInvalid: 'Сеанс восстановления пароля недействителен или истёк.',
   authGoogleRequired: 'Отсутствуют данные для входа через Google.', authGoogleNotConfigured: 'Вход через Google временно недоступен.', authGoogleInvalid: 'Недействительные данные входа Google.', authGoogleAppMismatch: 'Этот аккаунт Google нельзя использовать в приложении.', authGoogleFailed: 'Не удалось войти через Google.',
@@ -1289,9 +1316,9 @@ Object.assign(ru, {
   checkoutError: 'Не удалось открыть страницу оплаты. Попробуйте снова.', paymentSuccessErrorTitle: 'Не удалось подтвердить оплату', paymentSuccessErrorText: 'Не удалось подтвердить этот платёж. Откройте профиль или попробуйте снова.'
 });
 
-Object.assign(hy, { templateAuthRequiredTitle: 'Պետք է գրանցվել', templateAuthRequiredText: 'Հրավերը դիտելու կամ խմբագրելու համար մուտք գործեք կամ ստեղծեք հաշիվ։' });
-Object.assign(en, { templateAuthRequiredTitle: 'Account required', templateAuthRequiredText: 'Sign in or create an account to view or edit this invitation.' });
-Object.assign(ru, { templateAuthRequiredTitle: 'Требуется регистрация', templateAuthRequiredText: 'Войдите или создайте аккаунт, чтобы просматривать или редактировать приглашение.' });
+Object.assign(hy, { templateAuthRequiredTitle: 'Խմբագրման համար պետք է գրանցվել', templateAuthRequiredText: 'Հրավերը խմբագրելու և փոփոխությունները պահպանելու համար մուտք գործեք կամ ստեղծեք հաշիվ։' });
+Object.assign(en, { templateAuthRequiredTitle: 'Account required to edit', templateAuthRequiredText: 'Sign in or create an account to edit this invitation and save your changes.' });
+Object.assign(ru, { templateAuthRequiredTitle: 'Для редактирования нужен аккаунт', templateAuthRequiredText: 'Войдите или создайте аккаунт, чтобы редактировать приглашение и сохранять изменения.' });
 
 Object.assign(hy, {
   editorSessionChanges: 'Փոփոխություններն ավտոմատ պահպանված են այս սարքում',

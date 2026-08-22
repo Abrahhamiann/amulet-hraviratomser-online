@@ -26,6 +26,7 @@ import {
   updateAdminTemplate,
   replyAdminMessage,
   resetAdminRevenue,
+  restoreAdminTemplate,
   sendAdminCustomerEmail
 } from '../controllers/adminController.js';
 import { adminOnly, protect } from '../middleware/auth.js';
@@ -56,6 +57,7 @@ router.get('/templates', getAdminTemplates);
 router.post('/templates', createAdminTemplate);
 router.put('/templates/:id', updateAdminTemplate);
 router.delete('/templates/:id', deleteAdminTemplate);
+router.post('/templates/:id/restore', restoreAdminTemplate);
 router.get('/invitations', getAdminInvitations);
 router.post('/invitations', createAdminInvitation);
 router.put('/invitations/:id', updateAdminInvitation);

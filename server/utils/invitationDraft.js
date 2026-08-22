@@ -34,16 +34,29 @@ const normalizedSecond = (value) => {
 
 export const isHexColor = (value) => /^#[0-9a-f]{6}$/i.test(String(value || '').trim());
 
+export const normalizeMapUrl = (value) => {
+  const input = String(value || '').trim();
+  if (!input) return '';
+  const markdownMatch = input.match(/^\s*\[[^\]]*\]\(\s*(https?:\/\/[^\s)]+)(?:\s+["'][^"']*["'])?\s*\)\s*$/i);
+  const candidate = (markdownMatch?.[1] || input).replace(/^<|>$/g, '').trim();
+  try {
+    const url = new URL(candidate);
+    return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+  } catch {
+    return '';
+  }
+};
+
 export const normalizeMapLinks = (source) => {
   const links = Array.isArray(source?.mapLinks) ? source.mapLinks : [];
   const normalized = links
     .map((item, index) => {
-      const requestedUrl = metadataText(item?.url, '', 600);
+      const requestedUrl = normalizeMapUrl(metadataText(item?.url, '', 600));
       return {
         label: metadataText(item?.label, `Map ${index + 1}`, 80),
         time: metadataText(item?.time, '', 24),
         address: metadataText(item?.address, '', 180),
-        url: /^https?:\/\//i.test(requestedUrl) ? requestedUrl : '',
+        url: requestedUrl,
         subtitle: metadataText(item?.subtitle, '', 120),
         icon: allowedVenueIcons.has(item?.icon) ? item.icon : 'location',
         visible: item?.visible !== false
@@ -51,8 +64,8 @@ export const normalizeMapLinks = (source) => {
     })
     .filter((item) => item.label || item.time || item.address || /^https?:\/\//.test(item.url));
 
-  const mapLink = metadataText(source?.mapLink, '', 600);
-  if (/^https?:\/\//.test(mapLink) && !normalized.some((item) => item.url === mapLink)) {
+  const mapLink = normalizeMapUrl(metadataText(source?.mapLink, '', 600));
+  if (mapLink && !normalized.some((item) => item.url === mapLink)) {
     normalized.unshift({ label: 'Map', time: '', address: '', url: mapLink, subtitle: '', icon: 'location', visible: true });
   }
   return normalized.slice(0, 20);
@@ -63,6 +76,13 @@ export const normalizeColors = (source = {}) => ({
   text: isHexColor(source.text) ? source.text : '#ffffff',
   overlay: isHexColor(source.overlay) ? source.overlay : '#202020'
 });
+
+export const normalizeDressCodeColors = (source = []) => (Array.isArray(source) ? source : [])
+  .slice(0, 16)
+  .map((color, index) => ({
+    name: metadataText(color?.name, `Color ${index + 1}`, 60),
+    hex: isHexColor(color?.hex) ? String(color.hex).toLowerCase() : '#d8b98e'
+  }));
 
 const normalizeTextStyle = (source = {}) => ({
   fontFamily: allowedFontFamilies.has(source.fontFamily) ? source.fontFamily : 'inherit',
@@ -115,7 +135,9 @@ export const PUBLIC_DESIGN_KEYS = [
   'divine-blessing',
   'elevate-invite',
   'ever-after',
-  'everlasting-vows'
+  'everlasting-vows',
+  'forever-vows',
+  'silk-vows'
 ];
 
 export const normalizeDraft = (draft, template) => {
@@ -153,6 +175,7 @@ export const normalizeDraft = (draft, template) => {
     templateTextOverrides: normalizeTemplateTextOverrides(source.templateTextOverrides),
     templateImageOverrides: normalizeTemplateImageOverrides(source.templateImageOverrides),
     rsvpSettings: normalizeRsvpSettings(source.rsvpSettings),
+    dressCodeColors: normalizeDressCodeColors(source.dressCodeColors),
     groomFamilyTitle: metadataText(source.groomFamilyTitle, '', 120),
     brideFamilyTitle: metadataText(source.brideFamilyTitle, '', 120),
     rsvpQuestion: metadataText(source.rsvpQuestion, '', 240),
@@ -185,6 +208,7 @@ export const invitationCustomization = (draft = {}) => ({
   templateTextOverrides: normalizeTemplateTextOverrides(draft.templateTextOverrides),
   templateImageOverrides: normalizeTemplateImageOverrides(draft.templateImageOverrides),
   rsvpSettings: normalizeRsvpSettings(draft.rsvpSettings),
+  dressCodeColors: normalizeDressCodeColors(draft.dressCodeColors),
   heroVisible: draft.heroVisible !== false,
   familyVisible: draft.familyVisible !== false,
   openingVisible: draft.openingVisible !== false,

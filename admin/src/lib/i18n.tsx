@@ -57,6 +57,7 @@ const dict = {
     createTemplate: "Create template",
     editTemplate: "Edit template",
     delete: "Delete",
+    restore: "Restore",
     edit: "Edit",
     duplicate: "Duplicate",
     preview: "Preview",
@@ -195,6 +196,9 @@ const dict = {
     emailPending: "Email pending",
     broadcast: "Broadcast",
     broadcastEmail: "Broadcast email",
+    sendingEmail: "Sending email...",
+    requestTimedOut: "The request timed out. Please try again.",
+    emailPartial: "Sent: {sent}. Failed: {failed}.",
     searchCustomers: "Search customers...",
     noCustomers: "No customers found",
     accessRequired: "Super administrator access required",
@@ -328,6 +332,7 @@ const dict = {
     createTemplate: "Ստեղծել շաբլոն",
     editTemplate: "Խմբագրել շաբլոն",
     delete: "Ջնջել",
+    restore: "Վերականգնել",
     edit: "Խմբագրել",
     duplicate: "Կրկնօրինակել",
     preview: "Դիտել",
@@ -466,6 +471,9 @@ const dict = {
     emailPending: "Email-ը չի հաստատվել",
     broadcast: "Ընդհանուր նամակ",
     broadcastEmail: "Ուղարկել ընդհանուր email",
+    sendingEmail: "Email-ն ուղարկվում է...",
+    requestTimedOut: "Հարցման ժամանակը սպառվեց։ Փորձեք կրկին։",
+    emailPartial: "Ուղարկվել է՝ {sent}, չի ուղարկվել՝ {failed}։",
     searchCustomers: "Փնտրել հաճախորդներ...",
     noCustomers: "Հաճախորդներ չեն գտնվել",
     accessRequired: "Պահանջվում է գլխավոր ադմինի հասանելիություն",
@@ -594,6 +602,7 @@ const dict = {
     createTemplate: "Создать шаблон",
     editTemplate: "Редактировать шаблон",
     delete: "Удалить",
+    restore: "Восстановить",
     edit: "Редактировать",
     duplicate: "Дублировать",
     preview: "Просмотр",
@@ -732,6 +741,9 @@ const dict = {
     emailPending: "Email не подтвержден",
     broadcast: "Рассылка",
     broadcastEmail: "Отправить рассылку",
+    sendingEmail: "Отправка email...",
+    requestTimedOut: "Время ожидания истекло. Попробуйте ещё раз.",
+    emailPartial: "Отправлено: {sent}. Не отправлено: {failed}.",
     searchCustomers: "Поиск клиентов...",
     noCustomers: "Клиенты не найдены",
     accessRequired: "Требуется доступ главного администратора",
@@ -862,9 +874,9 @@ export function formatAdminDate(
 }
 
 const categoryNames: Record<AdminLang, Record<string, string>> = {
-  hy: { wedding: "Հարսանիք", baptism: "Մկրտություն", birth: "Ծննդյան օր", birthday: "Ծննդյան օր", corporate: "Կորպորատիվ", engagement: "Նշանադրություն" },
-  ru: { wedding: "Свадьба", baptism: "Крещение", birth: "День рождения", birthday: "День рождения", corporate: "Корпоратив", engagement: "Помолвка" },
-  en: { wedding: "Wedding", baptism: "Baptism", birth: "Birthday", birthday: "Birthday", corporate: "Corporate", engagement: "Engagement" },
+  hy: { wedding: "Հարսանիք", baptism: "Մկրտություն", birth: "Ծննդյան օր", birthday: "Ծննդյան օր", corporate: "Կորպորատիվ", engagement: "Նշանադրություն", new_year: "Ամանորյա", meeting: "Հանդիպման", military: "Բանակի առիթ", other: "Այլ" },
+  ru: { wedding: "Свадьба", baptism: "Крещение", birth: "День рождения", birthday: "День рождения", corporate: "Корпоратив", engagement: "Помолвка", new_year: "Новогодние", meeting: "Встреча", military: "Проводы в армию", other: "Другое" },
+  en: { wedding: "Wedding", baptism: "Baptism", birth: "Birthday", birthday: "Birthday", corporate: "Corporate", engagement: "Engagement", new_year: "New Year", meeting: "Meeting", military: "Military occasion", other: "Other" },
 };
 
 export function formatAdminCategory(value: string | null | undefined, lang: AdminLang) {

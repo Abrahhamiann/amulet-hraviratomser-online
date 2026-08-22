@@ -26,7 +26,6 @@ export default function Header() {
     ['/templates?category=birth', t('birthTitle')],
     ['/templates?category=corporate', t('corporateTitle')],
     ['/templates?category=engagement', t('engagement')],
-    ['/contact', t('menuPartners')],
     ['/privacy', t('menuPrivacy')]
   ];
   const mobileOverlayLinks = [...links, ['/privacy', t('menuPrivacy')]];

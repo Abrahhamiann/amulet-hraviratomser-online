@@ -3468,7 +3468,7 @@ body.templates-route .catalog-sort-picker > button {
 .auth-page {
   min-height: calc(100dvh - 74px);
   display: grid;
-  place-items: center;
+  place-items: start center;
   padding: clamp(42px, 7vw, 82px) 18px;
   background:
     radial-gradient(circle at 8% 0%, rgba(216,185,142,.18), transparent 34%),
@@ -3582,9 +3582,11 @@ body.templates-route .catalog-sort-picker > button {
   background: rgba(23,32,43,.08);
 }
 .google-auth-slot {
+  position: relative;
   min-width: 0;
   min-height: 48px;
-  display: flex;
+  display: grid;
+  place-items: center;
   align-items: center;
   justify-content: center;
   width: 100%;
@@ -3597,25 +3599,51 @@ body.templates-route .catalog-sort-picker > button {
   font-weight: 750;
   text-align: center;
 }
-.google-auth-slot > div {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: 100% !important;
-  overflow: visible !important;
-  box-sizing: border-box !important;
+.google-auth-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  overflow: visible;
 }
-.google-auth-slot iframe {
-  display: block !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: 100% !important;
-  height: 44px !important;
-  max-height: 44px !important;
+.google-auth-button > div {
+  margin-inline: auto !important;
+}
+.google-auth-button iframe {
   border: 0 !important;
-  box-sizing: border-box !important;
+}
+.google-auth-slot:not(.is-ready) .google-auth-button {
+  visibility: hidden;
+}
+.google-auth-slot > span,
+.google-auth-retry {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 44px;
+}
+.google-auth-loading {
+  color: #7b8492;
+  font-size: .84rem;
+}
+.google-auth-retry {
+  padding: 6px 14px;
+  border: 1px solid rgba(216,185,142,.48);
+  border-radius: 999px;
+  background: #fff;
+  color: #7b4f20;
+  cursor: pointer;
+  font-weight: 750;
+}
+.google-auth-retry:hover {
+  background: #fffaf3;
+}
+.google-auth-retry:focus-visible {
+  outline: 3px solid rgba(216,185,142,.4);
+  outline-offset: 2px;
 }
 @media (max-width: 600px) {
   .google-auth-slot {
@@ -3639,6 +3667,42 @@ body.templates-route .catalog-sort-picker > button {
 .auth-error {
   background: rgba(216,185,142,.12);
   color: #7b4f20;
+}
+.auth-existing-email-modal {
+  width: min(400px, 100%);
+  gap: 12px;
+  padding-top: 26px;
+}
+.auth-existing-email-animation {
+  width: clamp(104px, 24vw, 132px);
+}
+.auth-existing-email-actions {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+.auth-existing-email-actions .auth-required-login {
+  width: min(260px, 100%);
+}
+.auth-existing-email-reset {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 14px;
+  border-radius: 10px;
+  color: #8b632f;
+  font-weight: 800;
+  text-decoration: none;
+}
+.auth-existing-email-reset:hover,
+.auth-existing-email-reset:focus-visible {
+  background: rgba(216,185,142,.16);
+  outline: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-existing-email-backdrop { animation: none; }
 }
 .verification-form {
   display: grid;

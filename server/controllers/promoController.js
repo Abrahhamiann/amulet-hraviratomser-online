@@ -30,7 +30,7 @@ const cleanPromoPayload = (body = {}) => {
 
 export const validatePromoCode = asyncHandler(async (req, res) => {
   const template = await Template.findById(req.body.templateId);
-  if (!template || template.isActive === false) {
+  if (!template || template.deletedAt || template.isActive === false) {
     res.status(404);
     throw new Error('Template not found');
   }

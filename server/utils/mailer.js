@@ -5,6 +5,13 @@ const envValue = (key) => {
   return typeof value === 'string' ? value.trim() : value;
 };
 
+const positiveNumber = (value, fallback) => {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? number : fallback;
+};
+
+const mailTimeout = () => positiveNumber(envValue('SMTP_TIMEOUT_MS'), 20_000);
+
 export const getMailTransporter = () => {
   const host = envValue('SMTP_HOST') || 'smtp.gmail.com';
   const port = Number(envValue('SMTP_PORT') || 465);
@@ -12,6 +19,7 @@ export const getMailTransporter = () => {
   const user = envValue('SMTP_USER');
   const rawPass = envValue('SMTP_PASS');
   const pass = host.includes('gmail.com') && rawPass ? rawPass.replace(/\s+/g, '') : rawPass;
+  const timeoutMs = mailTimeout();
 
   if (!user || !pass) {
     throw new Error('Email SMTP credentials are missing');
@@ -21,7 +29,10 @@ export const getMailTransporter = () => {
     host,
     port,
     secure,
-    auth: { user, pass }
+    auth: { user, pass },
+    connectionTimeout: Math.min(timeoutMs, 10_000),
+    greetingTimeout: Math.min(timeoutMs, 10_000),
+    socketTimeout: timeoutMs
   });
 };
 
@@ -29,15 +40,24 @@ export const sendMail = async ({ to, subject, html, text, replyTo }) => {
   const user = envValue('SMTP_USER');
   const from = envValue('AMULET_EMAIL_FROM') || `Amulet <${user}>`;
   const transporter = getMailTransporter();
+  const timeoutMs = mailTimeout();
 
-  return transporter.sendMail({
-    from,
-    to,
-    subject,
-    html,
-    text,
-    replyTo
-  });
+  let timeoutId;
+  try {
+    return await Promise.race([
+      transporter.sendMail({ from, to, subject, html, text, replyTo }),
+      new Promise((_, reject) => {
+        timeoutId = setTimeout(() => {
+          const error = new Error('Email delivery timed out');
+          error.code = 'EMAIL_TIMEOUT';
+          reject(error);
+        }, timeoutMs);
+      })
+    ]);
+  } finally {
+    clearTimeout(timeoutId);
+    transporter.close();
+  }
 };
 
 export const emailShell = ({ title, intro, body, footer = 'Amulet' }) => `

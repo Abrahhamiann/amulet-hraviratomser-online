@@ -3,9 +3,9 @@ import type { InvitationConfig } from "@/config/invitation";
 import { Reveal, RevealScale } from "./Reveal";
 
 export function LocationSection({ data }: { data: InvitationConfig }) {
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    data.mapsQuery,
-  )}`;
+  const mapsUrl = /^https?:\/\//i.test(data.mapsQuery)
+    ? data.mapsQuery
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.mapsQuery)}`;
 
   return (
     <section className="relative px-5 py-20 sm:py-28">

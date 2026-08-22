@@ -6,7 +6,7 @@ import { createPreviewToken, hashPreviewToken } from '../utils/previewToken.js';
 
 export const createPreview = asyncHandler(async (req, res) => {
   const template = await Template.findById(req.body.templateId);
-  if (!template || template.isActive === false || !PUBLIC_DESIGN_KEYS.includes(template.designKey)) {
+  if (!template || template.deletedAt || template.isActive === false || !PUBLIC_DESIGN_KEYS.includes(template.designKey)) {
     res.status(404);
     throw new Error('Template not found');
   }
@@ -53,6 +53,11 @@ export const getPreview = asyncHandler(async (req, res) => {
   if (preview.isPurchased && preview.invitationId?.isPublished) {
     res.json({ mode: 'public', invitationSlug: preview.invitationId.slug });
     return;
+  }
+
+  if (!preview.templateId || preview.templateId.deletedAt) {
+    res.status(403);
+    throw new Error('Preview is not available');
   }
 
   if (!req.user || String(preview.userId) !== String(req.user._id) || (preview.expiresAt && preview.expiresAt < new Date())) {

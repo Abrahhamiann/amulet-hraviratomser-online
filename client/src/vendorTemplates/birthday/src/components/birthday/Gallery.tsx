@@ -33,7 +33,7 @@ export function Gallery({ photos }: { photos: GalleryPhoto[] }) {
               <button
                 type="button"
                 onClick={() => setOpen(i)}
-                className="group relative block w-full overflow-hidden rounded-[1.5rem] shadow-soft focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+                className="group relative block w-full overflow-hidden rounded-[1.5rem] border-0 bg-transparent p-0 leading-[0] shadow-soft focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
                 style={{
                   borderTopRightRadius: i % 3 === 1 ? "3.5rem" : undefined,
                   borderBottomLeftRadius: i % 3 === 2 ? "3.5rem" : undefined,
@@ -46,7 +46,7 @@ export function Gallery({ photos }: { photos: GalleryPhoto[] }) {
                   height={photo.height}
                   loading="lazy"
                   decoding="async"
-                  className="w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.07]"
+                  className="block h-auto w-full object-cover align-middle transition-transform duration-[900ms] ease-out group-hover:scale-[1.07]"
                 />
                 <span
                   className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"

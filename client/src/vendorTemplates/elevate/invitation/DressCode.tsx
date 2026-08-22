@@ -25,9 +25,9 @@ export function DressCode({ data }: { data: InvitationData }) {
             <Reveal key={swatch.name} delay={0.2 + i * 0.07} as="li">
               <div className="group flex flex-col items-center gap-3">
                 <span
+                  data-dress-color-index={i}
                   className="h-14 w-14 rounded-full border border-border transition-transform duration-500 ease-[var(--ease-elegant)] group-hover:scale-110 sm:h-16 sm:w-16"
                   style={{ backgroundColor: swatch.color }}
-                  aria-hidden
                 />
                 <span className="text-[0.6rem] uppercase tracking-[0.28em] text-muted-foreground">
                   {swatch.name}

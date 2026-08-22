@@ -165,6 +165,27 @@
   animation: shimmer 7s ease-in-out infinite;
 }
 
+/* Armenian display glyphs need extra vertical room while edited inline. */
+.birthday-person-name {
+  min-height: 1.35em;
+  text-wrap: balance;
+  contain: none;
+  overflow: visible !important;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.birthday-person-name[contenteditable="true"] {
+  white-space: pre-wrap;
+}
+
+/* Remove the inline-image baseline box exposed by editor image hotspots. */
+[data-gallery] button[data-editor-kind="image"],
+[data-gallery] button[data-editor-kind="image"] img {
+  display: block;
+  line-height: 0;
+}
+
 @utility text-festive-gradient {
   background-image: var(--gradient-festive);
   background-size: 220% 100%;

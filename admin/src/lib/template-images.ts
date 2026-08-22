@@ -5,6 +5,9 @@ import divineBaby from "../../../client/src/vendorTemplates/divine/assets/baby-1
 import elevateHero from "../../../client/src/vendorTemplates/elevate/assets/hero-bg.jpg";
 import everAfterHero from "../../../client/src/vendorTemplates/everafter/assets/hero-floral.jpg";
 import everlastingHero from "../../../client/src/vendorTemplates/everlasting/assets/hero.jpg";
+import foreverVowsHero from "../../../client/src/assets/morph/engagement-smile.jpg";
+import silkVowsHero from "../../../client/src/vendorTemplates/silkvows/assets/hero.jpg";
+import burgundyRoadmapHero from "../../../client/src/vendorTemplates/everlasting/assets/g4.jpg";
 
 const coverByAsset: Record<string, string> = {
   "asset:curated/sacred/child-portrait.jpg": sacredPortrait,
@@ -14,6 +17,9 @@ const coverByAsset: Record<string, string> = {
   "asset:curated/elevate/hero-bg.jpg": elevateHero,
   "asset:curated/ever-after/hero-floral.jpg": everAfterHero,
   "asset:curated/everlasting/hero.jpg": everlastingHero,
+  "asset:curated/forever-vows/engagement-smile.jpg": foreverVowsHero,
+  "asset:curated/silk-vows/hero.jpg": silkVowsHero,
+  "asset:curated/burgundy-roadmap/hero.jpg": burgundyRoadmapHero,
 };
 
 const coverByDesign: Record<string, string> = {
@@ -24,6 +30,9 @@ const coverByDesign: Record<string, string> = {
   "elevate-invite": elevateHero,
   "ever-after": everAfterHero,
   "everlasting-vows": everlastingHero,
+  "forever-vows": foreverVowsHero,
+  "silk-vows": silkVowsHero,
+  "burgundy-roadmap": burgundyRoadmapHero,
 };
 
 export function resolveAdminTemplateCover(cover?: string, designKey?: string) {

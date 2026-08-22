@@ -4,6 +4,7 @@ import { useEditor } from './EditorContext.jsx';
 import { CollapsibleSection, Field, PanelHeader, Toggle } from './EditorControls.jsx';
 import { MAX_DRESS_CODE_COLORS, splitNames } from './editorData.js';
 import { useLanguage } from '../../context/LanguageContext.jsx';
+import { normalizeMapUrl } from '../../utils/mapLinks.js';
 
 const newVenue = (index, label) => ({ id: `venue-${Date.now()}-${index}`, label, time: '18:00', address: '', url: '', subtitle: '', icon: 'location', visible: true });
 
@@ -22,7 +23,7 @@ const normalizeDressColor = (value) => /^#[0-9a-f]{6}$/i.test(String(value || ''
   ? String(value).toLowerCase()
   : '#d8b98e';
 
-const DressColorPicker = ({ value, label, onCommit }) => {
+const DressColorPicker = ({ value, label, editorField, onCommit }) => {
   const inputRef = useRef(null);
   const onCommitRef = useRef(onCommit);
   const normalizedValue = normalizeDressColor(value);
@@ -61,7 +62,7 @@ const DressColorPicker = ({ value, label, onCommit }) => {
     };
   }, []);
 
-  return <label className="invite-editor-color-picker" aria-label={label}>
+  return <label className="invite-editor-color-picker" data-editor-field={editorField} aria-label={label}>
     <input
       ref={inputRef}
       type="color"
@@ -133,6 +134,23 @@ const getEditorCapabilities = (template = {}) => {
     rsvpDescription: true, rsvpDeadline: true
   };
   if (key.includes('everlasting-vows')) return {
+    ...base, openingVisible: false, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
+    dress: true, dressCodeVisible: true, dressPalette: true,
+    rsvpDescription: true, rsvpDeadline: true
+  };
+  if (key.includes('forever-vows')) return {
+    ...base, openingVisible: false, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
+    dress: true, dressCodeVisible: true, dressPalette: true,
+    rsvpDescription: true, rsvpDeadline: true
+  };
+  if (key.includes('silk-vows') || key.includes('armenian-wedding-invitation')) return {
+    ...base, openingVisible: false, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
+    rsvpDescription: true, rsvpDeadline: true
+  };
+  if (key.includes('burgundy-roadmap') || key.includes('wedding-burgundy-roadmap')) return {
     ...base, openingVisible: false, family: false, familyVisible: false,
     groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
     dress: true, dressCodeVisible: true, dressPalette: true,
@@ -220,7 +238,8 @@ export default function ContentPanel() {
   };
   const updateVenue = (index, field, value) => update((draft) => {
     const current = draft.mapLinks[index] || newVenue(index, `${t('editorVenue')} ${index + 1}`);
-    const next = { ...current, [field]: value };
+    const nextValue = field === 'url' ? (normalizeMapUrl(value) || value) : value;
+    const next = { ...current, [field]: nextValue };
     if (field === 'address') {
       const previousAutoUrl = createGoogleMapsUrl(current.address);
       if (!current.url || current.url === previousAutoUrl) next.url = createGoogleMapsUrl(value);
@@ -359,6 +378,7 @@ export default function ContentPanel() {
               <DressColorPicker
                 value={color.hex}
                 label={`${t('editorDressColor')} ${index + 1}`}
+                editorField={`dressCodeColors.${index}.hex`}
                 onCommit={(hex) => update((draft) => {
                   if (draft.dressCodeColors?.[index]) draft.dressCodeColors[index].hex = hex;
                 })}

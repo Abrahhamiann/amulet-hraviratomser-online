@@ -1,14 +1,70 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { Check, LogIn, Mail, Phone, ShieldCheck, UserPlus, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
+import questioningWarningAnimation from '../assets/animations/questioning-warning.lottie?url';
 import Loading from '../components/Loading.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { startStripeCheckout } from '../utils/checkout.js';
-import { getLocalizedApiError } from '../utils/apiErrors.js';
+import { getApiErrorKey, getLocalizedApiError } from '../utils/apiErrors.js';
 
 import { GOOGLE_CLIENT_ID as googleClientId } from '../config/env.js';
+
+const GOOGLE_SCRIPT_ID = 'google-identity-services';
+let googleScriptPromise;
+
+const sanitizePhoneInput = (value) => {
+  const rawValue = String(value || '');
+  const prefix = rawValue.trimStart().startsWith('+') ? '+' : '';
+  return `${prefix}${rawValue.replace(/\D/g, '')}`.slice(0, 16);
+};
+
+const loadGoogleIdentity = () => {
+  if (window.google?.accounts?.id) return Promise.resolve(window.google.accounts.id);
+  if (googleScriptPromise) return googleScriptPromise;
+
+  googleScriptPromise = new Promise((resolve, reject) => {
+    let script = document.getElementById(GOOGLE_SCRIPT_ID)
+      || document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+    const timeoutId = window.setTimeout(() => handleError(), 12_000);
+    const cleanup = () => {
+      window.clearTimeout(timeoutId);
+      script?.removeEventListener('load', handleLoad);
+      script?.removeEventListener('error', handleError);
+    };
+    const handleLoad = () => {
+      cleanup();
+      if (script) script.dataset.loaded = 'true';
+      if (window.google?.accounts?.id) resolve(window.google.accounts.id);
+      else reject(new Error('Google Identity Services is unavailable'));
+    };
+    const handleError = () => {
+      cleanup();
+      script?.remove();
+      reject(new Error('Google Identity Services failed to load'));
+    };
+
+    if (!script) {
+      script = document.createElement('script');
+      script.id = GOOGLE_SCRIPT_ID;
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    }
+    script.addEventListener('load', handleLoad, { once: true });
+    script.addEventListener('error', handleError, { once: true });
+    if (script.dataset.loaded === 'true') handleLoad();
+  }).catch((error) => {
+    googleScriptPromise = undefined;
+    throw error;
+  });
+
+  return googleScriptPromise;
+};
 
 export default function AuthPage() {
   const location = useLocation();
@@ -16,6 +72,10 @@ export default function AuthPage() {
   const { initialized, setAuthenticatedUser, user } = useAuth();
   const { t } = useLanguage();
   const googleRef = useRef(null);
+  const googleButtonRef = useRef(null);
+  const emailInputRef = useRef(null);
+  const identifierInputRef = useRef(null);
+  const existingEmailLoginRef = useRef(null);
   const codeRefs = useRef([]);
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState({ name: '', email: '', phone: '', identifier: '', password: '', confirmPassword: '' });
@@ -24,7 +84,11 @@ export default function AuthPage() {
   const [verificationComplete, setVerificationComplete] = useState(false);
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
+  const [existingEmailWarningOpen, setExistingEmailWarningOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [googleStatus, setGoogleStatus] = useState(googleClientId ? 'loading' : 'missing');
+  const [googleLoadAttempt, setGoogleLoadAttempt] = useState(0);
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const requestedPath = typeof location.state?.returnTo === 'string'
     && location.state.returnTo.startsWith('/')
     && !location.state.returnTo.startsWith('//')
@@ -67,22 +131,14 @@ export default function AuthPage() {
   };
 
   useEffect(() => {
-    if (!googleClientId || !googleRef.current) return undefined;
-    const loadGoogle = () => new Promise((resolve) => {
-      if (window.google?.accounts?.id) return resolve();
-      const script = document.createElement('script');
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      script.onload = resolve;
-      document.head.appendChild(script);
-    });
+    if (!googleClientId || !googleRef.current || !googleButtonRef.current) return undefined;
     let cancelled = false;
     let resizeObserver;
     let renderFrame = 0;
     let scheduleRender = () => {};
-    loadGoogle().then(() => {
-      if (cancelled || !window.google?.accounts?.id || !googleRef.current) return;
+    setGoogleStatus('loading');
+    loadGoogleIdentity().then(() => {
+      if (cancelled || !window.google?.accounts?.id || !googleRef.current || !googleButtonRef.current) return;
       window.google.accounts.id.initialize({
         client_id: googleClientId,
         callback: async ({ credential }) => {
@@ -97,17 +153,19 @@ export default function AuthPage() {
       let renderedWidth = 0;
       const renderGoogleButton = () => {
         const slot = googleRef.current;
-        if (cancelled || !slot) return;
+        const button = googleButtonRef.current;
+        if (cancelled || !slot || !button) return;
         const availableWidth = Math.floor(slot.getBoundingClientRect().width);
         if (availableWidth < 1) return;
         const width = Math.min(400, availableWidth);
-        if (width === renderedWidth && slot.querySelector('iframe')) return;
+        if (width === renderedWidth && button.querySelector('iframe')) return;
         renderedWidth = width;
-        slot.innerHTML = '';
-        window.google.accounts.id.renderButton(slot, {
+        button.replaceChildren();
+        window.google.accounts.id.renderButton(button, {
           theme: 'outline', size: 'large', shape: 'pill', text: mode === 'register' ? 'signup_with' : 'signin_with',
           width
         });
+        setGoogleStatus('ready');
       };
       scheduleRender = () => {
         window.cancelAnimationFrame(renderFrame);
@@ -120,6 +178,8 @@ export default function AuthPage() {
       }
       window.addEventListener('resize', scheduleRender);
       document.fonts?.ready?.then(scheduleRender);
+    }).catch(() => {
+      if (!cancelled) setGoogleStatus('error');
     });
     return () => {
       cancelled = true;
@@ -127,7 +187,17 @@ export default function AuthPage() {
       window.removeEventListener('resize', scheduleRender);
       window.cancelAnimationFrame(renderFrame);
     };
-  }, [mode]);
+  }, [mode, googleLoadAttempt, initialized]);
+
+  useEffect(() => {
+    if (!existingEmailWarningOpen) return undefined;
+    existingEmailLoginRef.current?.focus();
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setExistingEmailWarningOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [existingEmailWarningOpen]);
 
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   const changeMode = (nextMode) => { setMode(nextMode); setError(''); setStatus(''); };
@@ -139,7 +209,7 @@ export default function AuthPage() {
       if (mode === 'register') {
         if (!Object.values(passwordChecks).every(Boolean)) throw new Error(t('authPasswordRulesError'));
         if (form.password !== form.confirmPassword) throw new Error(t('authPasswordsMismatch'));
-        const { data } = await api.post('/auth/register', form);
+        const { data } = await api.post('/auth/register', form, { timeout: 25_000 });
         setVerificationEmail(data.email);
         setCode(Array(6).fill(''));
         setStatus(t('authCodeSent'));
@@ -148,7 +218,13 @@ export default function AuthPage() {
       }
       const { data } = await api.post('/auth/login', { identifier: form.identifier, password: form.password });
       saveSession(data);
-    } catch (err) { setError(getLocalizedApiError(err, t)); }
+    } catch (err) {
+      if (mode === 'register' && getApiErrorKey(err) === 'authAccountExists') {
+        setExistingEmailWarningOpen(true);
+      } else {
+        setError(getLocalizedApiError(err, t, { networkKey: 'authRequestFailed' }));
+      }
+    }
     finally { setBusy(false); }
   };
 
@@ -191,14 +267,14 @@ export default function AuthPage() {
               {mode === 'register' && <label><span>{t('contactName')}</span><input autoComplete="name" value={form.name} onChange={(event) => update('name', event.target.value)} placeholder={t('authNamePlaceholder')} required /></label>}
               {mode === 'register' ? (
                 <>
-                  <label><span>Email</span><input type="email" autoComplete="email" value={form.email} onChange={(event) => update('email', event.target.value)} required /></label>
-                  <label><span>{t('phone')}</span><div className="auth-input-icon"><Phone size={17} /><input type="tel" autoComplete="tel" value={form.phone} onChange={(event) => update('phone', event.target.value)} required /></div></label>
+                  <label><span>Email</span><input ref={emailInputRef} type="email" autoComplete="email" value={form.email} onChange={(event) => update('email', event.target.value)} required /></label>
+                  <label><span>{t('phone')}</span><div className="auth-input-icon"><Phone size={17} /><input type="tel" inputMode="tel" pattern="[+]?[0-9]*" maxLength={16} autoComplete="tel" value={form.phone} onChange={(event) => update('phone', sanitizePhoneInput(event.target.value))} required /></div></label>
                 </>
-              ) : <label><span>{t('authIdentifier')}</span><input autoComplete="username" value={form.identifier} onChange={(event) => update('identifier', event.target.value)} required /></label>}
-              <label><span>{t('password')}</span><input type="password" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} value={form.password} onChange={(event) => update('password', event.target.value)} placeholder="••••••••" required minLength={8} maxLength={128} /></label>
+              ) : <label><span>{t('authIdentifier')}</span><input ref={identifierInputRef} autoComplete="username" value={form.identifier} onChange={(event) => update('identifier', event.target.value)} required /></label>}
+              <label><span>{t('password')}</span><input type="password" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} value={form.password} onChange={(event) => update('password', event.target.value)} required minLength={8} maxLength={128} /></label>
               {mode === 'register' && (
                 <>
-                  <label><span>{t('authRepeatPassword')}</span><input type="password" autoComplete="new-password" value={form.confirmPassword} onChange={(event) => update('confirmPassword', event.target.value)} placeholder="••••••••" required minLength={8} maxLength={128} /></label>
+                  <label><span>{t('authRepeatPassword')}</span><input type="password" autoComplete="new-password" value={form.confirmPassword} onChange={(event) => update('confirmPassword', event.target.value)} required minLength={8} maxLength={128} /></label>
                   <PasswordRequirements checks={passwordChecks} t={t} />
                 </>
               )}
@@ -206,7 +282,12 @@ export default function AuthPage() {
               <button className="auth-submit" type="submit" disabled={busy}>{mode === 'register' ? <UserPlus size={18} /> : <LogIn size={18} />}<span>{busy ? t('authWait') : mode === 'register' ? t('authRegister') : t('login')}</span></button>
             </form>
             <div className="auth-divider"><span>{t('authOr')}</span></div>
-            <div className="google-auth-slot" ref={googleRef}>{!googleClientId && <span>{t('authGoogleMissing')}</span>}</div>
+            <div className={`google-auth-slot is-${googleStatus}`} ref={googleRef}>
+              <div className="google-auth-button" ref={googleButtonRef} />
+              {googleStatus === 'missing' && <span>{t('authGoogleMissing')}</span>}
+              {googleStatus === 'loading' && <span className="google-auth-loading" aria-live="polite">{t('authGoogleLoading')}</span>}
+              {googleStatus === 'error' && <button className="google-auth-retry" type="button" onClick={() => setGoogleLoadAttempt((attempt) => attempt + 1)}>{t('authGoogleRetry')}</button>}
+            </div>
           </>
         ) : (
           <form className={verificationComplete ? 'verification-form is-complete' : 'verification-form'} onSubmit={verifyCode} noValidate>
@@ -217,8 +298,61 @@ export default function AuthPage() {
           </form>
         )}
         {status && <p className="auth-status"><Mail size={16} /> {status}</p>}
-        {error && <p className="auth-error">{error}</p>}
+        {error && <p className="auth-error" role="alert">{error}</p>}
       </div>
+      {existingEmailWarningOpen && createPortal(
+        <div
+          className="auth-required-backdrop auth-existing-email-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setExistingEmailWarningOpen(false);
+          }}
+        >
+          <section
+            className="auth-required-modal auth-existing-email-modal"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="existing-email-title"
+            aria-describedby="existing-email-description"
+          >
+            <button
+              className="auth-required-close"
+              type="button"
+              aria-label={t('close')}
+              onClick={() => {
+                setExistingEmailWarningOpen(false);
+                window.setTimeout(() => emailInputRef.current?.focus(), 0);
+              }}
+            >
+              <X size={20} />
+            </button>
+            <span className="auth-required-animation auth-existing-email-animation" aria-hidden="true">
+              <DotLottieReact src={questioningWarningAnimation} autoplay={!prefersReducedMotion} loop={false} />
+            </span>
+            <h2 id="existing-email-title">{t('authExistingEmailTitle')}</h2>
+            <p id="existing-email-description">{t('authExistingEmailText')}</p>
+            <div className="auth-existing-email-actions">
+              <button
+                ref={existingEmailLoginRef}
+                className="btn btn-primary auth-required-login"
+                type="button"
+                onClick={() => {
+                  setForm((current) => ({ ...current, identifier: current.email }));
+                  setExistingEmailWarningOpen(false);
+                  changeMode('login');
+                  window.setTimeout(() => identifierInputRef.current?.focus(), 0);
+                }}
+              >
+                <LogIn size={18} />
+                {t('login')}
+              </button>
+              <Link className="auth-existing-email-reset" to="/forgot-password" onClick={() => setExistingEmailWarningOpen(false)}>
+                {t('authForgotPassword')}
+              </Link>
+            </div>
+          </section>
+        </div>,
+        document.body
+      )}
     </section>
   );
 }

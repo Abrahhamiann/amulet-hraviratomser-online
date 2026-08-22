@@ -1,4 +1,4 @@
-import { CalendarDays, CheckCircle2, Clock, MapPin, Share2, Sparkles, X } from 'lucide-react';
+import { CalendarDays, CheckCircle2, Clock, MapPin, Navigation, Share2, Sparkles, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../api/axios.js';
@@ -10,6 +10,7 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
 import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
 import { required, toForm } from '../utils/forms.js';
+import { normalizeMapUrl } from '../utils/mapLinks.js';
 
 const isDisplayableImage = (image) => /^(https?:\/\/|data:image\/|\/|asset:)/.test(image);
 
@@ -20,12 +21,13 @@ const normalizeMapLinks = (invitation, mapLabel) => {
       label: String(item?.label || `${mapLabel} ${index + 1}`).trim(),
       time: String(item?.time || '').trim(),
       address: String(item?.address || '').trim(),
-      url: String(item?.url || '').trim()
+      url: normalizeMapUrl(item?.url)
     }))
     .filter((item) => item.label || item.time || item.address || item.url);
 
-  if (invitation?.mapLink && !normalized.some((item) => item.url === invitation.mapLink)) {
-    normalized.unshift({ label: mapLabel, url: invitation.mapLink });
+  const legacyMapUrl = normalizeMapUrl(invitation?.mapLink);
+  if (legacyMapUrl && !normalized.some((item) => item.url === legacyMapUrl)) {
+    normalized.unshift({ label: mapLabel, url: legacyMapUrl });
   }
 
   return normalized;
@@ -110,7 +112,10 @@ export default function InvitationPage() {
     return isDisplayableImage(image);
   }).map(resolveTemplateImage);
   const inviteActions = (
-    <Button type="button" onClick={share}><Share2 size={18} />{t('share')}</Button>
+    <>
+      {mapLinks[0]?.url ? <Button to={mapLinks[0].url}><Navigation size={18} />{t('map')}</Button> : null}
+      <Button type="button" onClick={share}><Share2 size={18} />{t('share')}</Button>
+    </>
   );
   if (PublicView) {
     const publicDraft = {

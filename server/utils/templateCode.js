@@ -1,12 +1,16 @@
 import Setting from '../models/Setting.js';
 import Template from '../models/Template.js';
+import { PUBLIC_DESIGN_KEYS } from './templateDesign.js';
 
 export const TEMPLATE_CATEGORY_PREFIX = Object.freeze({
   wedding: 'A',
   baptism: 'B',
   birth: 'C',
-  corporate: 'D',
-  engagement: 'E'
+  engagement: 'D',
+  corporate: 'E',
+  new_year: 'F',
+  meeting: 'G',
+  military: 'H'
 });
 
 export const templateCodeForCategory = (category, sequence) => {
@@ -16,13 +20,29 @@ export const templateCodeForCategory = (category, sequence) => {
 };
 
 const counterKey = (category) => `templateCodeSequence:${category}`;
+const templateCategories = Object.keys(TEMPLATE_CATEGORY_PREFIX);
 
 let backfillPromise;
 
 export const ensureTemplateCodes = async () => {
   if (backfillPromise) return backfillPromise;
   backfillPromise = (async () => {
-    const templates = await Template.find({ category: { $in: Object.keys(TEMPLATE_CATEGORY_PREFIX) } })
+    // Legacy/private templates are not shown in either the admin catalog or
+    // the public site and must not reserve codes such as A1.
+    await Template.updateMany(
+      { designKey: { $nin: PUBLIC_DESIGN_KEYS }, code: { $exists: true } },
+      { $unset: { code: 1 } }
+    );
+    await Template.updateMany(
+      { deletedAt: { $ne: null }, code: { $exists: true } },
+      { $unset: { code: 1 } }
+    );
+
+    const templates = await Template.find({
+      category: { $in: templateCategories },
+      designKey: { $in: PUBLIC_DESIGN_KEYS },
+      deletedAt: null
+    })
       .select('_id code category createdAt')
       .sort({ createdAt: 1, _id: 1 });
     const grouped = Object.groupBy
@@ -47,9 +67,12 @@ export const ensureTemplateCodes = async () => {
       }
     }
 
-    await Promise.all(Object.entries(grouped).map(([category, items]) => Setting.findOneAndUpdate(
+    // Counters must mirror the database exactly. Using $max here left stale
+    // counters behind when a category became empty, so its next first item
+    // incorrectly started at 2 (A2, B2, ...).
+    await Promise.all(templateCategories.map((category) => Setting.findOneAndUpdate(
       { key: counterKey(category) },
-      { $max: { 'value.sequence': items.length } },
+      { $set: { value: { sequence: (grouped[category] || []).length } } },
       { upsert: true, setDefaultsOnInsert: true }
     )));
   })().catch((error) => {
@@ -73,7 +96,7 @@ export const nextTemplateCode = async (category) => {
 export const reindexTemplateCodes = async (category) => {
   if (!TEMPLATE_CATEGORY_PREFIX[category]) throw new Error('A valid template category is required');
 
-  const templates = await Template.find({ category })
+  const templates = await Template.find({ category, designKey: { $in: PUBLIC_DESIGN_KEYS }, deletedAt: null })
     .select('_id')
     .sort({ createdAt: 1, _id: 1 });
 

@@ -42,6 +42,7 @@ export function DressCode({ dressCode }: { dressCode: WeddingConfig["dressCode"]
             {dressCode.swatches.map((s, i) => (
               <li key={s.name} className="w-20">
                 <motion.span
+                  data-dress-color-index={i}
                   className="mx-auto block h-14 w-14 rounded-full border"
                   style={{
                     background: s.color,

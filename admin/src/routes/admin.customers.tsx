@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Copy, Eye, Mail, Megaphone, MoreHorizontal, Search, Send, Trash2, UserPlus } from "lucide-react";
+import { Copy, Eye, Loader2, Mail, Megaphone, MoreHorizontal, Search, Send, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -91,7 +91,8 @@ function CustomersPage() {
     try {
       if (broadcast) {
         const result = await adminApi.broadcastEmail(emailForm);
-        toast.success(`${t("done")}: ${result.sent}`);
+        if (result.failed) toast.warning(t("emailPartial").replace("{sent}", String(result.sent)).replace("{failed}", String(result.failed)));
+        else toast.success(`${t("done")}: ${result.sent}`);
         setBroadcastOpen(false);
       } else if (emailTarget) {
         await adminApi.sendCustomerEmail(emailTarget.id, emailForm);
@@ -100,7 +101,8 @@ function CustomersPage() {
       }
       setEmailForm({ subject: "", message: "" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("failed"));
+      const message = err instanceof Error && err.message === "Request timed out" ? t("requestTimedOut") : err instanceof Error ? err.message : t("failed");
+      toast.error(message);
     } finally {
       setSending(false);
     }
@@ -394,8 +396,11 @@ function EmailDialogContent({ title, form, setForm, sending, onCancel, onSend }:
         <div className="space-y-2"><Label>{t("message")}</Label><Textarea rows={6} value={form.message} onChange={(event) => setForm({ ...form, message: event.target.value })} /></div>
       </div>
       <DialogFooter>
-        <Button variant="outline" onClick={onCancel}>{t("cancel")}</Button>
-        <Button disabled={sending || !form.subject || !form.message} onClick={onSend} className="gold-gradient border-0 text-white"><Send className="h-4 w-4 mr-2" />{t("sendEmail")}</Button>
+        <Button variant="outline" disabled={sending} onClick={onCancel}>{t("cancel")}</Button>
+        <Button disabled={sending || !form.subject || !form.message} onClick={onSend} aria-busy={sending} className="gold-gradient border-0 text-white">
+          {sending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+          {sending ? t("sendingEmail") : t("sendEmail")}
+        </Button>
       </DialogFooter>
     </DialogContent>
   );

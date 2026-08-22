@@ -205,7 +205,7 @@ export default function TemplateCard({ template }) {
                   href={previewPath}
                   target="_blank"
                   rel="noreferrer"
-                  onClick={(event) => requireAuthenticatedAction(event, previewPath)}
+                  onClick={closeQr}
                 >
                   <Eye size={17} />
                   {t('preview')}

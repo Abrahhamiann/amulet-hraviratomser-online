@@ -1,6 +1,7 @@
 import weddingSong from '../../assets/audio/ed-sheeran-perfect.mp3';
 import engagementSong from '../../assets/audio/john-legend-all-of-you.mp3';
 import baptismSong from '../../assets/audio/yiruma-river-flows-in-you.mp3';
+import { normalizeMapUrl } from '../../utils/mapLinks.js';
 
 export const MAX_GALLERY_IMAGES = 10;
 export const MAX_CUSTOM_TRACKS = 3;
@@ -108,6 +109,16 @@ const templateColorPalettes = {
     { id: 'ivory-navy', name: 'Կեսգիշերային կապույտ', description: 'Արիստոկրատ և խորը', colors: { accent: '#d1b071', text: '#f8fbff', overlay: '#20344f' } },
     { id: 'ivory-plum', name: 'Սալոր և շամպայն', description: 'Ռոմանտիկ շքեղություն', colors: { accent: '#d7b77f', text: '#fff9fc', overlay: '#53384e' } },
     { id: 'ivory-forest', name: 'Անտառային ոսկի', description: 'Բնական և հանդիսավոր', colors: { accent: '#d0b36f', text: '#f8fff6', overlay: '#304438' } }
+  ],
+  burgundy: [
+    { id: 'burgundy-wine', name: 'Գինեգույն ճանապարհ', description: 'Բորդո, փղոսկր և թղթային սպիտակ', colors: { accent: '#861927', text: '#2e2a2b', overlay: '#fffdfa' } },
+    { id: 'burgundy-ruby', name: 'Ռուբինե երդում', description: 'Խորը կարմիր և տաք կրեմ', colors: { accent: '#a60d1a', text: '#302527', overlay: '#fbf4ef' } },
+    { id: 'burgundy-rose', name: 'Հին վարդ', description: 'Մեղմ և ռոմանտիկ', colors: { accent: '#a9636c', text: '#4e393d', overlay: '#f9eeee' } },
+    { id: 'burgundy-plum', name: 'Սալոր և շամպայն', description: 'Խորհրդավոր ու նրբաճաշակ', colors: { accent: '#76506b', text: '#493e48', overlay: '#f6eff5' } },
+    { id: 'burgundy-sage', name: 'Եղեսպակ և գինի', description: 'Բնական և հավասարակշռված', colors: { accent: '#7d2634', text: '#394039', overlay: '#f0f3eb' } },
+    { id: 'burgundy-navy', name: 'Կապույտ գիշեր', description: 'Հանդիսավոր և ժամանակակից', colors: { accent: '#a87378', text: '#f8fbff', overlay: '#243148' } },
+    { id: 'burgundy-forest', name: 'Անտառային բորդո', description: 'Խոր բնական երանգներ', colors: { accent: '#b07376', text: '#f8fff8', overlay: '#263c33' } },
+    { id: 'burgundy-onyx', name: 'Օնիքս և գինի', description: 'Դրամատիկ երեկոյան տարբերակ', colors: { accent: '#c77e87', text: '#fff8f8', overlay: '#21191b' } }
   ]
 };
 
@@ -116,6 +127,8 @@ export const getTemplateColorPalettes = (template = {}) => {
   if (key.includes('sacred-beginnings')) return templateColorPalettes.sacred;
   if (key.includes('birthday-sparkle')) return templateColorPalettes.birthday;
   if (key.includes('ivory-vows')) return templateColorPalettes.ivory;
+  if (key.includes('burgundy-roadmap') || key.includes('wedding-burgundy-roadmap')) return templateColorPalettes.burgundy;
+  if (key.includes('silk-vows') || key.includes('armenian-wedding-invitation')) return templateColorPalettes.ivory;
   if (key.includes('baptism') || key.includes('մկրտ')) return templateColorPalettes.baptism;
   if (key.includes('engagement') || key.includes('նշան')) return templateColorPalettes.engagement;
   return templateColorPalettes.midnight;
@@ -160,7 +173,7 @@ export const prepareEditorDraft = (draft = {}) => ({
       label: item?.label ?? `Վայր ${index + 1}`,
       time: item?.time ?? (index === 0 ? draft.eventTime ?? '' : ''),
       address: item?.address ?? (index === 0 ? draft.eventLocation ?? '' : ''),
-      url: item?.url ?? (index === 0 ? draft.mapLink ?? '' : ''),
+      url: normalizeMapUrl(item?.url ?? (index === 0 ? draft.mapLink ?? '' : '')),
       subtitle: item?.subtitle ?? '',
       icon: item?.icon || 'location',
       visible: item?.visible !== false
@@ -170,7 +183,7 @@ export const prepareEditorDraft = (draft = {}) => ({
       label: 'Վայր 1',
       time: draft.eventTime || '',
       address: draft.eventLocation || '',
-      url: draft.mapLink || '',
+      url: normalizeMapUrl(draft.mapLink),
       subtitle: '',
       icon: 'location',
       visible: true

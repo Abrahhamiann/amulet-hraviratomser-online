@@ -111,6 +111,65 @@ const curatedTemplates = [
     galleryConfigured: false,
     isFeatured: true,
     isActive: true
+  },
+  {
+    title: 'Forever Vows',
+    slug: 'forever-vows',
+    category: 'engagement',
+    editorType: 'engagement',
+    price: 39000,
+    description: 'Նրբաճաշակ նշանադրության հրավեր՝ սիրո պատմությամբ, օրացույցով, ծրագրով, պատկերասրահով, դրես կոդով և RSVP բաժնով։',
+    features: ['Responsive ձևավորում', 'Նշանադրության ծրագիր', 'Պատկերասրահ', 'Դրես կոդ', 'Քարտեզ', 'RSVP ձև'],
+    designKey: 'forever-vows',
+    mainImage: 'asset:curated/forever-vows/engagement-smile.jpg',
+    gallery: [
+      'asset:curated/forever-vows/engagement-smile.jpg',
+      'asset:curated/forever-vows/wedding-forest-optimized.jpg',
+      'asset:curated/forever-vows/wedding-temple.jpg'
+    ],
+    galleryConfigured: false,
+    isFeatured: true,
+    isActive: true
+  },
+  {
+    title: 'Մետաքսե երդումներ',
+    slug: 'silk-vows',
+    category: 'wedding',
+    editorType: 'wedding',
+    price: 39000,
+    description: 'Նրբագեղ սև-սպիտակ հարսանեկան հրավեր՝ մետաքսե ոճով, հետհաշվարկով, երկու վայրով, քարտեզներով և RSVP բաժնով։',
+    features: ['Responsive ձևավորում', 'Հետհաշվարկ', 'Երկու և ավելի վայր', 'Քարտեզի հղումներ', 'Երաժշտություն', 'RSVP ձև'],
+    designKey: 'silk-vows',
+    mainImage: 'asset:curated/silk-vows/hero.jpg',
+    gallery: [
+      'asset:curated/silk-vows/hero.jpg',
+      'asset:curated/silk-vows/church.jpg',
+      'asset:curated/silk-vows/hall.jpg',
+      'asset:curated/silk-vows/quote.jpg'
+    ],
+    galleryConfigured: false,
+    isFeatured: true,
+    isActive: true
+  },
+  {
+    title: 'Գինեգույն ճանապարհ',
+    slug: 'burgundy-roadmap',
+    category: 'wedding',
+    editorType: 'wedding',
+    price: 39000,
+    description: 'Գինեգույն հարսանեկան հրավեր՝ անիմացված օրվա ճանապարհով, օրացույցով, լուսանկարներով, հետհաշվարկով, dress code-ով, երաժշտությամբ և RSVP բաժնով։',
+    features: ['Responsive ձևավորում', 'Անիմացված օրվա ճանապարհ', 'Հետհաշվարկ', 'Մինչև 5 վայր և քարտեզ', 'Պատկերասրահ', 'Dress code', 'Երաժշտություն', 'RSVP ձև'],
+    designKey: 'burgundy-roadmap',
+    mainImage: 'asset:curated/burgundy-roadmap/hero.jpg',
+    gallery: [
+      'asset:curated/burgundy-roadmap/hero.jpg',
+      'asset:curated/burgundy-roadmap/portrait.jpg',
+      'asset:curated/burgundy-roadmap/rings.jpg',
+      'asset:curated/burgundy-roadmap/flowers.jpg'
+    ],
+    galleryConfigured: false,
+    isFeatured: true,
+    isActive: true
   }
 ];
 
@@ -118,11 +177,7 @@ export const ensureCuratedTemplates = async () => {
   await Promise.all(curatedTemplates.map(async (template) => {
     const category = templateCategoryForDesign(template.designKey) || template.category;
     const { category: _category, editorType: _editorType, designKey, ...insertDefaults } = template;
-    await Template.updateMany(
-      { designKey },
-      { $set: { category, editorType: category } }
-    );
-    return Template.updateOne(
+    await Template.updateOne(
       { slug: template.slug },
       {
         $set: { category, editorType: category, designKey },
@@ -130,6 +185,12 @@ export const ensureCuratedTemplates = async () => {
       },
       { upsert: true }
     );
+    if (['forever-vows', 'silk-vows', 'burgundy-roadmap'].includes(template.designKey)) {
+      await Template.updateOne(
+        { slug: template.slug, galleryConfigured: { $ne: true } },
+        { $set: { mainImage: template.mainImage, gallery: template.gallery } }
+      );
+    }
   }));
 };
 

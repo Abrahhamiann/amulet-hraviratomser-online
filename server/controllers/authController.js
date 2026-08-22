@@ -1,11 +1,11 @@
 import asyncHandler from 'express-async-handler';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
-import nodemailer from 'nodemailer';
 import PendingRegistration from '../models/PendingRegistration.js';
 import User from '../models/User.js';
 import { clearAuthCookie, setAuthCookie } from '../utils/authCookie.js';
 import { isStrongPassword, isValidEmail, normalizeEmail, normalizePhone } from '../utils/accountValidation.js';
+import { emailShell, sendMail } from '../utils/mailer.js';
 import { signToken } from '../utils/token.js';
 
 const publicUser = (user) => ({
@@ -21,41 +21,30 @@ const publicUser = (user) => ({
 const createVerificationCode = () => String(crypto.randomInt(100000, 1000000));
 const hashSecret = (value) => crypto.createHash('sha256').update(String(value)).digest('hex');
 
-const envValue = (key) => {
-  const value = process.env[key];
-  return typeof value === 'string' ? value.trim() : value;
-};
-
-const createMailer = () => {
-  const host = envValue('SMTP_HOST') || 'smtp.gmail.com';
-  const port = Number(envValue('SMTP_PORT') || 465);
-  const secure = String(envValue('SMTP_SECURE') || 'true') === 'true';
-  const user = envValue('SMTP_USER');
-  const rawPass = envValue('SMTP_PASS');
-  const pass = host.includes('gmail.com') && rawPass ? rawPass.replace(/\s+/g, '') : rawPass;
-  if (!user || !pass) throw new Error('Email SMTP credentials are missing');
-  return {
-    from: envValue('AMULET_EMAIL_FROM') || `Amulet <${user}>`,
-    transporter: nodemailer.createTransport({ host, port, secure, auth: { user, pass } })
-  };
-};
-
 const sendCodeEmail = async ({ email, code, purpose }) => {
-  const { from, transporter } = createMailer();
   const isReset = purpose === 'reset';
-  await transporter.sendMail({
-    from,
+  await sendMail({
     to: email,
     subject: isReset ? 'Amulet password reset code' : 'Amulet email verification code',
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;padding:28px;border:1px solid #ead9bf;border-radius:16px;color:#17202b">
-        <h1 style="margin:0 0 10px;color:#b8894f;font-family:Georgia,serif">Amulet</h1>
-        <p style="font-size:16px;line-height:1.6">${isReset ? 'Use this code to continue resetting your password.' : 'Use this code to verify your email address.'}</p>
-        <div style="margin:24px 0;padding:18px 22px;border-radius:14px;background:#f7f1e8;color:#17202b;font-size:32px;font-weight:800;letter-spacing:10px;text-align:center">${code}</div>
-        <p style="font-size:13px;color:#657083">The code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
-      </div>
-    `
+    text: `${isReset ? 'Password reset' : 'Email verification'} code: ${code}. The code is valid for 10 minutes.`,
+    html: emailShell({
+      title: isReset ? 'Reset your password' : 'Verify your email',
+      intro: isReset ? 'Use this code to continue resetting your password.' : 'Use this code to verify your email address.',
+      body: `<div style="padding:8px 0;font-size:32px;font-weight:800;letter-spacing:10px;text-align:center">${code}</div>`,
+      footer: 'The code is valid for 10 minutes. If you did not request this, you can safely ignore this email.'
+    })
   });
+};
+
+const deliverCodeEmail = async (options) => {
+  try {
+    await sendCodeEmail(options);
+  } catch (error) {
+    console.error('Verification email delivery failed:', error.code || error.message);
+    const deliveryError = new Error('Verification email could not be sent. Please try again');
+    deliveryError.statusCode = 503;
+    throw deliveryError;
+  }
 };
 
 export const register = asyncHandler(async (req, res) => {
@@ -106,7 +95,7 @@ export const register = asyncHandler(async (req, res) => {
     },
     { new: true, upsert: true, setDefaultsOnInsert: true }
   );
-  await sendCodeEmail({ email: pending.email, code: verificationCode, purpose: 'verify' });
+  await deliverCodeEmail({ email: pending.email, code: verificationCode, purpose: 'verify' });
 
   res.status(201).json({ message: 'Verification code sent', email: pending.email });
 });
@@ -208,7 +197,7 @@ export const requestPasswordReset = asyncHandler(async (req, res) => {
     user.passwordResetTokenExpires = null;
     user.passwordResetRequestedAt = new Date();
     await user.save();
-    await sendCodeEmail({ email: user.email, code, purpose: 'reset' });
+    await deliverCodeEmail({ email: user.email, code, purpose: 'reset' });
   }
 
   res.json({ message: 'If an account exists for this email, a reset code has been sent' });

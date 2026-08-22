@@ -6,7 +6,8 @@ import { createSecureInvitationSlug, isSecureInvitationSlug } from '../utils/inv
 
 const CURRENT_DESIGN_KEYS = new Set([
   'sacred-beginnings', 'birthday-sparkle', 'ivory-vows',
-  'divine-blessing', 'elevate-invite', 'ever-after', 'everlasting-vows'
+  'divine-blessing', 'elevate-invite', 'ever-after', 'everlasting-vows',
+  'forever-vows', 'silk-vows'
 ]);
 
 export const getInvitationBySlug = asyncHandler(async (req, res) => {

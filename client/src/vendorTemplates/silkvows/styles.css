@@ -1,0 +1,215 @@
+:root,
+:host {
+  --silk-bg: var(--background, #f7f5f1);
+  --silk-paper: var(--card, #fbfaf8);
+  --silk-soft: var(--secondary, #f1eee9);
+  --silk-ink: var(--foreground, #1c1b1a);
+  --silk-muted: var(--muted-foreground, #5b5751);
+  --silk-accent: var(--primary, #a48562);
+  --silk-on-accent: var(--primary-foreground, #ffffff);
+  --silk-border: var(--border, #c9b79d);
+  --silk-ring: var(--ring, var(--silk-accent));
+  --silk-shadow: color-mix(in srgb, var(--silk-ink) 14%, transparent);
+  --silk-glass: color-mix(in srgb, var(--silk-paper) 76%, transparent);
+  --silk-hero-text: #ffffff;
+  --font-body: 'Noto Sans Armenian', sans-serif;
+  --font-display: 'Noto Serif Armenian', serif;
+  color: var(--silk-ink);
+  background: var(--silk-bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; min-width: 320px; background: var(--silk-bg); }
+button, input, textarea { font: inherit; }
+a { color: inherit; }
+
+.silk-vows-template {
+  width: 100%;
+  min-width: 320px;
+  overflow-x: hidden;
+  color: var(--silk-ink);
+  background: var(--silk-bg);
+  font-family: var(--font-body);
+}
+
+.silk-vows-template :is(button, a, input, textarea):focus-visible {
+  outline: 3px solid var(--silk-ring);
+  outline-offset: 3px;
+}
+
+.silk-vows-hero {
+  min-height: 100svh;
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--silk-hero-text);
+  background: #171411;
+}
+
+.silk-vows-hero-photo {
+  position: absolute;
+  inset: -5%;
+  background-image: var(--silk-hero-image);
+  background-position: center 45%;
+  background-size: cover;
+  will-change: transform;
+  animation: silk-vows-hero-drift 22s ease-in-out infinite alternate;
+}
+
+.silk-vows-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 160px rgba(0, 0, 0, .46);
+  pointer-events: none;
+}
+
+.silk-vows-hero-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(12, 10, 8, .62), rgba(12, 10, 8, .14) 48%, rgba(12, 10, 8, .52)); }
+.silk-vows-hero-content { position: relative; z-index: 2; padding: 24px; text-align: center; text-shadow: 0 4px 24px rgba(0, 0, 0, .38); }
+.silk-vows-hero-content h1 { width: min(94vw, 1500px); margin: 12px auto 8px; display: flex; align-items: center; justify-content: center; gap: 18px; color: var(--silk-hero-text); font-weight: 300; font-size: clamp(3rem, 7vw, 7.6rem); line-height: .96; letter-spacing: -.04em; }
+.silk-vows-hero-content h1 span { min-width: 0; max-width: 45%; overflow-wrap: anywhere; }
+.silk-vows-hero-content h1.is-long { font-size: clamp(2.5rem, 5vw, 5.7rem); }
+.silk-vows-hero-content h1.is-very-long { font-size: clamp(2.15rem, 4vw, 4.6rem); }
+.silk-vows-hero-content h1 em { font-family: 'Parisienne', cursive; font-size: .9em; font-weight: 400; }
+.silk-vows-hero-sub { margin: 0; font-family: var(--font-display); font-size: clamp(1rem, 1.7vw, 1.5rem); opacity: .94; animation: silk-vows-hero-rise 1.7s .8s both cubic-bezier(.16, 1, .3, 1); }
+.silk-vows-micro { margin: 0; letter-spacing: .34em; font-size: .78rem; opacity: .88; animation: silk-vows-hero-rise 1.5s .15s both cubic-bezier(.16, 1, .3, 1); }
+.silk-vows-hero-content h1 span:first-child { animation: silk-vows-name-left 1.9s .3s both cubic-bezier(.16, 1, .3, 1); }
+.silk-vows-hero-content h1 span:last-child { animation: silk-vows-name-right 1.9s .45s both cubic-bezier(.16, 1, .3, 1); }
+.silk-vows-hero-content h1 em { animation: silk-vows-heartbeat 4.8s 1.2s both ease-in-out infinite; }
+.silk-vows-music-button { min-height: 48px; max-width: min(92vw, 360px); margin: 24px auto 0; display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid rgba(255, 255, 255, .72); color: var(--silk-hero-text); background: rgba(12, 10, 8, .3); backdrop-filter: blur(14px); padding: 7px 18px 7px 8px; border-radius: 999px; cursor: pointer; box-shadow: 0 12px 38px rgba(0, 0, 0, .16); transition: background .25s ease, border-color .25s ease, transform .25s ease; animation: silk-vows-hero-rise 1.7s 1.05s both cubic-bezier(.16, 1, .3, 1); }
+.silk-vows-music-button:hover { background: rgba(12, 10, 8, .5); border-color: #fff; transform: translateY(-2px); }
+.silk-vows-music-button:active { transform: scale(.97); }
+.silk-vows-music-icon { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, .55); border-radius: 50%; background: rgba(255, 255, 255, .12); }
+.silk-vows-scroll-cue { position: absolute; z-index: 4; bottom: 26px; min-width: 44px; min-height: 44px; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 12px; background: none; color: var(--silk-hero-text); border: 0; cursor: pointer; text-transform: uppercase; letter-spacing: .18em; font-size: .7rem; animation: silk-vows-hero-rise 1.5s 1.4s both cubic-bezier(.16, 1, .3, 1); }
+.silk-vows-scroll-cue svg { animation: silk-vows-bounce 2.6s ease-in-out infinite; }
+@keyframes silk-vows-hero-drift { from { transform: scale(1.02) translate3d(-.7%, -.3%, 0); } to { transform: scale(1.09) translate3d(.7%, .6%, 0); } }
+@keyframes silk-vows-hero-rise { from { opacity: 0; transform: translateY(34px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes silk-vows-name-left { from { opacity: 0; transform: translateX(-46px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes silk-vows-name-right { from { opacity: 0; transform: translateX(46px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes silk-vows-heartbeat { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.07); opacity: .82; } }
+@keyframes silk-vows-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(7px); } }
+
+.silk-vows-silk-section {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #fff;
+}
+
+.silk-vows-silk-section::after { content: none; }
+.silk-vows-silk-section::before { content: none; }
+.silk-vows-silk-section > * { position: relative; z-index: 2; }
+@keyframes silk-vows-section-photo { from { transform: scale(1.02) translate3d(-.6%, -.3%, 0); } to { transform: scale(1.075) translate3d(.6%, .4%, 0); } }
+@keyframes silk-vows-silk-shimmer { from { transform: translate3d(-3%, -1%, 0) rotate(-1deg); opacity: .65; } to { transform: translate3d(3%, 1%, 0) rotate(1deg); opacity: 1; } }
+.silk-vows-intro { min-height: 900px; padding: 110px 24px 90px; text-align: center; }
+.silk-vows-intro > * { position: relative; z-index: 1; }
+.silk-vows-ornament { width: 42px; height: 42px; display: grid; place-items: center; margin: 0 auto 18px; border: 1px solid var(--silk-accent); border-radius: 50%; color: var(--silk-accent); }
+.silk-vows-ornament.is-visible svg { animation: silk-vows-ornament-pulse 5.4s 1.2s ease-in-out infinite; }
+@keyframes silk-vows-ornament-pulse { 0%, 100% { transform: scale(.92); } 50% { transform: scale(1.12); } }
+.silk-vows-script-label { margin: 0 0 10px; font-family: var(--font-display); font-style: italic; font-size: clamp(1.25rem, 2.4vw, 2.2rem); }
+.silk-vows-intro h2, .silk-vows-section-heading h2, .silk-vows-rsvp-copy h2 { margin: 0 0 22px; color: var(--silk-ink); font-weight: 400; font-size: clamp(2rem, 4vw, 4rem); }
+.silk-vows-lead { max-width: 760px; margin: 0 auto; color: var(--silk-muted); line-height: 1.9; font-size: 1.05rem; }
+.silk-vows-date-card { width: 230px; margin: 44px auto 32px; padding: 18px 0; display: grid; grid-template-columns: 1fr 90px 1fr; align-items: center; border-top: 1px solid var(--silk-border); border-bottom: 1px solid var(--silk-border); color: var(--silk-muted); }
+.silk-vows-date-card strong { color: var(--silk-ink); font-family: var(--font-display); font-size: 3.6rem; font-weight: 400; border-left: 1px solid var(--silk-border); border-right: 1px solid var(--silk-border); }
+.silk-vows-date-card span { font-size: .72rem; letter-spacing: .1em; }
+.silk-vows-countdown { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
+.silk-vows-countdown-cell { width: 92px; padding: 14px 8px; background: var(--silk-glass); border: 1px solid color-mix(in srgb, var(--silk-accent) 38%, transparent); backdrop-filter: blur(6px); box-shadow: 0 10px 35px var(--silk-shadow); }
+.silk-vows-countdown-cell strong { display: block; font-family: var(--font-display); font-size: 1.7rem; font-weight: 400; }
+.silk-vows-countdown-cell span { color: var(--silk-muted); font-size: .7rem; text-transform: uppercase; }
+
+.silk-vows-schedule { padding: 110px 24px; }
+.silk-vows-section-heading { position: relative; z-index: 1; margin-bottom: 70px; text-align: center; }
+.silk-vows-section-heading > span { color: var(--silk-accent); text-transform: uppercase; letter-spacing: .22em; font-size: .72rem; }
+.silk-vows-timeline { width: min(100%, 820px); margin: auto; position: relative; z-index: 1; display: grid; gap: 22px; }
+.silk-vows-timeline::before { content: none; }
+.silk-vows-location-card { display: block; margin: 0; padding: clamp(28px, 5vw, 44px); border: 1px solid color-mix(in srgb, var(--silk-accent) 32%, #e9e5df); border-radius: 24px; background: #fff; box-shadow: 0 18px 50px color-mix(in srgb, var(--silk-ink) 7%, transparent); }
+.silk-vows-location-card.is-reverse .silk-vows-location-info { text-align: left; align-items: flex-start; }
+.silk-vows-location-info { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
+.silk-vows-time-badge { min-height: 44px; margin-bottom: 18px; display: inline-flex; align-items: center; padding: 8px 16px; border-radius: 999px; background: color-mix(in srgb, var(--silk-accent) 13%, #fff); color: color-mix(in srgb, var(--silk-accent) 78%, #2f281f); font-family: var(--font-display); font-size: 1.55rem; }
+.silk-vows-location-info > p { margin: 0 0 10px; color: var(--silk-muted); font-size: .75rem; letter-spacing: .12em; }
+.silk-vows-location-info h3 { margin: 0 0 14px; color: var(--silk-ink); font-size: clamp(1.7rem, 3vw, 2.6rem); font-weight: 500; }
+.silk-vows-address { display: flex; align-items: center; gap: 7px; margin-bottom: 22px; color: var(--silk-muted); line-height: 1.55; }
+.silk-vows-location-info a { min-height: 44px; display: inline-flex; align-items: center; text-decoration: none; border: 1px solid var(--silk-ink); padding: 11px 20px; border-radius: 999px; font-size: .75rem; letter-spacing: .1em; transition: background .2s ease, color .2s ease; }
+.silk-vows-location-info a:hover { background: var(--silk-accent); border-color: var(--silk-accent); color: var(--silk-on-accent); }
+
+.silk-vows-quote { min-height: 420px; position: relative; display: grid; place-items: center; overflow: hidden; color: var(--silk-ink); background: #fff; border-block: 1px solid color-mix(in srgb, var(--silk-accent) 22%, #ece8e2); }
+.silk-vows-quote-content { position: relative; max-width: 900px; padding: 30px; text-align: center; }
+.silk-vows-quote-content p { margin: 0 0 18px; font-family: var(--font-display); font-size: clamp(2rem, 4vw, 4.4rem); font-weight: 300; }
+.silk-vows-quote-content span { color: var(--silk-accent); font-family: 'Parisienne', cursive; font-size: 2rem; }
+
+.silk-vows-rsvp { padding: clamp(72px, 9vw, 120px) 24px 70px; }
+.silk-vows-rsvp-card { position: relative; z-index: 1; max-width: 1080px; margin: auto; display: grid; grid-template-columns: .85fr 1.15fr; overflow: hidden; border: 1px solid #e8e2da; border-radius: 28px; background: #fff; box-shadow: 0 28px 80px color-mix(in srgb, var(--silk-ink) 10%, transparent); }
+.silk-vows-rsvp-copy { padding: clamp(38px, 6vw, 64px); border-right: 1px solid #e8e2da; background: color-mix(in srgb, var(--silk-accent) 9%, #fff); }
+.silk-vows-rsvp-copy p:not(.silk-vows-script-label) { color: var(--silk-muted); line-height: 1.8; }
+.silk-vows-mini-note { margin-top: 24px; display: flex; align-items: center; gap: 10px; color: var(--silk-accent); font-size: .9rem; }
+.silk-vows-rsvp-form { padding: clamp(38px, 6vw, 64px); display: grid; gap: 24px; }
+.silk-vows-radio-row { min-width: 0; margin: 0; padding: 0; display: flex; gap: 10px; flex-wrap: wrap; border: 0; }
+.silk-vows-radio-row legend { width: 100%; margin-bottom: 10px; color: var(--silk-muted); font-size: .78rem; font-weight: 600; }
+.silk-vows-radio-row label { min-height: 46px; display: flex; align-items: center; gap: 9px; padding: 8px 14px; border: 1px solid #ded8d0; border-radius: 999px; background: #fff; color: var(--silk-ink); cursor: pointer; transition: border-color .2s ease, background .2s ease, box-shadow .2s ease; }
+.silk-vows-radio-row label:has(input:checked) { border-color: var(--silk-accent); background: color-mix(in srgb, var(--silk-accent) 10%, #fff); box-shadow: 0 0 0 3px color-mix(in srgb, var(--silk-accent) 12%, transparent); }
+.silk-vows-radio-row input { width: 18px; height: 18px; accent-color: var(--silk-accent); }
+.silk-vows-field { display: grid; gap: 8px; }
+.silk-vows-field span { color: var(--silk-muted); font-size: .78rem; font-weight: 600; }
+.silk-vows-field input, .silk-vows-field textarea { width: 100%; min-height: 48px; border: 1px solid #ded8d0; border-radius: 14px; background: #fff; padding: 12px 14px; outline: none; resize: vertical; color: var(--silk-ink); transition: border-color .2s ease, box-shadow .2s ease; }
+.silk-vows-field input:focus, .silk-vows-field textarea:focus { border-color: var(--silk-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--silk-accent) 14%, transparent); }
+.silk-vows-submit { width: 100%; min-height: 50px; display: flex; align-items: center; justify-content: center; gap: 9px; border: 1px solid var(--silk-accent); background: var(--silk-accent); color: var(--silk-on-accent); border-radius: 999px; padding: 13px 25px; cursor: pointer; font-weight: 600; transition: opacity .2s ease, box-shadow .2s ease, transform .2s ease; }
+.silk-vows-submit:hover:not(:disabled) { box-shadow: 0 12px 25px var(--silk-shadow); transform: translateY(-2px); }
+.silk-vows-submit:disabled { cursor: not-allowed; opacity: .58; }
+.silk-vows-form-error, .silk-vows-form-success { margin: -8px 0 0; line-height: 1.5; font-size: .86rem; }
+.silk-vows-form-error { color: var(--destructive, #9d2020); }
+.silk-vows-form-success { color: var(--success, #326545); }
+.silk-vows-signature { position: relative; z-index: 1; margin-top: 70px; text-align: center; font-family: 'Parisienne', cursive; font-size: 4rem; color: var(--silk-accent); }
+.silk-vows-signature.is-visible { animation: silk-vows-signature-float 7s 1.5s ease-in-out infinite; }
+.silk-vows-closing { min-height: 86px; display: flex; justify-content: center; align-items: center; gap: 8px; padding: 18px; background: var(--silk-ink); color: var(--silk-bg); font-size: .78rem; letter-spacing: .04em; text-align: center; }
+@keyframes silk-vows-signature-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+
+.silk-vows-reveal {
+  opacity: 0;
+  transform: translate3d(0, 48px, 0) scale(.985);
+  transition: opacity 1.3s ease-out, transform 1.55s cubic-bezier(.16, 1, .3, 1);
+}
+.silk-vows-reveal.is-visible { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+.silk-vows-intro > .silk-vows-reveal:nth-child(2) { transition-delay: .12s; }
+.silk-vows-intro > .silk-vows-reveal:nth-child(3) { transition-delay: .22s; }
+.silk-vows-intro > .silk-vows-reveal:nth-child(4) { transition-delay: .32s; }
+.silk-vows-intro > .silk-vows-reveal:nth-child(5) { transition-delay: .42s; }
+.silk-vows-intro > .silk-vows-reveal:nth-child(6) { transition-delay: .52s; }
+.silk-vows-location-card:nth-child(even) { transform: translate3d(44px, 48px, 0) scale(.985); }
+.silk-vows-location-card:nth-child(odd) { transform: translate3d(-44px, 48px, 0) scale(.985); }
+.silk-vows-location-card.is-visible { transform: translate3d(0, 0, 0) scale(1); }
+.silk-vows-visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+@media (max-width: 820px) {
+  .silk-vows-hero-content h1 { flex-direction: column; gap: 0; }
+  .silk-vows-hero-content h1 span { max-width: 100%; }
+  .silk-vows-hero-content h1.is-long { font-size: clamp(2.2rem, 12vw, 4rem); }
+  .silk-vows-hero-content h1.is-very-long { font-size: clamp(1.8rem, 9.5vw, 3.2rem); }
+  .silk-vows-hero-content h1 em { margin: -14px 0; }
+  .silk-vows-music-button { margin-top: 20px; }
+  .silk-vows-intro { min-height: auto; }
+  .silk-vows-location-card, .silk-vows-location-card.is-reverse { margin-left: 0; }
+  .silk-vows-location-card.is-reverse .silk-vows-location-info { text-align: left; align-items: flex-start; }
+  .silk-vows-rsvp-card { grid-template-columns: 1fr; }
+  .silk-vows-rsvp-copy { border-right: 0; border-bottom: 1px solid #e8e2da; }
+  .silk-vows-rsvp-copy, .silk-vows-rsvp-form { padding: 34px 24px; }
+}
+
+@media (max-width: 480px) {
+  .silk-vows-date-card { width: 100%; max-width: 320px; grid-template-columns: 1fr 84px 1fr; }
+  .silk-vows-countdown-cell { width: 74px; }
+  .silk-vows-radio-row { flex-direction: column; gap: 8px; }
+  .silk-vows-radio-row legend { margin-bottom: 2px; }
+  .silk-vows-radio-row label { width: 100%; }
+  .silk-vows-location-card:nth-child(n) { transform: translate3d(0, 42px, 0) scale(.985); }
+  .silk-vows-location-card.is-visible { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .silk-vows-template *, .silk-vows-template *::before, .silk-vows-template *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .silk-vows-reveal, .silk-vows-location-card:nth-child(n) { opacity: 1 !important; transform: none !important; }
+}

@@ -48,6 +48,12 @@ import everlastingGallery3 from '../vendorTemplates/everlasting/assets/g3.jpg';
 import everlastingGallery4 from '../vendorTemplates/everlasting/assets/g4.jpg';
 import everlastingGallery5 from '../vendorTemplates/everlasting/assets/g5.jpg';
 import everlastingGallery6 from '../vendorTemplates/everlasting/assets/g6.jpg';
+import foreverVowsMain from '../assets/morph/engagement-smile.jpg';
+import foreverVowsSmall from '../assets/morph/wedding-forest-optimized.jpg';
+import foreverVowsTiny from '../assets/morph/wedding-temple.jpg';
+import silkVowsHero from '../vendorTemplates/silkvows/assets/hero.jpg';
+import silkVowsHall from '../vendorTemplates/silkvows/assets/hall.jpg';
+import silkVowsQuote from '../vendorTemplates/silkvows/assets/quote.jpg';
 
 export const templateAssetSources = {
   'asset:curated/sacred/child-portrait.jpg': sacredPortrait,
@@ -99,7 +105,18 @@ export const templateAssetSources = {
   'asset:curated/everlasting/gallery-3.jpg': everlastingGallery3,
   'asset:curated/everlasting/gallery-4.jpg': everlastingGallery4,
   'asset:curated/everlasting/gallery-5.jpg': everlastingGallery5,
-  'asset:curated/everlasting/gallery-6.jpg': everlastingGallery6
+  'asset:curated/everlasting/gallery-6.jpg': everlastingGallery6,
+  'asset:curated/forever-vows/engagement-smile.jpg': foreverVowsMain,
+  'asset:curated/forever-vows/wedding-forest-optimized.jpg': foreverVowsSmall,
+  'asset:curated/forever-vows/wedding-temple.jpg': foreverVowsTiny,
+  'asset:curated/silk-vows/hero.jpg': silkVowsHero,
+  'asset:curated/silk-vows/church.jpg': foreverVowsTiny,
+  'asset:curated/silk-vows/hall.jpg': silkVowsHall,
+  'asset:curated/silk-vows/quote.jpg': silkVowsQuote,
+  'asset:curated/burgundy-roadmap/hero.jpg': everlastingGallery4,
+  'asset:curated/burgundy-roadmap/portrait.jpg': everlastingGallery1,
+  'asset:curated/burgundy-roadmap/rings.jpg': everlastingGallery2,
+  'asset:curated/burgundy-roadmap/flowers.jpg': everlastingGallery3
 };
 
 export const templateDefaultGalleryIds = {
@@ -166,6 +183,23 @@ export const templateDefaultGalleryIds = {
     'asset:curated/everlasting/gallery-4.jpg',
     'asset:curated/everlasting/gallery-5.jpg',
     'asset:curated/everlasting/gallery-6.jpg'
+  ],
+  'forever-vows': [
+    'asset:curated/forever-vows/engagement-smile.jpg',
+    'asset:curated/forever-vows/wedding-forest-optimized.jpg',
+    'asset:curated/forever-vows/wedding-temple.jpg'
+  ],
+  'silk-vows': [
+    'asset:curated/silk-vows/hero.jpg',
+    'asset:curated/silk-vows/church.jpg',
+    'asset:curated/silk-vows/hall.jpg',
+    'asset:curated/silk-vows/quote.jpg'
+  ],
+  'burgundy-roadmap': [
+    'asset:curated/burgundy-roadmap/hero.jpg',
+    'asset:curated/burgundy-roadmap/portrait.jpg',
+    'asset:curated/burgundy-roadmap/rings.jpg',
+    'asset:curated/burgundy-roadmap/flowers.jpg'
   ]
 };
 

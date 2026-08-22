@@ -2,6 +2,9 @@ import {
   BirthdaySparkleCardPreview,
   BirthdaySparkleInvitationView,
   BirthdaySparkleLivePreview,
+  BurgundyRoadmapCardPreview,
+  BurgundyRoadmapInvitationView,
+  BurgundyRoadmapLivePreview,
   DivineBlessingCardPreview,
   DivineBlessingInvitationView,
   DivineBlessingLivePreview,
@@ -11,24 +14,36 @@ import {
   EverlastingVowsCardPreview,
   EverlastingVowsInvitationView,
   EverlastingVowsLivePreview,
+  ForeverVowsCardPreview,
+  ForeverVowsInvitationView,
+  ForeverVowsLivePreview,
   getBirthdaySparkleDraft,
+  getBurgundyRoadmapDraft,
   getDivineBlessingDraft,
   getElevateInviteDraft,
   getEverlastingVowsDraft,
+  getForeverVowsDraft,
   getIvoryVowsDraft,
   getSacredBeginningsDraft,
+  getSilkVowsDraft,
   isBirthdaySparkleTemplate,
+  isBurgundyRoadmapTemplate,
   isDivineBlessingTemplate,
   isElevateInviteTemplate,
   isEverlastingVowsTemplate,
+  isForeverVowsTemplate,
   isIvoryVowsTemplate,
   isSacredBeginningsTemplate,
+  isSilkVowsTemplate,
   IvoryVowsCardPreview,
   IvoryVowsInvitationView,
   IvoryVowsLivePreview,
   SacredBeginningsCardPreview,
   SacredBeginningsInvitationView,
-  SacredBeginningsLivePreview
+  SacredBeginningsLivePreview,
+  SilkVowsCardPreview,
+  SilkVowsInvitationView,
+  SilkVowsLivePreview
 } from './OriginalTypeScriptTemplates.tsx';
 
 export const availableOccasionTemplates = [
@@ -37,7 +52,10 @@ export const availableOccasionTemplates = [
   { key: 'ivory-vows', label: 'Փղոսկրե երդումներ · հարսանիք' },
   { key: 'divine-blessing', label: 'Աստվածային օրհնություն · մկրտություն' },
   { key: 'elevate-invite', label: 'Վերելք · կորպորատիվ միջոցառում' },
-  { key: 'everlasting-vows', label: 'Հավերժական երդումներ · հարսանիք' }
+  { key: 'everlasting-vows', label: 'Հավերժական երդումներ · հարսանիք' },
+  { key: 'forever-vows', label: 'Forever Vows · նշանադրություն' },
+  { key: 'silk-vows', label: 'Մետաքսե երդումներ · հարսանիք' },
+  { key: 'burgundy-roadmap', label: 'Գինեգույն ճանապարհ · հարսանիք' }
 ];
 
 const normalizeTemplateKey = (value) => String(value || '')
@@ -101,6 +119,33 @@ export const occasionTemplates = [
     LivePreview: EverlastingVowsLivePreview,
     PublicView: EverlastingVowsInvitationView,
     getInitialDraft: getEverlastingVowsDraft
+  },
+  {
+    key: 'forever-vows',
+    aliases: ['forever-vows', 'forever-vows-engagement', 'forever-vows-invitation'],
+    match: isForeverVowsTemplate,
+    CardPreview: ForeverVowsCardPreview,
+    LivePreview: ForeverVowsLivePreview,
+    PublicView: ForeverVowsInvitationView,
+    getInitialDraft: getForeverVowsDraft
+  },
+  {
+    key: 'silk-vows',
+    aliases: ['silk-vows', 'silk-vows-wedding', 'armenian-wedding-invitation'],
+    match: isSilkVowsTemplate,
+    CardPreview: SilkVowsCardPreview,
+    LivePreview: SilkVowsLivePreview,
+    PublicView: SilkVowsInvitationView,
+    getInitialDraft: getSilkVowsDraft
+  },
+  {
+    key: 'burgundy-roadmap',
+    aliases: ['burgundy-roadmap', 'burgundy-roadmap-wedding', 'wedding-burgundy-roadmap'],
+    match: isBurgundyRoadmapTemplate,
+    CardPreview: BurgundyRoadmapCardPreview,
+    LivePreview: BurgundyRoadmapLivePreview,
+    PublicView: BurgundyRoadmapInvitationView,
+    getInitialDraft: getBurgundyRoadmapDraft
   }
 ];
 

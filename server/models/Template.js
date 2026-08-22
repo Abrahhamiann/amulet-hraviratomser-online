@@ -2,12 +2,12 @@ import mongoose from 'mongoose';
 
 const templateSchema = new mongoose.Schema(
   {
-    code: { type: String, unique: true, sparse: true, uppercase: true, trim: true, match: /^[A-E][1-9]\d*$/ },
+    code: { type: String, unique: true, sparse: true, uppercase: true, trim: true, match: /^[A-H][1-9]\d*$/ },
     title: { type: String, required: true },
     slug: { type: String, required: true, unique: true },
     category: {
       type: String,
-      enum: ['wedding', 'baptism', 'birth', 'corporate', 'engagement'],
+      enum: ['wedding', 'baptism', 'birth', 'engagement', 'corporate', 'new_year', 'meeting', 'military'],
       required: true
     },
     editorType: {
@@ -28,7 +28,9 @@ const templateSchema = new mongoose.Schema(
     gallery: [{ type: String }],
     galleryConfigured: { type: Boolean, default: false },
     isFeatured: { type: Boolean, default: false },
-    isActive: { type: Boolean, default: true }
+    isActive: { type: Boolean, default: true },
+    deletedAt: { type: Date, default: null, index: true },
+    deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
   },
   { timestamps: true }
 );

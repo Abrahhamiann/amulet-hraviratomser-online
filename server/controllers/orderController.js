@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import Invitation from '../models/Invitation.js';
 import Order from '../models/Order.js';
 import RSVP from '../models/RSVP.js';
+import Template from '../models/Template.js';
 import { notifyAdminsOfOrder } from '../utils/adminTelegram.js';
 import { ensureSecureInvitationSlug } from '../utils/invitationSlug.js';
 
@@ -30,6 +31,13 @@ export const createOrder = asyncHandler(async (req, res) => {
   payload.eventDate = normalizeDateValue(payload.eventDate);
   if (!payload.templateId || !mongoose.Types.ObjectId.isValid(payload.templateId)) delete payload.templateId;
   payload.requestType = payload.requestType === 'custom_design' ? 'custom_design' : 'standard';
+  if (payload.requestType === 'standard' && payload.templateId) {
+    const template = await Template.findOne({ _id: payload.templateId, deletedAt: null, isActive: { $ne: false } });
+    if (!template) {
+      res.status(404);
+      throw new Error('Template not found');
+    }
+  }
   if (req.user?._id) payload.userId = req.user._id;
 
   const missing = required.filter((field) => !payload[field]);

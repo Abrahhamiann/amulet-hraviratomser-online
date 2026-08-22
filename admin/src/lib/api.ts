@@ -22,14 +22,28 @@ export function clearToken() {
   LEGACY_TOKEN_KEYS.forEach((key) => sessionStorage.removeItem(key));
 }
 
-export async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+type RequestOptions = RequestInit & { timeoutMs?: number };
+
+export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const { timeoutMs = 30_000, ...requestOptions } = options;
   const headers = new Headers(options.headers);
   headers.set("Content-Type", "application/json");
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers,
-    credentials: "include",
-  });
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...requestOptions,
+      headers,
+      credentials: "include",
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error("Request timed out");
+    throw error;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -81,6 +95,7 @@ export const adminApi = {
   updateTemplate: (id: string, data: any) =>
     request<any>(`/admin/templates/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   deleteTemplate: (id: string) => request<any>(`/admin/templates/${id}`, { method: "DELETE" }),
+  restoreTemplate: (id: string) => request<any>(`/admin/templates/${id}/restore`, { method: "POST" }),
   deleteOrder: (id: string) => request<any>(`/admin/orders/${id}`, { method: "DELETE" }),
   deleteAllOrders: () => request<any>("/admin/orders", { method: "DELETE" }),
   deleteMessage: (id: string) => request<any>(`/admin/messages/${id}`, { method: "DELETE" }),
@@ -94,7 +109,7 @@ export const adminApi = {
   sendCustomerEmail: (id: string, data: any) =>
     request<any>(`/admin/customers/${id}/email`, { method: "POST", body: JSON.stringify(data) }),
   broadcastEmail: (data: any) =>
-    request<any>("/admin/broadcast", { method: "POST", body: JSON.stringify(data) }),
+    request<any>("/admin/broadcast", { method: "POST", body: JSON.stringify(data), timeoutMs: 35_000 }),
   updateFaq: (data: any) =>
     request<any>("/admin/faq", { method: "PUT", body: JSON.stringify(data) }),
   createPromoCode: (data: any) =>

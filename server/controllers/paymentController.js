@@ -43,7 +43,7 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Template not found');
   }
-  if (template.isActive === false || !PUBLIC_DESIGN_KEYS.includes(template.designKey)) {
+  if (template.deletedAt || template.isActive === false || !PUBLIC_DESIGN_KEYS.includes(template.designKey)) {
     res.status(400);
     throw new Error('Template is not active');
   }

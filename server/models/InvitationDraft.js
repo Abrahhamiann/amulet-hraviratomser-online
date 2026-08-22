@@ -21,6 +21,10 @@ const invitationDraftSchema = new mongoose.Schema(
       gallery: [{ type: String }],
       templateTextOverrides: { type: mongoose.Schema.Types.Mixed, default: {} },
       templateImageOverrides: { type: mongoose.Schema.Types.Mixed, default: {} },
+      dressCodeColors: [{
+        name: { type: String, default: '' },
+        hex: { type: String, default: '#d8b98e' }
+      }],
       colors: {
         accent: { type: String, default: '#d8b98e' },
         text: { type: String, default: '#ffffff' },

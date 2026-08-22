@@ -102,6 +102,24 @@ import { WeddingTimeline as EverlastingTimeline } from '../vendorTemplates/everl
 import { weddingConfig as everlastingConfig, type WeddingConfig as EverlastingConfig } from '../vendorTemplates/everlasting/data/wedding';
 import everlastingStyles from '../vendorTemplates/everlasting/styles.css?inline';
 import everlastingHeroImage from '../vendorTemplates/everlasting/assets/hero.jpg';
+import { ForeverVowsInvitation } from '../vendorTemplates/forevervows/components/invitation/ForeverVowsInvitation';
+import { invitationData as foreverVowsInvitation, type InvitationData as ForeverVowsInvitationData } from '../vendorTemplates/forevervows/data/invitation';
+import foreverVowsStyles from '../vendorTemplates/forevervows/styles.css?inline';
+import foreverVowsMainImage from '../assets/morph/engagement-smile.jpg';
+import foreverVowsSmallImage from '../assets/morph/wedding-forest-optimized.jpg';
+import foreverVowsTinyImage from '../assets/morph/wedding-temple.jpg';
+import SilkVowsInvitation from '../vendorTemplates/silkvows/SilkVowsInvitation.jsx';
+import silkVowsStyles from '../vendorTemplates/silkvows/styles.css?inline';
+import silkVowsHeroImage from '../vendorTemplates/silkvows/assets/hero.jpg';
+import silkVowsHallImage from '../vendorTemplates/silkvows/assets/hall.jpg';
+import silkVowsQuoteImage from '../vendorTemplates/silkvows/assets/quote.jpg';
+import BurgundyRoadmapInvitation from '../vendorTemplates/burgundyroadmap/BurgundyRoadmapInvitation.jsx';
+import burgundyRoadmapStyles from '../vendorTemplates/burgundyroadmap/styles.css?inline';
+import burgundyRoadmapFont from '../vendorTemplates/burgundyroadmap/assets/Vrdznagir.otf?url';
+import burgundyRoadmapHeroImage from '../vendorTemplates/everlasting/assets/g4.jpg';
+import burgundyRoadmapPortraitImage from '../vendorTemplates/everlasting/assets/g1.jpg';
+import burgundyRoadmapRingsImage from '../vendorTemplates/everlasting/assets/g2.jpg';
+import burgundyRoadmapFlowersImage from '../vendorTemplates/everlasting/assets/g3.jpg';
 import defaultInvitationSong from '../assets/audio/ed-sheeran-perfect.mp3';
 import { resolveTemplateImage, templateDefaultGalleryIds } from './templateAssets.js';
 
@@ -129,6 +147,9 @@ type Draft = {
   mapLinks?: Array<{ id?: string; label?: string; time?: string; address?: string; url?: string; subtitle?: string; visible?: boolean }>;
   musicEnabled?: boolean;
   musicUrl?: string;
+  musicTitle?: string;
+  musicStart?: number;
+  musicEnd?: number;
   templateTextOverrides?: Record<string, string>;
   templateImageOverrides?: Record<string, string>;
   colors?: { accent?: string; text?: string; overlay?: string };
@@ -302,10 +323,10 @@ const applyTemplateOverrides = (root: HTMLDivElement, draft: Draft = {}) => {
   });
 
   const visibilityRules: Array<[string, boolean]> = [
-    ['.sacred-hero, .sacred-message, .birthday-hero, .birthday-message, .ivory-hero, .ivory-message, .divine-hero, .elevate-hero, .ever-after-hero, .everlasting-hero', draft.heroVisible !== false],
-    ['.sacred-schedule, .birthday-schedule, .ivory-schedule, .divine-schedule, .elevate-schedule, .ever-after-schedule, .everlasting-schedule', draft.receptionVisible !== false],
-    ['.sacred-rsvp, .birthday-rsvp, .ivory-rsvp, .divine-rsvp, .elevate-rsvp, .ever-after-rsvp, .everlasting-rsvp', draft.questionsVisible !== false],
-    ['.sacred-closing, .birthday-closing, .ivory-closing, .divine-closing, .elevate-closing, .ever-after-closing, .everlasting-closing', draft.finalMessageVisible !== false]
+    ['.sacred-hero, .sacred-message, .birthday-hero, .birthday-message, .ivory-hero, .ivory-message, .divine-hero, .elevate-hero, .ever-after-hero, .everlasting-hero, .forever-vows-hero, .silk-vows-hero', draft.heroVisible !== false],
+    ['.sacred-schedule, .birthday-schedule, .ivory-schedule, .divine-schedule, .elevate-schedule, .ever-after-schedule, .everlasting-schedule, .forever-vows-schedule, .silk-vows-schedule', draft.receptionVisible !== false],
+    ['.sacred-rsvp, .birthday-rsvp, .ivory-rsvp, .divine-rsvp, .elevate-rsvp, .ever-after-rsvp, .everlasting-rsvp, .forever-vows-rsvp, .silk-vows-rsvp', draft.questionsVisible !== false],
+    ['.sacred-closing, .birthday-closing, .ivory-closing, .divine-closing, .elevate-closing, .ever-after-closing, .everlasting-closing, .forever-vows-closing, .silk-vows-closing', draft.finalMessageVisible !== false]
   ];
   visibilityRules.forEach(([selector, visible]) => {
     root.querySelectorAll<HTMLElement>(selector).forEach((element) => { element.hidden = !visible; });
@@ -420,6 +441,18 @@ export const isEverAfterTemplate = (template?: TemplateRecord) => matches(templa
 
 export const isEverlastingVowsTemplate = (template?: TemplateRecord) => matches(template, [
   'everlasting-vows', 'everlasting-vows-wedding'
+]);
+
+export const isForeverVowsTemplate = (template?: TemplateRecord) => matches(template, [
+  'forever-vows', 'forever-vows-engagement', 'forever-vows-invitation'
+]);
+
+export const isSilkVowsTemplate = (template?: TemplateRecord) => matches(template, [
+  'silk-vows', 'silk-vows-wedding', 'armenian-wedding-invitation'
+]);
+
+export const isBurgundyRoadmapTemplate = (template?: TemplateRecord) => matches(template, [
+  'burgundy-roadmap', 'burgundy-roadmap-wedding', 'wedding-burgundy-roadmap'
 ]);
 
 function OriginalTemplateSurface({ children, css, fontImport, label, draft, customize }: SurfaceProps) {
@@ -596,7 +629,9 @@ function AdditionalVenues({ draft, nativeCount = 1 }: { draft?: Draft; nativeCou
 
 function SacredBeginningsTemplate(props: TemplateProps) {
   const { draft = {} } = props;
-  const firstVenue = draft.mapLinks?.find((venue) => venue?.visible !== false);
+  const visibleVenues = (draft.mapLinks || []).filter((venue) => venue?.visible !== false);
+  const firstVenue = visibleVenues[0];
+  const celebrationVenue = visibleVenues[1] || firstVenue;
   const musicSource = draft.musicEnabled === false ? undefined : (draft.musicUrl || defaultInvitationSong);
   const data = useMemo<InvitationData>(() => {
     const image = resolveTemplateImage(draft.image) || sacredInvitation.child.portrait.src;
@@ -606,7 +641,15 @@ function SacredBeginningsTemplate(props: TemplateProps) {
       child: { ...sacredInvitation.child, name: draft.mainNames ?? sacredInvitation.child.name, portrait: { ...sacredInvitation.child.portrait, src: image } },
       hero: { ...sacredInvitation.hero, dateLabel: draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : sacredInvitation.hero.dateLabel },
       intro: { ...sacredInvitation.intro, subMessage: draft.eventMessage ?? sacredInvitation.intro.subMessage },
-      event: { ...sacredInvitation.event, isoDate: draft.eventDate ? `${draft.eventDate}T${firstVenue?.time || draft.eventTime || '14:00'}:00+04:00` : '', dateLabel: draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : sacredInvitation.event.dateLabel, timeLabel: firstVenue?.time || draft.eventTime || sacredInvitation.event.timeLabel, venue: firstVenue?.label || draft.eventLocation || sacredInvitation.event.venue, city: firstVenue?.address || sacredInvitation.event.city },
+      event: { ...sacredInvitation.event, isoDate: draft.eventDate ? `${draft.eventDate}T${firstVenue?.time || draft.eventTime || '14:00'}:00+04:00` : '', dateLabel: draft.eventDate !== undefined ? formatArmenianDate(draft.eventDate) : sacredInvitation.event.dateLabel, timeLabel: firstVenue?.time || draft.eventTime || sacredInvitation.event.timeLabel, venue: firstVenue?.label || draft.eventLocation || sacredInvitation.event.venue, city: firstVenue?.address || sacredInvitation.event.city, mapUrl: firstVenue?.url || sacredInvitation.event.mapUrl },
+      celebration: {
+        ...sacredInvitation.celebration,
+        venue: celebrationVenue?.label || sacredInvitation.celebration.venue,
+        city: celebrationVenue?.address || sacredInvitation.celebration.city,
+        timeLabel: celebrationVenue?.time || sacredInvitation.celebration.timeLabel,
+        mapUrl: celebrationVenue?.url || sacredInvitation.celebration.mapUrl,
+        directionsUrl: celebrationVenue?.url || sacredInvitation.celebration.directionsUrl
+      },
       gallery: gallery.length ? gallery.map((src, index) => ({ src, alt: `${draft.mainNames || sacredInvitation.child.name} ${index + 1}` })) : sacredInvitation.gallery,
       rsvp: {
         ...sacredInvitation.rsvp,
@@ -968,13 +1011,6 @@ function EverAfterTemplate(props: TemplateProps) {
     root.querySelectorAll<HTMLInputElement>('input[placeholder="Your name"], input[placeholder="Ձեր անունը"]').forEach((input) => {
       input.placeholder = draft.rsvpSettings?.guestPlaceholder || 'Անուն ազգանուն';
     });
-    const dressRoot = root.querySelector('.ever-after-dress');
-    draft.dressCodeColors?.forEach((color, index) => {
-      const label = dressRoot?.querySelectorAll<HTMLElement>('.eyebrow.mt-3')[index];
-      const swatch = label?.parentElement?.querySelector<HTMLElement>('.rounded-full');
-      if (label) label.textContent = color.name;
-      if (swatch) swatch.style.background = color.hex;
-    });
     root.querySelectorAll<HTMLAnchorElement>('a[href*="maps"]').forEach((map) => {
       if (firstVenue?.url) map.href = firstVenue.url;
     });
@@ -995,7 +1031,12 @@ function EverAfterTemplate(props: TemplateProps) {
         <div className="ever-after-schedule" hidden={draft.receptionVisible === false}><EverAfterAnnouncement /><EverAfterCountdown dateISO={draft.eventDate ? `${draft.eventDate}T${draft.eventTime || '18:00'}:00+04:00` : everAfterInvite.dateISO} /><EverAfterDivider label="The Details" /><EverAfterDetails /><EverAfterLocation /><EverAfterTimeline /></div>
         <AdditionalVenues draft={draft} nativeCount={1} />
         <EverAfterGallery /><EverAfterQuote />
-        <div className="ever-after-dress" hidden={draft.dressCodeVisible === false}><EverAfterDressCode /></div>
+        <div className="ever-after-dress" hidden={draft.dressCodeVisible === false}><EverAfterDressCode
+          note={draft.dressCode || 'Մեղմ չեզոք երանգներ, մետաքս և մի փոքր ոսկեգույն․ հագնվեք այնպես, կարծես երեկոն լուսանկար է, որը հավերժ կպահեիք։'}
+          palette={draft.dressCodeColors?.length
+            ? draft.dressCodeColors.map(({ name, hex }) => ({ name, value: hex }))
+            : everAfterDressPalette}
+        /></div>
         <div className="ever-after-rsvp" hidden={draft.questionsVisible === false}><EverAfterRsvp settings={draft.rsvpSettings} onSubmit={props.onRsvpSubmit} /></div>
         <div className="ever-after-closing" hidden={draft.finalMessageVisible === false}><EverAfterFooter /></div>
         {draft.musicEnabled !== false ? <EverAfterMusic /> : null}
@@ -1105,6 +1146,223 @@ function EverlastingVowsTemplate(props: TemplateProps) {
         <div className="everlasting-closing" hidden={draft.finalMessageVisible === false}><EverlastingFooter config={config} /></div>
         {config.music.enabled ? <EverlastingMusic music={config.music} /> : null}
       </main>
+    </OriginalTemplateSurface></TemplateShell>
+  );
+}
+
+function ForeverVowsTemplate(props: TemplateProps) {
+  const { draft = {} } = props;
+  const data = useMemo<ForeverVowsInvitationData>(() => {
+    const [bride, groom] = splitNames(draft.mainNames);
+    const nextBride = bride || foreverVowsInvitation.bride;
+    const nextGroom = groom || foreverVowsInvitation.groom;
+    const eventDate = draft.eventDate || foreverVowsInvitation.date.slice(0, 10);
+    const eventTime = draft.eventTime || foreverVowsInvitation.date.slice(11, 16);
+    const parsedDate = new Date(`${eventDate}T12:00:00`);
+    const firstVenue = draft.mapLinks?.find((venue) => venue?.visible !== false);
+    const gallery = (draft.gallery || []).map(resolveTemplateImage).filter(Boolean);
+    const images = [
+      resolveTemplateImage(draft.image) || gallery[0] || foreverVowsMainImage,
+      gallery[1] || foreverVowsSmallImage,
+      gallery[2] || foreverVowsTinyImage,
+    ];
+
+    return {
+      ...foreverVowsInvitation,
+      bride: nextBride,
+      groom: nextGroom,
+      brideUpper: nextBride.toLocaleUpperCase('hy-AM'),
+      groomUpper: nextGroom.toLocaleUpperCase('hy-AM'),
+      date: `${eventDate}T${eventTime}:00`,
+      dateShort: formatNumericDate(eventDate, ' · '),
+      monthLabel: formatArmenianMonth(eventDate).toLocaleUpperCase('hy-AM'),
+      weekday: Number.isNaN(parsedDate.getTime()) ? foreverVowsInvitation.weekday : new Intl.DateTimeFormat('hy-AM', { weekday: 'long' }).format(parsedDate),
+      dayLong: draft.eventDate !== undefined ? formatArmenianDate(eventDate) : foreverVowsInvitation.dayLong,
+      announcement: {
+        ...foreverVowsInvitation.announcement,
+        paragraphs: draft.eventMessage ? [draft.eventMessage, foreverVowsInvitation.announcement.paragraphs[1]] : foreverVowsInvitation.announcement.paragraphs,
+      },
+      location: {
+        ...foreverVowsInvitation.location,
+        name: firstVenue?.label || draft.eventLocation || foreverVowsInvitation.location.name,
+        address: firstVenue?.address || foreverVowsInvitation.location.address,
+        mapUrl: firstVenue?.url || foreverVowsInvitation.location.mapUrl,
+      },
+      gallery: { ...foreverVowsInvitation.gallery, images },
+      dressCode: {
+        ...foreverVowsInvitation.dressCode,
+        subtitle: draft.dressCode || foreverVowsInvitation.dressCode.subtitle,
+        swatches: draft.dressCodeColors?.length
+          ? draft.dressCodeColors.map(({ name, hex }) => ({ name, color: hex }))
+          : foreverVowsInvitation.dressCode.swatches,
+      },
+      rsvp: {
+        ...foreverVowsInvitation.rsvp,
+        heading: draft.rsvpSettings?.title || foreverVowsInvitation.rsvp.heading,
+        subheading: draft.rsvpSettings?.description || draft.rsvpQuestion || foreverVowsInvitation.rsvp.subheading,
+        deadline: draft.rsvpSettings?.deadline || foreverVowsInvitation.rsvp.deadline,
+        namePlaceholder: draft.rsvpSettings?.guestPlaceholder || foreverVowsInvitation.rsvp.namePlaceholder,
+        attendanceOptions: [
+          draft.rsvpSettings?.attendingLabel || foreverVowsInvitation.rsvp.attendanceOptions[0],
+          draft.rsvpSettings?.notAttendingLabel || foreverVowsInvitation.rsvp.attendanceOptions[1],
+        ],
+        askGuestCount: draft.rsvpSettings?.askGuestCount !== false,
+        submitLabel: draft.rsvpSettings?.submitLabel || foreverVowsInvitation.rsvp.submitLabel,
+      },
+      closing: {
+        ...foreverVowsInvitation.closing,
+        names: `${nextBride} & ${nextGroom}`,
+        note: draft.closingMessage || foreverVowsInvitation.closing.note,
+      },
+    };
+  }, [draft]);
+
+  return (
+    <TemplateShell props={props}><OriginalTemplateSurface
+      css={foreverVowsStyles}
+      draft={draft}
+      fontImport={'@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=La+Belle+Aurore&family=Noto+Sans+Armenian:wght@300;400;500&family=Noto+Serif+Armenian:wght@300;400;500&display=swap");'}
+      label="Forever Vows engagement invitation"
+    >
+      <ForeverVowsInvitation data={data} onRsvpSubmit={props.onRsvpSubmit} />
+      <AdditionalVenues draft={draft} nativeCount={1} />
+    </OriginalTemplateSurface></TemplateShell>
+  );
+}
+
+function SilkVowsTemplate(props: TemplateProps) {
+  const { draft = {} } = props;
+  const data = useMemo(() => {
+    const [bride, groom] = splitNames(draft.mainNames);
+    const nextBride = bride || 'Արամ';
+    const nextGroom = groom || 'Մարի';
+    const eventDate = draft.eventDate || '2027-07-18';
+    const gallery = (draft.gallery || []).map(resolveTemplateImage).filter(Boolean);
+    const fallbackVenues = [
+      { label: 'Սուրբ Գայանե եկեղեցի', time: draft.eventTime || '14:30', address: 'ք. Վաղարշապատ, Հայաստան', url: 'https://maps.google.com/?q=Saint+Gayane+Church+Vagharshapat', visible: true },
+      { label: 'Vivaldi Hall', time: '17:30', address: 'ք. Երևան, Հայաստան', url: 'https://maps.google.com/?q=Yerevan+Armenia', visible: true }
+    ];
+    const venues = draft.mapLinks?.length ? draft.mapLinks : fallbackVenues;
+
+    return {
+      bride: nextBride,
+      groom: nextGroom,
+      eventDate,
+      eventTime: draft.eventTime || venues[0]?.time || '14:30',
+      dateShort: formatNumericDate(eventDate, ' · '),
+      eventDateLabel: `Հարսանիքը՝ ${formatArmenianDate(eventDate)}`,
+      eventMessage: draft.eventMessage || 'Մեզ համար մեծ երջանկություն կլինի այս օրը կիսել ձեզ հետ և միասին ստեղծել հիշողություն, որին դեռ երկար կվերադառնանք ժպիտով։',
+      venues,
+      images: [
+        gallery[0] || resolveTemplateImage(draft.image) || silkVowsHeroImage,
+        gallery[1] || foreverVowsTinyImage,
+        gallery[2] || silkVowsHallImage,
+        gallery[3] || silkVowsQuoteImage
+      ],
+      sectionImages: {
+        intro: gallery[4] || foreverVowsSmallImage,
+        schedule: gallery[3] || silkVowsQuoteImage,
+        rsvp: gallery[0] || resolveTemplateImage(draft.image) || silkVowsHeroImage
+      },
+      musicEnabled: draft.musicEnabled !== false,
+      musicUrl: draft.musicUrl || defaultInvitationSong,
+      musicTitle: draft.musicTitle || 'Ed Sheeran — Perfect',
+      musicStart: Number(draft.musicStart) || 0,
+      musicEnd: Number(draft.musicEnd) || 0,
+      closingMessage: draft.closingMessage || 'Ստեղծված է սիրով՝ մեր հատուկ օրվա համար',
+      rsvp: {
+        title: draft.rsvpSettings?.title || 'Հաստատեք ձեր ներկայությունը',
+        description: draft.rsvpSettings?.description || 'Խնդրում ենք պատասխանել մինչև',
+        deadline: draft.rsvpSettings?.deadline || '10.07.2027',
+        guestPlaceholder: draft.rsvpSettings?.guestPlaceholder || 'Օրինակ՝ Անի Հովհաննիսյան',
+        attendingLabel: draft.rsvpSettings?.attendingLabel || 'Սիրով, կմասնակցենք',
+        notAttendingLabel: draft.rsvpSettings?.notAttendingLabel || 'Ցավոք, չենք կարող ներկա լինել',
+        submitLabel: draft.rsvpSettings?.submitLabel || 'Ուղարկել',
+        askGuestCount: draft.rsvpSettings?.askGuestCount !== false
+      }
+    };
+  }, [draft]);
+
+  return (
+    <TemplateShell props={props}><OriginalTemplateSurface
+      css={silkVowsStyles}
+      draft={draft}
+      fontImport={'@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Armenian:wght@300;400;500;600&family=Noto+Serif+Armenian:wght@300;400;500;600&family=Parisienne&display=swap");'}
+      label="Silk Vows wedding invitation"
+    >
+      <SilkVowsInvitation data={data} onRsvpSubmit={props.onRsvpSubmit} />
+    </OriginalTemplateSurface></TemplateShell>
+  );
+}
+
+function BurgundyRoadmapTemplate(props: TemplateProps) {
+  const { draft = {} } = props;
+  const data = useMemo(() => {
+    const [bride, groom] = splitNames(draft.mainNames);
+    const nextBride = bride || 'Արման';
+    const nextGroom = groom || 'Նարե';
+    const eventDate = draft.eventDate || '2026-10-16';
+    const date = new Date(`${eventDate}T12:00:00`);
+    const gallery = (draft.gallery || []).map(resolveTemplateImage).filter(Boolean);
+    const fallbackVenues = [
+      { label: 'Փեսայի տուն', time: '11:00', address: 'ք. Երևան, Հանրապետության 62', url: 'https://maps.google.com/?q=Republic+Square+Yerevan', visible: true },
+      { label: 'Հարսի տուն', time: '12:00', address: 'ք. Երևան, Տերյան 9', url: 'https://maps.google.com/?q=9+Teryan+Yerevan', visible: true },
+      { label: 'Սուրբ Սարգիս եկեղեցի', time: '14:00', address: 'ք. Երևան, Իսրայելյան 21', url: 'https://maps.google.com/?q=Saint+Sargis+Church+Yerevan', visible: true },
+      { label: 'Հարսանեկան ֆոտոսեսիա', time: '15:30', address: 'ք. Երևան', url: 'https://maps.google.com/?q=Yerevan+Armenia', visible: true },
+      { label: 'Vivaldi Hall', time: draft.eventTime || '17:30', address: 'Աշտարակի խճուղի 7', url: 'https://maps.google.com/?q=Vivaldi+Hall+Yerevan', visible: true }
+    ];
+    const venues = draft.mapLinks?.length ? draft.mapLinks : fallbackVenues;
+    const dateParts = eventDate.split('-');
+    const armenianMonths = ['Հունվար', 'Փետրվար', 'Մարտ', 'Ապրիլ', 'Մայիս', 'Հունիս', 'Հուլիս', 'Օգոստոս', 'Սեպտեմբեր', 'Հոկտեմբեր', 'Նոյեմբեր', 'Դեկտեմբեր'];
+    return {
+      bride: nextBride,
+      groom: nextGroom,
+      eventDate,
+      eventTime: draft.eventTime || venues[venues.length - 1]?.time || '17:30',
+      dateShort: formatNumericDate(eventDate, '.'),
+      dateStamp: dateParts.length === 3 ? `${dateParts[2]}.${dateParts[1]}.${dateParts[0].slice(-2)}` : '16.10.26',
+      monthLabel: Number.isNaN(date.getTime()) ? 'Հոկտեմբեր 2026' : `${armenianMonths[date.getMonth()]} ${date.getFullYear()}`,
+      eventDateLabel: formatArmenianDate(eventDate),
+      eventMessage: draft.eventMessage || 'Մեզ համար մեծ ուրախություն է մեր կյանքի նոր էջը սկսել Ձեր ներկայությամբ։ Սիրով սպասում ենք Ձեզ մեր ամենակարևոր օրը միասին նշելու։',
+      venues,
+      images: [
+        gallery[0] || resolveTemplateImage(draft.image) || burgundyRoadmapHeroImage,
+        gallery[1] || burgundyRoadmapPortraitImage,
+        gallery[2] || burgundyRoadmapRingsImage,
+        gallery[3] || burgundyRoadmapFlowersImage
+      ],
+      musicEnabled: draft.musicEnabled !== false,
+      musicUrl: draft.musicUrl || defaultInvitationSong,
+      musicStart: Number(draft.musicStart) || 0,
+      musicEnd: Number(draft.musicEnd) || 0,
+      dressCodeVisible: draft.dressCodeVisible !== false,
+      dressCode: draft.dressCode || 'Ուրախ կլինենք, եթե Ձեր կերպարում լինեն մեր օրվա մեղմ և գինեգույն երանգներից։',
+      dressCodeColors: draft.dressCodeColors?.length ? draft.dressCodeColors : [
+        { name: 'Անտրացիտ', hex: '#2f3331' }, { name: 'Շամպայն', hex: '#d9c2aa' },
+        { name: 'Փոշոտ վարդ', hex: '#b97679' }, { name: 'Բորդո', hex: '#8d1b2a' }, { name: 'Գինեգույն', hex: '#4c0f18' }
+      ],
+      closingMessage: draft.closingMessage || 'Սիրով սպասում ենք բոլորիդ',
+      rsvp: {
+        title: draft.rsvpSettings?.title || 'Կսպասենք Ձեր պատասխանին',
+        description: draft.rsvpSettings?.description || 'Խնդրում ենք լրացնել մինչև',
+        deadline: draft.rsvpSettings?.deadline || '01.10.2026',
+        guestPlaceholder: draft.rsvpSettings?.guestPlaceholder || 'Անուն Ազգանուն',
+        attendingLabel: draft.rsvpSettings?.attendingLabel || 'Այո, սիրով կմասնակցեմ',
+        notAttendingLabel: draft.rsvpSettings?.notAttendingLabel || 'Ցավոք, չեմ կարողանա մասնակցել',
+        submitLabel: draft.rsvpSettings?.submitLabel || 'Ուղարկել',
+        askGuestCount: draft.rsvpSettings?.askGuestCount !== false
+      }
+    };
+  }, [draft]);
+
+  return (
+    <TemplateShell props={props}><OriginalTemplateSurface
+      css={burgundyRoadmapStyles}
+      draft={draft}
+      fontImport={`@font-face { font-family: 'Vrdznagir'; src: url('${burgundyRoadmapFont}') format('opentype'); font-display: swap; }`}
+      label="Burgundy Roadmap wedding invitation"
+    >
+      <BurgundyRoadmapInvitation data={data} onRsvpSubmit={props.onRsvpSubmit} />
     </OriginalTemplateSurface></TemplateShell>
   );
 }
@@ -1272,6 +1530,98 @@ export const getEverlastingVowsDraft = () => ({ ...makeDraft(
   }
 });
 
+export const getForeverVowsDraft = () => ({ ...makeDraft(
+  `${foreverVowsInvitation.bride} & ${foreverVowsInvitation.groom}`,
+  foreverVowsInvitation.date.slice(0, 10),
+  foreverVowsInvitation.date.slice(11, 16),
+  foreverVowsInvitation.location.name,
+  foreverVowsMainImage,
+  'forever-vows'
+),
+  eventMessage: foreverVowsInvitation.announcement.paragraphs[0],
+  dressCode: foreverVowsInvitation.dressCode.subtitle,
+  dressCodeColors: foreverVowsInvitation.dressCode.swatches.map(({ name, color }) => ({ name, hex: color })),
+  dressCodeVisible: true,
+  closingMessage: foreverVowsInvitation.closing.note,
+  mapLinks: [{
+    label: foreverVowsInvitation.location.name,
+    time: foreverVowsInvitation.date.slice(11, 16),
+    address: foreverVowsInvitation.location.address,
+    url: foreverVowsInvitation.location.mapUrl,
+    visible: true
+  }],
+  rsvpSettings: {
+    title: foreverVowsInvitation.rsvp.heading,
+    description: foreverVowsInvitation.rsvp.subheading,
+    deadline: foreverVowsInvitation.rsvp.deadline,
+    guestPlaceholder: foreverVowsInvitation.rsvp.namePlaceholder,
+    attendingLabel: foreverVowsInvitation.rsvp.attendanceOptions[0],
+    notAttendingLabel: foreverVowsInvitation.rsvp.attendanceOptions[1],
+    submitLabel: foreverVowsInvitation.rsvp.submitLabel,
+    askGuestCount: true,
+    askMeal: false
+  }
+});
+
+export const getSilkVowsDraft = () => ({ ...makeDraft(
+  'Արամ & Մարի',
+  '2027-07-18',
+  '14:30',
+  'Սուրբ Գայանե եկեղեցի',
+  'asset:curated/silk-vows/hero.jpg',
+  'silk-vows'
+),
+  eventMessage: 'Մեզ համար մեծ երջանկություն կլինի այս օրը կիսել ձեզ հետ և միասին ստեղծել հիշողություն, որին դեռ երկար կվերադառնանք ժպիտով։',
+  closingMessage: 'Ստեղծված է սիրով՝ մեր հատուկ օրվա համար',
+  mapLinks: [
+    { label: 'Սուրբ Գայանե եկեղեցի', time: '14:30', address: 'ք. Վաղարշապատ, Հայաստան', url: 'https://maps.google.com/?q=Saint+Gayane+Church+Vagharshapat', visible: true },
+    { label: 'Vivaldi Hall', time: '17:30', address: 'ք. Երևան, Հայաստան', url: 'https://maps.google.com/?q=Yerevan+Armenia', visible: true }
+  ],
+  rsvpSettings: {
+    title: 'Հաստատեք ձեր ներկայությունը',
+    description: 'Խնդրում ենք պատասխանել մինչև',
+    deadline: '10.07.2027',
+    guestPlaceholder: 'Օրինակ՝ Անի Հովհաննիսյան',
+    attendingLabel: 'Սիրով, կմասնակցենք',
+    notAttendingLabel: 'Ցավոք, չենք կարող ներկա լինել',
+    submitLabel: 'Ուղարկել',
+    askGuestCount: true,
+    askMeal: false
+  }
+});
+
+export const getBurgundyRoadmapDraft = () => ({ ...makeDraft(
+  'Արման & Նարե',
+  '2026-10-16',
+  '17:30',
+  'Vivaldi Hall',
+  'asset:curated/burgundy-roadmap/hero.jpg',
+  'burgundy-roadmap'
+),
+  colorPaletteId: 'burgundy-wine',
+  colors: { accent: '#861927', text: '#2e2a2b', overlay: '#fffdfa' },
+  eventMessage: 'Մեզ համար մեծ ուրախություն է մեր կյանքի նոր էջը սկսել Ձեր ներկայությամբ։ Սիրով սպասում ենք Ձեզ մեր ամենակարևոր օրը միասին նշելու։',
+  dressCode: 'Ուրախ կլինենք, եթե Ձեր կերպարում լինեն մեր օրվա մեղմ և գինեգույն երանգներից։',
+  dressCodeColors: [
+    { name: 'Անտրացիտ', hex: '#2f3331' }, { name: 'Շամպայն', hex: '#d9c2aa' },
+    { name: 'Փոշոտ վարդ', hex: '#b97679' }, { name: 'Բորդո', hex: '#8d1b2a' }, { name: 'Գինեգույն', hex: '#4c0f18' }
+  ],
+  dressCodeVisible: true,
+  closingMessage: 'Սիրով սպասում ենք բոլորիդ',
+  mapLinks: [
+    { label: 'Փեսայի տուն', time: '11:00', address: 'ք. Երևան, Հանրապետության 62', url: 'https://maps.google.com/?q=Republic+Square+Yerevan', visible: true },
+    { label: 'Հարսի տուն', time: '12:00', address: 'ք. Երևան, Տերյան 9', url: 'https://maps.google.com/?q=9+Teryan+Yerevan', visible: true },
+    { label: 'Սուրբ Սարգիս եկեղեցի', time: '14:00', address: 'ք. Երևան, Իսրայելյան 21', url: 'https://maps.google.com/?q=Saint+Sargis+Church+Yerevan', visible: true },
+    { label: 'Հարսանեկան ֆոտոսեսիա', time: '15:30', address: 'ք. Երևան', url: 'https://maps.google.com/?q=Yerevan+Armenia', visible: true },
+    { label: 'Vivaldi Hall', time: '17:30', address: 'Աշտարակի խճուղի 7', url: 'https://maps.google.com/?q=Vivaldi+Hall+Yerevan', visible: true }
+  ],
+  rsvpSettings: {
+    title: 'Կսպասենք Ձեր պատասխանին', description: 'Խնդրում ենք լրացնել մինչև', deadline: '01.10.2026',
+    guestPlaceholder: 'Անուն Ազգանուն', attendingLabel: 'Այո, սիրով կմասնակցեմ',
+    notAttendingLabel: 'Ցավոք, չեմ կարողանա մասնակցել', submitLabel: 'Ուղարկել', askGuestCount: true, askMeal: false
+  }
+});
+
 function OriginalTemplateCard({ image, title }: { image: string; title: string }) {
   return (
     <div className="original-template-card-preview">
@@ -1290,6 +1640,9 @@ export const DivineBlessingCardPreview = () => <OriginalTemplateCard image={divi
 export const ElevateInviteCardPreview = () => <OriginalTemplateCard image={elevateHeroImage} title="Վերելք" />;
 export const EverAfterCardPreview = () => <OriginalTemplateCard image={everAfterHeroImage} title="Եվ ապրեցին երջանիկ" />;
 export const EverlastingVowsCardPreview = () => <OriginalTemplateCard image={everlastingHeroImage} title="Հավերժական երդումներ" />;
+export const ForeverVowsCardPreview = () => <OriginalTemplateCard image={foreverVowsMainImage} title="Forever Vows" />;
+export const SilkVowsCardPreview = () => <OriginalTemplateCard image={silkVowsHeroImage} title="Մետաքսե երդումներ" />;
+export const BurgundyRoadmapCardPreview = () => <OriginalTemplateCard image={burgundyRoadmapHeroImage} title="Գինեգույն ճանապարհ" />;
 
 export const SacredBeginningsLivePreview = SacredBeginningsTemplate;
 export const BirthdaySparkleLivePreview = BirthdaySparkleTemplate;
@@ -1298,6 +1651,9 @@ export const DivineBlessingLivePreview = DivineBlessingTemplate;
 export const ElevateInviteLivePreview = ElevateInviteTemplate;
 export const EverAfterLivePreview = EverAfterTemplate;
 export const EverlastingVowsLivePreview = EverlastingVowsTemplate;
+export const ForeverVowsLivePreview = ForeverVowsTemplate;
+export const SilkVowsLivePreview = SilkVowsTemplate;
+export const BurgundyRoadmapLivePreview = BurgundyRoadmapTemplate;
 export const SacredBeginningsInvitationView = (props: TemplateProps) => <SacredBeginningsTemplate {...props} mode="public" />;
 export const BirthdaySparkleInvitationView = (props: TemplateProps) => <BirthdaySparkleTemplate {...props} mode="public" />;
 export const IvoryVowsInvitationView = (props: TemplateProps) => <IvoryVowsTemplate {...props} mode="public" />;
@@ -1305,3 +1661,6 @@ export const DivineBlessingInvitationView = (props: TemplateProps) => <DivineBle
 export const ElevateInviteInvitationView = (props: TemplateProps) => <ElevateInviteTemplate {...props} mode="public" />;
 export const EverAfterInvitationView = (props: TemplateProps) => <EverAfterTemplate {...props} mode="public" />;
 export const EverlastingVowsInvitationView = (props: TemplateProps) => <EverlastingVowsTemplate {...props} mode="public" />;
+export const ForeverVowsInvitationView = (props: TemplateProps) => <ForeverVowsTemplate {...props} mode="public" />;
+export const SilkVowsInvitationView = (props: TemplateProps) => <SilkVowsTemplate {...props} mode="public" />;
+export const BurgundyRoadmapInvitationView = (props: TemplateProps) => <BurgundyRoadmapTemplate {...props} mode="public" />;

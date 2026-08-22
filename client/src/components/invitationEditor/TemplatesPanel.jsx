@@ -9,7 +9,7 @@ import { useLanguage } from '../../context/LanguageContext.jsx';
 export default function TemplatesPanel() {
   const { template, actions } = useEditor();
   const { t } = useLanguage();
-  const categoryLabels = { birth: t('birth'), wedding: t('wedding'), engagement: t('engagement'), baptism: t('baptism'), birthday: t('birthday'), corporate: t('corporate') };
+  const categoryLabels = { birth: t('birth'), wedding: t('wedding'), engagement: t('engagement'), baptism: t('baptism'), birthday: t('birthday'), corporate: t('corporate'), new_year: t('new_year'), meeting: t('meeting'), military: t('military') };
   const [templates, setTemplates] = useState([]);
   const [state, setState] = useState('loading');
   const [query, setQuery] = useState('');

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, type CSSProperties } from "react";
-import { Copy, Edit, Eye, LayoutGrid, List, MoreHorizontal, Plus, Search, Star, Trash2, Upload } from "lucide-react";
+import { Copy, Edit, Eye, LayoutGrid, List, MoreHorizontal, Plus, RotateCcw, Search, Star, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -70,6 +70,13 @@ import everlastingGallery3 from "../../../client/src/vendorTemplates/everlasting
 import everlastingGallery4 from "../../../client/src/vendorTemplates/everlasting/assets/g4.jpg";
 import everlastingGallery5 from "../../../client/src/vendorTemplates/everlasting/assets/g5.jpg";
 import everlastingGallery6 from "../../../client/src/vendorTemplates/everlasting/assets/g6.jpg";
+import foreverVowsMain from "../../../client/src/assets/morph/engagement-smile.jpg";
+import foreverVowsSmall from "../../../client/src/assets/morph/wedding-forest-optimized.jpg";
+import foreverVowsTiny from "../../../client/src/assets/morph/wedding-temple.jpg";
+import silkVowsHero from "../../../client/src/vendorTemplates/silkvows/assets/hero.jpg";
+import silkVowsChurch from "../../../client/src/vendorTemplates/silkvows/assets/church.jpg";
+import silkVowsHall from "../../../client/src/vendorTemplates/silkvows/assets/hall.jpg";
+import silkVowsQuote from "../../../client/src/vendorTemplates/silkvows/assets/quote.jpg";
 
 export const Route = createFileRoute("/admin/templates")({ component: TemplatesPage });
 
@@ -86,7 +93,16 @@ const staticDesignOptions = [
   { key: "divine-blessing", label: "Աստվածային օրհնություն · մկրտություն", category: "baptism" },
   { key: "elevate-invite", label: "Elevate · գործարար միջոցառում", category: "corporate" },
   { key: "everlasting-vows", label: "Հավերժական երդումներ · հարսանիք", category: "wedding" },
+  { key: "forever-vows", label: "Forever Vows · նշանադրություն", category: "engagement" },
+  { key: "silk-vows", label: "Մետաքսե երդումներ · հարսանիք", category: "wedding" },
+  { key: "burgundy-roadmap", label: "Գինեգույն ճանապարհ · հարսանիք", category: "wedding" },
 ];
+
+const adminCategoryOptions = ["wedding", "baptism", "birth", "engagement", "other"];
+const otherTemplateCategories = new Set(["corporate", "new_year", "meeting", "military"]);
+const toAdminCategory = (category?: string) => (
+  otherTemplateCategories.has(String(category || "").toLowerCase()) ? "other" : category
+);
 
 const templateAssetPreviews: Record<string, string> = {
   "asset:curated/sacred/child-portrait.jpg": sacredPortrait,
@@ -139,6 +155,17 @@ const templateAssetPreviews: Record<string, string> = {
   "asset:curated/everlasting/gallery-4.jpg": everlastingGallery4,
   "asset:curated/everlasting/gallery-5.jpg": everlastingGallery5,
   "asset:curated/everlasting/gallery-6.jpg": everlastingGallery6,
+  "asset:curated/forever-vows/engagement-smile.jpg": foreverVowsMain,
+  "asset:curated/forever-vows/wedding-forest-optimized.jpg": foreverVowsSmall,
+  "asset:curated/forever-vows/wedding-temple.jpg": foreverVowsTiny,
+  "asset:curated/silk-vows/hero.jpg": silkVowsHero,
+  "asset:curated/silk-vows/church.jpg": silkVowsChurch,
+  "asset:curated/silk-vows/hall.jpg": silkVowsHall,
+  "asset:curated/silk-vows/quote.jpg": silkVowsQuote,
+  "asset:curated/burgundy-roadmap/hero.jpg": everlastingGallery4,
+  "asset:curated/burgundy-roadmap/portrait.jpg": everlastingGallery1,
+  "asset:curated/burgundy-roadmap/rings.jpg": everlastingGallery2,
+  "asset:curated/burgundy-roadmap/flowers.jpg": everlastingGallery3,
 };
 
 const defaultDesignGalleries: Record<string, string[]> = {
@@ -205,6 +232,23 @@ const defaultDesignGalleries: Record<string, string[]> = {
     "asset:curated/everlasting/gallery-4.jpg",
     "asset:curated/everlasting/gallery-5.jpg",
     "asset:curated/everlasting/gallery-6.jpg",
+  ],
+  "forever-vows": [
+    "asset:curated/forever-vows/engagement-smile.jpg",
+    "asset:curated/forever-vows/wedding-forest-optimized.jpg",
+    "asset:curated/forever-vows/wedding-temple.jpg",
+  ],
+  "silk-vows": [
+    "asset:curated/silk-vows/hero.jpg",
+    "asset:curated/silk-vows/church.jpg",
+    "asset:curated/silk-vows/hall.jpg",
+    "asset:curated/silk-vows/quote.jpg",
+  ],
+  "burgundy-roadmap": [
+    "asset:curated/burgundy-roadmap/hero.jpg",
+    "asset:curated/burgundy-roadmap/portrait.jpg",
+    "asset:curated/burgundy-roadmap/rings.jpg",
+    "asset:curated/burgundy-roadmap/flowers.jpg",
   ],
 };
 
@@ -320,6 +364,7 @@ function TemplatesPage() {
       const query = search.trim().toUpperCase();
       return (templates || []).filter((template: any) => (
         isKnownDesignKey(template.designKey)
+        && !template.deleted
         && (!query || String(template.code || "").toUpperCase().includes(query))
       ));
     },
@@ -378,7 +423,23 @@ function TemplatesPage() {
     if (!confirm(`${t("delete")}: ${template.name}?`)) return;
     try {
       await adminApi.deleteTemplate(template.id);
+      queryClient.setQueryData(["admin", "templates"], (current: any[] | undefined) => (
+        current?.filter((item) => item.id !== template.id) ?? current
+      ));
       await queryClient.invalidateQueries({ queryKey: ["admin", "templates"] });
+      await queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+      toast.success(t("done"));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("failed"));
+    }
+  };
+
+  const restoreTemplate = async (template: any) => {
+    if (!confirm(`${t("restore")}: ${template.name}?`)) return;
+    try {
+      await adminApi.restoreTemplate(template.id);
+      await queryClient.invalidateQueries({ queryKey: ["admin", "templates"] });
+      await queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
       toast.success(t("done"));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("failed"));
@@ -454,7 +515,7 @@ function TemplatesPage() {
         <TabsContent value="cards">
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {visibleTemplates.map((template: any) => (
-              <Card key={template.id} className="group overflow-hidden rounded-2xl border-border/60 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-gold)] transition-all hover:-translate-y-1 pt-0">
+              <Card key={template.id} className={`group overflow-hidden rounded-2xl border-border/60 shadow-[var(--shadow-soft)] transition-all pt-0${template.deleted ? " opacity-65" : " hover:shadow-[var(--shadow-gold)] hover:-translate-y-1"}`}>
                 <div className="relative aspect-[4/5] bg-secondary overflow-hidden">
                   {template.cover ? <img src={getPreviewImage(template.cover)} alt={template.name} className="h-full w-full object-cover transition duration-500" style={getImageStyle(template.imagePosition)} /> : null}
                   {template.featured && (
@@ -474,7 +535,7 @@ function TemplatesPage() {
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/60">
                     <div className="text-xs text-muted-foreground">{t("templateUses").replace("{count}", String(template.usage))}</div>
-                    <TemplateActions template={template} onEdit={openEdit} onDuplicate={duplicateTemplate} onDelete={deleteTemplate} />
+                    <TemplateActions template={template} onEdit={openEdit} onDuplicate={duplicateTemplate} onDelete={deleteTemplate} onRestore={restoreTemplate} />
                   </div>
                 </div>
               </Card>
@@ -512,7 +573,7 @@ function TemplatesPage() {
                       <TableCell>{template.usage}</TableCell>
                       <TableCell><StatusBadge status={template.status} /></TableCell>
                       <TableCell className="text-right">
-                        <TemplateActions template={template} onEdit={openEdit} onDuplicate={duplicateTemplate} onDelete={deleteTemplate} />
+                        <TemplateActions template={template} onEdit={openEdit} onDuplicate={duplicateTemplate} onDelete={deleteTemplate} onRestore={restoreTemplate} />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -526,7 +587,7 @@ function TemplatesPage() {
   );
 }
 
-function TemplateActions({ template, onEdit, onDuplicate, onDelete }: any) {
+function TemplateActions({ template, onEdit, onDuplicate, onDelete, onRestore }: any) {
   const { t } = useAdminI18n();
   const openPreview = () => {
     window.open(`${getClientBaseUrl()}/templates/${template.id}/live`, "_blank", "noopener,noreferrer");
@@ -536,17 +597,21 @@ function TemplateActions({ template, onEdit, onDuplicate, onDelete }: any) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label={t("actions")}><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        {template.deleted ? (
+          <DropdownMenuItem onClick={() => onRestore(template)}><RotateCcw className="h-4 w-4 mr-2" />{t("restore")}</DropdownMenuItem>
+        ) : <>
         <DropdownMenuItem onClick={openPreview}><Eye className="h-4 w-4 mr-2" />{t("preview")}</DropdownMenuItem>
         <DropdownMenuItem onClick={() => onEdit(template)}><Edit className="h-4 w-4 mr-2" />{t("edit")}</DropdownMenuItem>
         <DropdownMenuItem onClick={() => onDuplicate(template)}><Copy className="h-4 w-4 mr-2" />{t("duplicate")}</DropdownMenuItem>
         <DropdownMenuItem onClick={() => onDelete(template)} className="text-destructive"><Trash2 className="h-4 w-4 mr-2" />{t("delete")}</DropdownMenuItem>
+        </>}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
 function TemplateForm({ form, setForm }: any) {
-  const { t } = useAdminI18n();
+  const { lang, t } = useAdminI18n();
   const set = (key: string, value: any) => setForm((current: any) => ({ ...current, [key]: value }));
   const imagePosition = normalizeImagePosition(form.imagePosition);
   const galleryImages = galleryFromText(form.gallery);
@@ -560,9 +625,16 @@ function TemplateForm({ form, setForm }: any) {
       galleryConfigured: true,
     }));
   };
+  const updateCategory = (category: string) => {
+    const storedCategory = category === "other" ? "corporate" : category;
+    const editorType = category === "other" ? "corporate" : storedCategory;
+    setForm((current: any) => ({ ...current, category: storedCategory, editorType }));
+  };
   const updateDesignKey = (designKey: string) => {
     setForm((current: any) => {
       const selectedDesign = staticDesignOptions.find((option) => option.key === designKey);
+      const previousDesign = staticDesignOptions.find((option) => option.key === current.designKey);
+      const hasExplicitCategory = Boolean(previousDesign && current.category !== previousDesign.category);
       const currentGallery = galleryFromText(current.gallery);
       const currentDefaults = getDefaultGalleryForDesign(current.designKey);
       const currentDefaultGallery = [current.mainImage, ...currentDefaults].filter(Boolean);
@@ -575,8 +647,8 @@ function TemplateForm({ form, setForm }: any) {
       return {
         ...current,
         designKey,
-        category: selectedDesign?.category || current.category,
-        editorType: selectedDesign?.category || current.editorType,
+        category: hasExplicitCategory ? current.category : (selectedDesign?.category || current.category),
+        editorType: hasExplicitCategory ? current.editorType : (selectedDesign?.category || current.editorType),
         mainImage: shouldUseNextDefaults ? (nextDefaultGallery[0] || current.mainImage) : current.mainImage,
         imagePosition: shouldUseNextDefaults ? defaultImagePosition : current.imagePosition,
         gallery: shouldUseNextDefaults ? nextDefaultGallery.join("\n") : current.gallery,
@@ -636,7 +708,7 @@ function TemplateForm({ form, setForm }: any) {
     <div className="grid gap-4 sm:grid-cols-2 py-2">
       <div className="space-y-2"><Label>{t("title")}</Label><Input value={form.title} onChange={(event) => set("title", event.target.value)} /></div>
       <div className="space-y-2"><Label>{t("slug")}</Label><Input value={form.slug} onChange={(event) => set("slug", event.target.value)} /></div>
-      <div className="space-y-2"><Label>{t("category")}</Label><select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={form.category} onChange={(event) => set("category", event.target.value)}>{[['wedding', 'Հարսանիք'], ['baptism', 'Մկրտություն'], ['engagement', 'Նշանադրություն'], ['birth', 'Ծնունդ'], ['corporate', 'Կորպորատիվ']].map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
+      <div className="space-y-2"><Label>{t("category")}</Label><select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={toAdminCategory(form.category)} onChange={(event) => updateCategory(event.target.value)}>{adminCategoryOptions.map((value) => <option key={value} value={value}>{formatAdminCategory(value, lang)}</option>)}</select></div>
       <div className="space-y-2"><Label>{t("price")}</Label><Input type="number" value={form.price} onChange={(event) => set("price", event.target.value)} /></div>
       <div className="space-y-2 sm:col-span-2"><Label>Խմբագրման բաժին</Label><select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={form.editorType} onChange={(event) => set("editorType", event.target.value)}>{[['wedding', 'Հարսանիքի խմբագրում'], ['baptism', 'Մկրտության խմբագրում'], ['engagement', 'Նշանադրության խմբագրում'], ['birth', 'Ծնունդի խմբագրում'], ['corporate', 'Կորպորատիվ խմբագրում']].map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><p className="text-xs text-muted-foreground">Ընտրում է տվյալ առիթին համապատասխան դաշտերը՝ անկախ դիզայնից։</p></div>
       <div className="space-y-2 sm:col-span-2">

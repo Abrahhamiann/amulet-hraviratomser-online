@@ -27,7 +27,7 @@ const previewSectionSelectors = {
     '.sacred-hero', '.sacred-message',
     '.birthday-hero', '.birthday-message',
     '.ivory-hero', '.ivory-message',
-    '.divine-hero', '.elevate-hero', '.ever-after-hero', '.everlasting-hero'
+    '.divine-hero', '.elevate-hero', '.ever-after-hero', '.everlasting-hero', '.forever-vows-hero', '.silk-vows-hero'
   ],
   family: ['.midnight-family-note', '.engagement-family-note', '.baptism-family-note', '.divine-family'],
   schedule: [
@@ -35,11 +35,11 @@ const previewSectionSelectors = {
     '.engagement-week', '.engagement-location', '.engagement-place-list',
     '.baptism-event-section', '.baptism-party-section',
     '.sacred-schedule', '.birthday-schedule', '.ivory-schedule',
-    '.divine-schedule', '.elevate-schedule', '.ever-after-schedule', '.everlasting-schedule'
+    '.divine-schedule', '.elevate-schedule', '.ever-after-schedule', '.everlasting-schedule', '.forever-vows-schedule', '.silk-vows-schedule'
   ],
-  rsvp: ['.midnight-rsvp-section', '.engagement-rsvp-section', '.baptism-rsvp-section', '.sacred-rsvp', '.birthday-rsvp', '.ivory-rsvp', '.divine-rsvp', '.elevate-rsvp', '.ever-after-rsvp', '.everlasting-rsvp'],
-  closing: ['.midnight-signature', '.engagement-final', '.baptism-signature', '.sacred-closing', '.birthday-closing', '.ivory-closing', '.divine-closing', '.elevate-closing', '.ever-after-closing', '.everlasting-closing'],
-  dress: ['.curated-dress', '.ivory-dress', '.elevate-dress', '.ever-after-dress', '.everlasting-dress']
+  rsvp: ['.midnight-rsvp-section', '.engagement-rsvp-section', '.baptism-rsvp-section', '.sacred-rsvp', '.birthday-rsvp', '.ivory-rsvp', '.divine-rsvp', '.elevate-rsvp', '.ever-after-rsvp', '.everlasting-rsvp', '.forever-vows-rsvp', '.silk-vows-rsvp'],
+  closing: ['.midnight-signature', '.engagement-final', '.baptism-signature', '.sacred-closing', '.birthday-closing', '.ivory-closing', '.divine-closing', '.elevate-closing', '.ever-after-closing', '.everlasting-closing', '.forever-vows-closing', '.silk-vows-closing'],
+  dress: ['.curated-dress', '.ivory-dress', '.elevate-dress', '.ever-after-dress', '.everlasting-dress', '.forever-vows-dress']
 };
 
 const normalizePreviewText = (value) => String(value || '').replace(/\s+/g, ' ').trim().toLocaleLowerCase('hy');
@@ -158,6 +158,7 @@ const shadowHotspotStyles = `
   [data-editor-kind]::after{content:attr(data-editor-label);position:absolute;z-index:999;top:-13px;right:-7px;min-height:30px;display:flex;align-items:center;padding:0 10px 0 31px;border:1px solid rgba(255,255,255,.86);border-radius:5px;background-color:#d07d4f;background-position:9px center;background-repeat:no-repeat;background-size:14px;color:#fff;font:700 11px/1.1 Arial,sans-serif;letter-spacing:.01em;white-space:nowrap;box-shadow:0 6px 18px rgba(50,28,14,.22);opacity:0;transform:translateY(4px);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
   [data-editor-kind="text"]::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E")}
   [data-editor-kind="image"]::after{top:12px;right:12px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.5 4h-5L7.8 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.8z'/%3E%3Ccircle cx='12' cy='13' r='3'/%3E%3C/svg%3E")}
+  [data-editor-kind="color"]::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m19 3 2 2L8.5 17.5 5 19l1.5-3.5Z'/%3E%3Cpath d='m15 7 2 2'/%3E%3C/svg%3E")}
   [data-editor-kind="map"]::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E")}
   [data-editor-kind]:is(:hover,:focus-visible){outline-color:#d07d4f;background-color:rgba(208,125,79,.035)}
   [data-editor-kind]:is(:hover,:focus-visible)::after{opacity:1;transform:translateY(0)}
@@ -169,14 +170,16 @@ const shadowHotspotStyles = `
 `;
 
 const studioMotionStyles = `
-  .original-template-document *, .original-template-document *::before, .original-template-document *::after{animation-delay:0s!important;animation-duration:.001ms!important;transition-delay:0s!important}
+  .original-template-document *, .original-template-document *::before, .original-template-document *::after{animation-delay:0s!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-delay:0s!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+  .original-template-document .silk-vows-reveal,
+  .original-template-document .silk-vows-location-card:nth-child(n){opacity:1!important;transform:none!important}
 `;
 
 const makeEditorHotspot = (element, { kind, section, field = '', tab, inline = true, labels = {} }) => {
   element.dataset.editorKind = kind;
   element.dataset.editorSection = section;
   element.dataset.editorTab = tab;
-  element.dataset.editorLabel = kind === 'image' ? labels.image : kind === 'map' ? labels.map : labels.edit;
+  element.dataset.editorLabel = kind === 'image' ? labels.image : kind === 'map' ? labels.map : kind === 'color' ? labels.color : labels.edit;
   if (field) element.dataset.editorField = field;
   if (kind === 'text' && field && inline) {
     const numeric = element.dataset.editorInputMode === 'numeric';
@@ -205,7 +208,7 @@ const makeEditorHotspot = (element, { kind, section, field = '', tab, inline = t
     element.dataset.editorOwnedRole = '';
   }
   if (!element.hasAttribute('aria-label')) {
-    element.setAttribute('aria-label', kind === 'image' ? labels.changeImage : kind === 'map' ? labels.editMap : labels.editSection);
+    element.setAttribute('aria-label', kind === 'image' ? labels.changeImage : kind === 'map' ? labels.editMap : kind === 'color' ? labels.editColor : labels.editSection);
     element.dataset.editorOwnedLabel = '';
   }
   if (!element.hasAttribute('data-editor-owned-click')) {
@@ -388,6 +391,7 @@ export const decoratePreview = (root, data, { suppressMotion = false, labels: su
     scope.querySelectorAll(TEMPLATE_TEXT_SELECTOR).forEach((element, candidateIndex) => {
       if (element.closest('[aria-hidden="true"]')) return;
       if (element.closest('.original-template-preview-actions, [data-editor-ignore]')) return;
+      if (element.closest('[data-dress-color-index]')) return;
       let parent = element.parentElement;
       while (parent) {
         if (selectedTextContainers.has(parent)) return;
@@ -462,6 +466,18 @@ export const decoratePreview = (root, data, { suppressMotion = false, labels: su
           element.dataset.editorRenderedValue = element.textContent || '';
           element.dataset.editorExactValue = exactValue ? 'true' : 'false';
         }
+      });
+    });
+
+    scope.querySelectorAll('[data-dress-color-index]').forEach((element) => {
+      const index = Number(element.dataset.dressColorIndex);
+      if (!Number.isInteger(index) || index < 0 || index >= (data.dressCodeColors || []).length) return;
+      makeEditorHotspot(element, {
+        kind: 'color',
+        section: 'dress',
+        field: `dressCodeColors.${index}.hex`,
+        tab: 'content',
+        labels
       });
     });
 
@@ -648,7 +664,7 @@ function PreviewWorkspace({ PreviewComponent }) {
   const handledPreviewFocusRequestRef = useRef(previewFocusRequest.id);
   const [previewReady, setPreviewReady] = useState(0);
   const [imageUploadError, setImageUploadError] = useState('');
-  const hotspotLabels = useMemo(() => ({ image: t('image'), map: t('map'), edit: t('editorEdit'), changeImage: t('editorChangeImage'), editMap: t('editorEditMap'), editSection: t('editorEditSection'), heroImage: t('editorHeroImage'), galleryImage: t('editorGalleryImage'), participantImage: t('editorParticipantImage'), venueImage: t('editorVenueImage'), closingImage: t('editorClosingImage'), invitationImage: t('editorInvitationImage'), previewTitle: t('editorResponsivePreview') }), [t]);
+  const hotspotLabels = useMemo(() => ({ image: t('image'), map: t('map'), color: t('editorDressColor'), edit: t('editorEdit'), changeImage: t('editorChangeImage'), editMap: t('editorEditMap'), editColor: t('editorDressCodeColors'), editSection: t('editorEditSection'), heroImage: t('editorHeroImage'), galleryImage: t('editorGalleryImage'), participantImage: t('editorParticipantImage'), venueImage: t('editorVenueImage'), closingImage: t('editorClosingImage'), invitationImage: t('editorInvitationImage'), previewTitle: t('editorResponsivePreview') }), [t]);
 
   const handlePreviewReady = useCallback((root, catalog) => {
     registerEditableContent(catalog);
@@ -756,6 +772,38 @@ function PreviewWorkspace({ PreviewComponent }) {
     }
   };
 
+  const openPreviewColorPicker = (target) => {
+    const match = String(target.dataset.editorField || '').match(/^dressCodeColors\.(\d+)\.hex$/);
+    const index = Number(match?.[1]);
+    if (!Number.isInteger(index) || index < 0) return;
+    const previewDocument = target.ownerDocument;
+    const picker = previewDocument.createElement('input');
+    picker.type = 'color';
+    const computedColor = previewDocument.defaultView?.getComputedStyle(target).backgroundColor || '';
+    const channels = computedColor.match(/[\d.]+/g)?.slice(0, 3).map(Number) || [];
+    picker.value = channels.length === 3
+      ? `#${channels.map((channel) => Math.max(0, Math.min(255, Math.round(channel))).toString(16).padStart(2, '0')).join('')}`
+      : '#d8b98e';
+    picker.setAttribute('aria-label', hotspotLabels.editColor);
+    Object.assign(picker.style, { position: 'fixed', width: '1px', height: '1px', opacity: '0', pointerEvents: 'none' });
+    previewDocument.body.append(picker);
+    const cleanup = () => picker.remove();
+    picker.addEventListener('change', () => {
+      const color = picker.value;
+      update((draft) => {
+        if (draft.dressCodeColors?.[index]) draft.dressCodeColors[index].hex = color;
+      });
+      cleanup();
+    }, { once: true });
+    window.setTimeout(cleanup, 120000);
+    try {
+      if (typeof picker.showPicker === 'function') picker.showPicker();
+      else picker.click();
+    } catch {
+      picker.click();
+    }
+  };
+
   const handlePreviewClick = (event) => {
     if (event.amuletEditorHandled) return;
     const path = (event.nativeEvent || event).composedPath();
@@ -806,6 +854,18 @@ function PreviewWorkspace({ PreviewComponent }) {
         focusSidebar: false
       });
       openPreviewImagePicker(target.dataset.editorField || '');
+      return;
+    }
+    if (target.dataset.editorKind === 'color') {
+      focusEditorTarget({
+        section: 'dress',
+        field: target.dataset.editorField || '',
+        targetTab: 'content',
+        scrollPreview: false,
+        focusSidebar: false,
+        scrollSidebar: true
+      });
+      openPreviewColorPicker(target);
       return;
     }
     focusEditorTarget({

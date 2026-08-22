@@ -5,6 +5,7 @@ import {
   ClipboardList,
   Clock,
   Home,
+  LogIn,
   MapPin,
   Megaphone,
   MessageSquare,
@@ -16,7 +17,7 @@ import {
   X
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import api from '../api/axios.js';
 import ErrorState from '../components/ErrorState.jsx';
 import InvitationEditor, { clearPreviewDecorations, decoratePreview, updateDraftTextField } from '../components/invitationEditor/InvitationEditor.jsx';
@@ -25,10 +26,12 @@ import Loading from '../components/Loading.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import giftPremiumAnimation from '../assets/animations/gift-premium.lottie?url';
+import alertGuruAnimation from '../assets/animations/editor-exit-alert.lottie?url';
 import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
 import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
 import { startStripeCheckout } from '../utils/checkout.js';
 import { promoStorageKey, readRememberedPromo } from '../utils/promoStorage.js';
+import { normalizeMapUrl } from '../utils/mapLinks.js';
 
 const previewDate = new Date();
 previewDate.setMonth(previewDate.getMonth() + 1);
@@ -72,7 +75,7 @@ const cleanVenueLinks = (links = []) => links
     label: String(item?.label ?? `Վայր ${index + 1}`).trim(),
     time: String(item?.time ?? '').trim(),
     address: String(item?.address ?? '').trim(),
-    url: String(item?.url ?? '').trim(),
+    url: normalizeMapUrl(item?.url),
     subtitle: String(item?.subtitle ?? '').trim(),
     icon: String(item?.icon || 'location').trim(),
     visible: item?.visible !== false
@@ -215,6 +218,44 @@ function EditRequiredModal({ onClose, onEdit, t }) {
   );
 }
 
+function AuthRequiredModal({ onClose, returnTo, t }) {
+  const loginButtonRef = useRef(null);
+
+  useEffect(() => {
+    const previouslyFocused = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    loginButtonRef.current?.focus();
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previouslyFocused?.focus?.();
+    };
+  }, [onClose]);
+
+  return (
+    <div className="auth-required-backdrop" onMouseDown={(event) => {
+      if (event.target === event.currentTarget) onClose();
+    }}>
+      <section className="auth-required-modal" role="alertdialog" aria-modal="true" aria-labelledby="live-auth-required-title" aria-describedby="live-auth-required-description">
+        <button className="auth-required-close" type="button" onClick={onClose} aria-label={t('close')}><X size={20} /></button>
+        <span className="auth-required-animation" aria-hidden="true">
+          <DotLottieReact src={alertGuruAnimation} autoplay={!window.matchMedia('(prefers-reduced-motion: reduce)').matches} loop={!window.matchMedia('(prefers-reduced-motion: reduce)').matches} />
+        </span>
+        <h2 id="live-auth-required-title">{t('templateAuthRequiredTitle')}</h2>
+        <p id="live-auth-required-description">{t('templateAuthRequiredText')}</p>
+        <Link ref={loginButtonRef} className="btn btn-primary auth-required-login" to="/login" state={{ returnTo }} onClick={onClose}>
+          <LogIn size={18} />{t('login')}
+        </Link>
+      </section>
+    </div>
+  );
+}
+
 export default function TemplateLivePreviewPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -230,6 +271,7 @@ export default function TemplateLivePreviewPage() {
   const [editing, setEditing] = useState(false);
   const [editorInitialTarget, setEditorInitialTarget] = useState({});
   const [editRequiredOpen, setEditRequiredOpen] = useState(false);
+  const [authWarningOpen, setAuthWarningOpen] = useState(false);
   const [state, setState] = useState('loading');
   const [checkoutState, setCheckoutState] = useState('idle');
   const [promoOpen, setPromoOpen] = useState(false);
@@ -245,16 +287,14 @@ export default function TemplateLivePreviewPage() {
   const editorHotspotLabels = useMemo(() => ({ image: t('image'), map: t('map'), edit: t('editorEdit'), changeImage: t('editorChangeImage'), editMap: t('editorEditMap'), editSection: t('editorEditSection'), heroImage: t('editorHeroImage'), galleryImage: t('editorGalleryImage'), participantImage: t('editorParticipantImage'), venueImage: t('editorVenueImage'), closingImage: t('editorClosingImage'), invitationImage: t('editorInvitationImage') }), [t]);
 
   useEffect(() => {
-    if (initialized && !user) {
+    if (!initialized) return undefined;
+    if (previewToken && !user) {
       navigate('/login', {
         replace: true,
         state: { returnTo: `${location.pathname}${location.search}` }
       });
+      return undefined;
     }
-  }, [initialized, location.pathname, location.search, navigate, user]);
-
-  useEffect(() => {
-    if (!initialized || !user) return undefined;
     const request = previewToken ? api.get(`/previews/${previewToken}`) : api.get(`/templates/${id}`);
     request
       .then(({ data }) => {
@@ -263,7 +303,7 @@ export default function TemplateLivePreviewPage() {
           return;
         }
         const nextTemplate = previewToken ? data.template : data;
-        const savedDraft = previewToken ? null : readEditorAutosave(nextTemplate._id);
+        const savedDraft = previewToken || !user ? null : readEditorAutosave(nextTemplate._id);
         const initialDraft = savedDraft || (previewToken ? data.draft : createInitialDraft(nextTemplate));
         setTemplate(nextTemplate);
         setDraft(initialDraft);
@@ -295,7 +335,7 @@ export default function TemplateLivePreviewPage() {
 
   useEffect(() => {
     const root = livePreviewRootRef.current;
-    if (!root || state !== 'ready' || !draft || editing || isStandalonePreview) return undefined;
+    if (!root || !user || state !== 'ready' || !draft || editing || isStandalonePreview) return undefined;
 
     const eventRoots = new Set();
     const activateEditorTarget = (event) => {
@@ -380,7 +420,7 @@ export default function TemplateLivePreviewPage() {
       });
       clearPreviewDecorations(root, { removeStyles: true });
     };
-  }, [draft, editing, editorHotspotLabels, isStandalonePreview, state, template?._id]);
+  }, [draft, editing, editorHotspotLabels, isStandalonePreview, state, template?._id, user]);
 
   const cleanDraft = (sourceDraft = draft) => {
     const cleanGallery = uniqueImages(sourceDraft.gallery || [])
@@ -388,7 +428,7 @@ export default function TemplateLivePreviewPage() {
     return {
       ...sourceDraft,
       image: isEnvelopeImage(resolveTemplateImage(sourceDraft.image)) ? (cleanGallery[0] || '') : sourceDraft.image,
-      mapLink: cleanVenueLinks(sourceDraft.mapLinks)[0]?.url || sourceDraft.mapLink || '',
+      mapLink: cleanVenueLinks(sourceDraft.mapLinks)[0]?.url || normalizeMapUrl(sourceDraft.mapLink),
       mapLinks: cleanVenueLinks(sourceDraft.mapLinks),
       colors: { ...defaultColors, ...(sourceDraft.colors || {}) },
       gallery: cleanGallery.slice(0, 10)
@@ -450,6 +490,10 @@ export default function TemplateLivePreviewPage() {
   };
 
   const openEditor = (target = {}) => {
+    if (!user) {
+      setAuthWarningOpen(true);
+      return;
+    }
     const isEditorTarget = target && typeof target === 'object' && (
       Object.hasOwn(target, 'section') || Object.hasOwn(target, 'field') || Object.hasOwn(target, 'targetTab')
     );
@@ -585,7 +629,7 @@ export default function TemplateLivePreviewPage() {
     navigate(`/templates/${templateId}/live?edit=1`);
   };
 
-  if (!initialized || !user || state === 'loading') return <Loading text={t('loading')} />;
+  if (!initialized || state === 'loading') return <Loading text={t('loading')} />;
   if (state === 'error') return <ErrorState text={t('error')} />;
 
   const occasionTemplate = getOccasionTemplate(template);
@@ -695,6 +739,14 @@ export default function TemplateLivePreviewPage() {
           t={t}
           onClose={() => setEditRequiredOpen(false)}
           onEdit={openEditor}
+        />
+      )}
+
+      {authWarningOpen && (
+        <AuthRequiredModal
+          t={t}
+          returnTo={`${location.pathname}?edit=1`}
+          onClose={() => setAuthWarningOpen(false)}
         />
       )}
 
