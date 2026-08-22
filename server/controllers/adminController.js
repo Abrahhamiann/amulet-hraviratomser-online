@@ -10,6 +10,7 @@ import { emailShell, sendMail } from '../utils/mailer.js';
 import { deliverContactReply } from '../utils/contactReply.js';
 import { makeSlug } from '../utils/slug.js';
 import { normalizePhone } from '../utils/accountValidation.js';
+import { clearTemplateDeletionMarker, markTemplateDeleted } from '../utils/templateDeletion.js';
 import { ensureTemplateCodes, nextTemplateCode, reindexTemplateCodes } from '../utils/templateCode.js';
 import { PUBLIC_DESIGN_KEYS, templateCategoryForDesign, templateEditorTypeForCategory } from '../utils/templateDesign.js';
 import { createSecureInvitationSlug } from '../utils/invitationSlug.js';
@@ -524,6 +525,11 @@ export const deleteAdminTemplate = asyncHandler(async (req, res) => {
   template.isActive = false;
   template.code = undefined;
   await template.save();
+  await markTemplateDeleted({
+    slug: template.slug,
+    deletedAt: template.deletedAt,
+    deletedBy: template.deletedBy
+  });
   await reindexTemplateCodes(category);
   res.json({ message: 'Template deleted' });
 });
@@ -544,6 +550,7 @@ export const restoreAdminTemplate = asyncHandler(async (req, res) => {
   template.isActive = true;
   template.code = await nextTemplateCode(category);
   await template.save();
+  await clearTemplateDeletionMarker(template.slug);
   await reindexTemplateCodes(category);
   res.json(mapTemplate(await Template.findById(template._id)));
 });

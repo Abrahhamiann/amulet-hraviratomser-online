@@ -2,6 +2,7 @@ import asyncHandler from 'express-async-handler';
 import Template from '../models/Template.js';
 import { makeSlug } from '../utils/slug.js';
 import { ensureTemplateCodes, nextTemplateCode, reindexTemplateCodes } from '../utils/templateCode.js';
+import { markTemplateDeleted } from '../utils/templateDeletion.js';
 import { PUBLIC_DESIGN_KEYS, templateCategoryForDesign, templateEditorTypeForCategory } from '../utils/templateDesign.js';
 
 export const getTemplates = asyncHandler(async (req, res) => {
@@ -88,6 +89,11 @@ export const deleteTemplate = asyncHandler(async (req, res) => {
   template.isActive = false;
   template.code = undefined;
   await template.save();
+  await markTemplateDeleted({
+    slug: template.slug,
+    deletedAt: template.deletedAt,
+    deletedBy: template.deletedBy
+  });
   await reindexTemplateCodes(category);
   res.json({ message: 'Template deleted' });
 });

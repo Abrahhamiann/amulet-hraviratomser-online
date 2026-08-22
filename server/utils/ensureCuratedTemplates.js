@@ -1,4 +1,5 @@
 import Template from '../models/Template.js';
+import { hasTemplateDeletionMarker } from './templateDeletion.js';
 import { templateCategoryForDesign } from './templateDesign.js';
 
 const curatedTemplates = [
@@ -175,6 +176,11 @@ const curatedTemplates = [
 
 export const ensureCuratedTemplates = async () => {
   await Promise.all(curatedTemplates.map(async (template) => {
+    // An administrator's deletion is permanent across process restarts. The
+    // separate marker also prevents an accidental hard delete from allowing
+    // startup provisioning to recreate the curated template.
+    if (await hasTemplateDeletionMarker(template.slug)) return;
+
     const category = templateCategoryForDesign(template.designKey) || template.category;
     const { category: _category, editorType: _editorType, designKey, ...insertDefaults } = template;
     await Template.updateOne(

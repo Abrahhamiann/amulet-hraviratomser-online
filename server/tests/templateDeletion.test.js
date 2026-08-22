@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import Setting from '../models/Setting.js';
 import Template from '../models/Template.js';
 import { ensureCuratedTemplates } from '../utils/ensureCuratedTemplates.js';
+import { templateDeletionKey } from '../utils/templateDeletion.js';
 
 test('template deletion metadata is persisted by the schema', () => {
   assert.equal(Template.schema.path('deletedAt')?.instance, 'Date');
@@ -10,6 +12,7 @@ test('template deletion metadata is persisted by the schema', () => {
 
 test('curated startup provisioning does not reactivate a deleted template', async () => {
   const originalUpdateOne = Template.updateOne;
+  const originalSettingExists = Setting.exists;
   const deletedAt = new Date('2026-08-22T10:00:00.000Z');
   const records = new Map([['sacred-beginnings', {
     slug: 'sacred-beginnings',
@@ -34,6 +37,7 @@ test('curated startup provisioning does not reactivate a deleted template', asyn
     Object.assign(record, update.$set || {});
     return { matchedCount: inserted ? 0 : 1, upsertedCount: inserted ? 1 : 0 };
   };
+  Setting.exists = async () => null;
 
   try {
     await ensureCuratedTemplates();
@@ -43,5 +47,30 @@ test('curated startup provisioning does not reactivate a deleted template', asyn
     assert.equal(template.isActive, false);
   } finally {
     Template.updateOne = originalUpdateOne;
+    Setting.exists = originalSettingExists;
+  }
+});
+
+test('curated startup provisioning never recreates a template with a permanent deletion marker', async () => {
+  const originalUpdateOne = Template.updateOne;
+  const originalSettingExists = Setting.exists;
+  const deletedSlug = 'sacred-beginnings';
+  const touchedSlugs = [];
+
+  Setting.exists = async ({ key }) => (
+    key === templateDeletionKey(deletedSlug) ? { _id: 'deletion-marker' } : null
+  );
+  Template.updateOne = async (filter) => {
+    touchedSlugs.push(filter.slug);
+    return { acknowledged: true };
+  };
+
+  try {
+    await ensureCuratedTemplates();
+    assert.equal(touchedSlugs.includes(deletedSlug), false);
+    assert.equal(touchedSlugs.length > 0, true);
+  } finally {
+    Template.updateOne = originalUpdateOne;
+    Setting.exists = originalSettingExists;
   }
 });
