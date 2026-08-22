@@ -379,10 +379,15 @@ function TemplatesPage() {
     setDialogOpen(true);
   };
 
-  const openEdit = (template: any) => {
-    setEditing(template);
-    setForm(toForm(template));
-    setDialogOpen(true);
+  const openEdit = async (template: any) => {
+    try {
+      const details = await adminApi.template(template.id);
+      setEditing(details);
+      setForm(toForm(details));
+      setDialogOpen(true);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("failed"));
+    }
   };
 
   const payload = useMemo(() => ({
@@ -448,7 +453,8 @@ function TemplatesPage() {
 
   const duplicateTemplate = async (template: any) => {
     try {
-      const data = toForm(template);
+      const details = await adminApi.template(template.id);
+      const data = toForm(details);
       await adminApi.createTemplate({
         ...data,
         title: `${template.name} Copy`,
@@ -517,7 +523,7 @@ function TemplatesPage() {
             {visibleTemplates.map((template: any) => (
               <Card key={template.id} className={`group overflow-hidden rounded-2xl border-border/60 shadow-[var(--shadow-soft)] transition-all pt-0${template.deleted ? " opacity-65" : " hover:shadow-[var(--shadow-gold)] hover:-translate-y-1"}`}>
                 <div className="relative aspect-[4/5] bg-secondary overflow-hidden">
-                  {template.cover ? <img src={getPreviewImage(template.cover)} alt={template.name} className="h-full w-full object-cover transition duration-500" style={getImageStyle(template.imagePosition)} /> : null}
+                  {template.cover ? <img src={getPreviewImage(template.cover)} alt={template.name} className="h-full w-full object-cover transition duration-500" style={getImageStyle(template.imagePosition)} loading="lazy" decoding="async" /> : null}
                   {template.featured && (
                     <div className="absolute top-3 left-3 gold-gradient text-white text-[10px] font-medium px-2 py-1 rounded-full flex items-center gap-1">
                       <Star className="h-3 w-3 fill-white" /> {t("featured")}
@@ -563,7 +569,7 @@ function TemplatesPage() {
                     <TableRow key={template.id} className="border-border/60 hover:bg-secondary/30">
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          {template.cover ? <img src={getPreviewImage(template.cover)} className="h-10 w-10 object-cover rounded-lg" style={getImageStyle(template.imagePosition)} alt={template.name} /> : <div className="h-10 w-10 rounded-lg bg-secondary" />}
+                          {template.cover ? <img src={getPreviewImage(template.cover)} className="h-10 w-10 object-cover rounded-lg" style={getImageStyle(template.imagePosition)} alt={template.name} loading="lazy" decoding="async" /> : <div className="h-10 w-10 rounded-lg bg-secondary" />}
                           <span className="font-medium">{template.code || template.name}</span>
                         </div>
                       </TableCell>

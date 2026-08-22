@@ -35,4 +35,6 @@ const templateSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+templateSchema.index({ deletedAt: 1, isActive: 1, designKey: 1, category: 1, createdAt: -1 });
+
 export default mongoose.model('Template', templateSchema);

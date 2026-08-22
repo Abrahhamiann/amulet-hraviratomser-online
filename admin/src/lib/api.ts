@@ -82,6 +82,7 @@ export const adminApi = {
   resetRevenue: () => request<any>("/admin/dashboard/reset-revenue", { method: "POST" }),
   orders: () => request<any[]>("/admin/orders"),
   templates: () => request<any[]>("/admin/templates"),
+  template: (id: string) => request<any>(`/admin/templates/${id}`),
   customers: () => request<any[]>("/admin/customers"),
   customer: (id: string) => request<any>(`/admin/customers/${id}`),
   payments: () => request<any[]>("/admin/payments"),

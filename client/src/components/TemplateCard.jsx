@@ -4,10 +4,10 @@ import { Eye, LogIn, Pencil, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import alertGuruAnimation from '../assets/animations/editor-exit-alert.lottie?url';
+import api from '../api/axios.js';
 import { qrImageUrl, siteUrl } from '../config/env.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
 import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
 import { getTemplatePagePreview } from '../occasionTemplates/templatePagePreviews.js';
 
@@ -18,24 +18,33 @@ export default function TemplateCard({ template }) {
   const [qrOpen, setQrOpen] = useState(false);
   const [authWarningOpen, setAuthWarningOpen] = useState(false);
   const [authReturnPath, setAuthReturnPath] = useState('/templates');
-  const [catalogWalkthroughComplete, setCatalogWalkthroughComplete] = useState(false);
   const [modalWalkthroughComplete, setModalWalkthroughComplete] = useState(false);
+  const [templateDetails, setTemplateDetails] = useState(null);
+  const detailsLoadingRef = useRef(false);
   const loginButtonRef = useRef(null);
-  const occasionTemplate = getOccasionTemplate(template);
-  const CardPreview = occasionTemplate?.CardPreview;
   const imagePosition = template.imagePosition || {};
   const x = Number.isFinite(Number(imagePosition.x)) ? Number(imagePosition.x) : 50;
   const y = Number.isFinite(Number(imagePosition.y)) ? Number(imagePosition.y) : 50;
   const zoom = Number.isFinite(Number(imagePosition.zoom)) ? Math.min(2, Math.max(1, Number(imagePosition.zoom))) : 1;
   const objectPosition = `${x}% ${y}%`;
   const mainImage = resolveTemplateImage(template.mainImage);
-  const pagePreview = resolveTemplateImage(getTemplatePagePreview(template));
+  const detailedTemplate = templateDetails || template;
+  const pagePreview = qrOpen && templateDetails
+    ? resolveTemplateImage(getTemplatePagePreview(detailedTemplate))
+    : '';
   const previewPath = `/templates/${template._id}/live`;
   const previewUrl = useMemo(() => siteUrl(previewPath), [previewPath]);
   const qrUrl = qrImageUrl(previewUrl, 220, 12);
   const openQr = () => {
     setModalWalkthroughComplete(false);
     setQrOpen(true);
+    if (!templateDetails && !detailsLoadingRef.current) {
+      detailsLoadingRef.current = true;
+      api.get(`/templates/${template._id}`)
+        .then(({ data }) => setTemplateDetails(data))
+        .catch(() => undefined)
+        .finally(() => { detailsLoadingRef.current = false; });
+    }
   };
   const closeQr = () => {
     setModalWalkthroughComplete(false);
@@ -81,11 +90,6 @@ export default function TemplateCard({ template }) {
       role="button"
       tabIndex={0}
       onClick={openQr}
-      onMouseEnter={() => setCatalogWalkthroughComplete(false)}
-      onMouseLeave={() => setCatalogWalkthroughComplete(false)}
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setCatalogWalkthroughComplete(false);
-      }}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
@@ -95,41 +99,20 @@ export default function TemplateCard({ template }) {
       aria-label={`${template.code || template.title}. ${t('scanQr')}`}
     >
       <div className="template-image catalog-template-preview">
-        {pagePreview ? (
-          <img
-            className="catalog-template-scroll-shot"
-            src={pagePreview}
-            alt={`${template.title} — ամբողջական էջ`}
-            loading="lazy"
-            decoding="async"
-            onTransitionEnd={(event) => {
-              if (event.propertyName === 'transform') setCatalogWalkthroughComplete(true);
-            }}
-          />
-        ) : mainImage ? (
+        {mainImage ? (
           <img
             src={mainImage}
             alt={template.title}
             loading="lazy"
+            decoding="async"
             style={{
               '--template-image-zoom': zoom,
               objectPosition,
               transformOrigin: objectPosition
             }}
           />
-        ) : CardPreview ? (
-          <CardPreview template={template} />
         ) : (
           <span>{template.title}</span>
-        )}
-        {pagePreview && mainImage && (
-          <img
-            className={`catalog-template-final-cover${catalogWalkthroughComplete ? ' is-visible' : ''}`}
-            src={mainImage}
-            alt={template.title}
-            loading="lazy"
-            style={{ objectPosition, transformOrigin: objectPosition }}
-          />
         )}
         <span className="catalog-new-badge">{t('new')}</span>
       </div>
@@ -163,8 +146,6 @@ export default function TemplateCard({ template }) {
                 />
               ) : mainImage ? (
                 <img src={mainImage} alt={template.title} />
-              ) : CardPreview ? (
-                <CardPreview template={template} />
               ) : (
                 <span>{template.title}</span>
               )}
@@ -180,7 +161,7 @@ export default function TemplateCard({ template }) {
             <div className="template-qr-content">
               <h2 id={`template-qr-${template._id}`}>{template.code ? `${t('templateCodeLabel')} ${template.code}` : template.title}</h2>
               <p className="template-qr-info">{Number(template.price).toLocaleString()} AMD</p>
-              {template.description && <p className="template-qr-description">{template.description}</p>}
+              {detailedTemplate.description && <p className="template-qr-description">{detailedTemplate.description}</p>}
               <div className="template-qr-scan">
                 <img src={qrUrl} alt={t('scanQr')} />
                 <p>{t('scanQrText')}</p>

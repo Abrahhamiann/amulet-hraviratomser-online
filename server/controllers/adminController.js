@@ -172,6 +172,15 @@ const mapTemplate = (template, usage = 0) => ({
   createdAt: template.createdAt
 });
 
+const mapTemplateSummary = (template, usage = 0) => {
+  const mapped = mapTemplate(template, usage);
+  delete mapped.pagePreviewImage;
+  delete mapped.gallery;
+  delete mapped.description;
+  delete mapped.features;
+  return mapped;
+};
+
 const mapInvitation = (invitation) => ({
   id: String(invitation._id),
   customer: invitation.orderId?.fullName || invitation.names,
@@ -332,19 +341,30 @@ export const getAdminOrders = asyncHandler(async (req, res) => {
 
 export const getAdminTemplates = asyncHandler(async (req, res) => {
   await ensureTemplateCodes();
-  const [templates, orders] = await Promise.all([
+  const [templates, usageRows] = await Promise.all([
     Template.find({
       designKey: { $in: PUBLIC_DESIGN_KEYS },
       deletedAt: null
-    }).sort({ createdAt: -1 }),
-    Order.find()
+    })
+      .select('code title slug category editorType price designKey mainImage imagePosition galleryConfigured isFeatured isActive deletedAt createdAt')
+      .sort({ createdAt: -1 })
+      .lean(),
+    Order.aggregate([
+      { $match: { templateId: { $ne: null } } },
+      { $group: { _id: '$templateId', usage: { $sum: 1 } } }
+    ])
   ]);
-  const usage = orders.reduce((map, order) => {
-    const id = order.templateId ? String(order.templateId) : null;
-    if (id) map.set(id, (map.get(id) || 0) + 1);
-    return map;
-  }, new Map());
-  res.json(templates.map((template) => mapTemplate(template, usage.get(String(template._id)) || 0)));
+  const usage = new Map(usageRows.map((row) => [String(row._id), row.usage]));
+  res.json(templates.map((template) => mapTemplateSummary(template, usage.get(String(template._id)) || 0)));
+});
+
+export const getAdminTemplate = asyncHandler(async (req, res) => {
+  const template = await Template.findById(req.params.id);
+  if (!template || template.deletedAt || !PUBLIC_DESIGN_KEYS.includes(template.designKey)) {
+    res.status(404);
+    throw new Error('Template not found');
+  }
+  res.json(mapTemplate(template));
 });
 
 export const getAdminInvitations = asyncHandler(async (req, res) => {

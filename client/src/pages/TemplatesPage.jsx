@@ -8,12 +8,11 @@ import Loading from '../components/Loading.jsx';
 import TemplateCard from '../components/TemplateCard.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { categories } from '../data/categories.js';
-import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
 
 export default function TemplatesPage() {
   const { t } = useLanguage();
   const [params, setParams] = useSearchParams();
-  const [templates, setTemplates] = useState([]);
+  const [allTemplates, setAllTemplates] = useState([]);
   const [state, setState] = useState('loading');
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
@@ -37,21 +36,37 @@ export default function TemplatesPage() {
     return () => document.body.classList.remove('templates-route');
   }, []);
 
-  const query = useMemo(() => {
-    const next = new URLSearchParams();
-    if (category) next.set('category', category);
-    if (search) next.set('search', search);
-    if (sort) next.set('sort', sort);
-    return next;
-  }, [category, search, sort]);
-
   useEffect(() => {
+    const controller = new AbortController();
     setState('loading');
-    api.get(`/templates?${query}`).then(({ data }) => {
-      setTemplates(data.filter((template) => getOccasionTemplate(template)));
+    api.get('/templates', { signal: controller.signal }).then(({ data }) => {
+      setAllTemplates(data);
       setState('ready');
-    }).catch(() => setState('error'));
-  }, [query]);
+    }).catch((error) => {
+      if (error?.code !== 'ERR_CANCELED') setState('error');
+    });
+    return () => controller.abort();
+  }, []);
+
+  const templates = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+    const filtered = allTemplates.filter((template) => {
+      const matchesCategory = !category || (
+        category === 'other'
+          ? ['corporate', 'new_year', 'meeting', 'military'].includes(template.category)
+          : template.category === category
+      );
+      const matchesSearch = !normalizedSearch
+        || String(template.code || '').toLowerCase().includes(normalizedSearch)
+        || String(template.title || '').toLowerCase().includes(normalizedSearch);
+      return matchesCategory && matchesSearch;
+    });
+    return [...filtered].sort((first, second) => {
+      if (sort === 'price_asc') return Number(first.price) - Number(second.price);
+      if (sort === 'price_desc') return Number(second.price) - Number(first.price);
+      return new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime();
+    });
+  }, [allTemplates, category, search, sort]);
 
   const update = (key, value) => {
     const next = new URLSearchParams(params);

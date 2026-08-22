@@ -5,6 +5,11 @@ import { ensureTemplateCodes, nextTemplateCode, reindexTemplateCodes } from '../
 import { markTemplateDeleted } from '../utils/templateDeletion.js';
 import { PUBLIC_DESIGN_KEYS, templateCategoryForDesign, templateEditorTypeForCategory } from '../utils/templateDesign.js';
 
+const TEMPLATE_LIST_FIELDS = [
+  'code', 'title', 'slug', 'category', 'price', 'designKey', 'mainImage',
+  'imagePosition', 'isFeatured', 'createdAt'
+].join(' ');
+
 export const getTemplates = asyncHandler(async (req, res) => {
   await ensureTemplateCodes();
   const { category, search, sort = 'newest', featured } = req.query;
@@ -23,7 +28,11 @@ export const getTemplates = asyncHandler(async (req, res) => {
     price_desc: { price: -1 }
   };
 
-  const templates = await Template.find(query).sort(sortMap[sort] || sortMap.newest);
+  const templates = await Template.find(query)
+    .select(TEMPLATE_LIST_FIELDS)
+    .sort(sortMap[sort] || sortMap.newest)
+    .lean();
+  res.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=300');
   res.json(templates);
 });
 

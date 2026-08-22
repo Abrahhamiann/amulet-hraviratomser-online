@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { adminApi } from "@/lib/api";
 
-export function useAdminData<T>(key: unknown, fetcher: () => Promise<T>, fallback: T) {
+export function useAdminData<T>(key: unknown, fetcher: () => Promise<T>, fallback: T, staleTime = 0) {
   const query = useQuery({
     queryKey: ["admin", key],
     queryFn: fetcher,
     retry: false,
+    staleTime,
   });
 
   return {
@@ -16,7 +17,7 @@ export function useAdminData<T>(key: unknown, fetcher: () => Promise<T>, fallbac
 
 export const useDashboard = (period = "all") => useAdminData(["dashboard", period], () => adminApi.dashboard(period), null);
 export const useOrders = () => useAdminData("orders", adminApi.orders, []);
-export const useTemplates = () => useAdminData("templates", adminApi.templates, []);
+export const useTemplates = () => useAdminData("templates", adminApi.templates, [], 60_000);
 export const useCustomers = () => useAdminData("customers", adminApi.customers, []);
 export const usePayments = () => useAdminData("payments", adminApi.payments, []);
 export const useMessages = () => useAdminData("messages", adminApi.messages, []);

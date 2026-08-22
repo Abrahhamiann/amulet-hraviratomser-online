@@ -19,6 +19,7 @@ import {
   getAdminMessages,
   getAdminOrders,
   getAdminPayments,
+  getAdminTemplate,
   getAdminTemplates,
   updateAdminInvitation,
   updateAdminFaq,
@@ -54,6 +55,7 @@ router.get('/orders', getAdminOrders);
 router.delete('/orders', deleteAllAdminOrders);
 router.delete('/orders/:id', deleteAdminOrder);
 router.get('/templates', getAdminTemplates);
+router.get('/templates/:id', validateObjectId(), getAdminTemplate);
 router.post('/templates', createAdminTemplate);
 router.put('/templates/:id', updateAdminTemplate);
 router.delete('/templates/:id', deleteAdminTemplate);
