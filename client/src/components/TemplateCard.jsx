@@ -4,12 +4,10 @@ import { Eye, LogIn, Pencil, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import alertGuruAnimation from '../assets/animations/editor-exit-alert.lottie?url';
-import api from '../api/axios.js';
 import { API_URL, qrImageUrl, siteUrl } from '../config/env.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
-import { getTemplatePagePreview } from '../occasionTemplates/templatePagePreviews.js';
 
 export default function TemplateCard({ template }) {
   const { t } = useLanguage();
@@ -18,13 +16,8 @@ export default function TemplateCard({ template }) {
   const [qrOpen, setQrOpen] = useState(false);
   const [authWarningOpen, setAuthWarningOpen] = useState(false);
   const [authReturnPath, setAuthReturnPath] = useState('/templates');
-  const [catalogWalkthroughComplete, setCatalogWalkthroughComplete] = useState(false);
-  const [remotePreviewRequested, setRemotePreviewRequested] = useState(false);
   const [remotePreviewReady, setRemotePreviewReady] = useState(false);
   const [remotePreviewFailed, setRemotePreviewFailed] = useState(false);
-  const [modalWalkthroughComplete, setModalWalkthroughComplete] = useState(false);
-  const [templateDetails, setTemplateDetails] = useState(null);
-  const detailsLoadingRef = useRef(false);
   const loginButtonRef = useRef(null);
   const imagePosition = template.imagePosition || {};
   const x = Number.isFinite(Number(imagePosition.x)) ? Number(imagePosition.x) : 50;
@@ -38,33 +31,16 @@ export default function TemplateCard({ template }) {
   const remotePagePreview = hasAdminPagePreview
     ? `${API_URL}/templates/${template._id}/page-preview?v=${encodeURIComponent(template.updatedAt || '')}`
     : '';
-  const catalogPagePreview = remotePreviewRequested && !remotePreviewFailed ? remotePagePreview : '';
-  const detailedTemplate = templateDetails || template;
-  const pagePreview = qrOpen && templateDetails
-    ? resolveTemplateImage(getTemplatePagePreview(detailedTemplate))
-    : '';
+  // Keep the real screenshot mounted behind the main image so it is already
+  // decoded when the user hovers. Until it is ready, hover leaves the main
+  // image completely unchanged.
+  const catalogPagePreview = !remotePreviewFailed ? remotePagePreview : '';
+  const pagePreview = qrOpen && catalogPagePreview ? catalogPagePreview : '';
   const previewPath = `/templates/${template._id}/live`;
   const previewUrl = useMemo(() => siteUrl(previewPath), [previewPath]);
   const qrUrl = qrImageUrl(previewUrl, 220, 12);
-  const openQr = () => {
-    setModalWalkthroughComplete(false);
-    setQrOpen(true);
-    if (!templateDetails && !detailsLoadingRef.current) {
-      detailsLoadingRef.current = true;
-      api.get(`/templates/${template._id}`)
-        .then(({ data }) => setTemplateDetails(data))
-        .catch(() => undefined)
-        .finally(() => { detailsLoadingRef.current = false; });
-    }
-  };
-  const closeQr = () => {
-    setModalWalkthroughComplete(false);
-    setQrOpen(false);
-  };
-  const prepareCatalogPreview = () => {
-    setCatalogWalkthroughComplete(false);
-    if (remotePagePreview && !remotePreviewFailed) setRemotePreviewRequested(true);
-  };
+  const openQr = () => setQrOpen(true);
+  const closeQr = () => setQrOpen(false);
   const requireAuthenticatedAction = (event, returnPath) => {
     if (user) return false;
     event.preventDefault();
@@ -100,23 +76,16 @@ export default function TemplateCard({ template }) {
   }, [authWarningOpen]);
 
   useEffect(() => {
-    setRemotePreviewRequested(false);
     setRemotePreviewReady(false);
     setRemotePreviewFailed(false);
   }, [remotePagePreview]);
 
   return (
     <article
-      className="template-card reveal catalog-template-card"
+      className={`template-card reveal catalog-template-card${remotePreviewReady ? ' is-preview-ready' : ''}`}
       role="button"
       tabIndex={0}
       onClick={openQr}
-      onMouseEnter={prepareCatalogPreview}
-      onMouseLeave={() => setCatalogWalkthroughComplete(false)}
-      onFocus={prepareCatalogPreview}
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setCatalogWalkthroughComplete(false);
-      }}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
@@ -131,7 +100,7 @@ export default function TemplateCard({ template }) {
             className={`catalog-template-scroll-shot${remotePreviewReady ? ' is-ready' : ''}`}
             src={catalogPagePreview}
             alt={`${template.title} — ամբողջական էջ`}
-            loading="eager"
+            loading="lazy"
             decoding="async"
             onLoad={() => {
               setRemotePreviewReady(false);
@@ -141,17 +110,14 @@ export default function TemplateCard({ template }) {
             }}
             onError={() => {
               setRemotePreviewReady(false);
-              setRemotePreviewRequested(false);
               setRemotePreviewFailed(true);
-            }}
-            onTransitionEnd={(event) => {
-              if (event.propertyName === 'transform') setCatalogWalkthroughComplete(true);
             }}
           />
         ) : mainImage ? (
           <img
             src={mainImage}
             alt={template.title}
+            className="catalog-template-main-image"
             loading="lazy"
             decoding="async"
             style={{
@@ -165,7 +131,7 @@ export default function TemplateCard({ template }) {
         )}
         {catalogPagePreview && mainImage && (
           <img
-            className={`catalog-template-final-cover${catalogWalkthroughComplete ? ' is-visible' : ''}`}
+            className="catalog-template-final-cover"
             src={mainImage}
             alt={template.title}
             loading="lazy"
@@ -197,30 +163,21 @@ export default function TemplateCard({ template }) {
             <div className="template-qr-preview">
               {pagePreview ? (
                 <img
-                  className={`template-qr-auto-scroll${modalWalkthroughComplete ? ' is-complete' : ''}`}
+                  className="template-qr-auto-scroll"
                   src={pagePreview}
                   alt={`${template.title} — ամբողջական էջ`}
                   decoding="async"
-                  onAnimationEnd={() => setModalWalkthroughComplete(true)}
                 />
               ) : mainImage ? (
                 <img src={mainImage} alt={template.title} />
               ) : (
                 <span>{template.title}</span>
               )}
-              {pagePreview && mainImage && (
-                <img
-                  className={`template-qr-final-cover${modalWalkthroughComplete ? ' is-visible' : ''}`}
-                  src={mainImage}
-                  alt={template.title}
-                  style={{ objectPosition }}
-                />
-              )}
             </div>
             <div className="template-qr-content">
               <h2 id={`template-qr-${template._id}`}>{template.code ? `${t('templateCodeLabel')} ${template.code}` : template.title}</h2>
               <p className="template-qr-info">{Number(template.price).toLocaleString()} AMD</p>
-              {detailedTemplate.description && <p className="template-qr-description">{detailedTemplate.description}</p>}
+              {template.description && <p className="template-qr-description">{template.description}</p>}
               <div className="template-qr-scan">
                 <img src={qrUrl} alt={t('scanQr')} />
                 <p>{t('scanQrText')}</p>

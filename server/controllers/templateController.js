@@ -6,7 +6,7 @@ import { clearTemplateDeletionMarker, deleteTemplatePermanently } from '../utils
 import { PUBLIC_DESIGN_KEYS, templateCategoryForDesign, templateEditorTypeForCategory } from '../utils/templateDesign.js';
 
 const TEMPLATE_LIST_FIELDS = [
-  'code', 'title', 'slug', 'category', 'price', 'designKey', 'mainImage',
+  'code', 'title', 'slug', 'category', 'price', 'description', 'designKey', 'mainImage',
   'pagePreviewAvailable', 'imagePosition', 'isFeatured', 'createdAt', 'updatedAt'
 ].join(' ');
 

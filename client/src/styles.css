@@ -14746,6 +14746,16 @@ body.templates-route.templates-route .catalog-template-preview > img {
   transition: transform 26s linear, filter .45s ease, opacity .32s ease;
 }
 
+body.templates-route.templates-route .catalog-template-preview > .catalog-template-main-image,
+body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-visible) .catalog-template-main-image {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  object-fit: cover;
+  transform: scale(var(--template-image-zoom, 1));
+  transition: none;
+}
+
 body.templates-route.templates-route .catalog-template-preview > .catalog-template-final-cover {
   position: absolute;
   inset: 0;
@@ -14759,12 +14769,8 @@ body.templates-route.templates-route .catalog-template-preview > .catalog-templa
   transition: opacity .42s ease;
 }
 
-body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-visible) .catalog-template-final-cover {
+body.templates-route.templates-route .catalog-template-card.is-preview-ready:is(:hover, :focus-visible) .catalog-template-final-cover {
   opacity: 0;
-}
-
-body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-visible) .catalog-template-final-cover.is-visible {
-  opacity: 1;
 }
 
 .template-qr-description {
@@ -14793,7 +14799,13 @@ body.templates-route.templates-route .catalog-template-preview > .catalog-templa
 
 body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-visible) .catalog-template-scroll-shot.is-ready {
   filter: saturate(1) contrast(1.02);
-  transform: translate3d(0, calc(-100% + var(--catalog-card-height)), 0);
+  animation: catalogTemplateScroll 44s linear infinite;
+}
+
+@keyframes catalogTemplateScroll {
+  0% { transform: translate3d(0, 0, 0); }
+  45%, 55% { transform: translate3d(0, calc(-100% + var(--catalog-card-height)), 0); }
+  100% { transform: translate3d(0, 0, 0); }
 }
 
 body.templates-route.templates-route .catalog-template-caption {
@@ -14886,6 +14898,7 @@ body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-vi
   }
 
   body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-visible) .catalog-template-scroll-shot.is-ready {
+    animation: none;
     transform: none;
   }
 
@@ -14913,12 +14926,8 @@ body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-vi
   object-fit: contain;
   object-position: top center;
   will-change: transform;
-  animation: templateQrAutoScroll 34s .65s linear both;
+  animation: templateQrAutoScroll 52s linear infinite;
   transition: opacity .42s ease;
-}
-
-.template-qr-preview > img.template-qr-auto-scroll.is-complete {
-  opacity: 0;
 }
 
 .template-qr-preview > img.template-qr-final-cover {
@@ -14938,8 +14947,9 @@ body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-vi
 }
 
 @keyframes templateQrAutoScroll {
-  from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(0, calc(-100% + 100cqh), 0); }
+  0% { transform: translate3d(0, 0, 0); }
+  45%, 55% { transform: translate3d(0, calc(-100% + 100cqh), 0); }
+  100% { transform: translate3d(0, 0, 0); }
 }
 
 /* Direct-edit affordances shown on every editable invitation preview. */
