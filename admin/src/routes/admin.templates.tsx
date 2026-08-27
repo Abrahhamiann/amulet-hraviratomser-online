@@ -544,9 +544,9 @@ function TemplatesPage() {
       queryClient.setQueryData(["admin", "templates"], (current: any[] | undefined) => (
         current?.filter((item) => item.id !== template.id) ?? current
       ));
-      await queryClient.invalidateQueries({ queryKey: ["admin", "templates"] });
-      await queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
       toast.success(t("done"));
+      void queryClient.invalidateQueries({ queryKey: ["admin", "templates"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("failed"));
     }

@@ -10,7 +10,7 @@ import { emailShell, sendMail } from '../utils/mailer.js';
 import { deliverContactReply } from '../utils/contactReply.js';
 import { makeSlug } from '../utils/slug.js';
 import { normalizePhone } from '../utils/accountValidation.js';
-import { clearTemplateDeletionMarker, markTemplateDeleted } from '../utils/templateDeletion.js';
+import { clearTemplateDeletionMarker, deleteTemplatePermanently } from '../utils/templateDeletion.js';
 import { ensureTemplateCodes, nextTemplateCode, reindexTemplateCodes } from '../utils/templateCode.js';
 import { PUBLIC_DESIGN_KEYS, templateCategoryForDesign, templateEditorTypeForCategory } from '../utils/templateDesign.js';
 import { createSecureInvitationSlug } from '../utils/invitationSlug.js';
@@ -156,6 +156,7 @@ const mapTemplate = (template, usage = 0) => ({
   designKey: template.designKey || DEFAULT_DESIGN_KEY,
   cover: template.mainImage || template.gallery?.[0] || '',
   pagePreviewImage: template.pagePreviewImage || '',
+  pagePreviewAvailable: Boolean(template.pagePreviewAvailable || template.pagePreviewImage),
   imagePosition: normalizeImagePosition(template.imagePosition),
   gallery: template.gallery || [],
   galleryConfigured: Boolean(template.galleryConfigured),
@@ -346,7 +347,7 @@ export const getAdminTemplates = asyncHandler(async (req, res) => {
       designKey: { $in: PUBLIC_DESIGN_KEYS },
       deletedAt: null
     })
-      .select('code title slug category editorType price designKey mainImage imagePosition galleryConfigured isFeatured isActive deletedAt createdAt')
+      .select('code title slug category editorType price designKey mainImage pagePreviewAvailable imagePosition galleryConfigured isFeatured isActive deletedAt createdAt')
       .sort({ createdAt: -1 })
       .lean(),
     Order.aggregate([
@@ -499,6 +500,7 @@ export const createAdminTemplate = asyncHandler(async (req, res) => {
     editorType: data.editorType || templateEditorTypeForCategory(category),
     isActive: data.isActive !== false
   });
+  await clearTemplateDeletionMarker(slug);
   res.status(201).json(mapTemplate(template));
 });
 
@@ -535,21 +537,8 @@ export const deleteAdminTemplate = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Template not found');
   }
-  if (template.deletedAt) {
-    res.json({ message: 'Template already deleted' });
-    return;
-  }
   const category = template.category;
-  template.deletedAt = new Date();
-  template.deletedBy = req.user._id;
-  template.isActive = false;
-  template.code = undefined;
-  await template.save();
-  await markTemplateDeleted({
-    slug: template.slug,
-    deletedAt: template.deletedAt,
-    deletedBy: template.deletedBy
-  });
+  await deleteTemplatePermanently(template, req.user._id);
   await reindexTemplateCodes(category);
   res.json({ message: 'Template deleted' });
 });

@@ -14791,7 +14791,7 @@ body.templates-route.templates-route .catalog-template-preview > .catalog-templa
   will-change: transform;
 }
 
-body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-visible) .catalog-template-scroll-shot {
+body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-visible) .catalog-template-scroll-shot.is-ready {
   filter: saturate(1) contrast(1.02);
   transform: translate3d(0, calc(-100% + var(--catalog-card-height)), 0);
 }
@@ -14885,7 +14885,7 @@ body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-vi
     transition: none;
   }
 
-  body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-visible) .catalog-template-scroll-shot {
+  body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-visible) .catalog-template-scroll-shot.is-ready {
     transform: none;
   }
 

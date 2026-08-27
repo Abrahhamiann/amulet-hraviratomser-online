@@ -3,6 +3,7 @@ import {
   createTemplate,
   deleteTemplate,
   getTemplate,
+  getTemplatePagePreview,
   getTemplates,
   updateTemplate
 } from '../controllers/templateController.js';
@@ -12,6 +13,7 @@ import { validateObjectId } from '../middleware/validateObjectId.js';
 const router = express.Router();
 
 router.route('/').get(getTemplates).post(protect, adminOnly, createTemplate);
+router.get('/:id/page-preview', validateObjectId(), getTemplatePagePreview);
 router
   .route('/:id')
   .get(validateObjectId(), getTemplate)

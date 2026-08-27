@@ -20,6 +20,7 @@ const templateSchema = new mongoose.Schema(
     designKey: { type: String, default: 'ivory-vows', trim: true },
     mainImage: { type: String, default: '' },
     pagePreviewImage: { type: String, default: '' },
+    pagePreviewAvailable: { type: Boolean, default: false },
     imagePosition: {
       x: { type: Number, default: 50, min: 0, max: 100 },
       y: { type: Number, default: 50, min: 0, max: 100 },
@@ -34,6 +35,10 @@ const templateSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+templateSchema.pre('validate', function syncPagePreviewAvailability() {
+  this.pagePreviewAvailable = Boolean(String(this.pagePreviewImage || '').trim());
+});
 
 templateSchema.index({ deletedAt: 1, isActive: 1, designKey: 1, category: 1, createdAt: -1 });
 

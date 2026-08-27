@@ -2,12 +2,12 @@ import asyncHandler from 'express-async-handler';
 import Template from '../models/Template.js';
 import { makeSlug } from '../utils/slug.js';
 import { ensureTemplateCodes, nextTemplateCode, reindexTemplateCodes } from '../utils/templateCode.js';
-import { markTemplateDeleted } from '../utils/templateDeletion.js';
+import { clearTemplateDeletionMarker, deleteTemplatePermanently } from '../utils/templateDeletion.js';
 import { PUBLIC_DESIGN_KEYS, templateCategoryForDesign, templateEditorTypeForCategory } from '../utils/templateDesign.js';
 
 const TEMPLATE_LIST_FIELDS = [
   'code', 'title', 'slug', 'category', 'price', 'designKey', 'mainImage',
-  'imagePosition', 'isFeatured', 'createdAt'
+  'pagePreviewAvailable', 'imagePosition', 'isFeatured', 'createdAt', 'updatedAt'
 ].join(' ');
 
 export const getTemplates = asyncHandler(async (req, res) => {
@@ -32,8 +32,42 @@ export const getTemplates = asyncHandler(async (req, res) => {
     .select(TEMPLATE_LIST_FIELDS)
     .sort(sortMap[sort] || sortMap.newest)
     .lean();
-  res.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=300');
+  res.set('Cache-Control', 'no-store');
   res.json(templates);
+});
+
+export const getTemplatePagePreview = asyncHandler(async (req, res) => {
+  const template = await Template.findById(req.params.id)
+    .select('pagePreviewImage deletedAt isActive designKey updatedAt')
+    .lean();
+  if (!template || template.deletedAt || template.isActive === false || !PUBLIC_DESIGN_KEYS.includes(template.designKey)) {
+    res.status(404);
+    throw new Error('Template preview not found');
+  }
+
+  const source = String(template.pagePreviewImage || '').trim();
+  const dataImage = source.match(/^data:image\/(png|jpe?g|webp);base64,([a-z0-9+/=\s]+)$/i);
+  if (dataImage) {
+    const buffer = Buffer.from(dataImage[2].replace(/\s/g, ''), 'base64');
+    if (!buffer.length) {
+      res.status(404);
+      throw new Error('Template preview not found');
+    }
+    const subtype = dataImage[1].toLowerCase() === 'jpg' ? 'jpeg' : dataImage[1].toLowerCase();
+    res.set({
+      'Content-Type': `image/${subtype}`,
+      'Content-Length': String(buffer.length),
+      'Cache-Control': 'public, max-age=31536000, immutable'
+    });
+    res.send(buffer);
+    return;
+  }
+  if (/^https?:\/\//i.test(source)) {
+    res.redirect(302, source);
+    return;
+  }
+  res.status(404);
+  throw new Error('Template preview not found');
 });
 
 export const getTemplate = asyncHandler(async (req, res) => {
@@ -57,6 +91,7 @@ export const createTemplate = asyncHandler(async (req, res) => {
     code: await nextTemplateCode(category),
     slug
   });
+  await clearTemplateDeletionMarker(slug);
   res.status(201).json(template);
 });
 
@@ -88,21 +123,8 @@ export const deleteTemplate = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Template not found');
   }
-  if (template.deletedAt) {
-    res.json({ message: 'Template already deleted' });
-    return;
-  }
   const category = template.category;
-  template.deletedAt = new Date();
-  template.deletedBy = req.user?._id || null;
-  template.isActive = false;
-  template.code = undefined;
-  await template.save();
-  await markTemplateDeleted({
-    slug: template.slug,
-    deletedAt: template.deletedAt,
-    deletedBy: template.deletedBy
-  });
+  await deleteTemplatePermanently(template, req.user?._id || null);
   await reindexTemplateCodes(category);
   res.json({ message: 'Template deleted' });
 });

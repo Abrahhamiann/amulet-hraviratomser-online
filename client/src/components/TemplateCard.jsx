@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import alertGuruAnimation from '../assets/animations/editor-exit-alert.lottie?url';
 import api from '../api/axios.js';
-import { qrImageUrl, siteUrl } from '../config/env.js';
+import { API_URL, qrImageUrl, siteUrl } from '../config/env.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
@@ -18,6 +18,10 @@ export default function TemplateCard({ template }) {
   const [qrOpen, setQrOpen] = useState(false);
   const [authWarningOpen, setAuthWarningOpen] = useState(false);
   const [authReturnPath, setAuthReturnPath] = useState('/templates');
+  const [catalogWalkthroughComplete, setCatalogWalkthroughComplete] = useState(false);
+  const [remotePreviewRequested, setRemotePreviewRequested] = useState(false);
+  const [remotePreviewReady, setRemotePreviewReady] = useState(false);
+  const [remotePreviewFailed, setRemotePreviewFailed] = useState(false);
   const [modalWalkthroughComplete, setModalWalkthroughComplete] = useState(false);
   const [templateDetails, setTemplateDetails] = useState(null);
   const detailsLoadingRef = useRef(false);
@@ -28,6 +32,13 @@ export default function TemplateCard({ template }) {
   const zoom = Number.isFinite(Number(imagePosition.zoom)) ? Math.min(2, Math.max(1, Number(imagePosition.zoom))) : 1;
   const objectPosition = `${x}% ${y}%`;
   const mainImage = resolveTemplateImage(template.mainImage);
+  // Catalog cards are controlled only by admin-provided media: the main image
+  // at rest and the saved full-page screenshot while hovered/focused.
+  const hasAdminPagePreview = Boolean(template.pagePreviewAvailable);
+  const remotePagePreview = hasAdminPagePreview
+    ? `${API_URL}/templates/${template._id}/page-preview?v=${encodeURIComponent(template.updatedAt || '')}`
+    : '';
+  const catalogPagePreview = remotePreviewRequested && !remotePreviewFailed ? remotePagePreview : '';
   const detailedTemplate = templateDetails || template;
   const pagePreview = qrOpen && templateDetails
     ? resolveTemplateImage(getTemplatePagePreview(detailedTemplate))
@@ -49,6 +60,10 @@ export default function TemplateCard({ template }) {
   const closeQr = () => {
     setModalWalkthroughComplete(false);
     setQrOpen(false);
+  };
+  const prepareCatalogPreview = () => {
+    setCatalogWalkthroughComplete(false);
+    if (remotePagePreview && !remotePreviewFailed) setRemotePreviewRequested(true);
   };
   const requireAuthenticatedAction = (event, returnPath) => {
     if (user) return false;
@@ -84,12 +99,24 @@ export default function TemplateCard({ template }) {
     if (authWarningOpen) loginButtonRef.current?.focus();
   }, [authWarningOpen]);
 
+  useEffect(() => {
+    setRemotePreviewRequested(false);
+    setRemotePreviewReady(false);
+    setRemotePreviewFailed(false);
+  }, [remotePagePreview]);
+
   return (
     <article
       className="template-card reveal catalog-template-card"
       role="button"
       tabIndex={0}
       onClick={openQr}
+      onMouseEnter={prepareCatalogPreview}
+      onMouseLeave={() => setCatalogWalkthroughComplete(false)}
+      onFocus={prepareCatalogPreview}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setCatalogWalkthroughComplete(false);
+      }}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
@@ -99,7 +126,29 @@ export default function TemplateCard({ template }) {
       aria-label={`${template.code || template.title}. ${t('scanQr')}`}
     >
       <div className="template-image catalog-template-preview">
-        {mainImage ? (
+        {catalogPagePreview ? (
+          <img
+            className={`catalog-template-scroll-shot${remotePreviewReady ? ' is-ready' : ''}`}
+            src={catalogPagePreview}
+            alt={`${template.title} — ամբողջական էջ`}
+            loading="eager"
+            decoding="async"
+            onLoad={() => {
+              setRemotePreviewReady(false);
+              window.requestAnimationFrame(() => {
+                window.requestAnimationFrame(() => setRemotePreviewReady(true));
+              });
+            }}
+            onError={() => {
+              setRemotePreviewReady(false);
+              setRemotePreviewRequested(false);
+              setRemotePreviewFailed(true);
+            }}
+            onTransitionEnd={(event) => {
+              if (event.propertyName === 'transform') setCatalogWalkthroughComplete(true);
+            }}
+          />
+        ) : mainImage ? (
           <img
             src={mainImage}
             alt={template.title}
@@ -113,6 +162,16 @@ export default function TemplateCard({ template }) {
           />
         ) : (
           <span>{template.title}</span>
+        )}
+        {catalogPagePreview && mainImage && (
+          <img
+            className={`catalog-template-final-cover${catalogWalkthroughComplete ? ' is-visible' : ''}`}
+            src={mainImage}
+            alt={template.title}
+            loading="lazy"
+            decoding="async"
+            style={{ objectPosition, transformOrigin: objectPosition }}
+          />
         )}
         <span className="catalog-new-badge">{t('new')}</span>
       </div>

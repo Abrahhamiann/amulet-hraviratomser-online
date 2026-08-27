@@ -3,11 +3,76 @@ import test from 'node:test';
 import Setting from '../models/Setting.js';
 import Template from '../models/Template.js';
 import { ensureCuratedTemplates } from '../utils/ensureCuratedTemplates.js';
-import { templateDeletionKey } from '../utils/templateDeletion.js';
+import {
+  deleteTemplatePermanently,
+  purgeSoftDeletedTemplates,
+  templateDeletionKey
+} from '../utils/templateDeletion.js';
 
 test('template deletion metadata is persisted by the schema', () => {
   assert.equal(Template.schema.path('deletedAt')?.instance, 'Date');
   assert.equal(Template.schema.path('deletedBy')?.instance, 'ObjectId');
+});
+
+test('admin deletion writes the permanent marker before removing the template document', async () => {
+  const originalSettingUpdate = Setting.findOneAndUpdate;
+  const originalTemplateDelete = Template.deleteOne;
+  const operations = [];
+  Setting.findOneAndUpdate = async ({ key }) => {
+    operations.push(`marker:${key}`);
+    return {};
+  };
+  Template.deleteOne = async ({ _id }) => {
+    operations.push(`delete:${_id}`);
+    return { deletedCount: 1 };
+  };
+
+  try {
+    await deleteTemplatePermanently({ _id: 'template-id', slug: 'custom-template' }, 'admin-id');
+    assert.deepEqual(operations, [
+      `marker:${templateDeletionKey('custom-template')}`,
+      'delete:template-id'
+    ]);
+  } finally {
+    Setting.findOneAndUpdate = originalSettingUpdate;
+    Template.deleteOne = originalTemplateDelete;
+  }
+});
+
+test('restart cleanup permanently removes legacy soft-deleted templates and preserves markers', async () => {
+  const originalFind = Template.find;
+  const originalDeleteMany = Template.deleteMany;
+  const originalBulkWrite = Setting.bulkWrite;
+  let markerOperations = [];
+  let deletedIds = [];
+  Template.find = () => ({
+    select: () => ({
+      lean: async () => [{
+        _id: 'legacy-id',
+        slug: 'legacy-deleted-template',
+        deletedAt: new Date('2026-08-22T10:00:00.000Z'),
+        deletedBy: 'admin-id'
+      }]
+    })
+  });
+  Setting.bulkWrite = async (operations) => {
+    markerOperations = operations;
+    return { ok: 1 };
+  };
+  Template.deleteMany = async ({ _id }) => {
+    deletedIds = _id.$in;
+    return { deletedCount: deletedIds.length };
+  };
+
+  try {
+    assert.equal(await purgeSoftDeletedTemplates(), 1);
+    assert.equal(markerOperations[0].updateOne.filter.key, templateDeletionKey('legacy-deleted-template'));
+    assert.deepEqual(deletedIds, ['legacy-id']);
+  } finally {
+    Template.find = originalFind;
+    Template.deleteMany = originalDeleteMany;
+    Setting.bulkWrite = originalBulkWrite;
+  }
 });
 
 test('curated startup provisioning does not reactivate a deleted template', async () => {

@@ -52,7 +52,7 @@ test('template codes are compacted and the next sequence is reset after deletion
   const originals = {
     find: Template.find,
     updateMany: Template.updateMany,
-    updateOne: Template.updateOne,
+    bulkWrite: Template.bulkWrite,
     findOneAndUpdate: Setting.findOneAndUpdate
   };
   const updatedCodes = [];
@@ -64,8 +64,10 @@ test('template codes are compacted and the next sequence is reset after deletion
     })
   });
   Template.updateMany = async () => ({ acknowledged: true });
-  Template.updateOne = async (filter, update) => {
-    updatedCodes.push([filter._id, update.$set.code]);
+  Template.bulkWrite = async (operations) => {
+    operations.forEach(({ updateOne }) => {
+      updatedCodes.push([updateOne.filter._id, updateOne.update.$set.code]);
+    });
     return { acknowledged: true };
   };
   Setting.findOneAndUpdate = async (_filter, update) => {
@@ -80,7 +82,7 @@ test('template codes are compacted and the next sequence is reset after deletion
   } finally {
     Template.find = originals.find;
     Template.updateMany = originals.updateMany;
-    Template.updateOne = originals.updateOne;
+    Template.bulkWrite = originals.bulkWrite;
     Setting.findOneAndUpdate = originals.findOneAndUpdate;
   }
 });

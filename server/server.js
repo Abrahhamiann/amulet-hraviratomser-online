@@ -28,6 +28,8 @@ import { ensureCuratedTemplates } from './utils/ensureCuratedTemplates.js';
 import { ensureDefaultReviews } from './utils/ensureDefaultReviews.js';
 import { ensureTemplateCodes } from './utils/templateCode.js';
 import { removeLegacyEngagementTemplates } from './utils/removeLegacyEngagementTemplates.js';
+import Template from './models/Template.js';
+import { purgeSoftDeletedTemplates } from './utils/templateDeletion.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -107,6 +109,11 @@ existingAmuletServer()
       return;
     }
     await connectDB();
+    await purgeSoftDeletedTemplates();
+    await Template.updateMany(
+      { pagePreviewImage: { $exists: true, $nin: ['', null] }, pagePreviewAvailable: { $ne: true } },
+      { $set: { pagePreviewAvailable: true } }
+    );
     await removeLegacyEngagementTemplates();
     await ensureCuratedTemplates();
     await ensureTemplateCodes();

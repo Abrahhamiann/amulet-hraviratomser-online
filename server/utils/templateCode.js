@@ -60,11 +60,13 @@ export const ensureTemplateCodes = async () => {
 
     if (needsMigration) {
       await Template.updateMany({ _id: { $in: templates.map((template) => template._id) } }, { $unset: { code: 1 } });
-      for (const [category, items] of Object.entries(grouped)) {
-        for (let index = 0; index < items.length; index += 1) {
-          await Template.updateOne({ _id: items[index]._id }, { $set: { code: templateCodeForCategory(category, index + 1) } });
+      const codeUpdates = Object.entries(grouped).flatMap(([category, items]) => items.map((template, index) => ({
+        updateOne: {
+          filter: { _id: template._id },
+          update: { $set: { code: templateCodeForCategory(category, index + 1) } }
         }
-      }
+      })));
+      if (codeUpdates.length) await Template.bulkWrite(codeUpdates);
     }
 
     // Counters must mirror the database exactly. Using $max here left stale
@@ -105,11 +107,13 @@ export const reindexTemplateCodes = async (category) => {
     { $unset: { code: 1 } }
   );
 
-  for (let index = 0; index < templates.length; index += 1) {
-    await Template.updateOne(
-      { _id: templates[index]._id },
-      { $set: { code: templateCodeForCategory(category, index + 1) } }
-    );
+  if (templates.length) {
+    await Template.bulkWrite(templates.map((template, index) => ({
+      updateOne: {
+        filter: { _id: template._id },
+        update: { $set: { code: templateCodeForCategory(category, index + 1) } }
+      }
+    })));
   }
 
   await Setting.findOneAndUpdate(
