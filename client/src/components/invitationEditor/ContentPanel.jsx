@@ -101,6 +101,8 @@ const getEditorCapabilities = (template = {}) => {
     family: true, familyVisible: true, groomFamilyTitle: true, brideFamilyTitle: true,
     schedule: true, eventDate: true, eventTime: true, venues: true, receptionVisible: true,
     rsvp: true, questionsVisible: true, rsvpDescription: false, rsvpDeadline: false,
+    rsvpQuestion: true, rsvpGuestCount: true, rsvpMeal: true,
+    venueAddress: true, venueMapLink: true, maxVenues: null,
     dress: false, dressCodeVisible: false, closing: true, finalMessageVisible: true
   };
   if (key.includes('sacred-beginnings') || key.includes('sacred-baptism')) return {
@@ -110,6 +112,22 @@ const getEditorCapabilities = (template = {}) => {
   if (key.includes('birthday-sparkle') || key.includes('sparkle-birthday')) return {
     ...base, openingVisible: false, family: false, familyVisible: false,
     groomFamilyTitle: false, brideFamilyTitle: false, venues: true, dress: true
+  };
+  if (key.includes('birthday-space') || key.includes('space-birthday') || key.includes('cnund1')) return {
+    ...base, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
+    rsvpDescription: true, rsvpDeadline: true, futureDateOnly: true
+  };
+  if (key.includes('birthday-watercolor') || key.includes('watercolor-birthday') || key.includes('cnund2')) return {
+    ...base, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
+    rsvpDescription: true, rsvpDeadline: true, futureDateOnly: true
+  };
+  if (key.includes('birthday-crimson') || key.includes('emma-birthday') || key.includes('cnund3')) return {
+    ...base, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
+    dress: true, dressCodeVisible: true, dressPalette: true,
+    rsvpDescription: true, rsvpDeadline: true, futureDateOnly: true
   };
   if (key.includes('ivory-vows') || key.includes('ivory-wedding')) return {
     ...base, openingVisible: false, family: false, familyVisible: false,
@@ -152,9 +170,67 @@ const getEditorCapabilities = (template = {}) => {
   };
   if (key.includes('burgundy-roadmap') || key.includes('wedding-burgundy-roadmap')) return {
     ...base, openingVisible: false, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, eventTime: false, venues: true,
+    dress: false, dressCodeVisible: false, dressPalette: false,
+    rsvpDescription: true, rsvpDeadline: true, rsvpQuestion: false,
+    rsvpGuestCount: false, rsvpMeal: false, venueAddress: false,
+    venueMapLink: false, maxVenues: 4, closing: false, finalMessageVisible: false
+  };
+  if (key.includes('monochrome-envelope') || key.includes('harsaniq2')) return {
+    ...base, openingVisible: false, family: false, familyVisible: false,
     groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
     dress: true, dressCodeVisible: true, dressPalette: true,
-    rsvpDescription: true, rsvpDeadline: true
+    rsvpDescription: true, rsvpDeadline: true, rsvpQuestion: false,
+    rsvpGuestCount: true, rsvpMeal: false, maxVenues: 4,
+    closing: false, finalMessageVisible: false
+  };
+  if (key.includes('love-map-wedding') || key.includes('harsaniq4')) return {
+    ...base, openingVisible: false, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
+    dress: true, dressCodeVisible: true, dressPalette: true,
+    rsvpDescription: true, rsvpDeadline: true, rsvpQuestion: false,
+    rsvpGuestCount: true, rsvpMeal: false, maxVenues: 3,
+    closing: false, finalMessageVisible: false
+  };
+  if (key.includes('angelic-baptism') || key.includes('knunq1')) return {
+    ...base, openingVisible: false, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
+    dress: true, dressCodeVisible: true, dressPalette: true,
+    rsvpDescription: true, rsvpDeadline: true, rsvpQuestion: false,
+    rsvpGuestCount: true, rsvpMeal: false, maxVenues: 2,
+    closing: false, finalMessageVisible: false
+  };
+  if (key.includes('polaroid-engagement') || key.includes('nshanadrutyun1')) return {
+    ...base, openingVisible: false, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
+    dress: false, dressCodeVisible: false, dressPalette: false,
+    rsvpDescription: true, rsvpDeadline: true, rsvpQuestion: false,
+    rsvpGuestCount: true, rsvpMeal: false, maxVenues: 1,
+    closing: false, finalMessageVisible: false
+  };
+  if (key.includes('golden-heart-engagement') || key.includes('nshanadrutyun2')) return {
+    ...base, openingVisible: false, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
+    dress: true, dressCodeVisible: true, dressPalette: true,
+    rsvpDescription: true, rsvpDeadline: true, rsvpQuestion: false,
+    rsvpGuestCount: true, rsvpMeal: false, maxVenues: 1,
+    closing: false, finalMessageVisible: false
+  };
+  if (key.includes('cinematic-engagement') || key.includes('nshanadrutyun3')) return {
+    ...base, openingVisible: false, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
+    dress: true, dressCodeVisible: true, dressPalette: true,
+    rsvpDescription: true, rsvpDeadline: true, rsvpQuestion: false,
+    rsvpGuestCount: true, rsvpMeal: false, maxVenues: 4,
+    closing: false, finalMessageVisible: false
+  };
+  if (key.includes('last-bell') || key.includes('verjin-zang-1')) return {
+    ...base, openingVisible: false, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
+    dress: false, dressCodeVisible: false, dressPalette: false,
+    rsvpDescription: true, rsvpDeadline: true, rsvpQuestion: false,
+    rsvpGuestCount: true, rsvpMeal: false, maxVenues: 2,
+    closing: false, finalMessageVisible: false
   };
   if (key.includes('midnight-vows') || key.includes('engagement-serenade') || key.includes('baptism-blessing')) return base;
   return base;
@@ -170,6 +246,12 @@ export default function ContentPanel() {
   const editorType = String(template?.editorType || template?.category || 'wedding').toLowerCase();
   const profile = editorProfiles[editorType] || editorProfiles.wedding;
   const capabilities = getEditorCapabilities(template);
+  const now = new Date();
+  const minimumEventDate = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, '0'),
+    String(now.getDate()).padStart(2, '0')
+  ].join('-');
   const isBaptismEditor = editorType === 'baptism';
   const dressColorNames = new Set((data.dressCodeColors || []).map((color) => String(color?.name || '').trim()).filter(Boolean));
   const visibleTemplateTexts = editableContent.texts.filter((item) => {
@@ -318,11 +400,15 @@ export default function ContentPanel() {
 
       <CollapsibleSection {...sectionProps('schedule', t('editorDateTimeSchedule'), CalendarDays, 'receptionVisible', capabilities.receptionVisible)}>
         <div className="invite-editor-grid-two">
-          {capabilities.eventDate && <Field label={t('date')} editorField="eventDate"><input type="date" value={data.eventDate || ''} onChange={(event) => setField('eventDate', event.target.value)} /></Field>}
+          {capabilities.eventDate && <Field label={t('date')} editorField="eventDate"><input type="date" min={capabilities.futureDateOnly ? minimumEventDate : undefined} value={data.eventDate || ''} onChange={(event) => {
+            const value = event.target.value;
+            if (capabilities.futureDateOnly && value && value < minimumEventDate) return;
+            setField('eventDate', value);
+          }} /></Field>}
           {capabilities.eventTime && <Field label={t('editorMainTime')} editorField="eventTime"><input type="time" value={data.eventTime || ''} onChange={(event) => capabilities.venues ? updateVenue(0, 'time', event.target.value) : setField('eventTime', event.target.value)} /></Field>}
         </div>
         {!capabilities.venues && <Field label={t('address')} editorField="eventLocation"><textarea rows="2" value={data.eventLocation || ''} onChange={(event) => setField('eventLocation', event.target.value)} /></Field>}
-        {capabilities.venues && <><div className="invite-editor-list-heading"><strong>{t('editorEventSchedule')}</strong><button type="button" onClick={() => update((draft) => {
+        {capabilities.venues && <><div className="invite-editor-list-heading"><strong>{t('editorEventSchedule')}</strong><button type="button" disabled={Number.isFinite(capabilities.maxVenues) && data.mapLinks.length >= capabilities.maxVenues} onClick={() => update((draft) => {
           if (!Array.isArray(draft.mapLinks)) draft.mapLinks = [];
           draft.mapLinks.push(newVenue(draft.mapLinks.length, `${t('editorVenue')} ${draft.mapLinks.length + 1}`));
         })}><Plus size={15} /> {t('add')}</button></div>
@@ -343,8 +429,8 @@ export default function ContentPanel() {
               </div></header>
               <Field label={t('name')} editorField={`mapLinks.${index}.label`}><input value={item.label || ''} onChange={(event) => updateVenue(index, 'label', event.target.value)} /></Field>
               <Field label={t('time')} editorField={`mapLinks.${index}.time`}><input type="time" value={item.time || ''} onChange={(event) => updateVenue(index, 'time', event.target.value)} /></Field>
-              <Field label={t('address')} editorField={`mapLinks.${index}.address`}><textarea rows="2" value={item.address || ''} onChange={(event) => updateVenue(index, 'address', event.target.value)} /></Field>
-              <Field label={t('editorGoogleMapsLink')} editorField={`mapLinks.${index}.url`}><input inputMode="url" value={item.url || ''} onChange={(event) => updateVenue(index, 'url', event.target.value)} /></Field>
+              {capabilities.venueAddress && <Field label={t('address')} editorField={`mapLinks.${index}.address`}><textarea rows="2" value={item.address || ''} onChange={(event) => updateVenue(index, 'address', event.target.value)} /></Field>}
+              {capabilities.venueMapLink && <Field label={t('editorGoogleMapsLink')} editorField={`mapLinks.${index}.url`}><input inputMode="url" value={item.url || ''} onChange={(event) => updateVenue(index, 'url', event.target.value)} /></Field>}
             </article>
           ))}
         </div></>}
@@ -361,9 +447,9 @@ export default function ContentPanel() {
           <Field label={t('editorNotAttendingOption')} editorField="rsvpSettings.notAttendingLabel"><input value={data.rsvpSettings?.notAttendingLabel || ''} onChange={(event) => update((draft) => { draft.rsvpSettings.notAttendingLabel = event.target.value; })} /></Field>
         </div>
         <Field label={t('editorButtonText')} editorField="rsvpSettings.submitLabel"><input value={data.rsvpSettings?.submitLabel || ''} onChange={(event) => update((draft) => { draft.rsvpSettings.submitLabel = event.target.value; })} /></Field>
-        <Field label={t('editorExtraQuestion')} hint={t('optional')} editorField="rsvpQuestion"><textarea rows="2" value={data.rsvpQuestion || ''} onChange={(event) => setField('rsvpQuestion', event.target.value)} /></Field>
-        <div className="invite-editor-toggle-row"><span>{t('editorAskGuestCount')}</span><Toggle checked={data.rsvpSettings?.askGuestCount !== false} onChange={(value) => update((draft) => { draft.rsvpSettings = { ...(draft.rsvpSettings || {}), askGuestCount: value }; })} label={t('guestCount')} /></div>
-        <div className="invite-editor-toggle-row"><span>{t('editorAskMeal')}</span><Toggle checked={data.rsvpSettings?.askMeal === true} onChange={(value) => update((draft) => { draft.rsvpSettings = { ...(draft.rsvpSettings || {}), askMeal: value }; })} label={t('editorMealPreference')} /></div>
+        {capabilities.rsvpQuestion && <Field label={t('editorExtraQuestion')} hint={t('optional')} editorField="rsvpQuestion"><textarea rows="2" value={data.rsvpQuestion || ''} onChange={(event) => setField('rsvpQuestion', event.target.value)} /></Field>}
+        {capabilities.rsvpGuestCount && <div className="invite-editor-toggle-row"><span>{t('editorAskGuestCount')}</span><Toggle checked={data.rsvpSettings?.askGuestCount !== false} onChange={(value) => update((draft) => { draft.rsvpSettings = { ...(draft.rsvpSettings || {}), askGuestCount: value }; })} label={t('guestCount')} /></div>}
+        {capabilities.rsvpMeal && <div className="invite-editor-toggle-row"><span>{t('editorAskMeal')}</span><Toggle checked={data.rsvpSettings?.askMeal === true} onChange={(value) => update((draft) => { draft.rsvpSettings = { ...(draft.rsvpSettings || {}), askMeal: value }; })} label={t('editorMealPreference')} /></div>}
         {renderTemplateTextFields('rsvp')}
       </CollapsibleSection>
 
@@ -390,10 +476,10 @@ export default function ContentPanel() {
           {renderTemplateTextFields('dress')}
         </CollapsibleSection>}
 
-      <CollapsibleSection {...sectionProps('closing', t('editorClosingWords'), MessageSquare, 'finalMessageVisible')}>
+      {capabilities.closing && <CollapsibleSection {...sectionProps('closing', t('editorClosingWords'), MessageSquare, 'finalMessageVisible')}>
         <Field label={t('editorClosingMessage')} editorField="closingMessage"><textarea rows="3" value={data.closingMessage || ''} onChange={(event) => setField('closingMessage', event.target.value)} /></Field>
         {renderTemplateTextFields('closing')}
-      </CollapsibleSection>
+      </CollapsibleSection>}
 
     </div>
   );

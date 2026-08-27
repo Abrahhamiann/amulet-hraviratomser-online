@@ -33,6 +33,14 @@ import birthdayGallery2 from "../../../client/src/assets/importedTemplates/birth
 import birthdayGallery3 from "../../../client/src/assets/importedTemplates/birthday/gallery-3.jpg";
 import birthdayGallery4 from "../../../client/src/assets/importedTemplates/birthday/gallery-4.jpg";
 import birthdayGallery5 from "../../../client/src/assets/importedTemplates/birthday/gallery-5.jpg";
+import birthdaySpaceCover from "../../../client/src/vendorTemplates/cnund1/src/assets/final-reference.png";
+import birthdayWatercolorBackground from "../../../client/src/vendorTemplates/cnund2/src/assets/images/background.png";
+import birthdayWatercolorFlowers from "../../../client/src/vendorTemplates/cnund2/src/assets/images/flowers.png";
+import birthdayCrimsonCocktails from "../../../client/src/vendorTemplates/cnund3/src/assets/images/cocktails.png";
+import birthdayCrimsonCake from "../../../client/src/vendorTemplates/cnund3/src/assets/images/cake.png";
+import birthdayCrimsonDinner from "../../../client/src/vendorTemplates/cnund3/src/assets/images/dinner.png";
+import birthdayCrimsonMusic from "../../../client/src/vendorTemplates/cnund3/src/assets/images/music.png";
+import birthdayCrimsonMartini from "../../../client/src/vendorTemplates/cnund3/src/assets/images/martini.png";
 import ivoryHero from "../../../client/src/assets/importedTemplates/ivory/hero.jpg";
 import ivoryChurch from "../../../client/src/assets/importedTemplates/ivory/church.jpg";
 import ivoryHall from "../../../client/src/assets/importedTemplates/ivory/hall.jpg";
@@ -77,6 +85,29 @@ import silkVowsHero from "../../../client/src/vendorTemplates/silkvows/assets/he
 import silkVowsChurch from "../../../client/src/vendorTemplates/silkvows/assets/church.jpg";
 import silkVowsHall from "../../../client/src/vendorTemplates/silkvows/assets/hall.jpg";
 import silkVowsQuote from "../../../client/src/vendorTemplates/silkvows/assets/quote.jpg";
+import burgundyRoadmapHero from "../../../client/src/vendorTemplates/harsaniq1/src/assets/nkar1.jpg";
+import burgundyRoadmapPortrait from "../../../client/src/vendorTemplates/harsaniq1/src/assets/couple.jpg";
+import burgundyRoadmapRings from "../../../client/src/vendorTemplates/harsaniq1/src/assets/weddingnkar.jpg";
+import monochromeEnvelopeHero from "../../../client/src/vendorTemplates/harsaniq2/src/assets/images/hero-couple.jpg";
+import monochromeEnvelopeRings from "../../../client/src/vendorTemplates/harsaniq2/src/assets/images/rings.jpg";
+import monochromeEnvelopePortrait from "../../../client/src/vendorTemplates/harsaniq2/src/assets/images/portrait.jpg";
+import loveMapCoupleOne from "../../../client/src/vendorTemplates/harsaniq4/src/assets/images/couple-one.jpg";
+import loveMapCoupleTwo from "../../../client/src/vendorTemplates/harsaniq4/src/assets/images/couple-two.jpg";
+import angelicBaptismBaby from "../../../client/src/vendorTemplates/knunq1/src/assets/images/baby.jpg";
+import polaroidEngagementOne from "../../../client/src/vendorTemplates/nshanadrutyun1/src/assets/images/couple-1.jpg";
+import polaroidEngagementTwo from "../../../client/src/vendorTemplates/nshanadrutyun1/src/assets/images/couple-2.jpg";
+import polaroidEngagementVenue from "../../../client/src/vendorTemplates/nshanadrutyun1/src/assets/images/restaurant.png";
+import goldenHeartMountain from "../../../client/src/vendorTemplates/nshanadrutyun2/src/assets/images/couple-mountain.jpg";
+import goldenHeartFlowers from "../../../client/src/vendorTemplates/nshanadrutyun2/src/assets/images/couple-flowers.jpg";
+import cinematicEngagementOne from "../../../client/src/vendorTemplates/nshanadrutyun3/src/assets/images/couple-1.jpg";
+import cinematicEngagementTwo from "../../../client/src/vendorTemplates/nshanadrutyun3/src/assets/images/couple-2.jpg";
+import cinematicEngagementThree from "../../../client/src/vendorTemplates/nshanadrutyun3/src/assets/images/couple-3.jpg";
+import cinematicEngagementFour from "../../../client/src/vendorTemplates/nshanadrutyun3/src/assets/images/couple-4.jpg";
+import cinematicEngagementFive from "../../../client/src/vendorTemplates/nshanadrutyun3/src/assets/images/couple-5.jpg";
+import cinematicEngagementVenue from "../../../client/src/vendorTemplates/nshanadrutyun3/src/assets/images/restaurant.png";
+import lastBellHero from "../../../client/src/vendorTemplates/verjinzang1/src/assets/bell-photo.jpg";
+import lastBellSchool from "../../../client/src/vendorTemplates/verjinzang1/src/assets/school.jpg";
+import lastBellVenue from "../../../client/src/vendorTemplates/verjinzang1/src/assets/venue.jpg";
 
 export const Route = createFileRoute("/admin/templates")({ component: TemplatesPage });
 
@@ -89,6 +120,9 @@ const defaultImagePosition = {
 const staticDesignOptions = [
   { key: "sacred-beginnings", label: "Սուրբ սկիզբ · մկրտություն", category: "baptism" },
   { key: "birthday-sparkle", label: "Փայլուն տարեդարձ", category: "birth" },
+  { key: "birthday-space", label: "Տիեզերական տարեդարձ", category: "birth" },
+  { key: "birthday-watercolor", label: "Ջրաներկ տարեդարձ", category: "birth" },
+  { key: "birthday-crimson", label: "Կարմիր տարեդարձ", category: "birth" },
   { key: "ivory-vows", label: "Փղոսկրե երդումներ · հարսանիք", category: "wedding" },
   { key: "divine-blessing", label: "Աստվածային օրհնություն · մկրտություն", category: "baptism" },
   { key: "elevate-invite", label: "Elevate · գործարար միջոցառում", category: "corporate" },
@@ -96,6 +130,13 @@ const staticDesignOptions = [
   { key: "forever-vows", label: "Forever Vows · նշանադրություն", category: "engagement" },
   { key: "silk-vows", label: "Մետաքսե երդումներ · հարսանիք", category: "wedding" },
   { key: "burgundy-roadmap", label: "Գինեգույն ճանապարհ · հարսանիք", category: "wedding" },
+  { key: "monochrome-envelope", label: "Մոնոխրոմ հրավեր · հարսանիք", category: "wedding" },
+  { key: "love-map-wedding", label: "Սիրո քարտեզ · հարսանիք", category: "wedding" },
+  { key: "angelic-baptism", label: "Հրեշտակային մկրտություն", category: "baptism" },
+  { key: "polaroid-engagement", label: "Պոլարոիդ նշանադրություն", category: "engagement" },
+  { key: "golden-heart-engagement", label: "Ոսկե սիրտ · նշանադրություն", category: "engagement" },
+  { key: "cinematic-engagement", label: "Կինոժապավեն · նշանադրություն", category: "engagement" },
+  { key: "last-bell", label: "Վերջին զանգ", category: "corporate" },
 ];
 
 const adminCategoryOptions = ["wedding", "baptism", "birth", "engagement", "other"];
@@ -118,6 +159,14 @@ const templateAssetPreviews: Record<string, string> = {
   "asset:curated/birthday/gallery-3.jpg": birthdayGallery3,
   "asset:curated/birthday/gallery-4.jpg": birthdayGallery4,
   "asset:curated/birthday/gallery-5.jpg": birthdayGallery5,
+  "asset:curated/birthday-space/final-reference.png": birthdaySpaceCover,
+  "asset:curated/birthday-watercolor/background.png": birthdayWatercolorBackground,
+  "asset:curated/birthday-watercolor/flowers.png": birthdayWatercolorFlowers,
+  "asset:curated/birthday-crimson/cocktails.png": birthdayCrimsonCocktails,
+  "asset:curated/birthday-crimson/cake.png": birthdayCrimsonCake,
+  "asset:curated/birthday-crimson/dinner.png": birthdayCrimsonDinner,
+  "asset:curated/birthday-crimson/music.png": birthdayCrimsonMusic,
+  "asset:curated/birthday-crimson/martini.png": birthdayCrimsonMartini,
   "asset:curated/ivory/hero.jpg": ivoryHero,
   "asset:curated/ivory/church.jpg": ivoryChurch,
   "asset:curated/ivory/hall.jpg": ivoryHall,
@@ -162,10 +211,29 @@ const templateAssetPreviews: Record<string, string> = {
   "asset:curated/silk-vows/church.jpg": silkVowsChurch,
   "asset:curated/silk-vows/hall.jpg": silkVowsHall,
   "asset:curated/silk-vows/quote.jpg": silkVowsQuote,
-  "asset:curated/burgundy-roadmap/hero.jpg": everlastingGallery4,
-  "asset:curated/burgundy-roadmap/portrait.jpg": everlastingGallery1,
-  "asset:curated/burgundy-roadmap/rings.jpg": everlastingGallery2,
-  "asset:curated/burgundy-roadmap/flowers.jpg": everlastingGallery3,
+  "asset:curated/burgundy-roadmap/hero.jpg": burgundyRoadmapHero,
+  "asset:curated/burgundy-roadmap/portrait.jpg": burgundyRoadmapPortrait,
+  "asset:curated/burgundy-roadmap/rings.jpg": burgundyRoadmapRings,
+  "asset:curated/monochrome-envelope/hero.jpg": monochromeEnvelopeHero,
+  "asset:curated/monochrome-envelope/rings.jpg": monochromeEnvelopeRings,
+  "asset:curated/monochrome-envelope/portrait.jpg": monochromeEnvelopePortrait,
+  "asset:curated/love-map-wedding/couple-one.jpg": loveMapCoupleOne,
+  "asset:curated/love-map-wedding/couple-two.jpg": loveMapCoupleTwo,
+  "asset:curated/angelic-baptism/baby.jpg": angelicBaptismBaby,
+  "asset:curated/polaroid-engagement/couple-1.jpg": polaroidEngagementOne,
+  "asset:curated/polaroid-engagement/couple-2.jpg": polaroidEngagementTwo,
+  "asset:curated/polaroid-engagement/restaurant.png": polaroidEngagementVenue,
+  "asset:curated/golden-heart-engagement/couple-mountain.jpg": goldenHeartMountain,
+  "asset:curated/golden-heart-engagement/couple-flowers.jpg": goldenHeartFlowers,
+  "asset:curated/cinematic-engagement/couple-1.jpg": cinematicEngagementOne,
+  "asset:curated/cinematic-engagement/couple-2.jpg": cinematicEngagementTwo,
+  "asset:curated/cinematic-engagement/couple-3.jpg": cinematicEngagementThree,
+  "asset:curated/cinematic-engagement/couple-4.jpg": cinematicEngagementFour,
+  "asset:curated/cinematic-engagement/couple-5.jpg": cinematicEngagementFive,
+  "asset:curated/cinematic-engagement/restaurant.png": cinematicEngagementVenue,
+  "asset:curated/last-bell/bell-photo.jpg": lastBellHero,
+  "asset:curated/last-bell/school.jpg": lastBellSchool,
+  "asset:curated/last-bell/venue.jpg": lastBellVenue,
 };
 
 const defaultDesignGalleries: Record<string, string[]> = {
@@ -185,6 +253,20 @@ const defaultDesignGalleries: Record<string, string[]> = {
     "asset:curated/birthday/gallery-3.jpg",
     "asset:curated/birthday/gallery-4.jpg",
     "asset:curated/birthday/gallery-5.jpg",
+  ],
+  "birthday-space": [
+    "asset:curated/birthday-space/final-reference.png",
+  ],
+  "birthday-watercolor": [
+    "asset:curated/birthday-watercolor/background.png",
+    "asset:curated/birthday-watercolor/flowers.png",
+  ],
+  "birthday-crimson": [
+    "asset:curated/birthday-crimson/cocktails.png",
+    "asset:curated/birthday-crimson/cake.png",
+    "asset:curated/birthday-crimson/dinner.png",
+    "asset:curated/birthday-crimson/music.png",
+    "asset:curated/birthday-crimson/martini.png",
   ],
   "ivory-vows": [
     "asset:curated/ivory/hero.jpg",
@@ -248,7 +330,38 @@ const defaultDesignGalleries: Record<string, string[]> = {
     "asset:curated/burgundy-roadmap/hero.jpg",
     "asset:curated/burgundy-roadmap/portrait.jpg",
     "asset:curated/burgundy-roadmap/rings.jpg",
-    "asset:curated/burgundy-roadmap/flowers.jpg",
+  ],
+  "monochrome-envelope": [
+    "asset:curated/monochrome-envelope/hero.jpg",
+    "asset:curated/monochrome-envelope/rings.jpg",
+    "asset:curated/monochrome-envelope/portrait.jpg",
+  ],
+  "love-map-wedding": [
+    "asset:curated/love-map-wedding/couple-one.jpg",
+    "asset:curated/love-map-wedding/couple-two.jpg",
+  ],
+  "angelic-baptism": ["asset:curated/angelic-baptism/baby.jpg"],
+  "polaroid-engagement": [
+    "asset:curated/polaroid-engagement/couple-1.jpg",
+    "asset:curated/polaroid-engagement/couple-2.jpg",
+    "asset:curated/polaroid-engagement/restaurant.png",
+  ],
+  "golden-heart-engagement": [
+    "asset:curated/golden-heart-engagement/couple-mountain.jpg",
+    "asset:curated/golden-heart-engagement/couple-flowers.jpg",
+  ],
+  "cinematic-engagement": [
+    "asset:curated/cinematic-engagement/couple-1.jpg",
+    "asset:curated/cinematic-engagement/couple-2.jpg",
+    "asset:curated/cinematic-engagement/couple-3.jpg",
+    "asset:curated/cinematic-engagement/couple-4.jpg",
+    "asset:curated/cinematic-engagement/couple-5.jpg",
+    "asset:curated/cinematic-engagement/restaurant.png",
+  ],
+  "last-bell": [
+    "asset:curated/last-bell/bell-photo.jpg",
+    "asset:curated/last-bell/school.jpg",
+    "asset:curated/last-bell/venue.jpg",
   ],
 };
 

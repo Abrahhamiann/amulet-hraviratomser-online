@@ -54,6 +54,60 @@ const templates = [
     isActive: true
   },
   {
+    title: 'Տիեզերական տարեդարձ',
+    slug: 'birthday-space',
+    category: 'birth',
+    editorType: 'birth',
+    price: 29000,
+    description: 'Ջրաներկ տիեզերական ոճով ծննդյան հրավիրատոմս՝ օրացույցով, վայրով, հետհաշվարկով, երաժշտությամբ և RSVP բաժնով։',
+    features: ['Հայերեն responsive ձևավորում', 'Օրացույց և հետհաշվարկ', 'Քարտեզ', 'Երաժշտություն', 'RSVP ձև'],
+    designKey: 'birthday-space',
+    mainImage: 'asset:curated/birthday-space/final-reference.png',
+    gallery: ['asset:curated/birthday-space/final-reference.png'],
+    galleryConfigured: false,
+    isFeatured: true,
+    isActive: true
+  },
+  {
+    title: 'Ջրաներկ տարեդարձ',
+    slug: 'birthday-watercolor',
+    category: 'birth',
+    editorType: 'birth',
+    price: 29000,
+    description: 'Ջրաներկ ծաղկային ոճով ծննդյան հրավիրատոմս՝ օրացույցով, հետհաշվարկով, օրվա ծրագրով, երաժշտությամբ և RSVP բաժնով։',
+    features: ['Հայերեն responsive ձևավորում', 'Օրացույց և հետհաշվարկ', 'Օրվա ծրագիր և քարտեզ', 'Երաժշտություն', 'RSVP ձև'],
+    designKey: 'birthday-watercolor',
+    mainImage: 'asset:curated/birthday-watercolor/background.png',
+    gallery: [
+      'asset:curated/birthday-watercolor/background.png',
+      'asset:curated/birthday-watercolor/flowers.png'
+    ],
+    galleryConfigured: false,
+    isFeatured: true,
+    isActive: true
+  },
+  {
+    title: 'Կարմիր տարեդարձ',
+    slug: 'birthday-crimson',
+    category: 'birth',
+    editorType: 'birth',
+    price: 29000,
+    description: 'Կարմիր և վարդագույն ձեռագիր ոճով ծննդյան հրավիրատոմս՝ ամսաթվով, հետհաշվարկով, օրվա ծրագրով, dress code-ով, երաժշտությամբ և RSVP բաժնով։',
+    features: ['Responsive ձևավորում', 'Ամսաթիվ և հետհաշվարկ', 'Օրվա ծրագիր և քարտեզ', 'Dress code', 'Երաժշտություն', 'RSVP ձև'],
+    designKey: 'birthday-crimson',
+    mainImage: 'asset:curated/birthday-crimson/cocktails.png',
+    gallery: [
+      'asset:curated/birthday-crimson/cocktails.png',
+      'asset:curated/birthday-crimson/cake.png',
+      'asset:curated/birthday-crimson/dinner.png',
+      'asset:curated/birthday-crimson/music.png',
+      'asset:curated/birthday-crimson/martini.png'
+    ],
+    galleryConfigured: false,
+    isFeatured: true,
+    isActive: true
+  },
+  {
     title: 'Փղոսկրե երդումներ',
     slug: 'ivory-vows',
     category: 'wedding',

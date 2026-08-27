@@ -113,13 +113,20 @@ import silkVowsStyles from '../vendorTemplates/silkvows/styles.css?inline';
 import silkVowsHeroImage from '../vendorTemplates/silkvows/assets/hero.jpg';
 import silkVowsHallImage from '../vendorTemplates/silkvows/assets/hall.jpg';
 import silkVowsQuoteImage from '../vendorTemplates/silkvows/assets/quote.jpg';
-import BurgundyRoadmapInvitation from '../vendorTemplates/burgundyroadmap/BurgundyRoadmapInvitation.jsx';
-import burgundyRoadmapStyles from '../vendorTemplates/burgundyroadmap/styles.css?inline';
-import burgundyRoadmapFont from '../vendorTemplates/burgundyroadmap/assets/Vrdznagir.otf?url';
-import burgundyRoadmapHeroImage from '../vendorTemplates/everlasting/assets/g4.jpg';
-import burgundyRoadmapPortraitImage from '../vendorTemplates/everlasting/assets/g1.jpg';
-import burgundyRoadmapRingsImage from '../vendorTemplates/everlasting/assets/g2.jpg';
-import burgundyRoadmapFlowersImage from '../vendorTemplates/everlasting/assets/g3.jpg';
+import HarsaniqOneInvitation from '../vendorTemplates/harsaniq1/src/App.jsx';
+import burgundyRoadmapStyles from '../vendorTemplates/harsaniq1/src/styles.css?inline';
+import burgundyRoadmapFont from '../vendorTemplates/harsaniq1/src/assets/fonts/SHK_Dzeragir.otf?url';
+import burgundyRoadmapHeroImage from '../vendorTemplates/harsaniq1/src/assets/nkar1.jpg';
+import burgundyRoadmapPortraitImage from '../vendorTemplates/harsaniq1/src/assets/couple.jpg';
+import burgundyRoadmapRingsImage from '../vendorTemplates/harsaniq1/src/assets/weddingnkar.jpg';
+import burgundyRoadmapSong from '../vendorTemplates/harsaniq1/src/assets/song.mp3';
+import HarsaniqTwoInvitation from '../vendorTemplates/harsaniq2/src/App.jsx';
+import monochromeEnvelopeStyles from '../vendorTemplates/harsaniq2/src/styles.css?inline';
+import monochromeEnvelopeFont from '../vendorTemplates/harsaniq2/src/assets/fonts/BubbleSans.otf?url';
+import monochromeEnvelopeHeroImage from '../vendorTemplates/harsaniq2/src/assets/images/hero-couple.jpg';
+import monochromeEnvelopeRingsImage from '../vendorTemplates/harsaniq2/src/assets/images/rings.jpg';
+import monochromeEnvelopePortraitImage from '../vendorTemplates/harsaniq2/src/assets/images/portrait.jpg';
+import monochromeEnvelopeSong from '../vendorTemplates/harsaniq2/src/assets/media/love-story.mp3';
 import defaultInvitationSong from '../assets/audio/ed-sheeran-perfect.mp3';
 import { resolveTemplateImage, templateDefaultGalleryIds } from './templateAssets.js';
 
@@ -131,6 +138,9 @@ type SurfaceProps = {
   children: ReactNode;
   css: string;
   fontImport: string;
+  adapterCss?: string;
+  themeVariableAliases?: Partial<Record<'accent' | 'text' | 'overlay', string[]>>;
+  globalFontImport?: string;
   label: string;
   draft?: Draft;
   customize?: (root: HTMLDivElement) => void;
@@ -455,7 +465,11 @@ export const isBurgundyRoadmapTemplate = (template?: TemplateRecord) => matches(
   'burgundy-roadmap', 'burgundy-roadmap-wedding', 'wedding-burgundy-roadmap'
 ]);
 
-function OriginalTemplateSurface({ children, css, fontImport, label, draft, customize }: SurfaceProps) {
+export const isMonochromeEnvelopeTemplate = (template?: TemplateRecord) => matches(template, [
+  'monochrome-envelope', 'monochrome-envelope-wedding', 'harsaniq2'
+]);
+
+export function OriginalTemplateSurface({ children, css, fontImport, adapterCss = '', themeVariableAliases, globalFontImport, label, draft, customize }: SurfaceProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [portalRoot, setPortalRoot] = useState<HTMLDivElement | null>(null);
   const isolatedCss = useMemo(() => css.replaceAll(':root', ':host'), [css]);
@@ -470,7 +484,7 @@ function OriginalTemplateSurface({ children, css, fontImport, label, draft, cust
       && text.toLowerCase() === '#ffffff'
       && overlay.toLowerCase() === '#202020';
     if (!draft?.colorPaletteId && isLegacyFallback) return undefined;
-    return {
+    const style = {
       '--background': overlay,
       '--foreground': text,
       '--primary': accent,
@@ -507,7 +521,15 @@ function OriginalTemplateSurface({ children, css, fontImport, label, draft, cust
       '--gradient-heaven': `radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, ${text} 12%, ${overlay}) 0%, ${overlay} 72%)`,
       '--gradient-warm': `linear-gradient(180deg, ${overlay} 0%, color-mix(in srgb, ${accent} 12%, ${overlay}) 100%)`
     } as CSSProperties;
-  }, [draft?.colorPaletteId, draft?.colors?.accent, draft?.colors?.overlay, draft?.colors?.text]);
+    const aliasValues = { accent, text, overlay };
+    Object.entries(themeVariableAliases || {}).forEach(([colorKey, variableNames]) => {
+      const value = aliasValues[colorKey as keyof typeof aliasValues];
+      variableNames?.forEach((variableName) => {
+        (style as Record<string, string>)[variableName] = value;
+      });
+    });
+    return style;
+  }, [draft?.colorPaletteId, draft?.colors?.accent, draft?.colors?.overlay, draft?.colors?.text, themeVariableAliases]);
   customizeRef.current = customize;
   draftRef.current = draft;
 
@@ -519,9 +541,9 @@ function OriginalTemplateSurface({ children, css, fontImport, label, draft, cust
     const style = document.createElement('style');
     const root = document.createElement('div');
     root.className = 'original-template-document';
-    style.textContent = `${fontImport}\n${isolatedCss}\n
+    style.textContent = `${fontImport}\n${isolatedCss}\n${adapterCss}\n
       :host { display: block; width: 100%; color: var(--foreground); background: var(--background); }
-      .original-template-document { width: 100%; min-height: 100vh; overflow-x: hidden; color: var(--foreground); background: var(--background); font-family: var(--font-body, var(--font-sans, ui-sans-serif, system-ui, sans-serif)); -webkit-font-smoothing: antialiased; }
+      .original-template-document { width: 100%; min-height: 100vh; overflow-x: clip; overflow-y: visible; color: var(--foreground); background: var(--background); font-family: var(--font-body, var(--font-sans, ui-sans-serif, system-ui, sans-serif)); -webkit-font-smoothing: antialiased; }
       .original-template-document [hidden] { display: none !important; }
       .original-template-document h1, .original-template-document h2, .original-template-document h3 { font-family: var(--font-display, ui-serif, Georgia, serif); }
       .amulet-extra-venues { padding: clamp(52px, 8vw, 96px) 20px; color: var(--foreground); background: var(--background); }
@@ -545,6 +567,11 @@ function OriginalTemplateSurface({ children, css, fontImport, label, draft, cust
     setPortalRoot(root);
 
     const applyLocalization = () => {
+      // Let contenteditable own the DOM until blur commits the value. Imported
+      // template customization writes text imperatively, so running it for
+      // every character mutation would restore the previous draft, move the
+      // caret, and make direct-on-preview editing appear frozen.
+      if (root.querySelector('.is-editor-inline-editing')) return;
       localizeTemplateUi(root);
       customizeRef.current?.(root);
       applySystemOwnedDraftFields(root, draftRef.current);
@@ -559,7 +586,17 @@ function OriginalTemplateSurface({ children, css, fontImport, label, draft, cust
       observer.disconnect();
       setPortalRoot(null);
     };
-  }, [fontImport, isolatedCss]);
+  }, [adapterCss, fontImport, isolatedCss]);
+
+  useLayoutEffect(() => {
+    const ownerDocument = hostRef.current?.ownerDocument;
+    if (!ownerDocument || !globalFontImport) return undefined;
+    const style = ownerDocument.createElement('style');
+    style.dataset.amuletTemplateFont = label;
+    style.textContent = globalFontImport;
+    ownerDocument.head.append(style);
+    return () => style.remove();
+  }, [globalFontImport, label]);
 
   useLayoutEffect(() => {
     if (!portalRoot) return;
@@ -580,14 +617,14 @@ function PreviewActions({ price, loading, onHome, onEdit, onOrder }: TemplatePro
   return (
     <div className="midnight-floating-actions original-template-preview-actions">
       <span>{Number(price || 29000).toLocaleString('hy-AM')} AMD</span>
-      <button className="btn btn-ghost template-home-action" type="button" onClick={onHome} aria-label="Գլխավոր էջ" title="Գլխավոր էջ"><Home size={19} /></button>
+      <button className="btn btn-ghost template-home-action" type="button" onClick={onHome} aria-label="Հրավերներ" title="Հրավերներ"><Home size={19} /></button>
       <button className="btn btn-ghost" type="button" onClick={onEdit}><Pencil size={18} />Խմբագրել</button>
       <button className="btn btn-primary" type="button" onClick={onOrder} disabled={loading}><ShoppingBag size={18} />{loading ? 'Բեռնվում է...' : 'Գնել'}</button>
     </div>
   );
 }
 
-function TemplateShell({ children, props }: { children: ReactNode; props: TemplateProps }) {
+export function TemplateShell({ children, props }: { children: ReactNode; props: TemplateProps }) {
   return (
     <div className="original-ts-template-shell">
       {children}
@@ -1295,21 +1332,100 @@ function SilkVowsTemplate(props: TemplateProps) {
   );
 }
 
+const BURGUNDY_ROADMAP_ADAPTER_CSS = `
+  :host {
+    --red: #7f0504;
+    --ink: #130a09;
+    --white: #ffffff;
+  }
+  main,
+  .intro,
+  .love-bands,
+  .countdown,
+  .roadmap-wrap,
+  .calendar-card,
+  .road-stage,
+  .road-dot,
+  .rsvp-section,
+  .rsvp-intro,
+  .rsvp-card input,
+  .rsvp-card textarea,
+  .choice-grid button {
+    background-color: var(--white);
+  }
+  .submit { color: var(--white); }
+`;
+
+const BURGUNDY_ROADMAP_LAYOUT_CSS = `
+  .heart-float {
+    top: auto !important;
+    right: auto !important;
+    bottom: max(20px, env(safe-area-inset-bottom)) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+  .heart-float:hover {
+    transform: translateX(-50%) translateY(-2px) scale(1.04) !important;
+  }
+  .heart-float:active {
+    transform: translateX(-50%) scale(0.96) !important;
+  }
+  .rsvp-section.reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .countdown.reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  @media (max-width: 700px) {
+    .hero img {
+      object-position: 65% center !important;
+    }
+  }
+`;
+
+const BURGUNDY_ROADMAP_THEME_ALIASES = {
+  accent: ['--red'],
+  text: ['--ink'],
+  overlay: ['--white']
+};
+
+const BURGUNDY_ROADMAP_GLOBAL_FONTS = `
+  @import url("https://fonts.googleapis.com/css2?family=Italianno&family=Noto+Serif+Armenian:ital,wght@0,400;0,500;1,400;1,600&display=swap");
+  @font-face {
+    font-family: "SHK Dzeragir";
+    src: url("${burgundyRoadmapFont}") format("opentype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+`;
+const burgundyRoadmapBundledStyles = burgundyRoadmapStyles.replace(
+  /@font-face\s*\{[\s\S]*?font-display:\s*swap;\s*\}/,
+  ''
+);
+
 function BurgundyRoadmapTemplate(props: TemplateProps) {
   const { draft = {} } = props;
+  const hasCustomPalette = Boolean(
+    draft.colorPaletteId
+    && draft.colors?.accent
+    && draft.colors?.text
+    && draft.colors?.overlay
+  );
   const data = useMemo(() => {
     const [bride, groom] = splitNames(draft.mainNames);
-    const nextBride = bride || 'Արման';
-    const nextGroom = groom || 'Նարե';
-    const eventDate = draft.eventDate || '2026-10-16';
+    const nextBride = bride || 'Կարեն';
+    const nextGroom = groom || 'Լիկա';
+    const eventDate = draft.eventDate || '2027-07-17';
     const date = new Date(`${eventDate}T12:00:00`);
     const gallery = (draft.gallery || []).map(resolveTemplateImage).filter(Boolean);
     const fallbackVenues = [
-      { label: 'Փեսայի տուն', time: '11:00', address: 'ք. Երևան, Հանրապետության 62', url: 'https://maps.google.com/?q=Republic+Square+Yerevan', visible: true },
+      { label: 'Փեսայի տուն', time: '10:00', address: '', url: '', visible: true },
       { label: 'Հարսի տուն', time: '12:00', address: 'ք. Երևան, Տերյան 9', url: 'https://maps.google.com/?q=9+Teryan+Yerevan', visible: true },
-      { label: 'Սուրբ Սարգիս եկեղեցի', time: '14:00', address: 'ք. Երևան, Իսրայելյան 21', url: 'https://maps.google.com/?q=Saint+Sargis+Church+Yerevan', visible: true },
-      { label: 'Հարսանեկան ֆոտոսեսիա', time: '15:30', address: 'ք. Երևան', url: 'https://maps.google.com/?q=Yerevan+Armenia', visible: true },
-      { label: 'Vivaldi Hall', time: draft.eventTime || '17:30', address: 'Աշտարակի խճուղի 7', url: 'https://maps.google.com/?q=Vivaldi+Hall+Yerevan', visible: true }
+      { label: 'Ս. Գայանե եկեղեցի', time: '14:00', address: '', url: '', visible: true },
+      { label: 'Էլինար Ռեստորանային Համալիր', time: draft.eventTime || '17:00', address: '', url: '', visible: true }
     ];
     const venues = draft.mapLinks?.length ? draft.mapLinks : fallbackVenues;
     const dateParts = eventDate.split('-');
@@ -1318,21 +1434,20 @@ function BurgundyRoadmapTemplate(props: TemplateProps) {
       bride: nextBride,
       groom: nextGroom,
       eventDate,
-      eventTime: draft.eventTime || venues[venues.length - 1]?.time || '17:30',
+      eventTime: venues.filter((venue) => venue?.visible !== false).at(-1)?.time || draft.eventTime || '17:00',
       dateShort: formatNumericDate(eventDate, '.'),
-      dateStamp: dateParts.length === 3 ? `${dateParts[2]}.${dateParts[1]}.${dateParts[0].slice(-2)}` : '16.10.26',
-      monthLabel: Number.isNaN(date.getTime()) ? 'Հոկտեմբեր 2026' : `${armenianMonths[date.getMonth()]} ${date.getFullYear()}`,
+      dateStamp: dateParts.length === 3 ? `${dateParts[2]}.${dateParts[1]}.${dateParts[0].slice(-2)}` : '17.07.27',
+      monthLabel: Number.isNaN(date.getTime()) ? 'Հուլիս 2027' : `${armenianMonths[date.getMonth()]} ${date.getFullYear()}`,
       eventDateLabel: formatArmenianDate(eventDate),
-      eventMessage: draft.eventMessage || 'Մեզ համար մեծ ուրախություն է մեր կյանքի նոր էջը սկսել Ձեր ներկայությամբ։ Սիրով սպասում ենք Ձեզ մեր ամենակարևոր օրը միասին նշելու։',
+      eventMessage: draft.eventMessage || 'Դուք հրավիրված եք մեր հարսանիքին',
       venues,
       images: [
         gallery[0] || resolveTemplateImage(draft.image) || burgundyRoadmapHeroImage,
         gallery[1] || burgundyRoadmapPortraitImage,
-        gallery[2] || burgundyRoadmapRingsImage,
-        gallery[3] || burgundyRoadmapFlowersImage
+        gallery[2] || burgundyRoadmapRingsImage
       ],
       musicEnabled: draft.musicEnabled !== false,
-      musicUrl: draft.musicUrl || defaultInvitationSong,
+      musicUrl: draft.musicUrl || burgundyRoadmapSong,
       musicStart: Number(draft.musicStart) || 0,
       musicEnd: Number(draft.musicEnd) || 0,
       dressCodeVisible: draft.dressCodeVisible !== false,
@@ -1343,26 +1458,446 @@ function BurgundyRoadmapTemplate(props: TemplateProps) {
       ],
       closingMessage: draft.closingMessage || 'Սիրով սպասում ենք բոլորիդ',
       rsvp: {
-        title: draft.rsvpSettings?.title || 'Կսպասենք Ձեր պատասխանին',
-        description: draft.rsvpSettings?.description || 'Խնդրում ենք լրացնել մինչև',
-        deadline: draft.rsvpSettings?.deadline || '01.10.2026',
+        title: draft.rsvpSettings?.title || 'Հյուրերի պատասխան',
+        description: draft.rsvpSettings?.description || 'Խնդրում ենք նախապես տեղեկացնել մեզ Ձեր մասնակցության մասին մինչև',
+        deadline: draft.rsvpSettings?.deadline || '15.05.2027',
         guestPlaceholder: draft.rsvpSettings?.guestPlaceholder || 'Անուն Ազգանուն',
-        attendingLabel: draft.rsvpSettings?.attendingLabel || 'Այո, սիրով կմասնակցեմ',
-        notAttendingLabel: draft.rsvpSettings?.notAttendingLabel || 'Ցավոք, չեմ կարողանա մասնակցել',
+        attendingLabel: draft.rsvpSettings?.attendingLabel || 'Այո',
+        notAttendingLabel: draft.rsvpSettings?.notAttendingLabel || 'Ոչ',
         submitLabel: draft.rsvpSettings?.submitLabel || 'Ուղարկել',
-        askGuestCount: draft.rsvpSettings?.askGuestCount !== false
+        askGuestCount: false
       }
     };
   }, [draft]);
 
+  const customize = useCallback((root: HTMLDivElement) => {
+    const setText = (selector: string, value: unknown, field?: string) => {
+      const element = root.querySelector<HTMLElement>(selector);
+      if (!element) return;
+      const nextValue = String(value ?? '');
+      if (element.textContent !== nextValue) element.textContent = nextValue;
+      if (field) element.dataset.editorField = field;
+    };
+    const [bride, groom] = [data.bride, data.groom];
+    setText('.hero-names span:first-child', bride, 'mainName.0');
+    setText('.hero-names span:last-child', groom, 'mainName.1');
+    setText('.hero-date', formatNumericDate(data.eventDate, '/'));
+    root.querySelector<HTMLElement>('.hero-date')?.setAttribute('data-editor-ignore', 'calendar');
+    if (draft.eventMessage) setText('.intro-stack p:first-of-type', draft.eventMessage, 'eventMessage');
+
+    const heroSection = root.querySelector<HTMLElement>('.hero');
+    const scheduleSection = root.querySelector<HTMLElement>('.roadmap-wrap');
+    const rsvpSection = root.querySelector<HTMLElement>('.rsvp-section');
+    heroSection?.setAttribute('data-editor-section', 'hero');
+    root.querySelector<HTMLElement>('.intro')?.setAttribute('data-editor-section', 'opening');
+    root.querySelector<HTMLElement>('.love-bands')?.setAttribute('data-editor-section', 'media');
+    scheduleSection?.setAttribute('data-editor-section', 'schedule');
+    rsvpSection?.setAttribute('data-editor-section', 'rsvp');
+    root.querySelector<HTMLElement>('.countdown')?.setAttribute('data-editor-ignore', 'countdown');
+    if (heroSection) heroSection.hidden = draft.heroVisible === false;
+    if (scheduleSection) scheduleSection.hidden = draft.receptionVisible === false;
+    if (rsvpSection) rsvpSection.hidden = false;
+
+    if (!(root as any).__amuletRevealBound) {
+      (root as any).__amuletRevealBound = true;
+      const revealObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('in');
+          observer.unobserve(entry.target);
+        });
+      }, { threshold: 0.12 });
+      root.querySelectorAll<HTMLElement>('.reveal').forEach((element) => {
+        revealObserver.observe(element);
+      });
+      (root as any).__amuletRevealObserver = revealObserver;
+    }
+
+    const images = root.querySelectorAll<HTMLImageElement>('.hero > img, .love-photo, .rings-photo');
+    images.forEach((image, index) => {
+      const source = data.images[index];
+      if (source && image.src !== source) image.src = source;
+      image.dataset.templateGalleryIndex = String(index);
+      image.dataset.editorHotspotSelf = '';
+    });
+
+    if (data.eventDate !== '2027-07-17') {
+      const parsedDate = new Date(`${data.eventDate || '2027-07-17'}T12:00:00`);
+      const date = Number.isNaN(parsedDate.getTime()) ? new Date('2027-07-17T12:00:00') : parsedDate;
+      const weekdays = ['Կիրակի', 'Երկուշաբթի', 'Երեքշաբթի', 'Չորեքշաբթի', 'Հինգշաբթի', 'Ուրբաթ', 'Շաբաթ'];
+      [-1, 0, 1].forEach((offset, index) => {
+        const day = new Date(date);
+        day.setDate(date.getDate() + offset);
+        setText(`.calendar-head span:nth-child(${index + 1})`, weekdays[day.getDay()]);
+        setText(`.calendar-days span:nth-child(${index + 1})`, day.getDate());
+      });
+    }
+    root.querySelector<HTMLElement>('.calendar-card')?.setAttribute('data-editor-ignore', 'calendar');
+
+    const venues = (data.venues || []).filter((venue: any) => venue?.visible !== false).slice(0, 4);
+    root.querySelectorAll<HTMLElement>('.road-stop').forEach((stop, index) => {
+      const venue = venues[index];
+      stop.hidden = !venue;
+      if (!venue) return;
+      const label = stop.querySelector<HTMLElement>('.road-label strong');
+      const time = stop.querySelector<HTMLElement>('.road-time');
+      if (label) {
+        const nextLabel = venue.label || `Վայր ${index + 1}`;
+        if (label.textContent !== nextLabel) label.textContent = nextLabel;
+        label.dataset.editorField = `mapLinks.${index}.label`;
+      }
+      if (time) {
+        const nextTime = venue.time || data.eventTime;
+        if (time.textContent !== nextTime) time.textContent = nextTime;
+        time.dataset.editorField = `mapLinks.${index}.time`;
+      }
+    });
+
+    const roadmapColor = hasCustomPalette ? draft.colors?.accent || '#7f0504' : '#7f0504';
+    root.querySelectorAll<SVGElement>('.calendar-heart path').forEach((path) => {
+      path.setAttribute('stroke', roadmapColor);
+    });
+    const roadSvg = root.querySelector<SVGSVGElement>('.road-svg');
+    if (roadSvg && !roadSvg.querySelector('.amulet-road-connector')) {
+      const connector = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      connector.setAttribute('class', 'amulet-road-connector');
+      connector.setAttribute('d', 'M437 -28 C360 -24 285 -7 210 10');
+      connector.setAttribute('fill', 'none');
+      connector.setAttribute('stroke', roadmapColor);
+      connector.setAttribute('stroke-width', '5');
+      connector.setAttribute('stroke-linecap', 'round');
+      connector.setAttribute('stroke-linejoin', 'round');
+      roadSvg.prepend(connector);
+    } else {
+      roadSvg?.querySelector<SVGPathElement>('.amulet-road-connector')?.setAttribute('stroke', roadmapColor);
+    }
+
+    const target = new Date(`${data.eventDate || '2027-07-17'}T${data.eventTime || '17:00'}:00`);
+    const delta = Math.max(0, target.getTime() - Date.now());
+    const countdown = [
+      Math.floor(delta / 86400000),
+      String(Math.floor((delta / 3600000) % 24)).padStart(2, '0'),
+      String(Math.floor((delta / 60000) % 60)).padStart(2, '0'),
+      String(Math.floor((delta / 1000) % 60)).padStart(2, '0')
+    ];
+    root.querySelectorAll<HTMLElement>('.count-item strong').forEach((element, index) => {
+      const value = String(countdown[index] ?? '00');
+      if (element.textContent !== value) element.textContent = value;
+    });
+
+    const audio = root.querySelector<HTMLAudioElement>('audio');
+    const musicButton = root.querySelector<HTMLButtonElement>('.heart-float');
+    if (audio) {
+      const source = data.musicEnabled ? data.musicUrl : '';
+      if (source && audio.src !== new URL(source, document.baseURI).href) audio.src = source;
+      audio.dataset.musicStart = String(data.musicStart || 0);
+      audio.dataset.musicEnd = String(data.musicEnd || 0);
+      if (!data.musicEnabled && !audio.paused) audio.pause();
+      if (!(audio as any).__amuletRangeBound) {
+        (audio as any).__amuletRangeBound = true;
+        audio.addEventListener('play', () => {
+          const start = Number(audio.dataset.musicStart) || 0;
+          if (audio.currentTime < start) audio.currentTime = start;
+        });
+        audio.addEventListener('timeupdate', () => {
+          const end = Number(audio.dataset.musicEnd) || 0;
+          if (end > 0 && audio.currentTime >= end) audio.currentTime = Number(audio.dataset.musicStart) || 0;
+        });
+      }
+    }
+    if (musicButton) {
+      musicButton.hidden = !data.musicEnabled;
+      musicButton.dataset.editorIgnore = 'music';
+    }
+
+    setText('.rsvp-card h3', data.rsvp.title, 'rsvpSettings.title');
+    const rsvpIntro = root.querySelector<HTMLElement>('.rsvp-intro p');
+    if (rsvpIntro) {
+      const nextIntro = [data.rsvp.description, data.rsvp.deadline].filter(Boolean).join('\n');
+      if (rsvpIntro.dataset.amuletValue !== nextIntro) {
+        const lines = nextIntro.split('\n');
+        rsvpIntro.replaceChildren(...lines.flatMap((line, index) => (
+          index === lines.length - 1
+            ? [document.createTextNode(line)]
+            : [document.createTextNode(line), document.createElement('br')]
+        )));
+        rsvpIntro.dataset.amuletValue = nextIntro;
+      }
+      rsvpIntro.dataset.editorField = 'rsvpSettings.description';
+    }
+    const nameInput = root.querySelector<HTMLInputElement>('.rsvp-card input[type="text"]');
+    if (nameInput) nameInput.placeholder = data.rsvp.guestPlaceholder;
+    setText('.choice-grid button:nth-child(3)', data.rsvp.attendingLabel, 'rsvpSettings.attendingLabel');
+    setText('.choice-grid button:nth-child(4)', data.rsvp.notAttendingLabel, 'rsvpSettings.notAttendingLabel');
+    setText('.rsvp-card .submit', data.rsvp.submitLabel, 'rsvpSettings.submitLabel');
+
+    const form = root.querySelector<HTMLFormElement>('.rsvp-card');
+    if (form) {
+      (form as any).__amuletSubmit = async (event: Event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const buttons = [...form.querySelectorAll<HTMLButtonElement>('.choice-grid button')];
+        const message = form.querySelector<HTMLTextAreaElement>('textarea')?.value || '';
+        const guestName = form.querySelector<HTMLInputElement>('input[type="text"]')?.value.trim() || '';
+        const guestSide = buttons[0]?.classList.contains('active') ? 'bride' : buttons[1]?.classList.contains('active') ? 'groom' : 'other';
+        const status = buttons[2]?.classList.contains('active') ? 'attending' : buttons[3]?.classList.contains('active') ? 'declined' : 'unsure';
+        await props.onRsvpSubmit?.({ guestName, guestSide, status, message: message.trim() });
+        const thanks = root.querySelector<HTMLElement>('.thanks');
+        if (thanks) thanks.hidden = false;
+      };
+      if (!(form as any).__amuletBound) {
+        (form as any).__amuletBound = true;
+        form.addEventListener('submit', (event) => void (form as any).__amuletSubmit(event), true);
+      }
+    }
+  }, [data, draft.eventMessage, props.onRsvpSubmit]);
+
   return (
     <TemplateShell props={props}><OriginalTemplateSurface
-      css={burgundyRoadmapStyles}
+      css={burgundyRoadmapBundledStyles}
+      adapterCss={`${BURGUNDY_ROADMAP_LAYOUT_CSS}${hasCustomPalette ? BURGUNDY_ROADMAP_ADAPTER_CSS : ''}`}
+      themeVariableAliases={hasCustomPalette ? BURGUNDY_ROADMAP_THEME_ALIASES : undefined}
       draft={draft}
-      fontImport={`@font-face { font-family: 'Vrdznagir'; src: url('${burgundyRoadmapFont}') format('opentype'); font-display: swap; }`}
+      customize={customize}
+      fontImport=":host { --font-body: 'SHK Dzeragir', serif; --font-display: 'SHK Dzeragir', serif; --foreground: #130a09; --background: #ffffff; font-size: 16px; line-height: normal; }"
+      globalFontImport={BURGUNDY_ROADMAP_GLOBAL_FONTS}
       label="Burgundy Roadmap wedding invitation"
     >
-      <BurgundyRoadmapInvitation data={data} onRsvpSubmit={props.onRsvpSubmit} />
+      <HarsaniqOneInvitation />
+    </OriginalTemplateSurface></TemplateShell>
+  );
+}
+
+const MONOCHROME_ENVELOPE_GLOBAL_FONT = `
+  @font-face {
+    font-family: "Bubble Sans";
+    src: url("${monochromeEnvelopeFont}") format("opentype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+`;
+const monochromeEnvelopeBundledStyles = monochromeEnvelopeStyles.replace(
+  /@font-face\s*\{[\s\S]*?font-display:\s*swap;\s*\}/,
+  ''
+);
+const MONOCHROME_ENVELOPE_THEME_ALIASES = {
+  accent: ['--ink'],
+  text: ['--ink'],
+  overlay: ['--paper', '--paper-soft', '--paper-light']
+};
+const MONOCHROME_ENVELOPE_ADAPTER_CSS = `
+  :host, .original-template-document {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Bubble Sans", Arial, sans-serif;
+  }
+  .hero-copy h1 span { display: block; }
+  .opening-layer[aria-hidden="true"] { pointer-events: none; }
+  .reveal { opacity: 1 !important; transform: none !important; }
+  .schedule-grid article { min-width: 0; }
+  .schedule-grid h3, .schedule-grid p, .rsvp-panel h2, .rsvp-lead {
+    overflow-wrap: anywhere;
+  }
+  @media (max-width: 430px) {
+    .schedule-grid h3 { font-size: clamp(22px, 7vw, 30px); line-height: 1.2; }
+    .schedule-grid p { font-size: 15px; line-height: 1.45; }
+  }
+`;
+
+function MonochromeEnvelopeTemplate(props: TemplateProps) {
+  const { draft = {} } = props;
+  const hasCustomPalette = Boolean(
+    draft.colorPaletteId && draft.colors?.accent && draft.colors?.text && draft.colors?.overlay
+  );
+  const data = useMemo(() => {
+    const [bride, groom] = splitNames(draft.mainNames);
+    const eventDate = draft.eventDate || '2027-06-25';
+    const [year = '2027', monthNumber = '06', day = '25'] = eventDate.split('-');
+    const months = ['Հունվար', 'Փետրվար', 'Մարտ', 'Ապրիլ', 'Մայիս', 'Հունիս', 'Հուլիս', 'Օգոստոս', 'Սեպտեմբեր', 'Հոկտեմբեր', 'Նոյեմբեր', 'Դեկտեմբեր'];
+    const gallery = (draft.gallery || []).map(resolveTemplateImage).filter(Boolean);
+    const fallbackSchedule = [
+      { label: 'Հարսի տուն', time: '11:00', address: 'Երևան', url: 'https://maps.google.com/?q=Yerevan+Armenia', visible: true },
+      { label: 'Փեսայի տուն', time: '12:00', address: 'Երևան', url: 'https://maps.google.com/?q=Yerevan+Armenia', visible: true },
+      { label: 'Պսակադրություն', time: '13:00', address: 'Սուրբ Գրիգոր Լուսավորիչ եկեղեցի', url: 'https://maps.google.com/?q=Saint+Gregory+the+Illuminator+Cathedral+Yerevan', visible: true },
+      { label: 'Հարսանյաց հանդիսություն', time: draft.eventTime || '17:00', address: draft.eventLocation || 'Ռեստորանային համալիր', url: 'https://maps.google.com/?q=Yerevan+Armenia', visible: true }
+    ];
+    const venues = (draft.mapLinks?.length ? draft.mapLinks : fallbackSchedule)
+      .filter((venue) => venue?.visible !== false)
+      .slice(0, 4);
+    const paddedVenues = [...venues];
+    fallbackSchedule.forEach((fallback, index) => {
+      if (!paddedVenues[index]) paddedVenues[index] = fallback;
+    });
+    return {
+      config: {
+        bride: bride || 'Աննա',
+        groom: groom || 'Արմեն',
+        dateISO: `${eventDate}T${draft.eventTime || paddedVenues.at(-1)?.time || '17:00'}:00+04:00`,
+        day,
+        month: months[Math.max(0, Number(monthNumber) - 1)] || 'Հունիս',
+        monthNumber,
+        year,
+        ceremony: {
+          time: paddedVenues[2]?.time || '13:00', title: paddedVenues[2]?.label || 'Պսակադրություն',
+          place: paddedVenues[2]?.address || '', map: paddedVenues[2]?.url || ''
+        },
+        reception: {
+          time: paddedVenues[3]?.time || draft.eventTime || '17:00', title: paddedVenues[3]?.label || 'Հարսանյաց հանդիսություն',
+          place: paddedVenues[3]?.address || draft.eventLocation || '', map: paddedVenues[3]?.url || ''
+        }
+      },
+      schedule: paddedVenues.map((venue, index) => ({
+        icon: ['home', 'suit', 'rings', 'dinner'][index],
+        time: venue?.time || '', title: venue?.label || `Վայր ${index + 1}`,
+        place: venue?.address || '', map: venue?.url || ''
+      })),
+      images: [
+        gallery[0] || resolveTemplateImage(draft.image) || monochromeEnvelopeHeroImage,
+        gallery[1] || monochromeEnvelopeRingsImage,
+        gallery[2] || monochromeEnvelopePortraitImage
+      ],
+      musicEnabled: draft.musicEnabled !== false,
+      musicUrl: draft.musicUrl || monochromeEnvelopeSong,
+      musicStart: Number(draft.musicStart) || 0,
+      musicEnd: Number(draft.musicEnd) || 0,
+      dressCodeVisible: draft.dressCodeVisible !== false,
+      dressCode: draft.dressCode || 'Ուրախ կլինենք, եթե ընտրեք այս գունապնակին մոտ երանգներ։',
+      dressCodeColors: (draft.dressCodeColors?.length ? draft.dressCodeColors : [
+        { name: 'Անտառային', hex: '#26382F' }, { name: 'Եղեսպակ', hex: '#70806A' },
+        { name: 'Տաք մոխրագույն', hex: '#A99B88' }, { name: 'Փոշոտ վարդ', hex: '#C8A8A1' },
+        { name: 'Շամպայն', hex: '#D9C7A7' }, { name: 'Փղոսկր', hex: '#F2ECE2' }
+      ]).map((color) => color.hex),
+      eventMessage: draft.eventMessage || '',
+      rsvp: {
+        title: draft.rsvpSettings?.title || 'Սիրով սպասում ենք Ձեզ',
+        description: draft.rsvpSettings?.description || 'Խնդրում ենք պատասխանել մինչև',
+        deadline: draft.rsvpSettings?.deadline || 'հունիսի 10-ը',
+        guestPlaceholder: draft.rsvpSettings?.guestPlaceholder || 'Գրեք Ձեր անունը',
+        attendingLabel: draft.rsvpSettings?.attendingLabel || 'Այո, սիրով կմասնակցեմ',
+        notAttendingLabel: draft.rsvpSettings?.notAttendingLabel || 'Ցավոք, չեմ կարող մասնակցել',
+        submitLabel: draft.rsvpSettings?.submitLabel || 'Պատասխանել'
+      }
+    };
+  }, [draft]);
+
+  const customize = useCallback((root: HTMLDivElement) => {
+    const setText = (selector: string, value: unknown, field?: string) => {
+      const element = root.querySelector<HTMLElement>(selector);
+      if (!element) return;
+      const nextValue = String(value ?? '');
+      if (element.textContent !== nextValue) element.textContent = nextValue;
+      if (field) element.dataset.editorField = field;
+    };
+    const sections: Array<[string, string]> = [
+      ['.hero-section', 'hero'], ['.message-section', 'opening'], ['.schedule-section', 'schedule'],
+      ['.editorial-photo-section', 'media'], ['.dresscode-section', 'dressCode'], ['.rsvp-section', 'rsvp']
+    ];
+    sections.forEach(([selector, section]) => root.querySelector<HTMLElement>(selector)?.setAttribute('data-editor-section', section));
+    root.querySelector<HTMLElement>('.countdown-section')?.setAttribute('data-editor-ignore', 'countdown');
+    root.querySelector<HTMLElement>('.calendar-section')?.setAttribute('data-editor-ignore', 'calendar');
+    root.querySelector<HTMLElement>('.opening-layer')?.setAttribute('data-editor-ignore', 'opening-animation');
+    root.querySelector<HTMLElement>('.video-layer')?.setAttribute('data-editor-ignore', 'opening-animation');
+    const hero = root.querySelector<HTMLElement>('.hero-section');
+    const schedule = root.querySelector<HTMLElement>('.schedule-section');
+    if (hero) hero.hidden = draft.heroVisible === false;
+    if (schedule) schedule.hidden = draft.receptionVisible === false;
+
+    setText('.hero-bride', data.config.bride, 'mainName.0');
+    setText('.hero-groom', data.config.groom, 'mainName.1');
+    if (draft.eventMessage) setText('.message-section > p:last-child', data.eventMessage, 'eventMessage');
+    setText('.dresscode-description', data.dressCode, 'dressCode');
+
+    root.querySelectorAll<HTMLElement>('.schedule-grid article').forEach((item, index) => {
+      const venue = data.schedule[index];
+      item.hidden = !venue;
+      if (!venue) return;
+      const time = item.querySelector<HTMLElement>('strong');
+      const title = item.querySelector<HTMLElement>('h3');
+      const place = item.querySelector<HTMLElement>('p');
+      const link = item.querySelector<HTMLAnchorElement>('a');
+      if (time) time.dataset.editorField = `mapLinks.${index}.time`;
+      if (title) title.dataset.editorField = `mapLinks.${index}.label`;
+      if (place) place.dataset.editorField = `mapLinks.${index}.address`;
+      if (link) {
+        link.dataset.editorField = `mapLinks.${index}.url`;
+        link.hidden = !venue.map;
+      }
+    });
+
+    root.querySelectorAll<HTMLImageElement>('.hero-image-panel img, .rings-image-frame img, .rsvp-photo').forEach((image, index) => {
+      image.dataset.templateGalleryIndex = String(index);
+      image.dataset.editorHotspotSelf = '';
+    });
+    root.querySelectorAll<HTMLElement>('.swatches span').forEach((swatch, index) => {
+      swatch.dataset.dressColorIndex = String(index);
+      swatch.title = draft.dressCodeColors?.[index]?.name || '';
+    });
+
+    setText('.rsvp-panel h2', data.rsvp.title, 'rsvpSettings.title');
+    setText('.rsvp-lead', [data.rsvp.description, data.rsvp.deadline].filter(Boolean).join(' '), 'rsvpSettings.description');
+    const nameInput = root.querySelector<HTMLInputElement>('.rsvp-form input[name="fullName"]');
+    if (nameInput) nameInput.placeholder = data.rsvp.guestPlaceholder;
+    setText('.attendance-choice button:first-child', data.rsvp.attendingLabel, 'rsvpSettings.attendingLabel');
+    setText('.attendance-choice button:last-child', data.rsvp.notAttendingLabel, 'rsvpSettings.notAttendingLabel');
+    setText('.rsvp-form .submit-btn', data.rsvp.submitLabel, 'rsvpSettings.submitLabel');
+
+    const audio = root.querySelector<HTMLAudioElement>('audio');
+    if (audio) {
+      audio.dataset.musicStart = String(data.musicStart);
+      audio.dataset.musicEnd = String(data.musicEnd);
+      if (!(audio as any).__amuletRangeBound) {
+        (audio as any).__amuletRangeBound = true;
+        audio.addEventListener('play', () => {
+          const start = Number(audio.dataset.musicStart) || 0;
+          if (audio.currentTime < start) audio.currentTime = start;
+        });
+        audio.addEventListener('timeupdate', () => {
+          const end = Number(audio.dataset.musicEnd) || 0;
+          if (end > 0 && audio.currentTime >= end) audio.currentTime = Number(audio.dataset.musicStart) || 0;
+        });
+      }
+    }
+
+    if (!(root as any).__amuletRevealBound) {
+      (root as any).__amuletRevealBound = true;
+      const observer = new IntersectionObserver((entries, revealObserver) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('in');
+          revealObserver.unobserve(entry.target);
+        });
+      }, { threshold: 0.1 });
+      root.querySelectorAll<HTMLElement>('.reveal').forEach((element) => observer.observe(element));
+    }
+  }, [data, draft.dressCodeColors, draft.eventMessage, draft.heroVisible, draft.receptionVisible]);
+
+  return (
+    <TemplateShell props={props}><OriginalTemplateSurface
+      css={monochromeEnvelopeBundledStyles}
+      adapterCss={MONOCHROME_ENVELOPE_ADAPTER_CSS}
+      themeVariableAliases={hasCustomPalette ? MONOCHROME_ENVELOPE_THEME_ALIASES : undefined}
+      draft={draft}
+      customize={customize}
+      fontImport=":host { --font-body: 'Bubble Sans', Arial, sans-serif; --font-display: 'Bubble Sans', Arial, sans-serif; --foreground: #111111; --background: #efefef; font-size: 16px; line-height: normal; }"
+      globalFontImport={MONOCHROME_ENVELOPE_GLOBAL_FONT}
+      label="Monochrome Envelope wedding invitation"
+    >
+      <HarsaniqTwoInvitation
+        forceOpen={props.mode === 'studio'}
+        config={data.config}
+        schedule={data.schedule}
+        heroImage={data.images[0]}
+        ringsImage={data.images[1]}
+        portraitImage={data.images[2]}
+        musicUrl={data.musicUrl}
+        musicEnabled={data.musicEnabled}
+        eventMessage={data.eventMessage}
+        dressCode={data.dressCode}
+        dressCodeColors={data.dressCodeColors}
+        dressCodeVisible={data.dressCodeVisible}
+        onRsvpSubmit={props.onRsvpSubmit}
+      />
     </OriginalTemplateSurface></TemplateShell>
   );
 }
@@ -1591,34 +2126,63 @@ export const getSilkVowsDraft = () => ({ ...makeDraft(
 });
 
 export const getBurgundyRoadmapDraft = () => ({ ...makeDraft(
-  'Արման & Նարե',
-  '2026-10-16',
-  '17:30',
-  'Vivaldi Hall',
+  'Կարեն & Լիկա',
+  '2027-07-17',
+  '17:00',
+  'Էլինար Ռեստորանային Համալիր',
   'asset:curated/burgundy-roadmap/hero.jpg',
   'burgundy-roadmap'
 ),
-  colorPaletteId: 'burgundy-wine',
-  colors: { accent: '#861927', text: '#2e2a2b', overlay: '#fffdfa' },
-  eventMessage: 'Մեզ համար մեծ ուրախություն է մեր կյանքի նոր էջը սկսել Ձեր ներկայությամբ։ Սիրով սպասում ենք Ձեզ մեր ամենակարևոր օրը միասին նշելու։',
-  dressCode: 'Ուրախ կլինենք, եթե Ձեր կերպարում լինեն մեր օրվա մեղմ և գինեգույն երանգներից։',
-  dressCodeColors: [
-    { name: 'Անտրացիտ', hex: '#2f3331' }, { name: 'Շամպայն', hex: '#d9c2aa' },
-    { name: 'Փոշոտ վարդ', hex: '#b97679' }, { name: 'Բորդո', hex: '#8d1b2a' }, { name: 'Գինեգույն', hex: '#4c0f18' }
-  ],
-  dressCodeVisible: true,
-  closingMessage: 'Սիրով սպասում ենք բոլորիդ',
+  colorPaletteId: '',
+  colors: {},
+  eventMessage: 'Դուք հրավիրված եք մեր հարսանիքին',
+  musicUrl: burgundyRoadmapSong,
+  musicTitle: 'Harsaniq 1 · Wedding Song',
+  dressCodeVisible: false,
   mapLinks: [
-    { label: 'Փեսայի տուն', time: '11:00', address: 'ք. Երևան, Հանրապետության 62', url: 'https://maps.google.com/?q=Republic+Square+Yerevan', visible: true },
-    { label: 'Հարսի տուն', time: '12:00', address: 'ք. Երևան, Տերյան 9', url: 'https://maps.google.com/?q=9+Teryan+Yerevan', visible: true },
-    { label: 'Սուրբ Սարգիս եկեղեցի', time: '14:00', address: 'ք. Երևան, Իսրայելյան 21', url: 'https://maps.google.com/?q=Saint+Sargis+Church+Yerevan', visible: true },
-    { label: 'Հարսանեկան ֆոտոսեսիա', time: '15:30', address: 'ք. Երևան', url: 'https://maps.google.com/?q=Yerevan+Armenia', visible: true },
-    { label: 'Vivaldi Hall', time: '17:30', address: 'Աշտարակի խճուղի 7', url: 'https://maps.google.com/?q=Vivaldi+Hall+Yerevan', visible: true }
+    { label: 'Փեսայի տուն', time: '10:00', address: '', url: '', visible: true },
+    { label: 'Հարսնացուի տուն', time: '12:00', address: '', url: '', visible: true },
+    { label: 'Ս. Գայանե եկեղեցի', time: '14:00', address: '', url: '', visible: true },
+    { label: 'Էլինար Ռեստորանային Համալիր', time: '17:00', address: '', url: '', visible: true }
   ],
   rsvpSettings: {
-    title: 'Կսպասենք Ձեր պատասխանին', description: 'Խնդրում ենք լրացնել մինչև', deadline: '01.10.2026',
-    guestPlaceholder: 'Անուն Ազգանուն', attendingLabel: 'Այո, սիրով կմասնակցեմ',
-    notAttendingLabel: 'Ցավոք, չեմ կարողանա մասնակցել', submitLabel: 'Ուղարկել', askGuestCount: true, askMeal: false
+    title: 'Հյուրերի պատասխան', description: 'Խնդրում ենք նախապես տեղեկացնել մեզ\nՁեր մասնակցության մասին մինչև', deadline: 'մայիսի 15-ը։\nՍիրով սպասում ենք։',
+    guestPlaceholder: 'Անուն Ազգանուն', attendingLabel: 'Այո',
+    notAttendingLabel: 'Ոչ', submitLabel: 'Ուղարկել', askGuestCount: false, askMeal: false
+  }
+});
+
+export const getMonochromeEnvelopeDraft = () => ({ ...makeDraft(
+  'Աննա & Արմեն',
+  '2027-06-25',
+  '17:00',
+  'Ռեստորանային համալիր',
+  'asset:curated/monochrome-envelope/hero.jpg',
+  'monochrome-envelope'
+),
+  colorPaletteId: '',
+  colors: {},
+  eventMessage: 'Սիրով հրավիրում ենք Ձեզ ներկա գտնվելու մեր ամուսնության արարողությանը և միասին ստեղծելու մի օր, որը միշտ կմնա մեր հիշողություններում։ Ձեր ներկայությունը մեր տոնն ավելի ջերմ ու ամբողջական կդարձնի։',
+  musicEnabled: true,
+  musicUrl: monochromeEnvelopeSong,
+  musicTitle: 'Harsaniq 2 · Love Story',
+  dressCodeVisible: true,
+  dressCode: 'Ուրախ կլինենք, եթե ընտրեք այս գունապնակին մոտ երանգներ։',
+  dressCodeColors: [
+    { name: 'Անտառային', hex: '#26382F' }, { name: 'Եղեսպակ', hex: '#70806A' },
+    { name: 'Տաք մոխրագույն', hex: '#A99B88' }, { name: 'Փոշոտ վարդ', hex: '#C8A8A1' },
+    { name: 'Շամպայն', hex: '#D9C7A7' }, { name: 'Փղոսկր', hex: '#F2ECE2' }
+  ],
+  mapLinks: [
+    { label: 'Հարսի տուն', time: '11:00', address: 'Երևան', url: 'https://maps.google.com/?q=Yerevan+Armenia', visible: true },
+    { label: 'Փեսայի տուն', time: '12:00', address: 'Երևան', url: 'https://maps.google.com/?q=Yerevan+Armenia', visible: true },
+    { label: 'Պսակադրություն', time: '13:00', address: 'Սուրբ Գրիգոր Լուսավորիչ եկեղեցի', url: 'https://maps.google.com/?q=Saint+Gregory+the+Illuminator+Cathedral+Yerevan', visible: true },
+    { label: 'Հարսանյաց հանդիսություն', time: '17:00', address: 'Ռեստորանային համալիր', url: 'https://maps.google.com/?q=Yerevan+Armenia', visible: true }
+  ],
+  rsvpSettings: {
+    title: 'Սիրով սպասում ենք Ձեզ', description: 'Խնդրում ենք պատասխանել մինչև', deadline: 'հունիսի 10-ը',
+    guestPlaceholder: 'Գրեք Ձեր անունը', attendingLabel: 'Այո, սիրով կմասնակցեմ',
+    notAttendingLabel: 'Ցավոք, չեմ կարող մասնակցել', submitLabel: 'Պատասխանել', askGuestCount: true, askMeal: false
   }
 });
 
@@ -1643,6 +2207,7 @@ export const EverlastingVowsCardPreview = () => <OriginalTemplateCard image={eve
 export const ForeverVowsCardPreview = () => <OriginalTemplateCard image={foreverVowsMainImage} title="Forever Vows" />;
 export const SilkVowsCardPreview = () => <OriginalTemplateCard image={silkVowsHeroImage} title="Մետաքսե երդումներ" />;
 export const BurgundyRoadmapCardPreview = () => <OriginalTemplateCard image={burgundyRoadmapHeroImage} title="Գինեգույն ճանապարհ" />;
+export const MonochromeEnvelopeCardPreview = () => <OriginalTemplateCard image={monochromeEnvelopeHeroImage} title="Մոնոխրոմ հրավեր" />;
 
 export const SacredBeginningsLivePreview = SacredBeginningsTemplate;
 export const BirthdaySparkleLivePreview = BirthdaySparkleTemplate;
@@ -1654,6 +2219,7 @@ export const EverlastingVowsLivePreview = EverlastingVowsTemplate;
 export const ForeverVowsLivePreview = ForeverVowsTemplate;
 export const SilkVowsLivePreview = SilkVowsTemplate;
 export const BurgundyRoadmapLivePreview = BurgundyRoadmapTemplate;
+export const MonochromeEnvelopeLivePreview = MonochromeEnvelopeTemplate;
 export const SacredBeginningsInvitationView = (props: TemplateProps) => <SacredBeginningsTemplate {...props} mode="public" />;
 export const BirthdaySparkleInvitationView = (props: TemplateProps) => <BirthdaySparkleTemplate {...props} mode="public" />;
 export const IvoryVowsInvitationView = (props: TemplateProps) => <IvoryVowsTemplate {...props} mode="public" />;
@@ -1664,3 +2230,4 @@ export const EverlastingVowsInvitationView = (props: TemplateProps) => <Everlast
 export const ForeverVowsInvitationView = (props: TemplateProps) => <ForeverVowsTemplate {...props} mode="public" />;
 export const SilkVowsInvitationView = (props: TemplateProps) => <SilkVowsTemplate {...props} mode="public" />;
 export const BurgundyRoadmapInvitationView = (props: TemplateProps) => <BurgundyRoadmapTemplate {...props} mode="public" />;
+export const MonochromeEnvelopeInvitationView = (props: TemplateProps) => <MonochromeEnvelopeTemplate {...props} mode="public" />;

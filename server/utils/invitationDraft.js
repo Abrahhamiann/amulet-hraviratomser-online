@@ -1,3 +1,5 @@
+import { PUBLIC_DESIGN_KEYS as TEMPLATE_PUBLIC_DESIGN_KEYS } from './templateDesign.js';
+
 export const metadataText = (value, fallback = '', limit = 420) =>
   String(value ?? fallback ?? '').trim().slice(0, limit);
 
@@ -128,17 +130,9 @@ export const normalizeRsvpSettings = (source = {}) => ({
   askMeal: source.askMeal === true
 });
 
-export const PUBLIC_DESIGN_KEYS = [
-  'sacred-beginnings',
-  'birthday-sparkle',
-  'ivory-vows',
-  'divine-blessing',
-  'elevate-invite',
-  'ever-after',
-  'everlasting-vows',
-  'forever-vows',
-  'silk-vows'
-];
+// Keep preview/purchase validation on the same canonical list used by the
+// catalog. New public designs must not require a second allow-list update.
+export const PUBLIC_DESIGN_KEYS = TEMPLATE_PUBLIC_DESIGN_KEYS;
 
 export const normalizeDraft = (draft, template) => {
   const source = draft && typeof draft === 'object' ? draft : {};

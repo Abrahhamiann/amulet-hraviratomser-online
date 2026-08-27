@@ -1,0 +1,2071 @@
+/* =========================================
+   FONT
+========================================= */
+
+@font-face {
+  font-family: "SHK Dzeragir";
+
+  src:
+    url("./assets/fonts/SHK_Dzeragir.otf")
+    format("opentype");
+
+  font-weight: 400;
+  font-style: normal;
+
+  font-display: swap;
+}
+
+
+/* =========================================
+   VARIABLES
+========================================= */
+
+:root {
+  --red: #7f0504;
+  --ink: #130a09;
+  --white: #ffffff;
+  --border: #cfc7c4;
+}
+
+
+/* =========================================
+   RESET
+========================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+
+html {
+  width: 100%;
+
+  margin: 0;
+  padding: 0;
+
+  scroll-behavior: smooth;
+
+  overflow-x: clip;
+  overflow-y: auto;
+}
+
+
+body {
+  width: 100%;
+
+  min-height: 100%;
+
+  margin: 0;
+  padding: 0;
+
+  background: #ffffff;
+
+  color: var(--ink);
+
+  font-family:
+    "SHK Dzeragir",
+    serif;
+
+  overflow: visible;
+}
+
+
+#root {
+  width: 100%;
+
+  min-height: 100vh;
+
+  margin: 0;
+  padding: 0;
+
+  overflow: visible;
+
+  background: #ffffff;
+}
+
+
+main {
+  width: 100%;
+
+  min-height: 100vh;
+
+  margin: 0;
+  padding: 0;
+
+  overflow: visible;
+
+  background: #ffffff;
+}
+
+
+button,
+input,
+textarea {
+  font-family:
+    "SHK Dzeragir",
+    serif;
+}
+
+
+button {
+  cursor: pointer;
+}
+
+
+img {
+  display: block;
+
+  max-width: 100%;
+}
+
+
+/* =========================================
+   MUSIC / HEART BUTTON
+========================================= */
+
+.heart-float {
+  position: fixed;
+
+  top: 28px;
+  right: 28px;
+
+  z-index: 1000;
+
+  width: 58px;
+  height: 58px;
+
+  padding: 0;
+
+  border: none;
+
+  border-radius: 16px;
+
+  display: grid;
+
+  place-items: center;
+
+  background: #ababab;
+
+  color: var(--red);
+
+  cursor: pointer;
+
+  box-shadow:
+    0 5px 20px
+    rgba(0, 0, 0, 0.12);
+
+  transition:
+    transform 0.3s ease,
+    background 0.3s ease,
+    box-shadow 0.3s ease,
+    opacity 0.3s ease;
+}
+
+
+.heart-float:hover {
+  transform:
+    translateY(-2px)
+    scale(1.04);
+
+  background: #9e9e9e;
+}
+
+
+.heart-float:active {
+  transform:
+    scale(0.96);
+}
+
+
+.heart-float span {
+  position: relative;
+
+  z-index: 2;
+
+  font-family:
+    Georgia,
+    serif;
+
+  font-size: 39px;
+
+  font-weight: 300;
+
+  line-height: 1;
+
+  color: var(--red);
+
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
+}
+
+
+/* MUSIC IS PLAYING */
+
+.heart-float.music-playing {
+  background:
+    rgba(
+      171,
+      171,
+      171,
+      0.92
+    );
+
+  box-shadow:
+    0 7px 24px
+    rgba(127, 5, 4, 0.17);
+}
+
+
+.heart-float.music-playing span {
+  animation:
+    heartBeat
+    1.8s
+    ease-in-out
+    infinite;
+}
+
+
+/* MUSIC IS PAUSED */
+
+.heart-float.music-paused {
+  opacity: 0.78;
+}
+
+
+.heart-float.music-paused span {
+  opacity: 0.8;
+}
+
+
+@keyframes heartBeat {
+
+  0%,
+  100% {
+    transform:
+      scale(1);
+  }
+
+  50% {
+    transform:
+      scale(1.12);
+  }
+
+}
+
+
+/* =========================================
+   HERO
+========================================= */
+
+.hero {
+  position: relative;
+
+  width: 100%;
+
+  height: 100vh;
+  height: 100svh;
+
+  min-height: 100vh;
+
+  margin: 0;
+
+  overflow: hidden;
+
+  background: #000000;
+}
+
+
+.hero img {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  max-width: none;
+
+  object-fit: cover;
+
+  object-position:
+    center
+    center;
+
+  filter: grayscale(1);
+}
+
+
+.hero::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  z-index: 1;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.04),
+      transparent 45%,
+      rgba(0, 0, 0, 0.09)
+    );
+}
+
+
+/* =========================================
+   HERO NAMES
+========================================= */
+
+.hero-names {
+  position: absolute;
+
+  z-index: 3;
+
+  top: 10%;
+  left: 50%;
+
+  transform:
+    translateX(-50%);
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 17px;
+
+  width: auto;
+
+  color: var(--red);
+
+  font-size:
+    clamp(
+      46px,
+      4vw,
+      76px
+    );
+
+  line-height: 1;
+
+  white-space: nowrap;
+}
+
+
+.hero-names i {
+  font-family:
+    Georgia,
+    serif;
+
+  font-size:
+    clamp(
+      55px,
+      5vw,
+      94px
+    );
+
+  font-weight: 300;
+
+  font-style: italic;
+
+  color: var(--red);
+
+  opacity: 0.24;
+}
+
+
+.hero-names span:last-child {
+  transform:
+    translateY(55px);
+}
+
+
+/* =========================================
+   HERO DATE
+========================================= */
+
+.hero-date {
+  position: absolute;
+
+  z-index: 3;
+
+  left: 50%;
+  bottom: 7%;
+
+  transform:
+    translateX(-50%);
+
+  color: var(--red);
+
+  font-size:
+    clamp(
+      55px,
+      4.5vw,
+      86px
+    );
+
+  white-space: nowrap;
+}
+
+
+/* =========================================
+   INTRO
+========================================= */
+
+.intro {
+  width: 100%;
+
+  min-height: 380px;
+
+  padding:
+    85px
+    20px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  background: #ffffff;
+}
+
+
+.intro-stack {
+  width:
+    min(
+      680px,
+      94%
+    );
+
+  text-align: center;
+}
+
+
+.intro-stack h2 {
+  margin:
+    0
+    0
+    24px;
+
+  color: var(--ink);
+
+  font-size:
+    clamp(
+      46px,
+      4vw,
+      64px
+    );
+
+  font-weight: 400;
+
+  line-height: 1;
+}
+
+
+.intro-stack p {
+  margin: 7px 0;
+
+  color: var(--ink);
+
+  font-size:
+    clamp(
+      25px,
+      2vw,
+      32px
+    );
+
+  font-weight: 400;
+
+  line-height: 1.3;
+}
+
+
+/* =========================================
+   REMOVE GHOST TEXT
+========================================= */
+
+.intro-stack::before,
+.intro-stack::after,
+.rsvp-intro::before,
+.rsvp-intro::after {
+  content: none !important;
+
+  display: none !important;
+}
+
+
+.ghost-time {
+  display: none !important;
+}
+
+
+/* =========================================
+   LOVE
+========================================= */
+
+.love-bands {
+  position: relative;
+
+  width: 100%;
+
+  height: clamp(520px, 112vw, 780px);
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  overflow: hidden;
+
+  background: #ffffff;
+
+  color: var(--red);
+
+  font-family:
+    Italianno,
+    cursive;
+
+  line-height: 1.2;
+}
+
+
+.love-row {
+  position: relative;
+
+  width: 150%;
+
+  margin-left: -25%;
+
+  white-space: nowrap;
+
+  letter-spacing: 0.01em;
+
+  line-height: 1.15;
+
+  padding-block: 0.12em;
+
+  opacity: 0.94;
+}
+
+
+.love-row-inner {
+  display: inline-block;
+
+  min-width: max-content;
+
+  white-space: nowrap;
+
+  will-change: transform;
+}
+
+
+.move-right
+.love-row-inner {
+  animation:
+    loveMoveRight
+    var(--duration, 15s)
+    ease-in-out
+    infinite
+    alternate;
+}
+
+
+.move-left
+.love-row-inner {
+  animation:
+    loveMoveLeft
+    var(--duration, 15s)
+    ease-in-out
+    infinite
+    alternate;
+}
+
+
+@keyframes loveMoveRight {
+
+  from {
+    transform:
+      translateX(
+        calc(
+          var(--distance, 10%)
+          * -1
+        )
+      );
+  }
+
+  to {
+    transform:
+      translateX(
+        var(--distance, 10%)
+      );
+  }
+
+}
+
+
+@keyframes loveMoveLeft {
+
+  from {
+    transform:
+      translateX(
+        var(--distance, 10%)
+      );
+  }
+
+  to {
+    transform:
+      translateX(
+        calc(
+          var(--distance, 10%)
+          * -1
+        )
+      );
+  }
+
+}
+
+
+/* =========================================
+   LOVE PHOTO
+========================================= */
+
+.love-photo {
+  position: absolute;
+
+  z-index: 10;
+
+  top: 50%;
+  left: 50%;
+
+  width: min(520px, calc(100% - 64px));
+  height: auto;
+
+  max-height: calc(100% - 64px);
+
+  object-fit: contain;
+
+  transform:
+    translate(
+      -50%,
+      -50%
+    )
+    rotate(3deg);
+
+  filter: grayscale(1);
+
+  pointer-events: none;
+
+  box-shadow:
+    0 12px 35px
+    rgba(0, 0, 0, 0.05);
+}
+
+
+/* =========================================
+   COUNTDOWN
+========================================= */
+
+.countdown {
+  width: 100%;
+
+  margin:
+    0
+    auto
+    100px;
+
+  padding:
+    28px
+    20px
+    0;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: stretch;
+
+  background: #ffffff;
+
+  color: var(--red);
+}
+
+
+.count-item {
+  position: relative;
+
+  width: 125px;
+
+  text-align: center;
+}
+
+
+.count-item strong {
+  display: block;
+
+  font-size: 60px;
+
+  font-weight: 400;
+
+  line-height: 1;
+}
+
+
+.count-item span {
+  display: block;
+
+  margin-top: 7px;
+
+  font-size: 22px;
+
+  line-height: 1;
+}
+
+
+.count-item em {
+  position: absolute;
+
+  top: 4px;
+  right: 0;
+
+  width: 1px;
+  height: 75px;
+
+  background: var(--red);
+
+  opacity: 0.75;
+}
+
+
+/* =========================================
+   ROADMAP
+========================================= */
+
+.roadmap-wrap {
+  position: relative;
+
+  width:
+    min(
+      700px,
+      100%
+    );
+
+  margin:
+    0
+    auto;
+
+  padding:
+    50px
+    20px
+    0;
+
+  background: #ffffff;
+}
+
+
+/* =========================================
+   CALENDAR
+========================================= */
+
+.calendar-card {
+  position: relative;
+
+  width:
+    min(
+      540px,
+      92%
+    );
+
+  margin:
+    0
+    auto
+    85px;
+
+  padding:
+    24px
+    0
+    48px;
+
+  background: #ffffff;
+
+  transform:
+    rotate(-3deg);
+}
+
+
+.calendar-card::before,
+.calendar-card::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  right: 0;
+
+  height: 1px;
+
+  background: #322827;
+
+  opacity: 0.7;
+}
+
+
+.calendar-card::before {
+  top: 60px;
+}
+
+
+.calendar-card::after {
+  bottom: 50px;
+}
+
+
+.calendar-head,
+.calendar-days {
+  position: relative;
+
+  z-index: 2;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      1fr
+    );
+
+  text-align: center;
+}
+
+
+.calendar-head {
+  font-size: 22px;
+
+  line-height: 1;
+}
+
+
+.calendar-days {
+  margin-top: 38px;
+
+  font-size: 62px;
+
+  line-height: 1;
+}
+
+
+.calendar-heart {
+  position: absolute;
+
+  z-index: 4;
+
+  top: 22px;
+  left: 50%;
+
+  width: 310px;
+  height: 235px;
+
+  transform:
+    translateX(-50%)
+    rotate(3deg);
+
+  pointer-events: none;
+}
+
+
+/* =========================================
+   ROAD STAGE
+========================================= */
+
+.road-stage {
+  position: relative;
+
+  width: 620px;
+
+  max-width: 100%;
+
+  height: 1320px;
+
+  margin:
+    0
+    auto;
+
+  background: #ffffff;
+}
+
+
+.road-svg {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: visible;
+
+  pointer-events: none;
+}
+
+
+.road-svg path {
+  fill: none;
+
+  stroke: var(--red);
+
+  stroke-width: 5;
+
+  stroke-linecap: round;
+
+  stroke-linejoin: round;
+
+  vector-effect:
+    non-scaling-stroke;
+}
+
+
+.draw {
+  fill: none;
+
+  stroke: var(--red);
+
+  animation: none !important;
+
+  will-change:
+    stroke-dashoffset;
+}
+
+
+/* =========================================
+   ROAD STOPS
+========================================= */
+
+.road-stop {
+  position: absolute;
+
+  z-index: 10;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  width: min(45%, 280px);
+
+  min-width: 0;
+
+  color: var(--ink);
+
+  opacity: 0;
+
+  transform:
+    translateY(32px)
+    scale(0.96);
+
+  transition:
+    opacity
+    0.85s
+    cubic-bezier(
+      0.22,
+      1,
+      0.36,
+      1
+    ),
+
+    transform
+    0.85s
+    cubic-bezier(
+      0.22,
+      1,
+      0.36,
+      1
+    );
+}
+
+
+.road-stop.is-visible {
+  opacity: 1;
+
+  transform:
+    translateY(0)
+    scale(1);
+}
+
+
+.road-dot {
+  width: 48px;
+  height: 48px;
+
+  flex:
+    0
+    0
+    48px;
+
+  display: grid;
+
+  place-items: center;
+
+  border:
+    2px solid
+    var(--red);
+
+  border-radius: 50%;
+
+  background: #ffffff;
+
+  color: var(--red);
+
+  font-family:
+    Georgia,
+    serif;
+
+  font-size: 18px;
+
+  box-shadow:
+    0 6px 20px
+    rgba(127, 5, 4, 0.1);
+}
+
+
+.road-stop.is-visible
+.road-dot {
+  animation:
+    dotAppear
+    0.8s
+    cubic-bezier(
+      0.34,
+      1.56,
+      0.64,
+      1
+    )
+    both;
+}
+
+
+@keyframes dotAppear {
+
+  0% {
+    opacity: 0;
+
+    transform:
+      scale(0.5);
+  }
+
+  65% {
+    transform:
+      scale(1.12);
+  }
+
+  100% {
+    opacity: 1;
+
+    transform:
+      scale(1);
+  }
+
+}
+
+
+/* =========================================
+   ROAD TEXT
+========================================= */
+
+.road-label {
+  width: auto;
+
+  min-width: 0;
+
+  flex: 1 1 auto;
+
+  padding: 10px 14px 11px;
+
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.94);
+
+  box-shadow: 0 5px 20px rgba(127, 5, 4, 0.06);
+}
+
+
+.road-label strong {
+  display: block;
+
+  color: var(--ink);
+
+  font-size: 31px;
+
+  font-weight: 400;
+
+  line-height: 1.14;
+
+  overflow-wrap: anywhere;
+}
+
+
+.road-time {
+  display: inline-block;
+
+  margin-top: 8px;
+
+  color: var(--red);
+
+  font-size: 28px;
+
+  line-height: 1;
+}
+
+
+.stop-1 {
+  top: 21%;
+
+  right: 25%;
+
+  flex-direction: row-reverse;
+
+  text-align: right;
+}
+
+
+.stop-2 {
+  top: 42%;
+
+  left: 4%;
+
+  flex-direction: row-reverse;
+
+  text-align: left;
+}
+
+
+.stop-3 {
+  top: 62%;
+
+  right: 7%;
+
+  flex-direction: row-reverse;
+
+  text-align: right;
+}
+
+
+.stop-4 {
+  top: 80%;
+
+  left: 61%;
+
+  width: 37%;
+
+  flex-direction: row-reverse;
+
+  text-align: left;
+}
+
+
+/* =========================================
+   RSVP
+========================================= */
+
+.rsvp-section {
+  position: relative;
+
+  z-index: 5;
+
+  width:
+    min(
+      680px,
+      100%
+    );
+
+  margin:
+    -105px
+    auto
+    0;
+
+  padding:
+    0
+    20px
+    110px;
+
+  background: #ffffff;
+}
+
+
+/* =========================================
+   WEDDING PHOTO
+========================================= */
+
+.wedding-photo-wrap {
+  width: 100%;
+
+  display: flex;
+
+  justify-content: center;
+
+  margin-bottom: 75px;
+}
+
+
+.rings-photo {
+  display: block;
+
+  width:
+    min(
+      600px,
+      92%
+    );
+
+  height: auto;
+
+  margin: 0;
+
+  object-fit: contain;
+
+  object-position:
+    center
+    center;
+
+  border-radius: 14px;
+
+  filter: grayscale(1);
+
+  box-shadow:
+    0 10px 30px
+    rgba(0, 0, 0, 0.04);
+}
+
+
+/* =========================================
+   RSVP TEXT
+========================================= */
+
+.rsvp-intro {
+  width:
+    min(
+      570px,
+      94%
+    );
+
+  margin:
+    0
+    auto
+    80px;
+
+  text-align: center;
+
+  background: #ffffff;
+}
+
+
+.rsvp-intro p {
+  margin: 0;
+
+  color: var(--ink);
+
+  font-size: 29px;
+
+  font-weight: 400;
+
+  line-height: 1.4;
+}
+
+
+/* =========================================
+   RSVP FORM
+========================================= */
+
+.rsvp-card {
+  width:
+    min(
+      540px,
+      100%
+    );
+
+  margin:
+    0
+    auto;
+}
+
+
+.rsvp-card h3 {
+  margin:
+    0
+    0
+    35px;
+
+  text-align: center;
+
+  color: var(--red);
+
+  font-size: 36px;
+
+  font-weight: 400;
+
+  line-height: 1;
+}
+
+
+.rsvp-card input,
+.rsvp-card textarea,
+.choice-grid button {
+  width: 100%;
+
+  border:
+    1px solid
+    #aaa09d;
+
+  border-radius: 11px;
+
+  outline: none;
+
+  background: #ffffff;
+
+  color: var(--ink);
+
+  font-size: 21px;
+
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+}
+
+
+.rsvp-card input {
+  height: 66px;
+
+  padding:
+    0
+    19px;
+}
+
+
+.rsvp-card textarea {
+  min-height: 125px;
+
+  padding: 18px;
+
+  resize: vertical;
+}
+
+
+.rsvp-card input:focus,
+.rsvp-card textarea:focus {
+  border-color: var(--red);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(127, 5, 4, 0.08);
+}
+
+
+.rsvp-card input::placeholder,
+.rsvp-card textarea::placeholder {
+  color: #a99f9b;
+
+  opacity: 1;
+}
+
+
+/* =========================================
+   CHOICES
+========================================= */
+
+.choice-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      1fr
+    );
+
+  gap: 15px;
+
+  margin:
+    15px
+    0;
+}
+
+
+.choice-grid button {
+  height: 66px;
+
+  padding:
+    0
+    12px;
+}
+
+
+.choice-grid button:hover {
+  border-color:
+    rgba(
+      127,
+      5,
+      4,
+      0.6
+    );
+}
+
+
+.choice-grid button.active {
+  border-color:
+    var(--red);
+
+  color: var(--red);
+
+  box-shadow:
+    inset
+    0
+    0
+    0
+    1px
+    var(--red);
+}
+
+
+/* =========================================
+   SUBMIT
+========================================= */
+
+.submit {
+  width: 100%;
+
+  height: 66px;
+
+  margin-top: 25px;
+
+  border: none;
+
+  border-radius: 11px;
+
+  background: var(--red);
+
+  color: #ffffff;
+
+  font-size: 24px;
+
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
+}
+
+
+.submit:hover {
+  transform:
+    translateY(-2px);
+
+  opacity: 0.94;
+}
+
+
+.submit:active {
+  transform:
+    translateY(0);
+}
+
+
+.thanks {
+  margin-top: 20px;
+
+  text-align: center;
+
+  color: var(--red);
+
+  font-size: 22px;
+}
+
+
+/* =========================================
+   REVEAL
+========================================= */
+
+.reveal {
+  opacity: 0;
+
+  transform:
+    translateY(28px);
+
+  transition:
+    opacity
+    1s
+    cubic-bezier(
+      0.22,
+      1,
+      0.36,
+      1
+    ),
+
+    transform
+    1s
+    cubic-bezier(
+      0.22,
+      1,
+      0.36,
+      1
+    );
+}
+
+
+.reveal.in {
+  opacity: 1;
+
+  transform:
+    translateY(0);
+}
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 900px) {
+
+  .love-row {
+    width: 170%;
+
+    margin-left: -35%;
+  }
+
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 700px) {
+
+  /* MUSIC BUTTON */
+
+  .heart-float {
+    top: 14px;
+    right: 14px;
+
+    width: 54px;
+    height: 54px;
+
+    border-radius: 15px;
+  }
+
+
+  .heart-float span {
+    font-size: 35px;
+  }
+
+
+  /* HERO */
+
+  .hero {
+    width: 100%;
+
+    height: 100svh;
+
+    min-height: 100svh;
+  }
+
+
+  .hero img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    object-position:
+      center
+      center;
+  }
+
+
+  .hero-names {
+    top: 9%;
+
+    width: 90%;
+
+    gap: 7px;
+
+    font-size:
+      clamp(
+        34px,
+        10vw,
+        47px
+      );
+  }
+
+
+  .hero-names i {
+    font-size:
+      clamp(
+        43px,
+        12vw,
+        60px
+      );
+  }
+
+
+  .hero-names span:last-child {
+    transform:
+      translateY(45px);
+  }
+
+
+  .hero-date {
+    bottom: 7%;
+
+    font-size:
+      clamp(
+        45px,
+        13vw,
+        62px
+      );
+  }
+
+
+  /* INTRO */
+
+  .intro {
+    min-height: 335px;
+
+    padding:
+      68px
+      18px;
+  }
+
+
+  .intro-stack h2 {
+    margin-bottom: 20px;
+
+    font-size: 42px;
+  }
+
+
+  .intro-stack p {
+    font-size: 23px;
+
+    line-height: 1.3;
+  }
+
+
+  /* LOVE */
+
+  .love-bands {
+    height: clamp(500px, 132vw, 660px);
+
+    gap: 5px;
+  }
+
+
+  .love-row {
+    width: 190%;
+
+    margin-left: -45%;
+  }
+
+
+  .love-photo {
+    width: min(430px, calc(100% - 48px));
+
+    height: auto;
+
+    max-height: calc(100% - 48px);
+  }
+
+
+  /* COUNTDOWN */
+
+  .countdown {
+    width: 100%;
+
+    margin-bottom: 75px;
+
+    padding:
+      24px
+      8px;
+  }
+
+
+  .count-item {
+    width: 25%;
+  }
+
+
+  .count-item strong {
+    font-size:
+      clamp(
+        40px,
+        11vw,
+        50px
+      );
+  }
+
+
+  .count-item span {
+    font-size:
+      clamp(
+        15px,
+        4vw,
+        19px
+      );
+  }
+
+
+  .count-item em {
+    height: 62px;
+  }
+
+
+  /* ROADMAP */
+
+  .roadmap-wrap {
+    width: 100%;
+
+    padding:
+      35px
+      8px
+      0;
+  }
+
+
+  .calendar-card {
+    width: 94%;
+
+    margin-bottom: 60px;
+
+    padding:
+      21px
+      0
+      40px;
+  }
+
+
+  .calendar-card::before {
+    top: 50px;
+  }
+
+
+  .calendar-card::after {
+    bottom: 43px;
+  }
+
+
+  .calendar-head {
+    font-size: 17px;
+  }
+
+
+  .calendar-days {
+    margin-top: 32px;
+
+    font-size: 49px;
+  }
+
+
+  .calendar-heart {
+    top: 21px;
+
+    width: 250px;
+    height: 200px;
+  }
+
+
+  .road-stage {
+    width: 100%;
+
+    height: 1120px;
+  }
+
+
+  .road-svg path {
+    stroke-width: 4;
+  }
+
+
+  .road-stop {
+    gap: 8px;
+
+    width: 48%;
+  }
+
+
+  .road-dot {
+    width: 40px;
+    height: 40px;
+
+    flex-basis: 40px;
+
+    font-size: 16px;
+  }
+
+
+  .road-label {
+    width: auto;
+
+    padding:
+      8px
+      9px
+      9px;
+  }
+
+
+  .road-label strong {
+    font-size:
+      clamp(
+        21px,
+        6vw,
+        28px
+      );
+
+    line-height: 1.05;
+  }
+
+
+  .road-time {
+    margin-top: 7px;
+
+    font-size:
+      clamp(
+        20px,
+        5.4vw,
+        25px
+      );
+  }
+
+
+  .stop-1 {
+    top: 21%;
+
+    right: 24%;
+  }
+
+
+  .stop-2 {
+    top: 42%;
+
+    left: 2%;
+  }
+
+
+  .stop-3 {
+    top: 62%;
+
+    right: 3%;
+  }
+
+
+  .stop-4 {
+    top: 80%;
+
+    left: 57%;
+
+    width: 41%;
+  }
+
+
+  /* RSVP */
+
+  .rsvp-section {
+    width: 100%;
+
+    margin-top: -70px;
+
+    padding:
+      0
+      16px
+      80px;
+  }
+
+
+  .wedding-photo-wrap {
+    margin-bottom: 65px;
+  }
+
+
+  .rings-photo {
+    width: 94%;
+
+    height: auto;
+
+    object-fit: contain;
+  }
+
+
+  .rsvp-intro {
+    margin-bottom: 65px;
+  }
+
+
+  .rsvp-intro p {
+    font-size: 23px;
+  }
+
+
+  .rsvp-card h3 {
+    font-size: 31px;
+  }
+
+
+  .rsvp-card input,
+  .rsvp-card textarea,
+  .choice-grid button {
+    font-size: 19px;
+  }
+
+}
+
+
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
+@media (max-width: 430px) {
+
+  .intro {
+    min-height: 310px;
+  }
+
+
+  .intro-stack h2 {
+    font-size: 38px;
+  }
+
+
+  .intro-stack p {
+    font-size: 21px;
+  }
+
+
+  .love-bands {
+    height: clamp(470px, 132vw, 560px);
+  }
+
+
+  .love-photo {
+    width: calc(100% - 44px);
+
+    height: auto;
+
+    max-height: calc(100% - 44px);
+  }
+
+
+  .calendar-head {
+    font-size: 15px;
+  }
+
+
+  .calendar-days {
+    font-size: 44px;
+  }
+
+
+  .calendar-heart {
+    width: 225px;
+  }
+
+
+  .road-stage {
+    height: 1040px;
+  }
+
+
+  .road-label strong {
+    font-size: 20px;
+  }
+
+
+  .road-time {
+    font-size: 19px;
+  }
+
+
+  .road-dot {
+    width: 35px;
+    height: 35px;
+
+    flex-basis: 35px;
+
+    font-size: 14px;
+  }
+
+
+  .rsvp-section {
+    margin-top: -55px;
+  }
+
+
+  .rings-photo {
+    width: 96%;
+  }
+
+
+  .rsvp-intro p {
+    font-size: 20px;
+  }
+
+
+  .rsvp-card h3 {
+    font-size: 28px;
+  }
+
+}
+
+
+/* =========================================
+   REDUCED MOTION
+========================================= */
+
+@media (
+  prefers-reduced-motion:
+  reduce
+) {
+
+  html {
+    scroll-behavior: auto;
+  }
+
+
+  .love-row-inner {
+    animation: none !important;
+  }
+
+
+  .draw {
+    stroke-dashoffset:
+      0 !important;
+  }
+
+
+  .road-stop {
+    opacity: 1;
+
+    transform: none;
+
+    transition: none;
+  }
+
+
+  .reveal {
+    opacity: 1;
+
+    transform: none;
+
+    transition: none;
+  }
+
+
+  .heart-float.music-playing
+  span {
+    animation: none;
+  }
+
+}

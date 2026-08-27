@@ -5,6 +5,9 @@ import {
   BurgundyRoadmapCardPreview,
   BurgundyRoadmapInvitationView,
   BurgundyRoadmapLivePreview,
+  MonochromeEnvelopeCardPreview,
+  MonochromeEnvelopeInvitationView,
+  MonochromeEnvelopeLivePreview,
   DivineBlessingCardPreview,
   DivineBlessingInvitationView,
   DivineBlessingLivePreview,
@@ -19,6 +22,7 @@ import {
   ForeverVowsLivePreview,
   getBirthdaySparkleDraft,
   getBurgundyRoadmapDraft,
+  getMonochromeEnvelopeDraft,
   getDivineBlessingDraft,
   getElevateInviteDraft,
   getEverlastingVowsDraft,
@@ -28,6 +32,7 @@ import {
   getSilkVowsDraft,
   isBirthdaySparkleTemplate,
   isBurgundyRoadmapTemplate,
+  isMonochromeEnvelopeTemplate,
   isDivineBlessingTemplate,
   isElevateInviteTemplate,
   isEverlastingVowsTemplate,
@@ -45,17 +50,80 @@ import {
   SilkVowsInvitationView,
   SilkVowsLivePreview
 } from './OriginalTypeScriptTemplates.tsx';
+import {
+  BirthdaySpaceCardPreview,
+  BirthdaySpaceInvitationView,
+  BirthdaySpaceLivePreview,
+  getBirthdaySpaceDraft,
+  isBirthdaySpaceTemplate
+} from './BirthdaySpaceTemplate.jsx';
+import {
+  BirthdayWatercolorCardPreview,
+  BirthdayWatercolorInvitationView,
+  BirthdayWatercolorLivePreview,
+  getBirthdayWatercolorDraft,
+  isBirthdayWatercolorTemplate
+} from './BirthdayWatercolorTemplate.jsx';
+import {
+  BirthdayCrimsonCardPreview,
+  BirthdayCrimsonInvitationView,
+  BirthdayCrimsonLivePreview,
+  getBirthdayCrimsonDraft,
+  isBirthdayCrimsonTemplate
+} from './BirthdayCrimsonTemplate.jsx';
+import {
+  AngelicBaptismCardPreview,
+  AngelicBaptismInvitationView,
+  AngelicBaptismLivePreview,
+  CinematicEngagementCardPreview,
+  CinematicEngagementInvitationView,
+  CinematicEngagementLivePreview,
+  GoldenHeartEngagementCardPreview,
+  GoldenHeartEngagementInvitationView,
+  GoldenHeartEngagementLivePreview,
+  LastBellCardPreview,
+  LastBellInvitationView,
+  LastBellLivePreview,
+  LoveMapWeddingCardPreview,
+  LoveMapWeddingInvitationView,
+  LoveMapWeddingLivePreview,
+  PolaroidEngagementCardPreview,
+  PolaroidEngagementInvitationView,
+  PolaroidEngagementLivePreview,
+  getAngelicBaptismDraft,
+  getCinematicEngagementDraft,
+  getGoldenHeartEngagementDraft,
+  getLastBellDraft,
+  getLoveMapWeddingDraft,
+  getPolaroidEngagementDraft,
+  isAngelicBaptismTemplate,
+  isCinematicEngagementTemplate,
+  isGoldenHeartEngagementTemplate,
+  isLastBellTemplate,
+  isLoveMapWeddingTemplate,
+  isPolaroidEngagementTemplate
+} from './ImportedBatchTemplates.tsx';
 
 export const availableOccasionTemplates = [
   { key: 'sacred-beginnings', label: 'Սուրբ սկիզբ · մկրտություն' },
   { key: 'birthday-sparkle', label: 'Փայլուն տարեդարձ' },
+  { key: 'birthday-space', label: 'Տիեզերական տարեդարձ' },
+  { key: 'birthday-watercolor', label: 'Ջրաներկ տարեդարձ' },
+  { key: 'birthday-crimson', label: 'Կարմիր տարեդարձ' },
   { key: 'ivory-vows', label: 'Փղոսկրե երդումներ · հարսանիք' },
   { key: 'divine-blessing', label: 'Աստվածային օրհնություն · մկրտություն' },
   { key: 'elevate-invite', label: 'Վերելք · կորպորատիվ միջոցառում' },
   { key: 'everlasting-vows', label: 'Հավերժական երդումներ · հարսանիք' },
   { key: 'forever-vows', label: 'Forever Vows · նշանադրություն' },
   { key: 'silk-vows', label: 'Մետաքսե երդումներ · հարսանիք' },
-  { key: 'burgundy-roadmap', label: 'Գինեգույն ճանապարհ · հարսանիք' }
+  { key: 'burgundy-roadmap', label: 'Գինեգույն ճանապարհ · հարսանիք' },
+  { key: 'monochrome-envelope', label: 'Մոնոխրոմ հրավեր · հարսանիք' },
+  { key: 'love-map-wedding', label: 'Սիրո քարտեզ · հարսանիք' },
+  { key: 'angelic-baptism', label: 'Հրեշտակային մկրտություն' },
+  { key: 'polaroid-engagement', label: 'Պոլարոիդ նշանադրություն' },
+  { key: 'golden-heart-engagement', label: 'Ոսկե սիրտ · նշանադրություն' },
+  { key: 'cinematic-engagement', label: 'Կինոժապավեն · նշանադրություն' },
+  { key: 'last-bell', label: 'Վերջին զանգ' }
 ];
 
 const normalizeTemplateKey = (value) => String(value || '')
@@ -83,6 +151,33 @@ export const occasionTemplates = [
     LivePreview: BirthdaySparkleLivePreview,
     PublicView: BirthdaySparkleInvitationView,
     getInitialDraft: getBirthdaySparkleDraft
+  },
+  {
+    key: 'birthday-space',
+    aliases: ['birthday-space', 'space-birthday', 'cnund1'],
+    match: isBirthdaySpaceTemplate,
+    CardPreview: BirthdaySpaceCardPreview,
+    LivePreview: BirthdaySpaceLivePreview,
+    PublicView: BirthdaySpaceInvitationView,
+    getInitialDraft: getBirthdaySpaceDraft
+  },
+  {
+    key: 'birthday-watercolor',
+    aliases: ['birthday-watercolor', 'watercolor-birthday', 'cnund2'],
+    match: isBirthdayWatercolorTemplate,
+    CardPreview: BirthdayWatercolorCardPreview,
+    LivePreview: BirthdayWatercolorLivePreview,
+    PublicView: BirthdayWatercolorInvitationView,
+    getInitialDraft: getBirthdayWatercolorDraft
+  },
+  {
+    key: 'birthday-crimson',
+    aliases: ['birthday-crimson', 'emma-birthday', 'cnund3'],
+    match: isBirthdayCrimsonTemplate,
+    CardPreview: BirthdayCrimsonCardPreview,
+    LivePreview: BirthdayCrimsonLivePreview,
+    PublicView: BirthdayCrimsonInvitationView,
+    getInitialDraft: getBirthdayCrimsonDraft
   },
   {
     key: 'ivory-vows',
@@ -146,6 +241,69 @@ export const occasionTemplates = [
     LivePreview: BurgundyRoadmapLivePreview,
     PublicView: BurgundyRoadmapInvitationView,
     getInitialDraft: getBurgundyRoadmapDraft
+  },
+  {
+    key: 'monochrome-envelope',
+    aliases: ['monochrome-envelope', 'monochrome-envelope-wedding', 'harsaniq2'],
+    match: isMonochromeEnvelopeTemplate,
+    CardPreview: MonochromeEnvelopeCardPreview,
+    LivePreview: MonochromeEnvelopeLivePreview,
+    PublicView: MonochromeEnvelopeInvitationView,
+    getInitialDraft: getMonochromeEnvelopeDraft
+  },
+  {
+    key: 'love-map-wedding',
+    aliases: ['love-map-wedding', 'harsaniq4'],
+    match: isLoveMapWeddingTemplate,
+    CardPreview: LoveMapWeddingCardPreview,
+    LivePreview: LoveMapWeddingLivePreview,
+    PublicView: LoveMapWeddingInvitationView,
+    getInitialDraft: getLoveMapWeddingDraft
+  },
+  {
+    key: 'angelic-baptism',
+    aliases: ['angelic-baptism', 'knunq1'],
+    match: isAngelicBaptismTemplate,
+    CardPreview: AngelicBaptismCardPreview,
+    LivePreview: AngelicBaptismLivePreview,
+    PublicView: AngelicBaptismInvitationView,
+    getInitialDraft: getAngelicBaptismDraft
+  },
+  {
+    key: 'polaroid-engagement',
+    aliases: ['polaroid-engagement', 'nshanadrutyun1'],
+    match: isPolaroidEngagementTemplate,
+    CardPreview: PolaroidEngagementCardPreview,
+    LivePreview: PolaroidEngagementLivePreview,
+    PublicView: PolaroidEngagementInvitationView,
+    getInitialDraft: getPolaroidEngagementDraft
+  },
+  {
+    key: 'golden-heart-engagement',
+    aliases: ['golden-heart-engagement', 'nshanadrutyun2'],
+    match: isGoldenHeartEngagementTemplate,
+    CardPreview: GoldenHeartEngagementCardPreview,
+    LivePreview: GoldenHeartEngagementLivePreview,
+    PublicView: GoldenHeartEngagementInvitationView,
+    getInitialDraft: getGoldenHeartEngagementDraft
+  },
+  {
+    key: 'cinematic-engagement',
+    aliases: ['cinematic-engagement', 'nshanadrutyun3'],
+    match: isCinematicEngagementTemplate,
+    CardPreview: CinematicEngagementCardPreview,
+    LivePreview: CinematicEngagementLivePreview,
+    PublicView: CinematicEngagementInvitationView,
+    getInitialDraft: getCinematicEngagementDraft
+  },
+  {
+    key: 'last-bell',
+    aliases: ['last-bell', 'verjin-zang-1'],
+    match: isLastBellTemplate,
+    CardPreview: LastBellCardPreview,
+    LivePreview: LastBellLivePreview,
+    PublicView: LastBellInvitationView,
+    getInitialDraft: getLastBellDraft
   }
 ];
 

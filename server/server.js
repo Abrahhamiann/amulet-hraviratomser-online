@@ -64,7 +64,7 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '15mb' }));
 app.use(morgan('dev'));
 
-app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/api/health', (req, res) => res.json({ status: 'ok', service: 'e-invite-server' }));
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.get('/api/faq', getPublicFaq);
@@ -87,17 +87,39 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'change_this_secret' |
   throw new Error('JWT_SECRET must be configured with at least 32 characters');
 }
 
-connectDB()
-  .then(async () => {
+const existingAmuletServer = async () => {
+  try {
+    const response = await fetch(`http://127.0.0.1:${PORT}/api/health`, {
+      signal: AbortSignal.timeout(1200)
+    });
+    const payload = await response.json();
+    return response.ok && payload?.status === 'ok'
+      && (!payload.service || payload.service === 'e-invite-server');
+  } catch {
+    return false;
+  }
+};
+
+existingAmuletServer()
+  .then(async (alreadyRunning) => {
+    if (alreadyRunning) {
+      console.log(`Amulet server is already running on port ${PORT}. Reusing the existing process.`);
+      return;
+    }
+    await connectDB();
     await removeLegacyEngagementTemplates();
     await ensureCuratedTemplates();
     await ensureTemplateCodes();
     await ensureDefaultReviews();
     startContactReminderScheduler();
     const server = app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
-    server.on('error', (error) => {
+    server.on('error', async (error) => {
+      if (error.code === 'EADDRINUSE' && await existingAmuletServer()) {
+        console.log(`Amulet server is already running on port ${PORT}. Reusing the existing process.`);
+        process.exit(0);
+      }
       if (error.code === 'EADDRINUSE') {
-        console.error(`Port ${PORT} is already in use. Stop the existing server or set a different PORT in server/.env.`);
+        console.error(`Port ${PORT} is already in use by another application. Stop it or set a different PORT in server/.env.`);
         process.exit(1);
       }
       throw error;

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { ArrowLeft, CheckCircle2, ChevronDown, Eye, Images, LayoutGrid, Monitor, PanelLeftClose, PanelLeftOpen, Pencil, Redo2, RotateCcw, ShoppingBag, Smartphone, Sparkles, Tablet, Undo2, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import editorExitAlert from '../../assets/animations/editor-exit-alert.lottie?url';
 import iphoneDeviceFrame from '../../assets/editor-devices/iphone-device-frame-clean.png';
 import ipadDeviceFrame from '../../assets/editor-devices/ipad-device-frame-clean.png';
@@ -17,6 +17,7 @@ import { splitNames } from './editorData.js';
 import { resolveTemplateImage } from '../../occasionTemplates/templateAssets.js';
 import { prepareImage } from './mediaUtils.js';
 import { useLanguage } from '../../context/LanguageContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 import './invitationEditor.css';
 
 const previewSectionSelectors = {
@@ -152,11 +153,12 @@ const shadowHotspotStyles = `
   [data-editor-kind="text"][contenteditable]{appearance:none!important;-webkit-appearance:none!important;border:0!important;border-radius:0!important;outline:0!important;box-shadow:none!important;cursor:text;caret-color:#d07d4f;user-select:text;-webkit-user-select:text}
   [data-editor-kind="text"][contenteditable]:focus:not(.is-editor-active),[data-editor-kind="text"][contenteditable]:focus-visible:not(.is-editor-active){border:0!important;outline:0!important;box-shadow:none!important}
   [data-editor-kind="text"][contenteditable]:empty{display:inline-block;min-width:2ch;min-height:1.25em}
-  [data-editor-kind="text"]::after{pointer-events:auto}
+  [data-editor-kind="text"]::after{pointer-events:none}
   [data-editor-kind="text"].is-editor-inline-editing{outline-color:#d07d4f;background-color:rgba(208,125,79,.055)}
   [data-editor-kind="text"].is-editor-inline-editing::after{opacity:0!important}
   [data-editor-kind]::after{content:attr(data-editor-label);position:absolute;z-index:999;top:-13px;right:-7px;min-height:30px;display:flex;align-items:center;padding:0 10px 0 31px;border:1px solid rgba(255,255,255,.86);border-radius:5px;background-color:#d07d4f;background-position:9px center;background-repeat:no-repeat;background-size:14px;color:#fff;font:700 11px/1.1 Arial,sans-serif;letter-spacing:.01em;white-space:nowrap;box-shadow:0 6px 18px rgba(50,28,14,.22);opacity:0;transform:translateY(4px);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
   [data-editor-kind="text"]::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E")}
+  .road-label [data-editor-kind="text"]::after{top:-38px;right:0}
   [data-editor-kind="image"]::after{top:12px;right:12px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.5 4h-5L7.8 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-3.8z'/%3E%3Ccircle cx='12' cy='13' r='3'/%3E%3C/svg%3E")}
   [data-editor-kind="color"]::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m19 3 2 2L8.5 17.5 5 19l1.5-3.5Z'/%3E%3Cpath d='m15 7 2 2'/%3E%3C/svg%3E")}
   [data-editor-kind="map"]::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E")}
@@ -171,6 +173,9 @@ const shadowHotspotStyles = `
 
 const studioMotionStyles = `
   .original-template-document *, .original-template-document *::before, .original-template-document *::after{animation-delay:0s!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-delay:0s!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+  .original-template-document .reveal{opacity:1!important;transform:none!important}
+  .original-template-document .road-svg .draw{stroke-dasharray:none!important;stroke-dashoffset:0!important}
+  .original-template-document .road-stop{opacity:1!important;transform:none!important}
   .original-template-document .silk-vows-reveal,
   .original-template-document .silk-vows-location-card:nth-child(n){opacity:1!important;transform:none!important}
 `;
@@ -496,7 +501,9 @@ export const decoratePreview = (root, data, { suppressMotion = false, labels: su
       // Many imported designs place a gradient/border sibling above the <img>.
       // Decorating only the image makes a real pointer click land on that
       // overlay instead. Promote the hotspot to the immediate visual wrapper.
-      const target = image.closest('picture') || (hasVisualOverlay ? parent : image);
+      const target = image.hasAttribute('data-editor-hotspot-self')
+        ? image
+        : image.closest('picture') || (hasVisualOverlay ? parent : image);
       if (!target) return;
       const source = image.currentSrc || image.src;
       const galleryIndex = galleryImages.findIndex((item) => absoluteImageSource(item) === source);
@@ -676,6 +683,19 @@ function PreviewWorkspace({ PreviewComponent }) {
   useEffect(() => {
     registerEditableContent(decoratePreview(previewRootRef.current, data, { suppressMotion: true, labels: hotspotLabels }));
   }, [data, hotspotLabels, previewReady, registerEditableContent]);
+
+  useEffect(() => {
+    const root = previewRootRef.current;
+    const previewScroll = root?.querySelector('.invite-editor-preview-scroll');
+    const frameWindow = previewScroll?.ownerDocument?.defaultView;
+    if (!previewScroll || !frameWindow) return undefined;
+    const notifyImportedTemplate = () => {
+      frameWindow.dispatchEvent(new frameWindow.Event('scroll'));
+    };
+    previewScroll.addEventListener('scroll', notifyImportedTemplate, { passive: true });
+    notifyImportedTemplate();
+    return () => previewScroll.removeEventListener('scroll', notifyImportedTemplate);
+  }, [device, previewReady]);
 
   useEffect(() => {
     const root = previewRootRef.current;
@@ -1181,9 +1201,9 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
         </div>
         <DeviceSwitcher />
         <div className="invite-editor-top-actions">
-          <small aria-live="polite">{saveStatus === 'changed' ? t('editorSessionChanges') : t('editorOriginalState')}</small>
+          <small className={actions.previewError ? 'is-error' : undefined} role={actions.previewError ? 'alert' : undefined} aria-live="polite">{actions.previewError ? t('editorPreviewError') : saveStatus === 'changed' ? t('editorSessionChanges') : t('editorOriginalState')}</small>
           <button className="invite-editor-restore-trigger" type="button" onClick={() => setRestoreOpen(true)} disabled={!dirty}><RotateCcw size={17} /><span>{t('editorRestore')}</span></button>
-          <button type="button" onClick={() => void showModifiedPreview()} disabled={actions.saving}><Eye size={17} /><span>{t('editorViewChanges')}</span></button>
+          <button type="button" onClick={() => void showModifiedPreview()} disabled={actions.saving || actions.previewing}><Eye size={17} /><span>{actions.previewing ? t('editorPreparing') : t('editorViewChanges')}</span></button>
           <button type="button" onClick={() => requestClose()} aria-label={t('editorClose')}><X size={24} /></button>
         </div>
       </header>
@@ -1209,9 +1229,9 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
         </div>
         <footer>
           {compactViewport && (
-            <button className="invite-editor-footer-preview" type="button" onClick={() => void showModifiedPreview()} disabled={actions.saving}>
+            <button className="invite-editor-footer-preview" type="button" onClick={() => void showModifiedPreview()} disabled={actions.saving || actions.previewing}>
               <Eye size={16} />
-              <span>{t('editorViewChanges')}</span>
+              <span>{actions.previewing ? t('editorPreparing') : t('editorViewChanges')}</span>
             </button>
           )}
           <button className="invite-editor-footer-buy" type="button" onClick={() => actions.onBuy?.(data)} disabled={actions.saving}>
@@ -1258,9 +1278,14 @@ function EditorBody({ PreviewComponent, isSingleImageTemplate }) {
   );
 }
 
-export default function InvitationEditor({ draft, originalDraft, initialTarget, template, PreviewComponent, isSingleImageTemplate, saving, onClose, onDiscard, onRestore, onPreview, previewPath, onBuy, onDraftChange, onSelectTemplate }) {
+export default function InvitationEditor({ draft, originalDraft, initialTarget, template, PreviewComponent, isSingleImageTemplate, saving, previewing, previewError, onClose, onDiscard, onRestore, onPreview, previewPath, onBuy, onDraftChange, onSelectTemplate }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { initialized, user } = useAuth();
   const actions = useMemo(() => ({
     saving,
+    previewing,
+    previewError,
     onClose,
     onDiscard,
     onRestore,
@@ -1269,7 +1294,18 @@ export default function InvitationEditor({ draft, originalDraft, initialTarget, 
     previewPath,
     onPreview: async (nextDraft) => onPreview?.(nextDraft),
     onBuy: (nextDraft) => onBuy?.(nextDraft)
-  }), [onBuy, onClose, onDiscard, onDraftChange, onPreview, onRestore, onSelectTemplate, previewPath, saving]);
+  }), [onBuy, onClose, onDiscard, onDraftChange, onPreview, onRestore, onSelectTemplate, previewError, previewing, previewPath, saving]);
+
+  useEffect(() => {
+    if (!initialized || user) return;
+    onClose?.();
+    navigate('/login', {
+      replace: true,
+      state: { returnTo: `${location.pathname}${location.search}` }
+    });
+  }, [initialized, location.pathname, location.search, navigate, onClose, user]);
+
+  if (!initialized || !user) return null;
 
   return <EditorProvider initialDraft={draft} originalDraft={originalDraft} initialTarget={initialTarget} template={template} actions={actions}><EditorBody PreviewComponent={PreviewComponent} isSingleImageTemplate={isSingleImageTemplate} /></EditorProvider>;
 }

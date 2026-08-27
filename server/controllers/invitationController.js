@@ -5,7 +5,7 @@ import Template from '../models/Template.js';
 import { createSecureInvitationSlug, isSecureInvitationSlug } from '../utils/invitationSlug.js';
 
 const CURRENT_DESIGN_KEYS = new Set([
-  'sacred-beginnings', 'birthday-sparkle', 'ivory-vows',
+  'sacred-beginnings', 'birthday-sparkle', 'birthday-space', 'birthday-watercolor', 'birthday-crimson', 'ivory-vows',
   'divine-blessing', 'elevate-invite', 'ever-after', 'everlasting-vows',
   'forever-vows', 'silk-vows'
 ]);

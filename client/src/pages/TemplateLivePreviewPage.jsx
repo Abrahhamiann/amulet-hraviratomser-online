@@ -38,22 +38,35 @@ previewDate.setMonth(previewDate.getMonth() + 1);
 
 const editorAutosaveKey = (templateId) => `amulet_autosave_${templateId}`;
 const editorOpenKey = (templateId) => `amulet_editor_open_${templateId}`;
+const BURGUNDY_ROADMAP_AUTOSAVE_VERSION = 'harsaniq1-zip-exact-v1';
 
-const readEditorAutosave = (templateId) => {
+const readEditorAutosave = (template) => {
+  const templateId = template?._id;
   if (!templateId) return null;
   try {
     const saved = JSON.parse(localStorage.getItem(editorAutosaveKey(templateId)) || 'null');
-    return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : null;
+    if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return null;
+    if (template.designKey === 'burgundy-roadmap'
+      && saved.__designVersion !== BURGUNDY_ROADMAP_AUTOSAVE_VERSION) {
+      localStorage.removeItem(editorAutosaveKey(templateId));
+      return null;
+    }
+    const { __designVersion: _designVersion, ...draft } = saved;
+    return draft;
   } catch {
     localStorage.removeItem(editorAutosaveKey(templateId));
     return null;
   }
 };
 
-const writeEditorAutosave = (templateId, nextDraft) => {
+const writeEditorAutosave = (template, nextDraft) => {
+  const templateId = template?._id;
   if (!templateId || !nextDraft) return;
   try {
-    localStorage.setItem(editorAutosaveKey(templateId), JSON.stringify(nextDraft));
+    const payload = template.designKey === 'burgundy-roadmap'
+      ? { ...nextDraft, __designVersion: BURGUNDY_ROADMAP_AUTOSAVE_VERSION }
+      : nextDraft;
+    localStorage.setItem(editorAutosaveKey(templateId), JSON.stringify(payload));
   } catch {
     // Editing must remain available when browser storage is unavailable or full.
   }
@@ -274,6 +287,7 @@ export default function TemplateLivePreviewPage() {
   const [authWarningOpen, setAuthWarningOpen] = useState(false);
   const [state, setState] = useState('loading');
   const [checkoutState, setCheckoutState] = useState('idle');
+  const [previewState, setPreviewState] = useState('idle');
   const [promoOpen, setPromoOpen] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [promoError, setPromoError] = useState('');
@@ -303,7 +317,7 @@ export default function TemplateLivePreviewPage() {
           return;
         }
         const nextTemplate = previewToken ? data.template : data;
-        const savedDraft = previewToken || !user ? null : readEditorAutosave(nextTemplate._id);
+        const savedDraft = previewToken || !user ? null : readEditorAutosave(nextTemplate);
         const initialDraft = savedDraft || (previewToken ? data.draft : createInitialDraft(nextTemplate));
         setTemplate(nextTemplate);
         setDraft(initialDraft);
@@ -316,6 +330,14 @@ export default function TemplateLivePreviewPage() {
       });
     return undefined;
   }, [id, initialized, navigate, previewToken, user]);
+
+  useEffect(() => {
+    if (!initialized || user || searchParams.get('edit') !== '1') return;
+    navigate('/login', {
+      replace: true,
+      state: { returnTo: `${location.pathname}${location.search}` }
+    });
+  }, [initialized, location.pathname, location.search, navigate, searchParams, user]);
 
   useEffect(() => {
     const shouldReopenEditor = template?._id && localStorage.getItem(editorOpenKey(template._id)) === '1';
@@ -399,7 +421,7 @@ export default function TemplateLivePreviewPage() {
       setDraft((current) => {
         const next = cloneEditorDraft(current);
         updateDraftTextField(next, field, value);
-        writeEditorAutosave(template._id, next);
+        writeEditorAutosave(template, next);
         return next;
       });
       setIsEdited(true);
@@ -437,8 +459,7 @@ export default function TemplateLivePreviewPage() {
 
   const openPrivatePreview = async (sourceDraft = draft) => {
     const nextDraft = cleanDraft(sourceDraft);
-    const previewWindow = window.open('about:blank', '_blank');
-    if (previewWindow) previewWindow.opener = null;
+    setPreviewState('loading');
     try {
       const { data } = await api.post('/previews', {
         templateId: template._id,
@@ -448,14 +469,14 @@ export default function TemplateLivePreviewPage() {
       const nextPreviewPath = `${data.path}?standalone=1`;
       autosaveTokenRef.current = data.token;
       setPrivatePreviewPath(nextPreviewPath);
-      writeEditorAutosave(template._id, nextDraft);
+      writeEditorAutosave(template, nextDraft);
       setDraft(nextDraft);
       setIsEdited(true);
-      if (previewWindow && !previewWindow.closed) previewWindow.location.replace(nextPreviewPath);
-      else navigate(nextPreviewPath);
+      setPreviewState('idle');
+      navigate(nextPreviewPath);
       return true;
     } catch {
-      previewWindow?.close();
+      setPreviewState('error');
       return false;
     }
   };
@@ -506,6 +527,14 @@ export default function TemplateLivePreviewPage() {
     if (template?._id) localStorage.removeItem(editorOpenKey(template._id));
     setEditing(false);
   };
+
+  useEffect(() => {
+    if (!initialized || user || !editing) return;
+    if (template?._id) localStorage.removeItem(editorOpenKey(template._id));
+    setEditorInitialTarget({});
+    setEditing(false);
+    setAuthWarningOpen(true);
+  }, [editing, initialized, template?._id, user]);
 
   const orderTemplate = async () => {
     if (!isEdited) {
@@ -617,7 +646,7 @@ export default function TemplateLivePreviewPage() {
   const persistEditorDraft = (nextDraft, hasChanges) => {
     setDraft(nextDraft);
     setIsEdited(hasChanges);
-    if (hasChanges) writeEditorAutosave(template?._id, nextDraft);
+    if (hasChanges) writeEditorAutosave(template, nextDraft);
     else if (template?._id) localStorage.removeItem(editorAutosaveKey(template._id));
   };
 
@@ -636,28 +665,29 @@ export default function TemplateLivePreviewPage() {
   const LivePreview = occasionTemplate?.LivePreview;
   const originalEditorDraft = createInitialDraft(template);
   const isSingleImageTemplate = false;
+  const editorActive = editing && Boolean(user);
   const image = resolveTemplateImage(draft?.image || template.mainImage || template.gallery?.[0]);
   const formattedDate = draft?.eventDate ? new Date(draft.eventDate).toLocaleDateString() : previewDate.toLocaleDateString();
 
   return (
     <main
       ref={livePreviewRootRef}
-      className={`${LivePreview ? 'template-live-page test-wedding-page' : 'template-live-page'}${editing ? ' is-editing' : ''}${isStandalonePreview ? ' is-standalone-preview' : ''}`}
+      className={`${LivePreview ? 'template-live-page test-wedding-page' : 'template-live-page'}${editorActive ? ' is-editing' : ''}${isStandalonePreview ? ' is-standalone-preview' : ''}`}
     >
-      {LivePreview ? (
+      {LivePreview && !editorActive ? (
         <>
           <LivePreview
             draft={draft}
             price={template.price}
             loading={checkoutState === 'loading'}
             mode={isStandalonePreview ? 'preview' : undefined}
-            onHome={() => navigate('/')}
+            onHome={() => navigate('/templates')}
             onEdit={openEditor}
             onOrder={orderTemplate}
           />
           {checkoutState === 'error' && <p className="template-live-error">{t('checkoutError')}</p>}
         </>
-      ) : (
+      ) : !LivePreview ? (
       <article className="template-live-card">
         <section className="template-live-hero">
           {image && <img src={image} alt={draft?.mainNames ?? template.title} />}
@@ -717,7 +747,7 @@ export default function TemplateLivePreviewPage() {
             <strong>{Number(template.price).toLocaleString()} AMD</strong>
           </div>
           <div className="template-live-actions">
-            <button className="btn btn-ghost template-home-action" type="button" onClick={() => navigate('/')} aria-label={t('home')} title={t('home')}>
+            <button className="btn btn-ghost template-home-action" type="button" onClick={() => navigate('/templates')} aria-label={t('templates')} title={t('templates')}>
               <Home size={19} />
             </button>
             <button className="btn btn-ghost template-live-edit" type="button" onClick={openEditor}>
@@ -732,7 +762,7 @@ export default function TemplateLivePreviewPage() {
         </section>
         {checkoutState === 'error' && <p className="template-live-error">{t('checkoutError')}</p>}
       </article>
-      )}
+      ) : null}
 
       {editRequiredOpen && (
         <EditRequiredModal
@@ -778,7 +808,7 @@ export default function TemplateLivePreviewPage() {
         </div>
       )}
 
-      {editing && draft && LivePreview && (
+      {editorActive && draft && LivePreview && (
         <InvitationEditor
           key={template._id}
           draft={draft}
@@ -787,7 +817,9 @@ export default function TemplateLivePreviewPage() {
           template={template}
           PreviewComponent={LivePreview}
           isSingleImageTemplate={isSingleImageTemplate}
-          saving={checkoutState === 'loading'}
+          saving={checkoutState === 'loading' || previewState === 'loading'}
+          previewing={previewState === 'loading'}
+          previewError={previewState === 'error'}
           onClose={closeEditor}
           onDiscard={discardEditorDraft}
           onRestore={restoreEditorDraft}

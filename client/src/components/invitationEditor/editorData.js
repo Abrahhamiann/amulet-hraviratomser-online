@@ -1,6 +1,13 @@
 import weddingSong from '../../assets/audio/ed-sheeran-perfect.mp3';
 import engagementSong from '../../assets/audio/john-legend-all-of-you.mp3';
 import baptismSong from '../../assets/audio/yiruma-river-flows-in-you.mp3';
+import birthdaySong from '../../vendorTemplates/cnund1/src/assets/audio/happy-birthday.mp3';
+import birthdayWatercolorSong from '../../vendorTemplates/cnund2/src/assets/audio/happy-birthday.mp3';
+import harsaniqOneSong from '../../vendorTemplates/harsaniq1/src/assets/song.mp3';
+import angelicBaptismSong from '../../vendorTemplates/knunq1/src/assets/audio/baptism-music.mp3';
+import polaroidEngagementSong from '../../vendorTemplates/nshanadrutyun1/src/assets/audio/music.mp3';
+import goldenHeartSong from '../../vendorTemplates/nshanadrutyun2/src/assets/audio/invitation-song.mp3';
+import lastBellSong from '../../vendorTemplates/verjinzang1/src/assets/verjin-zang.mp3';
 import { normalizeMapUrl } from '../../utils/mapLinks.js';
 
 export const MAX_GALLERY_IMAGES = 10;
@@ -11,7 +18,14 @@ export const MAX_DRESS_CODE_COLORS = 16;
 export const builtInTracks = [
   { id: 'perfect', title: 'Perfect', artist: 'Ed Sheeran', meta: 'Amulet ընտրանի', src: weddingSong },
   { id: 'all-of-me', title: 'All of Me', artist: 'John Legend', meta: 'Amulet ընտրանի', src: engagementSong },
-  { id: 'river-flows', title: 'River Flows in You', artist: 'Yiruma', meta: 'Amulet ընտրանի', src: baptismSong }
+  { id: 'river-flows', title: 'River Flows in You', artist: 'Yiruma', meta: 'Amulet ընտրանի', src: baptismSong },
+  { id: 'harsaniq-one', title: 'Harsaniq 1 · Wedding Song', artist: '', meta: 'Գինեգույն ճանապարհ · հարսանիք', src: harsaniqOneSong },
+  { id: 'angelic-baptism', title: 'Baptism Music', artist: '', meta: 'Հրեշտակային մկրտություն', src: angelicBaptismSong },
+  { id: 'polaroid-engagement', title: 'Engagement Music', artist: '', meta: 'Պոլարոիդ նշանադրություն', src: polaroidEngagementSong },
+  { id: 'golden-heart-engagement', title: 'Invitation Song', artist: '', meta: 'Ոսկե սիրտ · նշանադրություն', src: goldenHeartSong },
+  { id: 'last-bell', title: 'Վերջին զանգ', artist: '', meta: 'Վերջին զանգ', src: lastBellSong },
+  { id: 'happy-birthday', title: 'Happy Birthday', artist: '', meta: 'Տիեզերական ծննդյան հրավեր', src: birthdaySong },
+  { id: 'happy-birthday-watercolor', title: 'Happy Birthday · Watercolor', artist: '', meta: 'Ջրաներկ ծննդյան հրավեր', src: birthdayWatercolorSong }
 ];
 
 export const normalizeInvitationGallery = (_image, gallery = []) => (Array.isArray(gallery) ? gallery : [])
@@ -111,7 +125,7 @@ const templateColorPalettes = {
     { id: 'ivory-forest', name: 'Անտառային ոսկի', description: 'Բնական և հանդիսավոր', colors: { accent: '#d0b36f', text: '#f8fff6', overlay: '#304438' } }
   ],
   burgundy: [
-    { id: 'burgundy-wine', name: 'Գինեգույն ճանապարհ', description: 'Բորդո, փղոսկր և թղթային սպիտակ', colors: { accent: '#861927', text: '#2e2a2b', overlay: '#fffdfa' } },
+    { id: 'burgundy-wine', name: 'Գինեգույն ճանապարհ', description: 'Սկզբնական բորդո, սև և սպիտակ', colors: { accent: '#7f0504', text: '#130a09', overlay: '#ffffff' } },
     { id: 'burgundy-ruby', name: 'Ռուբինե երդում', description: 'Խորը կարմիր և տաք կրեմ', colors: { accent: '#a60d1a', text: '#302527', overlay: '#fbf4ef' } },
     { id: 'burgundy-rose', name: 'Հին վարդ', description: 'Մեղմ և ռոմանտիկ', colors: { accent: '#a9636c', text: '#4e393d', overlay: '#f9eeee' } },
     { id: 'burgundy-plum', name: 'Սալոր և շամպայն', description: 'Խորհրդավոր ու նրբաճաշակ', colors: { accent: '#76506b', text: '#493e48', overlay: '#f6eff5' } },
@@ -119,15 +133,32 @@ const templateColorPalettes = {
     { id: 'burgundy-navy', name: 'Կապույտ գիշեր', description: 'Հանդիսավոր և ժամանակակից', colors: { accent: '#a87378', text: '#f8fbff', overlay: '#243148' } },
     { id: 'burgundy-forest', name: 'Անտառային բորդո', description: 'Խոր բնական երանգներ', colors: { accent: '#b07376', text: '#f8fff8', overlay: '#263c33' } },
     { id: 'burgundy-onyx', name: 'Օնիքս և գինի', description: 'Դրամատիկ երեկոյան տարբերակ', colors: { accent: '#c77e87', text: '#fff8f8', overlay: '#21191b' } }
+  ],
+  monochrome: [
+    { id: 'monochrome-classic', name: 'Դասական մոնոխրոմ', description: 'Սև, սպիտակ և մաքուր գծեր', colors: { accent: '#111111', text: '#111111', overlay: '#efefef' } },
+    { id: 'monochrome-warm', name: 'Տաք փղոսկր', description: 'Փափուկ և նրբաճաշակ', colors: { accent: '#62584f', text: '#26221f', overlay: '#f3eee7' } },
+    { id: 'monochrome-sage', name: 'Եղեսպակ', description: 'Բնական և հանգիստ', colors: { accent: '#65705f', text: '#2f352d', overlay: '#edf0e9' } },
+    { id: 'monochrome-rose', name: 'Հին վարդ', description: 'Մեղմ և ռոմանտիկ', colors: { accent: '#9a7371', text: '#4e3c3b', overlay: '#f4eae8' } },
+    { id: 'monochrome-navy', name: 'Կապույտ գիշեր', description: 'Ժամանակակից և խոր', colors: { accent: '#d1b071', text: '#f6f8fb', overlay: '#243142' } },
+    { id: 'monochrome-forest', name: 'Անտառային', description: 'Բնական և հանդիսավոր', colors: { accent: '#c0a36d', text: '#f7faf5', overlay: '#2d3c32' } }
+  ],
+  lastBell: [
+    { id: 'last-bell-classic', name: 'Դասական դպրոցական', description: 'Բնօրինակի կանաչ և կրեմ երանգները', colors: { accent: '#345d48', text: '#262622', overlay: '#f7f6ee' } },
+    { id: 'last-bell-forest', name: 'Անտառային կանաչ', description: 'Խոր և հանդիսավոր', colors: { accent: '#244b38', text: '#f9fff8', overlay: '#172f24' } },
+    { id: 'last-bell-sage', name: 'Եղեսպակ և թուղթ', description: 'Հանգիստ և նուրբ', colors: { accent: '#6f826e', text: '#33382f', overlay: '#f0f1e7' } },
+    { id: 'last-bell-navy', name: 'Դպրոցական կապույտ', description: 'Պաշտոնական և ժամանակակից', colors: { accent: '#c5a96d', text: '#f8fbff', overlay: '#24344a' } },
+    { id: 'last-bell-burgundy', name: 'Բորդո ավարտական', description: 'Ջերմ և հիշարժան', colors: { accent: '#b99a67', text: '#fff8f5', overlay: '#5a2631' } }
   ]
 };
 
 export const getTemplateColorPalettes = (template = {}) => {
   const key = [template.designKey, template.slug, template.title].filter(Boolean).join(' ').toLowerCase();
   if (key.includes('sacred-beginnings')) return templateColorPalettes.sacred;
-  if (key.includes('birthday-sparkle')) return templateColorPalettes.birthday;
+  if (key.includes('birthday-sparkle') || key.includes('birthday-space') || key.includes('birthday-watercolor') || key.includes('birthday-crimson')) return templateColorPalettes.birthday;
   if (key.includes('ivory-vows')) return templateColorPalettes.ivory;
   if (key.includes('burgundy-roadmap') || key.includes('wedding-burgundy-roadmap')) return templateColorPalettes.burgundy;
+  if (key.includes('monochrome-envelope') || key.includes('harsaniq2')) return templateColorPalettes.monochrome;
+  if (key.includes('last-bell') || key.includes('verjin-zang-1')) return templateColorPalettes.lastBell;
   if (key.includes('silk-vows') || key.includes('armenian-wedding-invitation')) return templateColorPalettes.ivory;
   if (key.includes('baptism') || key.includes('մկրտ')) return templateColorPalettes.baptism;
   if (key.includes('engagement') || key.includes('նշան')) return templateColorPalettes.engagement;

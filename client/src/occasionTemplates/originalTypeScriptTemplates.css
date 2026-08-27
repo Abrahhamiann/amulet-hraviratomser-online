@@ -2,7 +2,8 @@
   display: block;
   width: 100%;
   min-width: 0;
-  overflow: clip;
+  overflow-x: clip;
+  overflow-y: visible;
   background: #fff;
 }
 

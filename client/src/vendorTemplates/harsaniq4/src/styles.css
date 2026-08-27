@@ -1,0 +1,2854 @@
+/* =========================================================
+   FONTS
+========================================================= */
+
+@font-face {
+  font-family: "BubbleSans";
+
+  src:
+    url("./assets/fonts/BubbleSans.otf")
+    format("opentype");
+
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+@font-face {
+  font-family: "BlackWilliam";
+
+  src:
+    url("./assets/fonts/BlackWilliam.otf")
+    format("opentype");
+
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+/* =========================================================
+   VARIABLES
+========================================================= */
+
+:root {
+  --paper: #efe8df;
+  --paper-soft: #f6f1ea;
+
+  --ink: #171513;
+  --muted: #827c75;
+
+  --red: #ae2529;
+  --red-dark: #8d171c;
+
+  --white: #fffdf9;
+
+  --line:
+    rgba(35, 29, 25, 0.18);
+
+  --shadow:
+    0
+    26px
+    60px
+    rgba(45, 34, 27, 0.13);
+}
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: clip;
+}
+
+
+body {
+  margin: 0;
+
+  min-width: 320px;
+
+  background:
+    var(--paper);
+
+  color:
+    var(--ink);
+
+  font-family:
+    "BubbleSans",
+    Arial,
+    sans-serif;
+
+  overflow-x: clip;
+}
+
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+
+  overflow-x: clip;
+}
+
+
+button,
+input,
+textarea,
+a {
+  font: inherit;
+}
+
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+
+a {
+  color: inherit;
+}
+
+
+/* =========================================================
+   GENERAL
+========================================================= */
+
+.page {
+  min-height: 100vh;
+
+  overflow: hidden;
+
+  background:
+    var(--paper);
+}
+
+
+.latin-script {
+  font-family:
+    "BlackWilliam",
+    cursive;
+}
+
+
+.section-shell {
+  width:
+    min(
+      1160px,
+      calc(100% - 36px)
+    );
+
+  margin-inline: auto;
+}
+
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.hero {
+  position: relative;
+
+  min-height: 100svh;
+
+  display: grid;
+
+  grid-template-rows:
+    auto
+    1fr
+    auto;
+
+  padding:
+    clamp(36px, 4vw, 62px)
+    18px
+    clamp(48px, 6vw, 80px);
+
+  overflow: hidden;
+}
+
+
+.hero::before {
+  content: "";
+
+  position: absolute;
+
+  width: 620px;
+  height: 620px;
+
+  left: 50%;
+  top: 46%;
+
+  transform:
+    translate(-50%, -50%);
+
+  border-radius: 50%;
+
+  background:
+    rgba(255, 255, 255, 0.34);
+
+  filter:
+    blur(30px);
+}
+
+
+.hero-top {
+  position: relative;
+
+  z-index: 6;
+
+  text-align: center;
+}
+
+
+.tiny-label {
+  display: inline-block;
+
+  margin-bottom: 12px;
+
+  color:
+    var(--muted);
+
+  font-size: 12px;
+
+  letter-spacing:
+    0.23em;
+}
+
+
+.hero h1 {
+  margin: 0;
+
+  font-size:
+    clamp(
+      42px,
+      4.6vw,
+      76px
+    );
+
+  font-weight: 400;
+
+  line-height: 1;
+}
+
+
+/* =========================================================
+   HERO ART
+========================================================= */
+
+.hero-art {
+  position: relative;
+
+  z-index: 2;
+
+  width:
+    min(
+      1100px,
+      100%
+    );
+
+  min-height:
+    clamp(
+      500px,
+      62vh,
+      700px
+    );
+
+  margin:
+    0
+    auto;
+
+  display: grid;
+
+  place-items: center;
+
+  isolation: isolate;
+}
+
+
+/* =========================================================
+   LOVE TEXT
+   IMPORTANT:
+   ամբողջ pattern-ը հիմա միշտ էջի ճիշտ կենտրոնում է
+========================================================= */
+
+.love-bands {
+  position: absolute;
+
+  z-index: 1;
+
+  left: 50%;
+  top: 50%;
+
+  width:
+    max(
+      1420px,
+      125vw
+    );
+
+  display: grid;
+
+  gap:
+    clamp(
+      10px,
+      1.1vw,
+      18px
+    );
+
+  transform:
+    translate(
+      -50%,
+      -50%
+    )
+    rotate(-1.4deg);
+
+  pointer-events: none;
+
+  overflow: visible;
+}
+
+
+.love-row {
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap:
+    clamp(
+      35px,
+      4vw,
+      70px
+    );
+
+  color: #d20d11;
+
+  font-family:
+    "BlackWilliam",
+    cursive;
+
+  font-size:
+    clamp(
+      45px,
+      6vw,
+      88px
+    );
+
+  line-height:
+    0.92;
+
+  white-space: nowrap;
+
+  will-change: transform;
+}
+
+
+/*
+  Նախկին margin-left-ը հանել ենք,
+  որպեսզի pattern-ը աջ չգնա
+*/
+
+.love-row:nth-child(even) {
+  margin-left: 0;
+}
+
+
+.love-row-1 {
+  animation:
+    swayLeft
+    15s
+    ease-in-out
+    infinite
+    alternate;
+}
+
+
+.love-row-2 {
+  animation:
+    swayRight
+    17s
+    ease-in-out
+    infinite
+    alternate;
+}
+
+
+.love-row-3 {
+  animation:
+    swayLeft
+    19s
+    ease-in-out
+    infinite
+    alternate-reverse;
+}
+
+
+.love-row-4 {
+  animation:
+    swayRight
+    16s
+    ease-in-out
+    infinite
+    alternate-reverse;
+}
+
+
+@keyframes swayLeft {
+  from {
+    transform:
+      translateX(-3.5%);
+  }
+
+  to {
+    transform:
+      translateX(3.5%);
+  }
+}
+
+
+@keyframes swayRight {
+  from {
+    transform:
+      translateX(3.5%);
+  }
+
+  to {
+    transform:
+      translateX(-3.5%);
+  }
+}
+
+
+/* =========================================================
+   HERO PHOTO
+========================================================= */
+
+.hero-photo-wrap {
+  position: relative;
+
+  z-index: 5;
+
+  width:
+    clamp(
+      235px,
+      27vw,
+      350px
+    );
+
+  aspect-ratio: 0.73;
+
+  padding: 9px;
+
+  background:
+    #ffffff;
+
+  box-shadow:
+    0
+    24px
+    50px
+    rgba(33, 26, 22, 0.14);
+
+  transform:
+    rotate(4deg);
+}
+
+
+.hero-photo {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  filter:
+    grayscale(1)
+    contrast(1.05);
+}
+
+
+.hero-heart {
+  position: absolute;
+
+  width: 56px;
+
+  right: -26px;
+  bottom: 20%;
+
+  animation:
+    heartBeat
+    2.8s
+    ease-in-out
+    infinite;
+}
+
+
+@keyframes heartBeat {
+  50% {
+    transform:
+      scale(0.86)
+      rotate(4deg);
+  }
+}
+
+
+/* =========================================================
+   HERO BOTTOM
+========================================================= */
+
+.hero-bottom {
+  position: relative;
+
+  z-index: 6;
+
+  text-align: center;
+}
+
+
+.hero-bottom p {
+  margin:
+    0
+    0
+    22px;
+
+  font-size:
+    clamp(
+      24px,
+      2.7vw,
+      40px
+    );
+}
+
+
+.hero-bottom a {
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  gap: 12px;
+
+  padding-bottom: 5px;
+
+  border-bottom:
+    1px solid
+    var(--ink);
+
+  text-decoration: none;
+
+  font-size: 16px;
+}
+
+
+.hero-bottom a span {
+  animation:
+    bounceDown
+    1.4s
+    ease-in-out
+    infinite;
+}
+
+
+@keyframes bounceDown {
+  50% {
+    transform:
+      translateY(5px);
+  }
+}
+
+
+/* =========================================================
+   INVITATION SECTION
+========================================================= */
+
+.invite-section {
+  min-height: 95svh;
+
+  padding:
+    clamp(
+      86px,
+      10vw,
+      150px
+    )
+    clamp(
+      18px,
+      5vw,
+      64px
+    );
+
+  display: grid;
+
+  grid-template-columns:
+    0.92fr
+    0.75fr;
+
+  gap:
+    clamp(
+      46px,
+      7vw,
+      110px
+    );
+
+  align-items: center;
+}
+
+
+.invite-copy {
+  max-width: 620px;
+}
+
+
+.invite-copy > span {
+  color:
+    var(--red);
+
+  text-transform:
+    uppercase;
+
+  letter-spacing:
+    0.2em;
+
+  font-size: 13px;
+}
+
+
+.sparkle {
+  width: 26px;
+
+  margin-bottom: 16px;
+
+  color:
+    var(--red);
+}
+
+
+.invite-copy h2 {
+  margin:
+    12px
+    0
+    20px;
+
+  font-size:
+    clamp(
+      56px,
+      7vw,
+      105px
+    );
+
+  font-weight: 400;
+
+  line-height: 0.93;
+}
+
+
+.invite-copy p {
+  margin: 0;
+
+  color: #4c4843;
+
+  font-size:
+    clamp(
+      19px,
+      1.7vw,
+      25px
+    );
+
+  line-height: 1.55;
+}
+
+
+.date-line {
+  margin-top: 34px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  gap: 10px;
+
+  color:
+    var(--red);
+
+  font-size: 18px;
+}
+
+
+/* =========================================================
+   PHOTOS
+========================================================= */
+
+.editorial-photo {
+  position: relative;
+
+  margin: 0;
+}
+
+
+.editorial-photo img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+
+.first-photo {
+  width:
+    min(
+      390px,
+      100%
+    );
+
+  aspect-ratio: 0.67;
+
+  justify-self: center;
+
+  box-shadow:
+    var(--shadow);
+
+  transform:
+    rotate(-2deg);
+}
+
+
+.first-photo img {
+  filter:
+    grayscale(0.18)
+    contrast(1.02);
+}
+
+
+.first-photo figcaption {
+  position: absolute;
+
+  right: -28px;
+  bottom: -34px;
+
+  color:
+    var(--red);
+
+  font-size:
+    clamp(
+      35px,
+      4vw,
+      60px
+    );
+
+  transform:
+    rotate(-7deg);
+}
+
+
+/* =========================================================
+   DATE SECTION
+========================================================= */
+
+.date-section {
+  padding:
+    clamp(
+      70px,
+      8vw,
+      120px
+    )
+    18px
+    clamp(
+      100px,
+      10vw,
+      150px
+    );
+
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
+  gap: 50px;
+
+  align-items: center;
+}
+
+
+/* =========================================================
+   CALENDAR
+========================================================= */
+
+.calendar-card {
+  width:
+    min(
+      470px,
+      100%
+    );
+
+  justify-self: center;
+
+  text-align: center;
+}
+
+
+.calendar-title {
+  margin-bottom: 26px;
+
+  font-size:
+    clamp(
+      30px,
+      3.5vw,
+      52px
+    );
+}
+
+
+.calendar-title span {
+  color:
+    var(--red);
+}
+
+
+.week-row,
+.days-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      7,
+      1fr
+    );
+
+  text-align: center;
+}
+
+
+.week-row span {
+  padding-bottom: 8px;
+
+  color:
+    var(--muted);
+
+  font-size: 12px;
+}
+
+
+.days-grid > span {
+  position: relative;
+
+  min-height: 54px;
+
+  display: grid;
+
+  place-items: center;
+}
+
+
+.days-grid b {
+  position: relative;
+
+  z-index: 2;
+
+  font-size: 16px;
+
+  font-weight: 400;
+}
+
+
+.selected-day {
+  color:
+    white;
+}
+
+
+.selected-day img {
+  position: absolute;
+
+  z-index: 1;
+
+  width: 48px;
+  height: 48px;
+
+  object-fit: contain;
+}
+
+
+.save-date {
+  margin-top: 26px;
+
+  font-size: 34px;
+
+  transform:
+    rotate(-3deg);
+}
+
+
+/* =========================================================
+   COUNTDOWN
+========================================================= */
+
+.countdown-card {
+  padding:
+    clamp(
+      36px,
+      5vw,
+      60px
+    );
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.33
+    );
+
+  border:
+    1px solid
+    rgba(
+      94,
+      75,
+      61,
+      0.12
+    );
+
+  box-shadow:
+    var(--shadow);
+}
+
+
+.countdown-card > span {
+  display: block;
+
+  margin-bottom: 22px;
+
+  color:
+    var(--red);
+
+  font-size: 18px;
+}
+
+
+.countdown-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      1fr
+    );
+}
+
+
+.countdown-item {
+  padding:
+    12px
+    8px;
+
+  text-align: center;
+}
+
+
+.countdown-item strong {
+  display: block;
+
+  font-size:
+    clamp(
+      34px,
+      4.3vw,
+      60px
+    );
+
+  font-weight: 400;
+}
+
+
+.countdown-item small {
+  display: block;
+
+  margin-top: 5px;
+
+  color:
+    var(--muted);
+}
+
+
+/* =========================================================
+   ROADMAP
+========================================================= */
+
+.roadmap-section {
+  padding:
+    clamp(
+      90px,
+      10vw,
+      150px
+    )
+    18px;
+}
+
+
+.roadmap-heading {
+  max-width: 700px;
+
+  margin:
+    0
+    auto
+    60px;
+
+  text-align: center;
+}
+
+
+.roadmap-heading > span {
+  color:
+    var(--red);
+
+  text-transform:
+    uppercase;
+
+  letter-spacing:
+    0.2em;
+
+  font-size: 12px;
+}
+
+
+.roadmap-heading h2 {
+  margin:
+    12px
+    0;
+
+  font-size:
+    clamp(
+      46px,
+      5.5vw,
+      78px
+    );
+
+  font-weight: 400;
+}
+
+
+.roadmap-heading p {
+  margin: 0;
+
+  color:
+    var(--muted);
+
+  font-size: 20px;
+}
+
+
+/* =========================================================
+   ROUTE STAGE
+========================================================= */
+
+.route-stage {
+  position: relative;
+
+  width:
+    min(
+      900px,
+      100%
+    );
+
+  min-height: 980px;
+
+  margin:
+    0
+    auto;
+
+  isolation: isolate;
+}
+
+
+/* MAP */
+
+.world-map {
+  position: absolute;
+
+  z-index: 0;
+
+  width: 92%;
+
+  left: 50%;
+  top: 2%;
+
+  transform:
+    translateX(-50%);
+
+  opacity: 0.46;
+
+  filter:
+    sepia(0.15);
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   DOTTED ROAD
+========================================================= */
+
+.route-line {
+  position: absolute;
+
+  z-index: 1;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: visible;
+
+  pointer-events: none;
+}
+
+
+.route-line path {
+  fill: none;
+
+  stroke:
+    rgba(
+      255,
+      255,
+      255,
+      0.98
+    );
+
+  stroke-width: 5;
+
+  stroke-dasharray:
+    12
+    13;
+
+  stroke-linecap: round;
+
+  filter:
+    drop-shadow(
+      0
+      1px
+      0
+      rgba(
+        85,
+        67,
+        55,
+        0.08
+      )
+    );
+}
+
+
+/* =========================================================
+   SCROLLING HEART
+========================================================= */
+
+.route-traveller {
+  position: absolute;
+
+  z-index: 8;
+
+  width: 52px;
+  height: 52px;
+
+  transform:
+    translate(
+      -50%,
+      -50%
+    );
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  transition:
+    left
+    0.08s
+    linear,
+    top
+    0.08s
+    linear,
+    opacity
+    0.3s
+    ease;
+
+  will-change:
+    left,
+    top;
+}
+
+
+.route-traveller-ready {
+  opacity: 1;
+}
+
+
+.route-traveller img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  filter:
+    drop-shadow(
+      0
+      8px
+      12px
+      rgba(
+        121,
+        20,
+        25,
+        0.17
+      )
+    );
+
+  animation:
+    roadmapHeartBeat
+    1.8s
+    ease-in-out
+    infinite;
+}
+
+
+@keyframes roadmapHeartBeat {
+  0%,
+  100% {
+    transform:
+      scale(1)
+      rotate(-2deg);
+  }
+
+  50% {
+    transform:
+      scale(0.82)
+      rotate(4deg);
+  }
+}
+
+
+/* =========================================================
+   ROADMAP STOPS
+========================================================= */
+
+.route-stop {
+  position: absolute;
+
+  z-index: 4;
+
+  width:
+    min(
+      330px,
+      42%
+    );
+
+  pointer-events: none;
+}
+
+
+.route-stop-1 {
+  top: 20%;
+  right: 8%;
+}
+
+
+.route-stop-2 {
+  top: 47%;
+  left: 6%;
+}
+
+
+.route-stop-3 {
+  top: 73%;
+  right: 8%;
+}
+
+
+/*
+  Card initially hidden
+*/
+
+.route-card {
+  padding:
+    28px
+    22px
+    22px;
+
+  text-align: center;
+
+  background:
+    rgba(
+      239,
+      232,
+      223,
+      0.88
+    );
+
+  border:
+    1px solid
+    rgba(
+      52,
+      41,
+      34,
+      0.09
+    );
+
+  box-shadow:
+    0
+    18px
+    42px
+    rgba(
+      53,
+      39,
+      29,
+      0.1
+    );
+
+  backdrop-filter:
+    blur(8px);
+
+  -webkit-backdrop-filter:
+    blur(8px);
+
+
+  opacity: 0;
+
+  transform:
+    translateY(55px)
+    scale(0.92);
+
+  filter:
+    blur(5px);
+
+  transition:
+    opacity
+    0.9s
+    cubic-bezier(
+      0.16,
+      1,
+      0.3,
+      1
+    ),
+
+    transform
+    0.9s
+    cubic-bezier(
+      0.16,
+      1,
+      0.3,
+      1
+    ),
+
+    filter
+    0.7s
+    ease;
+}
+
+
+/*
+  Heart reaches stop -> show card
+*/
+
+.route-stop.visible {
+  pointer-events: auto;
+}
+
+
+.route-stop.visible .route-card {
+  opacity: 1;
+
+  transform:
+    translateY(0)
+    scale(1);
+
+  filter:
+    blur(0);
+}
+
+
+.route-stop-1.visible .route-card {
+  animation:
+    cardSoftFloat
+    5s
+    1s
+    ease-in-out
+    infinite;
+}
+
+
+.route-stop-2.visible .route-card {
+  animation:
+    cardSoftFloat
+    5.8s
+    1.15s
+    ease-in-out
+    infinite
+    reverse;
+}
+
+
+.route-stop-3.visible .route-card {
+  animation:
+    cardSoftFloat
+    6.2s
+    1.3s
+    ease-in-out
+    infinite;
+}
+
+
+@keyframes cardSoftFloat {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 -6px;
+  }
+}
+
+
+/* =========================================================
+   ROAD ICON
+========================================================= */
+
+.route-icon {
+  width: 48px;
+  height: 48px;
+
+  display: grid;
+
+  place-items: center;
+
+  margin:
+    0
+    auto
+    12px;
+
+  color:
+    var(--red);
+
+  transform:
+    scale(0.7);
+
+  opacity: 0;
+
+  transition:
+    transform
+    0.7s
+    0.25s
+    cubic-bezier(
+      0.16,
+      1,
+      0.3,
+      1
+    ),
+
+    opacity
+    0.6s
+    0.25s
+    ease;
+}
+
+
+.route-stop.visible .route-icon {
+  transform:
+    scale(1);
+
+  opacity: 1;
+}
+
+
+.route-icon svg {
+  width: 31px;
+  height: 31px;
+
+  stroke-width: 1.4;
+}
+
+
+/* =========================================================
+   ROAD CARD TEXT
+========================================================= */
+
+.route-card strong {
+  display: block;
+
+  color:
+    #d7d0c7;
+
+  font-size:
+    clamp(
+      42px,
+      4.7vw,
+      64px
+    );
+
+  font-weight: 400;
+
+  line-height: 1;
+}
+
+
+.route-card h3 {
+  margin:
+    6px
+    0
+    8px;
+
+  font-size: 20px;
+
+  font-weight: 400;
+}
+
+
+.route-card p {
+  margin:
+    0
+    0
+    16px;
+
+  line-height: 1.35;
+}
+
+
+.route-card a {
+  display: block;
+
+  padding:
+    12px
+    16px;
+
+  background:
+    white;
+
+  text-decoration: none;
+
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   MEMORY
+========================================================= */
+
+.memory-section {
+  padding:
+    clamp(
+      100px,
+      11vw,
+      170px
+    )
+    18px;
+
+  display: grid;
+
+  grid-template-columns:
+    0.8fr
+    1fr;
+
+  gap:
+    clamp(
+      52px,
+      8vw,
+      120px
+    );
+
+  align-items: center;
+}
+
+
+.large-photo {
+  width:
+    min(
+      440px,
+      100%
+    );
+
+  aspect-ratio: 0.72;
+
+  justify-self: center;
+
+  box-shadow:
+    var(--shadow);
+}
+
+
+.large-photo img:first-child {
+  filter:
+    grayscale(0.15);
+}
+
+
+.memory-heart {
+  position: absolute;
+
+  width: 80px !important;
+  height: 80px !important;
+
+  right: -36px;
+  top: 24%;
+
+  object-fit:
+    contain !important;
+}
+
+
+.memory-copy .big-latin {
+  display: block;
+
+  margin-bottom: 14px;
+
+  color:
+    var(--red);
+
+  font-size:
+    clamp(
+      46px,
+      5.5vw,
+      78px
+    );
+
+  line-height: 0.8;
+
+  transform:
+    rotate(-3deg);
+}
+
+
+.memory-copy h2 {
+  margin:
+    0
+    0
+    18px;
+
+  color:
+    var(--red-dark);
+
+  font-size:
+    clamp(
+      38px,
+      4vw,
+      58px
+    );
+
+  font-weight: 400;
+}
+
+
+.memory-copy p {
+  max-width: 570px;
+
+  margin: 0;
+
+  font-size: 20px;
+
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   DRESS CODE
+========================================================= */
+
+.dress-code {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 10px;
+
+  margin:
+    30px
+    0;
+}
+
+
+.dress-code i {
+  width: 42px;
+  height: 42px;
+
+  border-radius: 50%;
+
+  box-shadow:
+    inset
+    0
+    0
+    0
+    1px
+    rgba(
+      0,
+      0,
+      0,
+      0.08
+    );
+}
+
+
+.telegram-btn {
+  display: inline-block;
+
+  padding:
+    13px
+    24px;
+
+  border:
+    1px solid
+    var(--ink);
+
+  border-radius:
+    999px;
+
+  text-decoration: none;
+}
+
+
+/* =========================================================
+   CHEERS
+========================================================= */
+
+.cheers-section {
+  position: relative;
+
+  min-height: 680px;
+
+  display: grid;
+
+  place-items: center;
+
+  overflow: hidden;
+}
+
+
+.cheers-lines {
+  position: absolute;
+
+  left: 50%;
+
+  width:
+    max(
+      1350px,
+      120vw
+    );
+
+  display: grid;
+
+  gap: 5px;
+
+  transform:
+    translateX(-50%)
+    rotate(2deg);
+}
+
+
+.cheers-row {
+  display: flex;
+
+  justify-content: center;
+
+  gap: 34px;
+
+  color:
+    #d20d11;
+
+  font-size:
+    clamp(
+      47px,
+      6vw,
+      88px
+    );
+
+  white-space: nowrap;
+}
+
+
+.cheers-1,
+.cheers-3 {
+  animation:
+    swayLeft
+    15s
+    ease-in-out
+    infinite
+    alternate;
+}
+
+
+.cheers-2,
+.cheers-4 {
+  animation:
+    swayRight
+    17s
+    ease-in-out
+    infinite
+    alternate;
+}
+
+
+.cheers-photo {
+  position: relative;
+
+  z-index: 3;
+
+  width:
+    clamp(
+      220px,
+      26vw,
+      330px
+    );
+
+  aspect-ratio: 0.78;
+
+  padding: 9px;
+
+  background:
+    white;
+
+  transform:
+    rotate(5deg);
+
+  box-shadow:
+    var(--shadow);
+}
+
+
+.cheers-photo img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  filter:
+    grayscale(1)
+    contrast(1.08);
+}
+
+
+/* =========================================================
+   RSVP
+========================================================= */
+
+.rsvp-section {
+  padding:
+    clamp(
+      90px,
+      10vw,
+      150px
+    )
+    18px;
+}
+
+
+.rsvp-top {
+  max-width: 680px;
+
+  margin:
+    0
+    auto
+    46px;
+
+  text-align: center;
+}
+
+
+.rsvp-latin {
+  display: block;
+
+  margin-bottom: 18px;
+
+  color:
+    var(--red);
+
+  font-size:
+    clamp(
+      56px,
+      7vw,
+      90px
+    );
+
+  line-height: 0.75;
+}
+
+
+.rsvp-top h2 {
+  margin:
+    0
+    0
+    12px;
+
+  font-size:
+    clamp(
+      38px,
+      4.8vw,
+      66px
+    );
+
+  font-weight: 400;
+}
+
+
+.rsvp-top p {
+  margin: 0;
+
+  font-size: 18px;
+}
+
+
+.rsvp-card {
+  width:
+    min(
+      720px,
+      100%
+    );
+
+  margin:
+    0
+    auto;
+
+  padding:
+    clamp(
+      28px,
+      5vw,
+      48px
+    );
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.28
+    );
+
+  border:
+    1px solid
+    rgba(
+      56,
+      44,
+      36,
+      0.12
+    );
+
+  box-shadow:
+    var(--shadow);
+}
+
+
+.field {
+  display: grid;
+
+  gap: 8px;
+}
+
+
+.field span {
+  color:
+    var(--muted);
+
+  font-size: 15px;
+}
+
+
+.field input,
+.field textarea {
+  width: 100%;
+
+  padding:
+    13px
+    2px;
+
+  border: 0;
+
+  border-bottom:
+    1px solid
+    rgba(
+      26,
+      23,
+      20,
+      0.45
+    );
+
+  outline: 0;
+
+  background:
+    transparent;
+
+  color:
+    var(--ink);
+
+  font-size: 18px;
+
+  resize: vertical;
+}
+
+
+.field input:disabled {
+  opacity: 0.36;
+}
+
+
+.form-grid {
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
+  gap: 22px;
+
+  margin:
+    24px
+    0;
+}
+
+
+.attendance {
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
+  gap: 12px;
+
+  margin:
+    24px
+    0
+    0;
+}
+
+
+.attendance button {
+  min-height: 58px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 9px;
+
+  border:
+    1px solid
+    rgba(
+      35,
+      29,
+      25,
+      0.22
+    );
+
+  background:
+    transparent;
+
+  cursor: pointer;
+}
+
+
+.attendance button i {
+  width: 16px;
+  height: 16px;
+
+  border:
+    1px solid
+    currentColor;
+
+  border-radius: 50%;
+}
+
+
+.attendance button.active {
+  background:
+    var(--ink);
+
+  color:
+    white;
+}
+
+
+.attendance button.active i {
+  background:
+    white;
+
+  box-shadow:
+    inset
+    0
+    0
+    0
+    4px
+    var(--ink);
+}
+
+
+.submit-btn {
+  min-width: 220px;
+
+  margin:
+    30px
+    auto
+    0;
+
+  padding:
+    15px
+    25px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 9px;
+
+  border: 0;
+
+  border-radius:
+    999px;
+
+  background:
+    var(--red);
+
+  color:
+    white;
+
+  cursor: pointer;
+}
+
+
+.thanks {
+  margin:
+    18px
+    0
+    0;
+
+  text-align: center;
+
+  color:
+    var(--red);
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.footer {
+  position: relative;
+
+  min-height: 820px;
+
+  padding:
+    80px
+    20px
+    90px;
+
+  display: grid;
+
+  place-items: center;
+
+  align-content: center;
+
+  text-align: center;
+}
+
+
+.footer > img {
+  width:
+    min(
+      390px,
+      82vw
+    );
+
+  aspect-ratio: 0.69;
+
+  object-fit: cover;
+
+  filter:
+    grayscale(0.25);
+
+  box-shadow:
+    var(--shadow);
+}
+
+
+.with-love {
+  position: relative;
+
+  z-index: 3;
+
+  margin-top: -40px;
+
+  margin-left: 300px;
+}
+
+
+.with-love span {
+  display: block;
+
+  font-size: 40px;
+
+  letter-spacing: 0.04em;
+}
+
+
+.with-love strong {
+  display: block;
+
+  margin-top: -2px;
+
+  color:
+    var(--red);
+
+  font-size: 68px;
+
+  font-weight: 400;
+
+  line-height: 0.7;
+
+  transform:
+    rotate(-7deg);
+}
+
+
+.footer p {
+  margin:
+    55px
+    0
+    4px;
+
+  font-size: 26px;
+}
+
+
+.footer small {
+  color:
+    var(--muted);
+
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   GLOBAL REVEAL
+========================================================= */
+
+.reveal {
+  opacity: 0;
+
+  transform:
+    translateY(34px);
+
+  transition:
+    opacity
+    0.9s
+    cubic-bezier(
+      0.16,
+      1,
+      0.3,
+      1
+    ),
+
+    transform
+    0.9s
+    cubic-bezier(
+      0.16,
+      1,
+      0.3,
+      1
+    );
+}
+
+
+.reveal.in {
+  opacity: 1;
+
+  transform: none;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .invite-section,
+  .date-section,
+  .memory-section {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .invite-copy,
+  .memory-copy {
+    margin-inline: auto;
+
+    text-align: center;
+  }
+
+
+  .date-line {
+    justify-content: center;
+  }
+
+
+  .memory-copy p {
+    margin-inline: auto;
+  }
+
+
+  .dress-code {
+    justify-content: center;
+  }
+
+
+  /* HERO TEXT CENTER */
+
+  .love-bands {
+    width:
+      max(
+        1200px,
+        150vw
+      );
+  }
+
+
+  /* ROADMAP */
+
+  .route-stage {
+    min-height: 1040px;
+  }
+
+
+  .route-stop {
+    width:
+      min(
+        350px,
+        48%
+      );
+  }
+
+
+  .world-map {
+    width: 108%;
+
+    opacity: 0.32;
+  }
+
+
+  .with-love {
+    margin-left: 220px;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 650px) {
+
+  .section-shell {
+    width: 100%;
+  }
+
+
+  /* HERO */
+
+  .hero {
+    padding-inline: 10px;
+  }
+
+
+  .hero-art {
+    min-height: 510px;
+  }
+
+
+  .love-bands {
+    left: 50%;
+    top: 50%;
+
+    width:
+      max(
+        1120px,
+        290vw
+      );
+
+    gap: 16px;
+
+    transform:
+      translate(
+        -50%,
+        -50%
+      )
+      rotate(-1.5deg);
+  }
+
+
+  .love-row {
+    justify-content: center;
+
+    gap: 32px;
+
+    font-size: 52px;
+  }
+
+
+  .hero-photo-wrap {
+    width: 225px;
+  }
+
+
+  .hero-heart {
+    width: 42px;
+
+    right: -18px;
+  }
+
+
+  .hero-bottom p {
+    font-size: 24px;
+  }
+
+
+  /* INVITATION */
+
+  .invite-section {
+    padding:
+      82px
+      18px
+      110px;
+  }
+
+
+  .invite-copy h2 {
+    font-size: 58px;
+  }
+
+
+  .first-photo {
+    width:
+      min(
+        330px,
+        86vw
+      );
+  }
+
+
+  .first-photo figcaption {
+    right: 0;
+    bottom: -26px;
+  }
+
+
+  /* DATE */
+
+  .date-section {
+    padding:
+      72px
+      16px
+      100px;
+
+    gap: 70px;
+  }
+
+
+  .countdown-grid {
+    grid-template-columns:
+      1fr
+      1fr;
+  }
+
+
+  .countdown-item {
+    padding:
+      16px
+      6px;
+  }
+
+
+  /* ROADMAP */
+
+  .roadmap-section {
+    padding:
+      85px
+      12px;
+  }
+
+
+  .roadmap-heading p {
+    font-size: 17px;
+  }
+
+
+  .route-stage {
+    width: 100%;
+
+    min-height: 1220px;
+  }
+
+
+  .world-map {
+    top: 1%;
+
+    width: 150%;
+
+    opacity: 0.22;
+  }
+
+
+  /*
+    Կարևոր՝ mobile-ում էլ path-ը չենք թաքցնում,
+    որպեսզի սիրտը նույնպես շարժվի
+  */
+
+  .route-line {
+    display: block;
+
+    left: -3%;
+
+    width: 106%;
+  }
+
+
+  .route-line path {
+    stroke-width: 7;
+
+    stroke-dasharray:
+      14
+      16;
+  }
+
+
+  .route-traveller {
+    width: 43px;
+    height: 43px;
+  }
+
+
+  .route-stop {
+    width:
+      min(
+        330px,
+        80%
+      );
+  }
+
+
+  .route-stop-1 {
+    top: 17%;
+
+    left: 4%;
+    right: auto;
+  }
+
+
+  .route-stop-2 {
+    top: 45%;
+
+    right: 4%;
+    left: auto;
+  }
+
+
+  .route-stop-3 {
+    top: 72%;
+
+    left: 4%;
+    right: auto;
+  }
+
+
+  .route-card {
+    padding:
+      25px
+      18px
+      20px;
+
+    background:
+      rgba(
+        239,
+        232,
+        223,
+        0.93
+      );
+  }
+
+
+  .route-card strong {
+    font-size: 48px;
+  }
+
+
+  .route-card h3 {
+    font-size: 19px;
+  }
+
+
+  /* MEMORY */
+
+  .memory-section {
+    padding:
+      100px
+      18px;
+  }
+
+
+  .large-photo {
+    width:
+      min(
+        330px,
+        86vw
+      );
+  }
+
+
+  .memory-heart {
+    width:
+      62px !important;
+
+    height:
+      62px !important;
+
+    right: -24px;
+  }
+
+
+  /* CHEERS */
+
+  .cheers-section {
+    min-height: 560px;
+  }
+
+
+  .cheers-lines {
+    width:
+      max(
+        1100px,
+        300vw
+      );
+  }
+
+
+  .cheers-row {
+    justify-content: center;
+
+    font-size: 50px;
+  }
+
+
+  .cheers-photo {
+    width: 220px;
+  }
+
+
+  /* RSVP */
+
+  .rsvp-section {
+    padding:
+      80px
+      14px
+      110px;
+  }
+
+
+  .form-grid,
+  .attendance {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .submit-btn {
+    width: 100%;
+  }
+
+
+  /* FOOTER */
+
+  .footer {
+    min-height: 720px;
+  }
+
+
+  .footer > img {
+    width:
+      min(
+        330px,
+        82vw
+      );
+  }
+
+
+  .with-love {
+    margin-left: 150px;
+
+    margin-top: -28px;
+  }
+
+
+  .with-love span {
+    font-size: 30px;
+  }
+
+
+  .with-love strong {
+    font-size: 56px;
+  }
+}
+
+
+/* =========================================================
+   VERY SMALL MOBILE
+========================================================= */
+
+@media (max-width: 380px) {
+
+  .hero-art {
+    min-height: 470px;
+  }
+
+
+  .hero-photo-wrap {
+    width: 205px;
+  }
+
+
+  .love-row {
+    font-size: 47px;
+  }
+
+
+  .days-grid > span {
+    min-height: 46px;
+  }
+
+
+  .calendar-title {
+    font-size: 30px;
+  }
+
+
+  .route-stage {
+    min-height: 1250px;
+  }
+
+
+  .route-stop {
+    width:
+      calc(
+        100% - 32px
+      );
+  }
+
+
+  .with-love {
+    margin-left: 120px;
+  }
+}
+
+
+/* =========================================================
+   DESKTOP HOVER
+========================================================= */
+
+@media (hover: hover) {
+
+  .route-card a,
+  .telegram-btn,
+  .submit-btn {
+    transition:
+      transform
+      0.25s
+      ease,
+
+      background
+      0.25s
+      ease,
+
+      color
+      0.25s
+      ease;
+  }
+
+
+  .route-card a:hover,
+  .telegram-btn:hover {
+    transform:
+      translateY(-2px);
+
+    background:
+      var(--red);
+
+    color:
+      white;
+  }
+
+
+  .submit-btn:hover {
+    transform:
+      translateY(-2px);
+
+    background:
+      var(--red-dark);
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (
+  prefers-reduced-motion:
+  reduce
+) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration:
+      0.01ms !important;
+
+    animation-iteration-count:
+      1 !important;
+
+    transition-duration:
+      0.01ms !important;
+
+    scroll-behavior:
+      auto !important;
+  }
+
+
+  .reveal {
+    opacity: 1;
+
+    transform: none;
+  }
+
+
+  .route-card,
+  .route-icon {
+    opacity: 1;
+
+    transform: none;
+
+    filter: none;
+  }
+
+
+  .route-traveller {
+    display: none;
+  }
+}
