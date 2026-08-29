@@ -31,6 +31,7 @@ import { removeLegacyEngagementTemplates } from './utils/removeLegacyEngagementT
 import Template from './models/Template.js';
 import { purgeSoftDeletedTemplates } from './utils/templateDeletion.js';
 import { ensureMediaRoot, getMediaRoot } from './utils/mediaStorage.js';
+import { warmTemplateCatalogCache } from './controllers/templateController.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -130,6 +131,12 @@ existingAmuletServer()
     await ensureCuratedTemplates();
     await ensureTemplateCodes();
     await ensureDefaultReviews();
+    try {
+      await warmTemplateCatalogCache();
+      console.log('Template catalog cache warmed.');
+    } catch (error) {
+      console.warn(`Template catalog cache warmup skipped: ${error.message}`);
+    }
     startContactReminderScheduler();
     const server = app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
     server.on('error', async (error) => {

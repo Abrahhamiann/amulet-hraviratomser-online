@@ -2,11 +2,13 @@ import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useStat
 import { Eye, LogIn, Pencil, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
+import api from '../api/axios.js';
 import alertGuruAnimation from '../assets/animations/editor-exit-alert.lottie?url';
 import { API_URL, apiAssetUrl, qrImageUrl, siteUrl } from '../config/env.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { resolveTemplateCardImage } from '../occasionTemplates/templateCardAssets.js';
+import { preloadOccasionTemplate } from '../occasionTemplates/templateManifest.js';
 
 let activeCatalogPreview = null;
 const LazyDotLottie = lazy(() => import('@lottiefiles/dotlottie-react').then((module) => ({
@@ -74,6 +76,9 @@ export default function TemplateCard({ template, priority = false }) {
   }, [template._id]);
   const openQr = () => {
     requestPreview();
+    void preloadOccasionTemplate(template);
+    void import('../pages/TemplateLivePreviewPage.jsx');
+    void api.get(`/templates/${template._id}`).catch(() => {});
     setQrOpen(true);
   };
   const closeQr = () => setQrOpen(false);

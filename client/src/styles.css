@@ -14932,6 +14932,26 @@ body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-vi
   animation: catalogTemplateScroll var(--template-preview-duration, 42s) linear infinite;
 }
 
+body.templates-route.templates-route .catalog-template-skeleton {
+  height: var(--catalog-card-height);
+  border-color: rgba(216, 185, 142, .16);
+  background: #f7f1e8;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+body.templates-route.templates-route .catalog-template-skeleton > span {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .72) 48%, transparent 61%);
+  transform: translate3d(-100%, 0, 0);
+  animation: catalogSkeletonSweep 1.25s ease-in-out infinite;
+}
+
+@keyframes catalogSkeletonSweep {
+  to { transform: translate3d(100%, 0, 0); }
+}
+
 body.templates-route.templates-route .catalog-template-card {
   content-visibility: auto;
   contain-intrinsic-size: auto var(--catalog-card-height);
@@ -15094,6 +15114,10 @@ body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-vi
     max-height: calc(100dvh - 24px);
     min-height: 0;
     overflow: hidden;
+  }
+
+  body.templates-route.templates-route .catalog-template-skeleton > span {
+    animation: none;
   }
 
   .template-qr-content {

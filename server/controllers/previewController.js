@@ -3,6 +3,7 @@ import PreviewSession from '../models/PreviewSession.js';
 import Template from '../models/Template.js';
 import { normalizeDraft, PUBLIC_DESIGN_KEYS } from '../utils/invitationDraft.js';
 import { createPreviewToken, hashPreviewToken } from '../utils/previewToken.js';
+import { optimizeInvitationDraftMedia } from '../utils/imageOptimization.js';
 
 export const createPreview = asyncHandler(async (req, res) => {
   const template = await Template.findById(req.body.templateId);
@@ -12,6 +13,7 @@ export const createPreview = asyncHandler(async (req, res) => {
   }
 
   const requestedToken = String(req.body.previewToken || '').trim();
+  const normalizedDraft = await optimizeInvitationDraftMedia(normalizeDraft(req.body.draft, template));
   if (requestedToken) {
     const existing = await PreviewSession.findOne({
       tokenHash: hashPreviewToken(requestedToken),
@@ -20,7 +22,7 @@ export const createPreview = asyncHandler(async (req, res) => {
       isPurchased: false
     }).select('+tokenHash');
     if (existing) {
-      existing.data = normalizeDraft(req.body.draft, template);
+      existing.data = normalizedDraft;
       existing.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
       await existing.save();
       res.json({ token: requestedToken, path: `/preview/${requestedToken}`, expiresAt: existing.expiresAt });
@@ -33,7 +35,7 @@ export const createPreview = asyncHandler(async (req, res) => {
     tokenHash: hashPreviewToken(token),
     userId: req.user._id,
     templateId: template._id,
-    data: normalizeDraft(req.body.draft, template),
+    data: normalizedDraft,
     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
   });
 

@@ -9,6 +9,16 @@ import TemplateCard from '../components/TemplateCard.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { categories } from '../data/categories.js';
 
+const CatalogSkeleton = () => (
+  <div className="templates-grid catalog-grid catalog-skeleton-grid" aria-hidden="true">
+    {Array.from({ length: 10 }, (_, index) => (
+      <div className="catalog-template-card catalog-template-skeleton" key={index}>
+        <span />
+      </div>
+    ))}
+  </div>
+);
+
 export default function TemplatesPage() {
   const { t } = useLanguage();
   const [params, setParams] = useSearchParams();
@@ -191,7 +201,7 @@ export default function TemplatesPage() {
         </div>
       </div>
 
-      {state === 'loading' && <Loading text={t('loading')} />}
+      {state === 'loading' && <CatalogSkeleton />}
       {state === 'error' && <ErrorState text={t('error')} />}
       {state === 'ready' && <>
         <div className="templates-grid catalog-grid">{templates.map((template, index) => <TemplateCard key={template._id} template={template} priority={index < 5} />)}</div>

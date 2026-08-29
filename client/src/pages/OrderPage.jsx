@@ -9,7 +9,7 @@ import SectionTitle from '../components/SectionTitle.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { categories } from '../data/categories.js';
-import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
+import { isSupportedOccasionTemplate } from '../occasionTemplates/templateManifest.js';
 import { languages } from '../translations/translations.js';
 import { required, toForm } from '../utils/forms.js';
 import { getLocalizedApiError } from '../utils/apiErrors.js';
@@ -43,7 +43,7 @@ export default function OrderPage() {
 
   useEffect(() => {
     api.get('/templates?limit=48')
-      .then(({ data }) => setTemplates((data.items || []).filter((template) => getOccasionTemplate(template))))
+      .then(({ data }) => setTemplates((data.items || []).filter(isSupportedOccasionTemplate)))
       .catch(() => setTemplates([]));
   }, []);
 

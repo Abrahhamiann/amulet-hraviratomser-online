@@ -573,6 +573,7 @@ export function OriginalTemplateSurface({ children, css, fontImport, adapterCss 
       // caret, and make direct-on-preview editing appear frozen.
       if (root.querySelector('.is-editor-inline-editing')) return;
       localizeTemplateUi(root);
+      prioritizeTemplateImages(root);
       customizeRef.current?.(root);
       applySystemOwnedDraftFields(root, draftRef.current);
       applyTemplateOverrides(root, draftRef.current);
@@ -601,6 +602,7 @@ export function OriginalTemplateSurface({ children, css, fontImport, adapterCss 
   useLayoutEffect(() => {
     if (!portalRoot) return;
     localizeTemplateUi(portalRoot);
+    prioritizeTemplateImages(portalRoot);
     customize?.(portalRoot);
     applySystemOwnedDraftFields(portalRoot, draft);
     applyTemplateOverrides(portalRoot, draft);
@@ -1389,6 +1391,14 @@ const BURGUNDY_ROADMAP_THEME_ALIASES = {
   accent: ['--red'],
   text: ['--ink'],
   overlay: ['--white']
+};
+
+const prioritizeTemplateImages = (root: HTMLDivElement) => {
+  [...root.querySelectorAll<HTMLImageElement>('img')].forEach((image, index) => {
+    image.decoding = 'async';
+    image.loading = index === 0 ? 'eager' : 'lazy';
+    image.setAttribute('fetchpriority', index === 0 ? 'high' : 'low');
+  });
 };
 
 const BURGUNDY_ROADMAP_GLOBAL_FONTS = `

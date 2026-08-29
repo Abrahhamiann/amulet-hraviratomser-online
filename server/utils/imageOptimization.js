@@ -1,8 +1,10 @@
 import sharp from 'sharp';
+import Invitation from '../models/Invitation.js';
 import Template from '../models/Template.js';
 import { storeMediaBuffer } from './mediaStorage.js';
 
 const DATA_IMAGE_PATTERN = /^data:image\/(png|jpe?g|webp|gif);base64,([a-z0-9+/=\s]+)$/i;
+const DATA_AUDIO_PATTERN = /^data:audio\/(mpeg|mp3|wav|ogg|mp4|x-m4a);base64,([a-z0-9+/=\s]+)$/i;
 
 export const isEmbeddedImage = (value) => DATA_IMAGE_PATTERN.test(String(value || '').trim());
 
@@ -123,6 +125,47 @@ export const optimizeTemplateMedia = async (input = {}) => {
   return data;
 };
 
+export const optimizeInvitationDraftMedia = async (input = {}) => {
+  const data = { ...input };
+  const storedImages = new Map();
+  const storeImage = async (source, kind) => {
+    if (!isEmbeddedImage(source)) return source;
+    if (!storedImages.has(source)) {
+      storedImages.set(source, optimizeAndStore(source, {
+        maxWidth: 1600,
+        quality: 82,
+        kind
+      }).then((stored) => stored.url));
+    }
+    return storedImages.get(source);
+  };
+
+  if (Object.hasOwn(data, 'image')) data.image = await storeImage(data.image, 'invitation-main');
+  if (Array.isArray(data.gallery)) {
+    data.gallery = await mapWithConcurrency(data.gallery, 2, (source) => storeImage(source, 'invitation-gallery'));
+  }
+  if (data.templateImageOverrides && typeof data.templateImageOverrides === 'object') {
+    const entries = await mapWithConcurrency(Object.entries(data.templateImageOverrides), 2, async ([key, source]) => (
+      [key, await storeImage(source, 'invitation-override')]
+    ));
+    data.templateImageOverrides = Object.fromEntries(entries);
+  }
+
+  const audioMatch = String(data.musicUrl || '').trim().match(DATA_AUDIO_PATTERN);
+  if (audioMatch) {
+    const extension = {
+      mpeg: 'mp3', mp3: 'mp3', wav: 'wav', ogg: 'ogg', mp4: 'm4a', 'x-m4a': 'm4a'
+    }[audioMatch[1].toLowerCase()] || 'mp3';
+    const stored = await storeMediaBuffer(Buffer.from(audioMatch[2].replace(/\s/g, ''), 'base64'), {
+      kind: 'invitation-audio',
+      extension
+    });
+    data.musicUrl = stored.url;
+  }
+
+  return data;
+};
+
 export const optimizeLegacyTemplateMedia = async () => {
   const templates = Template.find({
     $or: [
@@ -143,6 +186,39 @@ export const optimizeLegacyTemplateMedia = async () => {
     await template.save();
     count += 1;
     if (count % 25 === 0) console.log(`Migrated ${count} template media records...`);
+  }
+
+  return count;
+};
+
+export const optimizeLegacyInvitationMedia = async () => {
+  const invitations = Invitation.find({
+    $or: [
+      { gallery: /^data:image\//i },
+      { 'customization.musicUrl': /^data:audio\//i },
+      { 'customization.templateImageOverrides': { $exists: true } }
+    ]
+  }).select('gallery customization').cursor();
+
+  let count = 0;
+  for await (const invitation of invitations) {
+    const customization = invitation.customization && typeof invitation.customization === 'object'
+      ? { ...invitation.customization }
+      : {};
+    const optimized = await optimizeInvitationDraftMedia({
+      gallery: invitation.gallery || [],
+      musicUrl: customization.musicUrl || '',
+      templateImageOverrides: customization.templateImageOverrides || {}
+    });
+    invitation.gallery = optimized.gallery;
+    invitation.customization = {
+      ...customization,
+      musicUrl: optimized.musicUrl,
+      templateImageOverrides: optimized.templateImageOverrides
+    };
+    await invitation.save();
+    count += 1;
+    if (count % 25 === 0) console.log(`Migrated ${count} invitation media records...`);
   }
 
   return count;

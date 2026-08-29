@@ -7,7 +7,7 @@ import Button from '../components/Button.jsx';
 import ErrorState from '../components/ErrorState.jsx';
 import Loading from '../components/Loading.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
+import { isSupportedOccasionTemplate } from '../occasionTemplates/templateManifest.js';
 import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
 
 export default function TemplateDetailsPage() {
@@ -18,7 +18,7 @@ export default function TemplateDetailsPage() {
 
   useEffect(() => {
     api.get(`/templates/${id}`).then(({ data }) => {
-      if (!getOccasionTemplate(data)) {
+      if (!isSupportedOccasionTemplate(data)) {
         setState('error');
         return;
       }

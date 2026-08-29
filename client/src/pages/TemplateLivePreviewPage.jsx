@@ -27,7 +27,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import giftPremiumAnimation from '../assets/animations/gift-premium.lottie?url';
 import alertGuruAnimation from '../assets/animations/editor-exit-alert.lottie?url';
-import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
+import { loadOccasionTemplate } from '../occasionTemplates/templateManifest.js';
 import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
 import { startStripeCheckout } from '../utils/checkout.js';
 import { promoStorageKey, readRememberedPromo } from '../utils/promoStorage.js';
@@ -96,8 +96,7 @@ const cleanVenueLinks = (links = []) => links
   .filter((item) => item.label || item.time || item.address || item.url)
   .slice(0, 20);
 
-const createInitialDraft = (template) => {
-  const occasionTemplate = getOccasionTemplate(template);
+const createInitialDraft = (template, occasionTemplate = null) => {
   if (occasionTemplate?.getInitialDraft) {
     const draft = occasionTemplate.getInitialDraft(template);
     const isBaptismTemplate = occasionTemplate.key === 'sacred-beginnings';
@@ -279,6 +278,7 @@ export default function TemplateLivePreviewPage() {
   const { initialized, user } = useAuth();
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const [template, setTemplate] = useState(null);
+  const [occasionTemplate, setOccasionTemplate] = useState(null);
   const [draft, setDraft] = useState(null);
   const [isEdited, setIsEdited] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -309,26 +309,33 @@ export default function TemplateLivePreviewPage() {
       });
       return undefined;
     }
+    setState('loading');
+    setOccasionTemplate(null);
     const request = previewToken ? api.get(`/previews/${previewToken}`) : api.get(`/templates/${id}`);
+    let active = true;
     request
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         if (data.mode === 'public' && data.invitationSlug) {
           navigate(`/invite/${data.invitationSlug}`, { replace: true });
           return;
         }
         const nextTemplate = previewToken ? data.template : data;
+        const nextOccasionTemplate = await loadOccasionTemplate(nextTemplate);
+        if (!active) return;
         const savedDraft = previewToken || !user ? null : readEditorAutosave(nextTemplate);
-        const initialDraft = savedDraft || (previewToken ? data.draft : createInitialDraft(nextTemplate));
+        const initialDraft = savedDraft || (previewToken ? data.draft : createInitialDraft(nextTemplate, nextOccasionTemplate));
         setTemplate(nextTemplate);
+        setOccasionTemplate(nextOccasionTemplate);
         setDraft(initialDraft);
         setIsEdited(Boolean(previewToken || savedDraft));
         setState('ready');
       })
       .catch(() => {
+        if (!active) return;
         if (previewToken) navigate('/', { replace: true });
         else setState('error');
       });
-    return undefined;
+    return () => { active = false; };
   }, [id, initialized, navigate, previewToken, user]);
 
   useEffect(() => {
@@ -662,9 +669,8 @@ export default function TemplateLivePreviewPage() {
   if (!initialized || state === 'loading') return <Loading text={t('loading')} />;
   if (state === 'error') return <ErrorState text={t('error')} />;
 
-  const occasionTemplate = getOccasionTemplate(template);
   const LivePreview = occasionTemplate?.LivePreview;
-  const originalEditorDraft = createInitialDraft(template);
+  const originalEditorDraft = createInitialDraft(template, occasionTemplate);
   const isSingleImageTemplate = false;
   const editorActive = editing && Boolean(user);
   const image = resolveTemplateImage(draft?.image || template.mainImage || template.gallery?.[0]);

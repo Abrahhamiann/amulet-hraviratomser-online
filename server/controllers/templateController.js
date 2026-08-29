@@ -13,6 +13,33 @@ const TEMPLATE_LIST_FIELDS = [
 ].join(' ');
 
 const clampLimit = (value) => Math.min(48, Math.max(1, Number.parseInt(value, 10) || 24));
+const TEMPLATE_CACHE_TTL_MS = 5 * 60 * 1000;
+const TEMPLATE_CACHE_STALE_MS = 60 * 60 * 1000;
+const TEMPLATE_CACHE_MAX_ENTRIES = 200;
+const templateListCache = new Map();
+const templateListInflight = new Map();
+
+const normalizedListParams = (raw = {}) => ({
+  category: String(raw.category || '').trim(),
+  search: String(raw.search || '').trim().slice(0, 80),
+  sort: ['newest', 'price_asc', 'price_desc'].includes(raw.sort) ? raw.sort : 'newest',
+  featured: raw.featured === 'true' ? 'true' : '',
+  cursor: String(raw.cursor || '').trim(),
+  limit: clampLimit(raw.limit)
+});
+
+const templateCacheKey = (params) => JSON.stringify(params);
+
+const pruneTemplateCache = () => {
+  if (templateListCache.size < TEMPLATE_CACHE_MAX_ENTRIES) return;
+  const oldestKey = templateListCache.keys().next().value;
+  if (oldestKey) templateListCache.delete(oldestKey);
+};
+
+export const clearTemplateCatalogCache = () => {
+  templateListCache.clear();
+  templateListInflight.clear();
+};
 
 const decodeCursor = (value) => {
   if (!value) return null;
@@ -79,9 +106,8 @@ const mediaProjection = {
   pagePreviewMeta: 1
 };
 
-export const getTemplates = asyncHandler(async (req, res) => {
-  const { category, search, sort = 'newest', featured } = req.query;
-  const limit = clampLimit(req.query.limit);
+const queryTemplatePage = async (rawParams = {}) => {
+  const { category, search, sort, featured, cursor, limit } = normalizedListParams(rawParams);
   const query = { isActive: true, deletedAt: null, designKey: { $in: PUBLIC_DESIGN_KEYS } };
   if (category === 'other') query.category = { $in: ['corporate', 'new_year', 'meeting', 'military'] };
   else if (category) query.category = category;
@@ -94,31 +120,73 @@ export const getTemplates = asyncHandler(async (req, res) => {
     ];
   }
 
-  const normalizedSort = ['newest', 'price_asc', 'price_desc'].includes(sort) ? sort : 'newest';
   const sortMap = {
     newest: { createdAt: -1, _id: -1 },
     price_asc: { price: 1, _id: 1 },
     price_desc: { price: -1, _id: -1 }
   };
 
-  const continuation = cursorQuery(decodeCursor(req.query.cursor), normalizedSort);
+  const continuation = cursorQuery(decodeCursor(cursor), sort);
   if (continuation) query.$and = [continuation];
 
   const selectedFields = Object.fromEntries(TEMPLATE_LIST_FIELDS.split(' ').map((field) => [field, 1]));
   const templates = await Template.aggregate([
     { $match: query },
-    { $sort: sortMap[normalizedSort] },
+    { $sort: sortMap[sort] },
     { $limit: limit + 1 },
     { $project: { ...selectedFields, ...mediaProjection } }
   ]);
   const hasMore = templates.length > limit;
   const items = hasMore ? templates.slice(0, limit) : templates;
-  res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
-  res.json({
+  return {
     items,
     hasMore,
-    nextCursor: hasMore && items.length ? encodeCursor(items.at(-1), normalizedSort) : null
-  });
+    nextCursor: hasMore && items.length ? encodeCursor(items.at(-1), sort) : null
+  };
+};
+
+const loadTemplatePage = async (rawParams = {}) => {
+  const params = normalizedListParams(rawParams);
+  const key = templateCacheKey(params);
+  const now = Date.now();
+  const cached = templateListCache.get(key);
+  if (cached && cached.expiresAt > now) return { payload: cached.payload, status: 'HIT' };
+
+  const refresh = () => {
+    if (templateListInflight.has(key)) return templateListInflight.get(key);
+    const request = queryTemplatePage(params)
+      .then((payload) => {
+        pruneTemplateCache();
+        templateListCache.delete(key);
+        templateListCache.set(key, {
+          payload,
+          expiresAt: Date.now() + TEMPLATE_CACHE_TTL_MS,
+          staleUntil: Date.now() + TEMPLATE_CACHE_STALE_MS
+        });
+        return payload;
+      })
+      .finally(() => templateListInflight.delete(key));
+    templateListInflight.set(key, request);
+    return request;
+  };
+
+  if (cached && cached.staleUntil > now) {
+    void refresh().catch(() => {});
+    return { payload: cached.payload, status: 'STALE' };
+  }
+
+  return { payload: await refresh(), status: 'MISS' };
+};
+
+export const warmTemplateCatalogCache = async () => {
+  await loadTemplatePage({ limit: 24, sort: 'newest' });
+};
+
+export const getTemplates = asyncHandler(async (req, res) => {
+  const { payload, status } = await loadTemplatePage(req.query);
+  res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+  res.set('X-Amulet-Cache', status);
+  res.json(payload);
 });
 
 const sendEmbeddedImage = (res, source, fallbackType = 'image/webp') => {
@@ -175,11 +243,14 @@ export const getTemplatePagePreview = asyncHandler(async (req, res) => {
 });
 
 export const getTemplate = asyncHandler(async (req, res) => {
-  const template = await Template.findById(req.params.id).select('-pagePreviewImage -mainImageThumbnail');
+  const template = await Template.findById(req.params.id)
+    .select('-pagePreviewImage -pagePreviewThumbnail -mainImageThumbnail -mainImageMeta -pagePreviewMeta -deletedBy')
+    .lean();
   if (!template || template.deletedAt || !PUBLIC_DESIGN_KEYS.includes(template.designKey) || template.isActive === false) {
     res.status(404);
     throw new Error('Template not found');
   }
+  res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600');
   res.json(template);
 });
 
@@ -195,6 +266,7 @@ export const createTemplate = asyncHandler(async (req, res) => {
     slug
   });
   await clearTemplateDeletionMarker(slug);
+  clearTemplateCatalogCache();
   res.status(201).json(template);
 });
 
@@ -220,6 +292,7 @@ export const updateTemplate = asyncHandler(async (req, res) => {
   if (req.body.title && !req.body.slug) template.slug = makeSlug(req.body.title);
   await template.save();
   if (previousCategory !== template.category) await reindexTemplateCodes(previousCategory);
+  clearTemplateCatalogCache();
   res.json(template);
 });
 
@@ -232,5 +305,6 @@ export const deleteTemplate = asyncHandler(async (req, res) => {
   const category = template.category;
   await deleteTemplatePermanently(template, req.user?._id || null);
   await reindexTemplateCodes(category);
+  clearTemplateCatalogCache();
   res.json({ message: 'Template deleted' });
 });

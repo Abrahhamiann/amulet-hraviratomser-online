@@ -21,6 +21,7 @@ import {
 import { hashPreviewToken } from '../utils/previewToken.js';
 import { normalizePromoCode, resolvePromo } from '../utils/promo.js';
 import { createSecureInvitationSlug } from '../utils/invitationSlug.js';
+import { optimizeInvitationDraftMedia } from '../utils/imageOptimization.js';
 
 let stripeClient = null;
 
@@ -62,7 +63,7 @@ export const createCheckoutSession = asyncHandler(async (req, res) => {
     throw new Error('Preview is not available');
   }
 
-  const draft = preview?.data || normalizeDraft(req.body.draft, template);
+  const draft = await optimizeInvitationDraftMedia(preview?.data || normalizeDraft(req.body.draft, template));
   const promoResult = req.body.promoCode ? await resolvePromo(req.body.promoCode, template.price) : null;
   if (req.body.promoCode && !promoResult) {
     res.status(400);

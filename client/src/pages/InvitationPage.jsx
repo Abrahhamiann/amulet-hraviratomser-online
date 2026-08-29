@@ -6,8 +6,9 @@ import Button from '../components/Button.jsx';
 import ErrorState from '../components/ErrorState.jsx';
 import Input from '../components/Input.jsx';
 import Loading from '../components/Loading.jsx';
+import { apiAssetUrl } from '../config/env.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { getOccasionTemplate } from '../occasionTemplates/index.jsx';
+import { loadOccasionTemplate } from '../occasionTemplates/templateManifest.js';
 import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
 import { required, toForm } from '../utils/forms.js';
 import { normalizeMapUrl } from '../utils/mapLinks.js';
@@ -37,16 +38,29 @@ export default function InvitationPage() {
   const { slug } = useParams();
   const { t } = useLanguage();
   const [invitation, setInvitation] = useState(null);
+  const [occasionTemplate, setOccasionTemplate] = useState(null);
   const [state, setState] = useState('loading');
   const [rsvpStatus, setRsvpStatus] = useState('');
   const [successOpen, setSuccessOpen] = useState(false);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    api.get(`/invitations/${slug}`).then(({ data }) => {
+    const controller = new AbortController();
+    let active = true;
+    setState('loading');
+    api.get(`/invitations/${slug}`, { signal: controller.signal }).then(async ({ data }) => {
+      const loadedTemplate = await loadOccasionTemplate(data.templateId);
+      if (!active) return;
       setInvitation(data);
+      setOccasionTemplate(loadedTemplate);
       setState('ready');
-    }).catch(() => setState('error'));
+    }).catch((error) => {
+      if (active && error?.code !== 'ERR_CANCELED') setState('error');
+    });
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, [slug]);
 
   const daysLeft = useMemo(() => {
@@ -100,16 +114,15 @@ export default function InvitationPage() {
   if (state === 'error') return <ErrorState text={t('error')} />;
 
   const eventDate = new Date(invitation.date);
-  const heroImage = invitation.gallery?.[0];
-  const secondaryGallery = invitation.gallery?.slice(1) || [];
-  const occasionTemplate = getOccasionTemplate(invitation.templateId);
   const PublicView = occasionTemplate?.PublicView;
   const mapLinks = normalizeMapLinks(invitation, t('map'));
   const gallery = (invitation.gallery || []).filter((image) => {
     if (typeof image !== 'string' || !image.trim()) return false;
     if (!PublicView) return true;
     return isDisplayableImage(image);
-  }).map(resolveTemplateImage);
+  }).map((image) => apiAssetUrl(resolveTemplateImage(image)));
+  const heroImage = gallery[0];
+  const secondaryGallery = gallery.slice(1);
   const inviteActions = (
     <>
       {mapLinks[0]?.url ? <Button to={mapLinks[0].url}><Navigation size={18} />{t('map')}</Button> : null}
