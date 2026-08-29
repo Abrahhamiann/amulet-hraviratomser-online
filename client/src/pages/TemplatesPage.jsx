@@ -170,7 +170,7 @@ export default function TemplatesPage() {
 
       {state === 'loading' && <Loading text={t('loading')} />}
       {state === 'error' && <ErrorState text={t('error')} />}
-      {state === 'ready' && <div className="templates-grid catalog-grid">{templates.map((template) => <TemplateCard key={template._id} template={template} />)}</div>}
+      {state === 'ready' && <div className="templates-grid catalog-grid">{templates.map((template, index) => <TemplateCard key={template._id} template={template} priority={index < 5} />)}</div>}
     </section>
   );
 }

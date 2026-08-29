@@ -185,7 +185,10 @@ function ScratchGate({ onPrimeAudio, onFinished }) {
   }
 
   return (
-    <section className={`scratch-gate ${finishing ? 'is-finishing' : ''}`}>
+    <section
+      className={`scratch-gate ${finishing ? 'is-finishing' : ''}`}
+      data-editor-ignore="opening-gate"
+    >
       <div className="gate-glow gate-glow-one" />
       <div className="gate-glow gate-glow-two" />
 
@@ -299,10 +302,11 @@ function RSVP() {
 }
 
 function Invitation({ playing, onToggleMusic }) {
+  const invitationRef = useRef(null)
   const countdown = useCountdown(CONFIG.dateISO)
 
   useEffect(() => {
-    const nodes = [...document.querySelectorAll('.reveal')]
+    const nodes = [...(invitationRef.current?.querySelectorAll('.reveal') || [])]
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -327,7 +331,7 @@ function Invitation({ playing, onToggleMusic }) {
   ], [countdown])
 
   return (
-    <main className="invitation">
+    <main className="invitation" ref={invitationRef}>
       <button className="music-button" type="button" onClick={onToggleMusic} aria-label={playing ? 'Անջատել երաժշտությունը' : 'Միացնել երաժշտությունը'}>
         <MusicIcon playing={playing} />
         <span>{playing ? 'Երաժշտություն՝ միացված' : 'Երաժշտություն՝ անջատված'}</span>

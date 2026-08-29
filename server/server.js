@@ -30,6 +30,7 @@ import { ensureTemplateCodes } from './utils/templateCode.js';
 import { removeLegacyEngagementTemplates } from './utils/removeLegacyEngagementTemplates.js';
 import Template from './models/Template.js';
 import { purgeSoftDeletedTemplates } from './utils/templateDeletion.js';
+import { optimizeLegacyTemplateMedia } from './utils/imageOptimization.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -120,6 +121,11 @@ existingAmuletServer()
     await ensureDefaultReviews();
     startContactReminderScheduler();
     const server = app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
+    optimizeLegacyTemplateMedia()
+      .then((count) => {
+        if (count) console.log(`Optimized media for ${count} existing templates.`);
+      })
+      .catch((error) => console.error(`Template media optimization failed: ${error.message}`));
     server.on('error', async (error) => {
       if (error.code === 'EADDRINUSE' && await existingAmuletServer()) {
         console.log(`Amulet server is already running on port ${PORT}. Reusing the existing process.`);

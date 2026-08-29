@@ -503,6 +503,19 @@ function localizePublishedReview(item, language) {
   };
 }
 
+function fillMarqueeRow(row, allTestimonials, minimumItems = 6) {
+  const source = row.length ? row : allTestimonials;
+  if (!source.length) return [];
+
+  const filled = [...source];
+  let index = 0;
+  while (filled.length < minimumItems) {
+    filled.push(allTestimonials[index % allTestimonials.length] || source[index % source.length]);
+    index += 1;
+  }
+  return filled;
+}
+
 function ReviewCard({ item, onPause, onResume }) {
   return (
     <article className="customer-review-card" onPointerEnter={onPause} onPointerLeave={onResume} onPointerDown={onPause} onPointerUp={onResume} onPointerCancel={onResume}>
@@ -523,7 +536,10 @@ export default function TestimonialV2() {
     api.get(`/reviews/public?language=${encodeURIComponent(language)}`)
       .then(({ data }) => {
         if (!active) return;
-        setPublishedReviews(data.map((item) => localizePublishedReview(item, language)));
+        const localizedReviews = Array.isArray(data)
+          ? data.map((item) => localizePublishedReview(item, language))
+          : [];
+        setPublishedReviews(localizedReviews.length ? localizedReviews : null);
       })
       .catch(() => {
         if (active) setPublishedReviews(null);
@@ -535,6 +551,8 @@ export default function TestimonialV2() {
   const midpoint = Math.ceil(testimonials.length / 2);
   const firstRow = testimonials.slice(0, midpoint);
   const secondRow = testimonials.slice(midpoint);
+  const firstTrack = fillMarqueeRow(firstRow, testimonials);
+  const secondTrack = fillMarqueeRow(secondRow, testimonials);
 
   const pauseForPointer = (event) => {
     if (event.pointerType === 'mouse' || event.pointerType === 'touch' || event.pointerType === 'pen') setPaused(true);
@@ -556,10 +574,10 @@ export default function TestimonialV2() {
       </div>
       <div className="testimonial-v2-marquee" aria-label={t('customerTestimonialsTitle')}>
         <div className="testimonial-v2-row">
-          {[...firstRow, ...firstRow].map((item, index) => <ReviewCard key={`top-${language}-${item.id}-${index}`} item={item} onPause={pauseForPointer} onResume={resumeForPointer} />)}
+          {[...firstTrack, ...firstTrack].map((item, index) => <ReviewCard key={`top-${language}-${item.id}-${index}`} item={item} onPause={pauseForPointer} onResume={resumeForPointer} />)}
         </div>
         <div className="testimonial-v2-row reverse">
-          {[...secondRow, ...secondRow].map((item, index) => <ReviewCard key={`bottom-${language}-${item.id}-${index}`} item={item} onPause={pauseForPointer} onResume={resumeForPointer} />)}
+          {[...secondTrack, ...secondTrack].map((item, index) => <ReviewCard key={`bottom-${language}-${item.id}-${index}`} item={item} onPause={pauseForPointer} onResume={resumeForPointer} />)}
         </div>
       </div>
     </section>

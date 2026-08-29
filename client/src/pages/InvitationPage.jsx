@@ -55,8 +55,7 @@ export default function InvitationPage() {
   }, [invitation]);
 
   const submitRsvp = async (data) => {
-    // All invitation templates converge here. Keep the API payload stable even
-    // when an optional control is not rendered and a template passes null.
+   
     const normalizedData = {
       guestName: String(data?.guestName ?? '').trim(),
       phone: String(data?.phone ?? '').trim(),

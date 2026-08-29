@@ -3,6 +3,7 @@ import {
   createTemplate,
   deleteTemplate,
   getTemplate,
+  getTemplateCardImage,
   getTemplatePagePreview,
   getTemplates,
   updateTemplate
@@ -13,6 +14,7 @@ import { validateObjectId } from '../middleware/validateObjectId.js';
 const router = express.Router();
 
 router.route('/').get(getTemplates).post(protect, adminOnly, createTemplate);
+router.get('/:id/card-image', validateObjectId(), getTemplateCardImage);
 router.get('/:id/page-preview', validateObjectId(), getTemplatePagePreview);
 router
   .route('/:id')

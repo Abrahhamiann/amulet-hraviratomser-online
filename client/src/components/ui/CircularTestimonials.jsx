@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
-import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 
 function calculateGap(width) {
   const minWidth = 1024;
@@ -181,7 +181,7 @@ export default function CircularTestimonials({
               style={{ backgroundColor: hoverPrev ? colorArrowHoverBg : colorArrowBg }}
               aria-label="Previous event"
             >
-              <FaArrowLeft size={18} color={colorArrowFg} />
+              <ArrowLeft size={18} color={colorArrowFg} />
             </button>
             <button
               className="circular-arrow-button"
@@ -192,7 +192,7 @@ export default function CircularTestimonials({
               style={{ backgroundColor: hoverNext ? colorArrowHoverBg : colorArrowBg }}
               aria-label="Next event"
             >
-              <FaArrowRight size={18} color={colorArrowFg} />
+              <ArrowRight size={18} color={colorArrowFg} />
             </button>
           </div>
         </div>

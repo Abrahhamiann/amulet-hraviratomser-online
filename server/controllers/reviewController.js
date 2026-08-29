@@ -11,15 +11,18 @@ export const getPublicReviews = asyncHandler(async (req, res) => {
   let reviews = await Review.find(filter)
     .select('staticKey customer rating text target language source status publishedAt createdAt')
     .sort({ status: -1, publishedAt: -1, createdAt: -1 })
-    .limit(60);
+    .limit(60)
+    .lean();
 
   if (!reviews.length && language && language !== 'hy') {
     reviews = await Review.find({ status: { $in: ['approved', 'featured'] } })
       .select('staticKey customer rating text target language source status publishedAt createdAt')
       .sort({ status: -1, publishedAt: -1, createdAt: -1 })
-      .limit(60);
+      .limit(60)
+      .lean();
   }
 
+  res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
   res.json(reviews);
 });
 

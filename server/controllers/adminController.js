@@ -14,6 +14,7 @@ import { clearTemplateDeletionMarker, deleteTemplatePermanently } from '../utils
 import { ensureTemplateCodes, nextTemplateCode, reindexTemplateCodes } from '../utils/templateCode.js';
 import { PUBLIC_DESIGN_KEYS, templateCategoryForDesign, templateEditorTypeForCategory } from '../utils/templateDesign.js';
 import { createSecureInvitationSlug } from '../utils/invitationSlug.js';
+import { optimizeTemplateMedia } from '../utils/imageOptimization.js';
 import { translations as clientTranslations } from '../../client/src/translations/translations.js';
 
 const categoryLabels = {
@@ -182,6 +183,30 @@ const mapTemplateSummary = (template, usage = 0) => {
   return mapped;
 };
 
+const ADMIN_TEMPLATE_SUMMARY_PROJECTION = {
+  code: 1,
+  title: 1,
+  slug: 1,
+  category: 1,
+  editorType: 1,
+  price: 1,
+  designKey: 1,
+  mainImage: {
+    $cond: [
+      { $regexMatch: { input: { $ifNull: ['$mainImage', ''] }, regex: /^data:image\//i } },
+      { $ifNull: ['$mainImageThumbnail', ''] },
+      '$mainImage'
+    ]
+  },
+  pagePreviewAvailable: 1,
+  imagePosition: 1,
+  galleryConfigured: 1,
+  isFeatured: 1,
+  isActive: 1,
+  deletedAt: 1,
+  createdAt: 1
+};
+
 const mapInvitation = (invitation) => ({
   id: String(invitation._id),
   customer: invitation.orderId?.fullName || invitation.names,
@@ -247,9 +272,10 @@ const resolveFaqItems = (saved) => {
 };
 
 export const getPublicFaq = asyncHandler(async (req, res) => {
-  const saved = await Setting.findOne({ key: FAQ_SETTING_KEY });
+  const saved = await Setting.findOne({ key: FAQ_SETTING_KEY }).select('value updatedAt').lean();
   const items = resolveFaqItems(saved);
   const language = FAQ_LANGUAGES.includes(req.query.language) ? req.query.language : 'hy';
+  res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
   res.json({ items: items.filter((item) => item.active).map((item) => {
     const localized = item.translations[language];
     const fallback = item.translations.hy || item.translations.en || Object.values(item.translations).find((value) => value.question && value.answer);
@@ -260,7 +286,11 @@ export const getPublicFaq = asyncHandler(async (req, res) => {
 export const getAdminDashboard = asyncHandler(async (req, res) => {
   const period = ['today', 'week', 'year', 'all'].includes(req.query.period) ? req.query.period : 'all';
   const [templates, orders, invitations, rsvps, messages, users, revenueResetSetting] = await Promise.all([
-    Template.find({ designKey: { $in: PUBLIC_DESIGN_KEYS } }).sort({ createdAt: -1 }),
+    Template.aggregate([
+      { $match: { designKey: { $in: PUBLIC_DESIGN_KEYS } } },
+      { $sort: { createdAt: -1 } },
+      { $project: ADMIN_TEMPLATE_SUMMARY_PROJECTION }
+    ]),
     Order.find().populate('templateId').sort({ createdAt: -1 }),
     Invitation.find().populate('orderId templateId').sort({ createdAt: -1 }),
     RSVP.find().sort({ createdAt: -1 }),
@@ -319,7 +349,7 @@ export const getAdminDashboard = asyncHandler(async (req, res) => {
     })).filter((item) => item.value > 0),
     latestOrders: periodAllOrders.slice(0, 6).map(mapOrder),
     topTemplates: visibleTemplates
-      .map((template) => mapTemplate(template, templateUsage.get(String(template._id)) || 0))
+      .map((template) => mapTemplateSummary(template, templateUsage.get(String(template._id)) || 0))
       .sort((a, b) => b.usage - a.usage)
       .slice(0, 5)
   });
@@ -343,13 +373,11 @@ export const getAdminOrders = asyncHandler(async (req, res) => {
 export const getAdminTemplates = asyncHandler(async (req, res) => {
   await ensureTemplateCodes();
   const [templates, usageRows] = await Promise.all([
-    Template.find({
-      designKey: { $in: PUBLIC_DESIGN_KEYS },
-      deletedAt: null
-    })
-      .select('code title slug category editorType price designKey mainImage pagePreviewAvailable imagePosition galleryConfigured isFeatured isActive deletedAt createdAt')
-      .sort({ createdAt: -1 })
-      .lean(),
+    Template.aggregate([
+      { $match: { designKey: { $in: PUBLIC_DESIGN_KEYS }, deletedAt: null } },
+      { $sort: { createdAt: -1 } },
+      { $project: ADMIN_TEMPLATE_SUMMARY_PROJECTION }
+    ]),
     Order.aggregate([
       { $match: { templateId: { $ne: null } } },
       { $group: { _id: '$templateId', usage: { $sum: 1 } } }
@@ -483,7 +511,12 @@ export const updateAdminFaq = asyncHandler(async (req, res) => {
 });
 
 export const createAdminTemplate = asyncHandler(async (req, res) => {
-  const data = req.body;
+  const normalizedInput = {
+    ...req.body,
+    features: Array.isArray(req.body.features) ? req.body.features : String(req.body.features || '').split('\n').filter(Boolean),
+    gallery: Array.isArray(req.body.gallery) ? req.body.gallery : String(req.body.gallery || '').split('\n').filter(Boolean)
+  };
+  const data = await optimizeTemplateMedia(normalizedInput);
   const slug = data.slug || makeSlug(data.title);
   const designKey = PUBLIC_DESIGN_KEYS.includes(data.designKey) ? data.designKey : DEFAULT_DESIGN_KEY;
   const category = data.category || templateCategoryForDesign(designKey);
@@ -492,8 +525,8 @@ export const createAdminTemplate = asyncHandler(async (req, res) => {
     category,
     code: await nextTemplateCode(category),
     slug,
-    features: Array.isArray(data.features) ? data.features : String(data.features || '').split('\n').filter(Boolean),
-    gallery: Array.isArray(data.gallery) ? data.gallery : String(data.gallery || '').split('\n').filter(Boolean),
+    features: data.features,
+    gallery: data.gallery,
     galleryConfigured: Boolean(data.galleryConfigured),
     imagePosition: normalizeImagePosition(data.imagePosition),
     designKey,
@@ -511,7 +544,10 @@ export const updateAdminTemplate = asyncHandler(async (req, res) => {
     throw new Error('Template not found');
   }
   const previousCategory = template.category;
-  const { code: _ignoredCode, ...data } = req.body;
+  const { code: _ignoredCode, ...rawData } = req.body;
+  if (typeof rawData.features === 'string') rawData.features = rawData.features.split('\n').filter(Boolean);
+  if (typeof rawData.gallery === 'string') rawData.gallery = rawData.gallery.split('\n').filter(Boolean);
+  const data = await optimizeTemplateMedia(rawData);
   data.designKey = PUBLIC_DESIGN_KEYS.includes(data.designKey) ? data.designKey : template.designKey;
   data.category = data.category || template.category;
   data.editorType = data.editorType || (
@@ -520,8 +556,6 @@ export const updateAdminTemplate = asyncHandler(async (req, res) => {
       : templateEditorTypeForCategory(data.category)
   );
   if (data.category !== template.category) data.code = await nextTemplateCode(data.category);
-  if (typeof data.features === 'string') data.features = data.features.split('\n').filter(Boolean);
-  if (typeof data.gallery === 'string') data.gallery = data.gallery.split('\n').filter(Boolean);
   data.galleryConfigured = Boolean(data.galleryConfigured);
   data.imagePosition = normalizeImagePosition(data.imagePosition);
   Object.assign(template, data);

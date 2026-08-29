@@ -19,6 +19,7 @@ const templateSchema = new mongoose.Schema(
     features: [{ type: String }],
     designKey: { type: String, default: 'ivory-vows', trim: true },
     mainImage: { type: String, default: '' },
+    mainImageThumbnail: { type: String, default: '' },
     pagePreviewImage: { type: String, default: '' },
     pagePreviewAvailable: { type: Boolean, default: false },
     imagePosition: {

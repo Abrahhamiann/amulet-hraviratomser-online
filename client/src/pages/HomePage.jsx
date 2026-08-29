@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Pencil, Search, Share2, Sparkles } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CREATION_VIDEO_URL } from '../config/env.js';
 import baptismLift from '../assets/morph/baptism-lift.jpg';
@@ -8,12 +7,14 @@ import birthdayCakeLights from '../assets/morph/birthday-cake-lights.jpg';
 import corporateEvent from '../assets/morph/corporate-event.jpg';
 import engagementSmile from '../assets/morph/engagement-smile.jpg';
 import weddingTemple from '../assets/morph/wedding-temple.jpg';
-import homeDeviceSuite from '../assets/home/amulet-device-suite.png';
+import homeDeviceSuite from '../assets/home/amulet-device-suite.webp';
+import homeDeviceSuiteSmall from '../assets/home/amulet-device-suite-768.webp';
 import api from '../api/axios.js';
 import Button from '../components/Button.jsx';
 import FAQItem from '../components/FAQItem.jsx';
-import TestimonialV2 from '../components/ui/TestimonialV2.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
+
+const TestimonialV2 = lazy(() => import('../components/ui/TestimonialV2.jsx'));
 
 const occasionLinks = [
   { category: 'wedding', image: weddingTemple },
@@ -24,6 +25,38 @@ const occasionLinks = [
 ];
 
 const creationVideoUrl = CREATION_VIDEO_URL;
+
+function DeferredTestimonials() {
+  const [ready, setReady] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || ready) return undefined;
+    if (!('IntersectionObserver' in window)) {
+      setReady(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      setReady(true);
+      observer.disconnect();
+    }, { rootMargin: '600px 0px' });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [ready]);
+
+  return (
+    <div className={`customer-testimonials-deferred${ready ? ' is-ready' : ''}`} ref={containerRef}>
+      {ready && (
+        <Suspense fallback={<div className="customer-testimonials-placeholder" aria-hidden="true" />}>
+          <TestimonialV2 />
+        </Suspense>
+      )}
+    </div>
+  );
+}
 
 function getYouTubeStartSeconds(value) {
   if (!value) return '';
@@ -78,8 +111,10 @@ export default function HomePage() {
   const faqRef = useRef(null);
   const [activeFaqIndex, setActiveFaqIndex] = useState(null);
   const [managedFaqItems, setManagedFaqItems] = useState(null);
+  const [faqReadyToLoad, setFaqReadyToLoad] = useState(false);
 
   useEffect(() => {
+    if (!faqReadyToLoad) return undefined;
     let active = true;
     api.get('/faq', { params: { language } })
       .then(({ data }) => {
@@ -89,7 +124,23 @@ export default function HomePage() {
         if (active) setManagedFaqItems(null);
       });
     return () => { active = false; };
-  }, [language]);
+  }, [faqReadyToLoad, language]);
+
+  useEffect(() => {
+    const section = faqRef.current;
+    if (!section || faqReadyToLoad) return undefined;
+    if (!('IntersectionObserver' in window)) {
+      setFaqReadyToLoad(true);
+      return undefined;
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      setFaqReadyToLoad(true);
+      observer.disconnect();
+    }, { rootMargin: '600px 0px' });
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, [faqReadyToLoad]);
 
   useEffect(() => {
     const section = creationFlowRef.current;
@@ -151,7 +202,19 @@ export default function HomePage() {
     <>
       <section className="photo-gallery-hero" aria-labelledby="gallery-title">
         <div className="home-intro-media" aria-hidden="true">
-          <img className="home-device-suite" src={homeDeviceSuite} alt="" draggable="false" />
+          <img
+            className="home-device-suite"
+            src={homeDeviceSuite}
+            srcSet={`${homeDeviceSuiteSmall} 768w, ${homeDeviceSuite} 1448w`}
+            sizes="(max-width: 880px) 86vw, 620px"
+            alt=""
+            width="1448"
+            height="1086"
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+            draggable="false"
+          />
         </div>
         <div className="home-intro-copy">
           <h1 id="gallery-title">{t('newHeroTitle')}</h1>
@@ -219,7 +282,7 @@ export default function HomePage() {
         <Button to="/templates" className="red-pill creation-flow-cta">{t('startCreating')}</Button>
       </section>
 
-      <TestimonialV2 />
+      <DeferredTestimonials />
 
       <section className="faq-amulet" id="faq" ref={faqRef} aria-labelledby="faq-title">
         <header className="faq-amulet-heading faq-reveal">

@@ -3,7 +3,7 @@ import { Menu, Phone, UserCircle, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { NavLink } from 'react-router-dom';
-import logoImage from '../assets/logo.png';
+import logoImage from '../assets/logo.webp';
 import { CONTACT_PHONE_DISPLAY, CONTACT_PHONE_E164 } from '../data/contact.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -84,7 +84,7 @@ export default function Header() {
   }, [open]);
 
   const brandLogo = (
-    <img className="logo-image" src={logoImage} alt={t('brand')} width="72" height="72" />
+    <img className="logo-image" src={logoImage} alt={t('brand')} width="72" height="72" loading="eager" decoding="async" fetchpriority="high" />
   );
 
   const overlay = (

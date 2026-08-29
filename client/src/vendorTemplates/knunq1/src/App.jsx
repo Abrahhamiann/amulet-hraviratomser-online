@@ -380,6 +380,7 @@ function RSVP() {
 ========================================================= */
 
 export default function App() {
+  const pageRef = useRef(null)
   const audioRef = useRef(null)
 
   const [playing, setPlaying] =
@@ -429,7 +430,7 @@ export default function App() {
 
   useEffect(() => {
     const elements =
-      document.querySelectorAll('.reveal')
+      pageRef.current?.querySelectorAll('.reveal') || []
 
     const observer =
       new IntersectionObserver(
@@ -467,9 +468,9 @@ export default function App() {
 
   useEffect(() => {
     const cards =
-      document.querySelectorAll(
+      pageRef.current?.querySelectorAll(
         '.venue-reveal'
-      )
+      ) || []
 
     const observer =
       new IntersectionObserver(
@@ -592,7 +593,7 @@ export default function App() {
 
 
   return (
-    <main className="page">
+    <main className="page" ref={pageRef}>
 
       <audio
         ref={audioRef}

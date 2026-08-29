@@ -363,6 +363,7 @@ export default function TemplateLivePreviewPage() {
     const activateEditorTarget = (event) => {
       if (event.amuletEditorHandled) return;
       const path = event.composedPath();
+      if (path.some((node) => node?.dataset?.editorIgnore !== undefined)) return;
       const target = path.find((node) => ['image', 'map'].includes(node?.dataset?.editorKind))
         || path.find((node) => node?.dataset?.editorKind);
       if (!target) {

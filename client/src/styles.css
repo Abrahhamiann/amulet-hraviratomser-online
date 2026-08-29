@@ -69,7 +69,7 @@ p { color: var(--muted); margin: 0; }
 .btn-ghost { background: white; color: var(--accent); border-color: var(--border); }
 .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
 
-.section { max-width: 1100px; margin: 0 auto; padding: 72px 22px; }
+.section { max-width: 1180px; margin: 0 auto; padding: 72px 22px; }
 .page-top { padding-top: 58px; }
 .soft-band { max-width: none; padding-left: max(22px, calc((100vw - 1180px) / 2 + 22px)); padding-right: max(22px, calc((100vw - 1180px) / 2 + 22px)); background: linear-gradient(180deg, rgba(255, 241, 217, .75), rgba(255, 255, 255, .45)); }
 .section-title { max-width: 720px; margin-bottom: 30px; }
@@ -2872,8 +2872,8 @@ body { background: #fff; }
 }
 
 .photo-gallery-hero {
-  min-height: clamp(610px, calc(100dvh - 62px), 820px);
-  padding: clamp(38px, 7vw, 92px) max(18px, calc((100vw - 1180px) / 2 + 22px));
+  min-height: clamp(510px, 56dvh, 570px);
+  padding: clamp(28px, 3vw, 40px) max(18px, calc((100vw - 1180px) / 2 + 22px));
   grid-template-columns: minmax(330px, 1.08fr) minmax(280px, .92fr);
   align-items: center;
   justify-items: stretch;
@@ -11843,10 +11843,9 @@ body,
 
 /* Header/hero polish after device-suite swap */
 .home-intro-media .home-device-suite {
-  width: min(112%, 880px);
+  width: min(100%, 620px);
   max-width: 100%;
-  margin-left: -4%;
-  margin-right: auto;
+  margin-inline: auto;
 }
 
 @media (min-width: 881px) {
@@ -11891,8 +11890,8 @@ body,
   }
 
   .home-intro-media .home-device-suite {
-    width: min(106%, 760px);
-    margin-left: 0;
+    width: min(100%, 600px);
+    margin-inline: auto;
   }
 }
 
@@ -12335,14 +12334,14 @@ body,
   }
 
   .photo-gallery-hero {
-    min-height: clamp(560px, calc(100dvh - 62px), 700px);
-    padding-block: clamp(28px, 4.5vw, 60px);
+    min-height: clamp(520px, 58dvh, 600px);
+    padding-block: clamp(28px, 3.5vw, 44px);
     grid-template-columns: minmax(330px, 1.08fr) minmax(280px, .92fr);
     gap: clamp(26px, 4vw, 48px);
   }
 
   .home-intro-media .home-device-suite {
-    width: min(100%, 720px);
+    width: min(100%, 620px);
     margin-inline: auto;
   }
 
@@ -12521,11 +12520,20 @@ body.template-modal-lock {
   height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-gutter: stable;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(216, 185, 142, .7) rgba(255, 255, 255, .08);
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   margin-right: 44px;
   padding-right: 12px;
+}
+
+.template-qr-content::-webkit-scrollbar,
+.template-qr-backdrop::-webkit-scrollbar,
+.template-qr-modal::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 @media (max-width: 880px) {
@@ -12533,6 +12541,10 @@ body.template-modal-lock {
     align-items: start;
     overflow-y: auto;
     overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     padding:
       max(10px, env(safe-area-inset-top))
       max(10px, env(safe-area-inset-right))
@@ -13227,10 +13239,27 @@ body.templates-route .templates-catalog-hero h1 {
 
 @media (min-width: 881px) {
   .photo-gallery-hero {
-    min-height: auto;
-    align-content: start;
-    padding-top: clamp(16px, 2.2vw, 34px);
-    padding-bottom: clamp(48px, 5vw, 64px);
+    height: 530px;
+    min-height: 530px;
+    max-height: 530px;
+    align-content: center;
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+
+  .photo-gallery-hero .home-intro-media {
+    min-height: 0;
+    align-self: center;
+    overflow: visible;
+  }
+
+  .photo-gallery-hero .home-intro-media .home-device-suite {
+    width: min(100%, 560px);
+    height: auto !important;
+    min-height: 0;
+    max-height: none;
+    aspect-ratio: auto;
+    object-fit: contain;
   }
 
   .template-qr-content {
@@ -13247,6 +13276,85 @@ body.templates-route .templates-catalog-hero h1 {
 
   .template-qr-scan {
     margin-top: auto;
+  }
+}
+
+/* Keep the home device artwork proportional at every responsive width. */
+@media (max-width: 880px) {
+  .photo-gallery-hero {
+    min-height: auto;
+    height: auto;
+    max-height: none;
+    padding: calc(70px + env(safe-area-inset-top)) clamp(14px, 4vw, 24px) clamp(36px, 6vw, 56px);
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: clamp(24px, 5vw, 40px);
+  }
+
+  .photo-gallery-hero .home-intro-media {
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    height: auto;
+    overflow: visible;
+  }
+
+  .photo-gallery-hero .home-intro-media .home-device-suite {
+    width: min(78vw, 560px);
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    aspect-ratio: 4 / 3;
+    object-fit: contain;
+    flex: none;
+    margin: 0 auto;
+  }
+
+  .photo-gallery-hero .home-intro-copy {
+    width: min(100%, 620px);
+  }
+}
+
+@media (max-width: 560px) {
+  .photo-gallery-hero {
+    padding-top: calc(70px + env(safe-area-inset-top));
+    padding-bottom: 26px;
+    gap: clamp(12px, 4vw, 18px);
+  }
+
+  .photo-gallery-hero .home-intro-media .home-device-suite {
+    width: min(78vw, 330px);
+  }
+
+  .photo-gallery-hero .home-intro-copy {
+    gap: 14px;
+  }
+
+  .photo-gallery-hero .home-intro-copy h1 {
+    font-size: clamp(1.5rem, 6.4vw, 1.7rem);
+  }
+
+  .photo-gallery-hero .home-intro-copy p {
+    max-width: 370px;
+    font-size: clamp(.82rem, 3.45vw, .9rem);
+    line-height: 1.55;
+  }
+
+  .photo-gallery-hero .home-intro-actions {
+    width: min(100%, 292px);
+    gap: 8px;
+  }
+
+  .photo-gallery-hero .home-intro-actions .btn {
+    min-height: 40px;
+    padding-inline: 10px;
+    font-size: clamp(.76rem, 3.2vw, .84rem);
+  }
+}
+
+@media (max-width: 380px) {
+  .photo-gallery-hero .home-intro-media .home-device-suite {
+    width: min(80vw, 300px);
   }
 }
 
@@ -13823,9 +13931,31 @@ html:not([lang="hy"]):not([lang="ru"]) h6 {
 
 .occasion-browser-section + .creation-flow-section,
 .creation-flow-section + .customer-testimonials-section,
+.creation-flow-section + .customer-testimonials-deferred,
 .events-testimonials-section + .customer-testimonials-section,
-.customer-testimonials-section + .faq-amulet {
+.customer-testimonials-section + .faq-amulet,
+.customer-testimonials-deferred + .faq-amulet {
   border-top: 1px solid rgba(216, 185, 142, .15);
+}
+
+.customer-testimonials-deferred {
+  width: 100%;
+  min-height: 420px;
+}
+
+.customer-testimonials-deferred.is-ready {
+  min-height: 0;
+}
+
+.customer-testimonials-placeholder {
+  min-height: 420px;
+}
+
+.occasion-browser-section,
+.creation-flow-section,
+.faq-amulet {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 560px;
 }
 
 html[lang="ru"] body {
@@ -14802,6 +14932,11 @@ body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-vi
   animation: catalogTemplateScroll 44s linear infinite;
 }
 
+body.templates-route.templates-route .catalog-template-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto var(--catalog-card-height);
+}
+
 @keyframes catalogTemplateScroll {
   0% { transform: translate3d(0, 0, 0); }
   45%, 55% { transform: translate3d(0, calc(-100% + var(--catalog-card-height)), 0); }
@@ -14950,6 +15085,62 @@ body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-vi
   0% { transform: translate3d(0, 0, 0); }
   45%, 55% { transform: translate3d(0, calc(-100% + 100cqh), 0); }
   100% { transform: translate3d(0, 0, 0); }
+}
+
+/* Final modal overflow contract: scrolling stays usable while its track stays hidden. */
+@media (min-width: 881px) {
+  .template-qr-modal {
+    height: min(760px, calc(100dvh - 24px));
+    max-height: calc(100dvh - 24px);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .template-qr-content {
+    min-height: 0;
+    height: 100%;
+    max-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+}
+
+@media (max-width: 880px) {
+  .template-qr-backdrop {
+    overflow: hidden;
+  }
+
+  .template-qr-modal {
+    height: calc(100dvh - max(20px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+    min-height: 0;
+    max-height: calc(100dvh - max(20px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .template-qr-content {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+.template-qr-content::-webkit-scrollbar,
+.template-qr-modal::-webkit-scrollbar,
+.template-qr-backdrop::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 /* Direct-edit affordances shown on every editable invitation preview. */

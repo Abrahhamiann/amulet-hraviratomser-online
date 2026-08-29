@@ -6,7 +6,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import editorExitAlert from '../../assets/animations/editor-exit-alert.lottie?url';
 import iphoneDeviceFrame from '../../assets/editor-devices/iphone-device-frame-clean.png';
 import ipadDeviceFrame from '../../assets/editor-devices/ipad-device-frame-clean.png';
-import logoImage from '../../assets/logo.png';
+import logoImage from '../../assets/logo.webp';
 import { EditorProvider, useEditor } from './EditorContext.jsx';
 import TemplatesPanel from './TemplatesPanel.jsx';
 import ContentPanel from './ContentPanel.jsx';
@@ -386,6 +386,7 @@ export const decoratePreview = (root, data, { suppressMotion = false, labels: su
 
     const genericSections = ['hero', 'hero', 'family', 'schedule', 'schedule', 'schedule', 'media', 'closing', 'schedule', 'rsvp', 'closing'];
     scope.querySelectorAll('section').forEach((element, index) => {
+      if (element.closest('[data-editor-ignore]')) return;
       if (!element.dataset.editorSection && !element.parentElement?.closest('[data-editor-section]')) {
         element.dataset.editorSection = genericSections[index] || 'closing';
       }
@@ -827,6 +828,7 @@ function PreviewWorkspace({ PreviewComponent }) {
   const handlePreviewClick = (event) => {
     if (event.amuletEditorHandled) return;
     const path = (event.nativeEvent || event).composedPath();
+    if (path.some((node) => node?.dataset?.editorIgnore !== undefined)) return;
     // composedPath is ordered from the exact clicked node outwards. Respect
     // that order so text layered over an image selects the text, not the image
     // wrapper behind it.
