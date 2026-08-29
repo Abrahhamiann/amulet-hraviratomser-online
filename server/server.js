@@ -30,7 +30,7 @@ import { ensureTemplateCodes } from './utils/templateCode.js';
 import { removeLegacyEngagementTemplates } from './utils/removeLegacyEngagementTemplates.js';
 import Template from './models/Template.js';
 import { purgeSoftDeletedTemplates } from './utils/templateDeletion.js';
-import { optimizeLegacyTemplateMedia } from './utils/imageOptimization.js';
+import { ensureMediaRoot, getMediaRoot } from './utils/mediaStorage.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -66,6 +66,16 @@ app.use((req, res, next) => {
 });
 app.use(express.json({ limit: '15mb' }));
 app.use(morgan('dev'));
+
+await ensureMediaRoot();
+app.use('/media', express.static(getMediaRoot(), {
+  immutable: true,
+  maxAge: '1y',
+  fallthrough: false,
+  setHeaders(res) {
+    res.set('Access-Control-Allow-Origin', '*');
+  }
+}));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', service: 'e-invite-server' }));
 app.use('/api/auth', authRoutes);
@@ -110,6 +120,7 @@ existingAmuletServer()
       return;
     }
     await connectDB();
+    await Template.updateMany({ isActive: { $exists: false } }, { $set: { isActive: true } });
     await purgeSoftDeletedTemplates();
     await Template.updateMany(
       { pagePreviewImage: { $exists: true, $nin: ['', null] }, pagePreviewAvailable: { $ne: true } },
@@ -121,11 +132,6 @@ existingAmuletServer()
     await ensureDefaultReviews();
     startContactReminderScheduler();
     const server = app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
-    optimizeLegacyTemplateMedia()
-      .then((count) => {
-        if (count) console.log(`Optimized media for ${count} existing templates.`);
-      })
-      .catch((error) => console.error(`Template media optimization failed: ${error.message}`));
     server.on('error', async (error) => {
       if (error.code === 'EADDRINUSE' && await existingAmuletServer()) {
         console.log(`Amulet server is already running on port ${PORT}. Reusing the existing process.`);

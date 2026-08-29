@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 import sharp from 'sharp';
 import Template from '../models/Template.js';
 import {
-  embeddedImageBuffer,
   isEmbeddedImage,
   optimizeTemplateMedia
 } from '../utils/imageOptimization.js';
@@ -12,7 +14,10 @@ test('template schema persists a generated card thumbnail separately from the or
   assert.equal(Template.schema.path('mainImageThumbnail')?.instance, 'String');
 });
 
-test('admin image optimization creates bounded WebP media and a smaller card thumbnail', async () => {
+test('admin image optimization stores bounded WebP media outside MongoDB', async () => {
+  const mediaRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'amulet-media-test-'));
+  process.env.MEDIA_ROOT = mediaRoot;
+  process.env.MEDIA_PUBLIC_URL = '/media';
   const sourceBuffer = await sharp({
     create: {
       width: 1600,
@@ -29,14 +34,18 @@ test('admin image optimization creates bounded WebP media and a smaller card thu
     gallery: [source]
   });
 
-  assert.equal(isEmbeddedImage(optimized.mainImage), true);
-  assert.match(optimized.mainImage, /^data:image\/webp;base64,/);
-  assert.match(optimized.mainImageThumbnail, /^data:image\/webp;base64,/);
-  assert.match(optimized.pagePreviewImage, /^data:image\/webp;base64,/);
-  assert.match(optimized.gallery[0], /^data:image\/webp;base64,/);
+  assert.equal(isEmbeddedImage(optimized.mainImage), false);
+  assert.match(optimized.mainImage, /^\/media\/templates\/.+main\.webp$/);
+  assert.match(optimized.mainImageThumbnail, /^\/media\/templates\/.+card-480\.webp$/);
+  assert.match(optimized.pagePreviewImage, /^\/media\/templates\/.+preview-720\.webp$/);
+  assert.match(optimized.pagePreviewThumbnail, /^\/media\/templates\/.+preview-480\.webp$/);
+  assert.match(optimized.gallery[0], /^\/media\/templates\/.+gallery\.webp$/);
 
-  const thumbnailMetadata = await sharp(embeddedImageBuffer(optimized.mainImageThumbnail)).metadata();
-  const previewMetadata = await sharp(embeddedImageBuffer(optimized.pagePreviewImage)).metadata();
-  assert.equal(thumbnailMetadata.width, 720);
-  assert.equal(previewMetadata.width, 1200);
+  const localFile = (url) => path.join(mediaRoot, ...url.replace(/^\/media\//, '').split('/'));
+  const thumbnailMetadata = await sharp(await fs.readFile(localFile(optimized.mainImageThumbnail))).metadata();
+  const previewMetadata = await sharp(await fs.readFile(localFile(optimized.pagePreviewImage))).metadata();
+  assert.equal(thumbnailMetadata.width, 480);
+  assert.equal(previewMetadata.width, 720);
+  delete process.env.MEDIA_ROOT;
+  delete process.env.MEDIA_PUBLIC_URL;
 });

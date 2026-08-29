@@ -14929,7 +14929,7 @@ body.templates-route.templates-route .catalog-template-preview > .catalog-templa
 
 body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-visible) .catalog-template-scroll-shot.is-ready {
   filter: saturate(1) contrast(1.02);
-  animation: catalogTemplateScroll 44s linear infinite;
+  animation: catalogTemplateScroll var(--template-preview-duration, 42s) linear infinite;
 }
 
 body.templates-route.templates-route .catalog-template-card {

@@ -42,8 +42,8 @@ export default function OrderPage() {
   const [serverError, setServerError] = useState('');
 
   useEffect(() => {
-    api.get('/templates')
-      .then(({ data }) => setTemplates(data.filter((template) => getOccasionTemplate(template))))
+    api.get('/templates?limit=48')
+      .then(({ data }) => setTemplates((data.items || []).filter((template) => getOccasionTemplate(template))))
       .catch(() => setTemplates([]));
   }, []);
 

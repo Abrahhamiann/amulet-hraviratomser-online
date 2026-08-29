@@ -52,6 +52,21 @@ export const API_URL = (() => {
   return 'http://127.0.0.1:5000/api';
 })();
 
+export const apiAssetUrl = (value = '') => {
+  const source = String(value || '').trim();
+  if (!source || /^(?:https?:|data:|asset:)/i.test(source)) return source;
+  // Vite serves bundled assets from the client origin (`/src/...` in dev and
+  // `/assets/...` in production). Only persisted API media belongs to the API
+  // origin; rebasing every root-relative URL made curated card images point at
+  // port 5000 locally and return 404.
+  if (!source.startsWith('/media/')) return source;
+  try {
+    return new URL(source, API_URL.replace(/\/api\/?$/, '/')).toString();
+  } catch {
+    return source;
+  }
+};
+
 export const GOOGLE_CLIENT_ID = read('VITE_GOOGLE_CLIENT_ID');
 export const STRIPE_PUBLISHABLE_KEY = read('VITE_STRIPE_PUBLISHABLE_KEY');
 

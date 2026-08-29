@@ -35,6 +35,17 @@ export const API_URL = (() => {
   return "http://127.0.0.1:5000/api";
 })();
 
+export const apiAssetUrl = (value = "") => {
+  const source = String(value || "").trim();
+  if (!source || /^(?:https?:|data:|asset:)/i.test(source)) return source;
+  if (!source.startsWith("/media/")) return source;
+  try {
+    return new URL(source, API_URL.replace(/\/api\/?$/, "/")).toString();
+  } catch {
+    return source;
+  }
+};
+
 // Public site the admin links to (https://amulet.am).
 export const CLIENT_URL = (() => {
   const configured = trimTrailingSlash(read("VITE_CLIENT_URL"));

@@ -5,17 +5,23 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+LOCKFILES=(package-lock.json admin/package-lock.json)
+if [ -n "$(git status --porcelain -- "${LOCKFILES[@]}")" ]; then
+  echo "==> վերականգնում ենք production-ում փոփոխված lock file-ները"
+  git restore --source=HEAD --staged --worktree -- "${LOCKFILES[@]}"
+fi
+
 echo "==> git pull"
 git pull --ff-only
 
-echo "==> npm install (client + server workspaces)"
-npm install
+echo "==> npm ci (client + server workspaces)"
+npm ci --include=dev
 
 echo "==> сборка client"
 npm run build --workspace client
 
-echo "==> npm install + сборка admin"
-npm install --prefix admin
+echo "==> npm ci + сборка admin"
+npm ci --include=dev --prefix admin
 ( cd admin && NITRO_PRESET="${NITRO_PRESET:-node-server}" npm run build )
 
 if [ ! -f admin/.output/server/index.mjs ]; then

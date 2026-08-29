@@ -1,4 +1,5 @@
 import asyncHandler from 'express-async-handler';
+import mongoose from 'mongoose';
 import ContactMessage from '../models/ContactMessage.js';
 import Invitation from '../models/Invitation.js';
 import Order from '../models/Order.js';
@@ -16,6 +17,7 @@ import { PUBLIC_DESIGN_KEYS, templateCategoryForDesign, templateEditorTypeForCat
 import { createSecureInvitationSlug } from '../utils/invitationSlug.js';
 import { optimizeTemplateMedia } from '../utils/imageOptimization.js';
 import { translations as clientTranslations } from '../../client/src/translations/translations.js';
+import { serverUrl } from '../config/env.js';
 
 const categoryLabels = {
   wedding: 'Wedding',
@@ -155,7 +157,9 @@ const mapTemplate = (template, usage = 0) => ({
   editorType: template.editorType || template.category,
   price: template.price,
   designKey: template.designKey || DEFAULT_DESIGN_KEY,
-  cover: template.mainImage || template.gallery?.[0] || '',
+  cover: template.mainImageStored
+    ? `${serverUrl()}/api/templates/${template._id}/card-image?v=${encodeURIComponent(template.updatedAt || '')}`
+    : template.mainImage || template.gallery?.[0] || '',
   pagePreviewImage: template.pagePreviewImage || '',
   pagePreviewAvailable: Boolean(template.pagePreviewAvailable || template.pagePreviewImage),
   imagePosition: normalizeImagePosition(template.imagePosition),
@@ -193,9 +197,22 @@ const ADMIN_TEMPLATE_SUMMARY_PROJECTION = {
   designKey: 1,
   mainImage: {
     $cond: [
+      { $and: [
+        { $ne: [{ $ifNull: ['$mainImageThumbnail', ''] }, ''] },
+        { $not: [{ $regexMatch: { input: { $ifNull: ['$mainImageThumbnail', ''] }, regex: /^data:image\//i } }] }
+      ] },
+      '$mainImageThumbnail',
+      { $cond: [
+        { $regexMatch: { input: { $ifNull: ['$mainImage', ''] }, regex: /^data:image\//i } },
+        '',
+        '$mainImage'
+      ] }
+    ]
+  },
+  mainImageStored: {
+    $or: [
       { $regexMatch: { input: { $ifNull: ['$mainImage', ''] }, regex: /^data:image\//i } },
-      { $ifNull: ['$mainImageThumbnail', ''] },
-      '$mainImage'
+      { $regexMatch: { input: { $ifNull: ['$mainImageThumbnail', ''] }, regex: /^data:image\//i } }
     ]
   },
   pagePreviewAvailable: 1,
@@ -204,7 +221,8 @@ const ADMIN_TEMPLATE_SUMMARY_PROJECTION = {
   isFeatured: 1,
   isActive: 1,
   deletedAt: 1,
-  createdAt: 1
+  createdAt: 1,
+  updatedAt: 1
 };
 
 const mapInvitation = (invitation) => ({
@@ -371,20 +389,51 @@ export const getAdminOrders = asyncHandler(async (req, res) => {
 });
 
 export const getAdminTemplates = asyncHandler(async (req, res) => {
-  await ensureTemplateCodes();
-  const [templates, usageRows] = await Promise.all([
-    Template.aggregate([
-      { $match: { designKey: { $in: PUBLIC_DESIGN_KEYS }, deletedAt: null } },
-      { $sort: { createdAt: -1 } },
-      { $project: ADMIN_TEMPLATE_SUMMARY_PROJECTION }
-    ]),
-    Order.aggregate([
-      { $match: { templateId: { $ne: null } } },
-      { $group: { _id: '$templateId', usage: { $sum: 1 } } }
-    ])
+  const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 50));
+  const query = { designKey: { $in: PUBLIC_DESIGN_KEYS }, deletedAt: null };
+  const search = String(req.query.search || '').trim().slice(0, 80);
+  if (search) {
+    const safeSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    query.$or = [
+      { code: { $regex: safeSearch, $options: 'i' } },
+      { title: { $regex: safeSearch, $options: 'i' } }
+    ];
+  }
+  if (req.query.cursor) {
+    try {
+      const cursor = JSON.parse(Buffer.from(String(req.query.cursor), 'base64url').toString('utf8'));
+      if (mongoose.isValidObjectId(cursor.id)) {
+        const createdAt = new Date(cursor.createdAt);
+        const id = new mongoose.Types.ObjectId(cursor.id);
+        if (!Number.isNaN(createdAt.getTime())) {
+          query.$and = [{ $or: [{ createdAt: { $lt: createdAt } }, { createdAt, _id: { $lt: id } }] }];
+        }
+      }
+    } catch {
+      // Invalid cursors safely behave like the first page.
+    }
+  }
+
+  const rows = await Template.aggregate([
+    { $match: query },
+    { $sort: { createdAt: -1, _id: -1 } },
+    { $limit: limit + 1 },
+    { $project: ADMIN_TEMPLATE_SUMMARY_PROJECTION }
   ]);
+  const hasMore = rows.length > limit;
+  const templates = hasMore ? rows.slice(0, limit) : rows;
+  const ids = templates.map((template) => template._id);
+  const usageRows = ids.length ? await Order.aggregate([
+    { $match: { templateId: { $in: ids } } },
+    { $group: { _id: '$templateId', usage: { $sum: 1 } } }
+  ]) : [];
   const usage = new Map(usageRows.map((row) => [String(row._id), row.usage]));
-  res.json(templates.map((template) => mapTemplateSummary(template, usage.get(String(template._id)) || 0)));
+  const last = templates.at(-1);
+  res.json({
+    items: templates.map((template) => mapTemplateSummary(template, usage.get(String(template._id)) || 0)),
+    hasMore,
+    nextCursor: hasMore && last ? Buffer.from(JSON.stringify({ id: String(last._id), createdAt: last.createdAt })).toString('base64url') : null
+  });
 });
 
 export const getAdminTemplate = asyncHandler(async (req, res) => {
@@ -545,6 +594,8 @@ export const updateAdminTemplate = asyncHandler(async (req, res) => {
   }
   const previousCategory = template.category;
   const { code: _ignoredCode, ...rawData } = req.body;
+  if (rawData.mainImage === template.mainImage) delete rawData.mainImage;
+  if (rawData.pagePreviewImage === template.pagePreviewImage) delete rawData.pagePreviewImage;
   if (typeof rawData.features === 'string') rawData.features = rawData.features.split('\n').filter(Boolean);
   if (typeof rawData.gallery === 'string') rawData.gallery = rawData.gallery.split('\n').filter(Boolean);
   const data = await optimizeTemplateMedia(rawData);

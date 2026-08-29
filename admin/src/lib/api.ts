@@ -81,7 +81,12 @@ export const adminApi = {
     request<any>(`/admin/dashboard?period=${encodeURIComponent(period)}`),
   resetRevenue: () => request<any>("/admin/dashboard/reset-revenue", { method: "POST" }),
   orders: () => request<any[]>("/admin/orders"),
-  templates: () => request<any[]>("/admin/templates"),
+  templates: ({ cursor = "", search = "", limit = 50 } = {}) => {
+    const params = new URLSearchParams({ limit: String(limit) });
+    if (cursor) params.set("cursor", cursor);
+    if (search) params.set("search", search);
+    return request<{ items: any[]; nextCursor: string | null; hasMore: boolean }>(`/admin/templates?${params}`);
+  },
   template: (id: string) => request<any>(`/admin/templates/${id}`),
   customers: () => request<any[]>("/admin/customers"),
   customer: (id: string) => request<any>(`/admin/customers/${id}`),

@@ -20,7 +20,22 @@ const templateSchema = new mongoose.Schema(
     designKey: { type: String, default: 'ivory-vows', trim: true },
     mainImage: { type: String, default: '' },
     mainImageThumbnail: { type: String, default: '' },
+    mainImageMeta: {
+      url: { type: String, default: '' },
+      width: { type: Number, default: 0 },
+      height: { type: Number, default: 0 },
+      bytes: { type: Number, default: 0 },
+      checksum: { type: String, default: '' }
+    },
     pagePreviewImage: { type: String, default: '' },
+    pagePreviewThumbnail: { type: String, default: '' },
+    pagePreviewMeta: {
+      url: { type: String, default: '' },
+      width: { type: Number, default: 0 },
+      height: { type: Number, default: 0 },
+      bytes: { type: Number, default: 0 },
+      checksum: { type: String, default: '' }
+    },
     pagePreviewAvailable: { type: Boolean, default: false },
     imagePosition: {
       x: { type: Number, default: 50, min: 0, max: 100 },
@@ -41,6 +56,11 @@ templateSchema.pre('validate', function syncPagePreviewAvailability() {
   this.pagePreviewAvailable = Boolean(String(this.pagePreviewImage || '').trim());
 });
 
-templateSchema.index({ deletedAt: 1, isActive: 1, designKey: 1, category: 1, createdAt: -1 });
+templateSchema.index({ deletedAt: 1, isActive: 1, designKey: 1, category: 1, createdAt: -1, _id: -1 });
+templateSchema.index({ deletedAt: 1, isActive: 1, designKey: 1, category: 1, price: 1, _id: 1 });
+templateSchema.index({ deletedAt: 1, isActive: 1, designKey: 1, createdAt: -1, _id: -1 });
+templateSchema.index({ deletedAt: 1, isActive: 1, designKey: 1, price: 1, _id: 1 });
+templateSchema.index({ deletedAt: 1, isActive: 1, designKey: 1, isFeatured: 1, createdAt: -1, _id: -1 });
+templateSchema.index({ deletedAt: 1, designKey: 1, createdAt: -1, _id: -1 });
 
 export default mongoose.model('Template', templateSchema);

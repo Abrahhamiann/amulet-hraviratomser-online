@@ -18,6 +18,7 @@ import polaroidEngagementCover from "../../../client/src/vendorTemplates/nshanad
 import goldenHeartCover from "../../../client/src/vendorTemplates/nshanadrutyun2/src/assets/images/couple-mountain.jpg";
 import cinematicEngagementCover from "../../../client/src/vendorTemplates/nshanadrutyun3/src/assets/images/couple-1.jpg";
 import lastBellCover from "../../../client/src/vendorTemplates/verjinzang1/src/assets/bell-photo.jpg";
+import { apiAssetUrl } from "./env";
 
 const coverByAsset: Record<string, string> = {
   "asset:curated/sacred/child-portrait.jpg": sacredPortrait,
@@ -67,6 +68,6 @@ const coverByDesign: Record<string, string> = {
 
 export function resolveAdminTemplateCover(cover?: string, designKey?: string) {
   if (cover && coverByAsset[cover]) return coverByAsset[cover];
-  if (cover && !cover.startsWith("asset:")) return cover;
+  if (cover && !cover.startsWith("asset:")) return apiAssetUrl(cover);
   return coverByDesign[designKey || ""] || "";
 }

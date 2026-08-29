@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { Copy, Edit, Eye, LayoutGrid, List, MoreHorizontal, Plus, RotateCcw, Search, Star, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { adminApi, currency } from "@/lib/api";
-import { CLIENT_URL } from "@/lib/env";
+import { apiAssetUrl, CLIENT_URL } from "@/lib/env";
 import { formatAdminCategory, useAdminI18n } from "@/lib/i18n";
+import { resolveAdminTemplateCover } from "@/lib/template-images";
 import { useTemplates } from "@/hooks/useAdminData";
 import sacredPortrait from "../../../client/src/assets/importedTemplates/sacred/child-portrait.jpg";
 import sacredGallery1 from "../../../client/src/assets/importedTemplates/sacred/gallery-1.jpg";
@@ -420,7 +421,28 @@ const sameImageList = (first: string[], second: string[]) => (
   first.length === second.length && first.every((image, index) => image === second[index])
 );
 
-const getPreviewImage = (image?: string) => templateAssetPreviews[image || ""] || image || "";
+const getPreviewImage = (image?: string) => apiAssetUrl(templateAssetPreviews[image || ""] || image || "");
+
+function AdminTemplateCover({ template, className }: { template: any; className: string }) {
+  const primary = resolveAdminTemplateCover(template.cover, template.designKey);
+  const fallback = resolveAdminTemplateCover(undefined, template.designKey);
+  const [source, setSource] = useState(primary || fallback);
+
+  useEffect(() => setSource(primary || fallback), [fallback, primary]);
+  if (!source) return <span className={`${className} block bg-secondary`} aria-hidden="true" />;
+
+  return (
+    <img
+      src={source}
+      alt={template.name}
+      className={className}
+      style={getImageStyle(template.imagePosition)}
+      loading="lazy"
+      decoding="async"
+      onError={() => setSource((current) => current !== fallback ? fallback : "")}
+    />
+  );
+}
 
 const MAX_PAGE_PREVIEW_BYTES = 10 * 1024 * 1024;
 const PAGE_PREVIEW_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
@@ -464,7 +486,6 @@ function toForm(template?: any) {
 
 function TemplatesPage() {
   const { lang, t } = useAdminI18n();
-  const { data: templates, isLoading, error } = useTemplates();
   const queryClient = useQueryClient();
   const [view, setView] = useState<"cards" | "table">("cards");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -472,16 +493,20 @@ function TemplatesPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => window.clearTimeout(timeout);
+  }, [search]);
+  const { data: templates, isLoading, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useTemplates(debouncedSearch);
   const visibleTemplates = useMemo(
     () => {
-      const query = search.trim().toUpperCase();
       return (templates || []).filter((template: any) => (
         isKnownDesignKey(template.designKey)
         && !template.deleted
-        && (!query || String(template.code || "").toUpperCase().includes(query))
       ));
     },
-    [templates, search]
+    [templates]
   );
 
   const subtitle = error ? error.message : isLoading ? t("loading") : t("templates");
@@ -541,9 +566,6 @@ function TemplatesPage() {
     if (!confirm(`${t("delete")}: ${template.name}?`)) return;
     try {
       await adminApi.deleteTemplate(template.id);
-      queryClient.setQueryData(["admin", "templates"], (current: any[] | undefined) => (
-        current?.filter((item) => item.id !== template.id) ?? current
-      ));
       toast.success(t("done"));
       void queryClient.invalidateQueries({ queryKey: ["admin", "templates"] });
       void queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
@@ -636,7 +658,7 @@ function TemplatesPage() {
             {visibleTemplates.map((template: any) => (
               <Card key={template.id} className={`group overflow-hidden rounded-2xl border-border/60 shadow-[var(--shadow-soft)] transition-all pt-0${template.deleted ? " opacity-65" : " hover:shadow-[var(--shadow-gold)] hover:-translate-y-1"}`}>
                 <div className="relative aspect-[4/5] bg-secondary overflow-hidden">
-                  {template.cover ? <img src={getPreviewImage(template.cover)} alt={template.name} className="h-full w-full object-cover transition duration-500" style={getImageStyle(template.imagePosition)} loading="lazy" decoding="async" /> : null}
+                  <AdminTemplateCover template={template} className="h-full w-full object-cover transition duration-500" />
                   {template.featured && (
                     <div className="absolute top-3 left-3 gold-gradient text-white text-[10px] font-medium px-2 py-1 rounded-full flex items-center gap-1">
                       <Star className="h-3 w-3 fill-white" /> {t("featured")}
@@ -682,7 +704,7 @@ function TemplatesPage() {
                     <TableRow key={template.id} className="border-border/60 hover:bg-secondary/30">
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          {template.cover ? <img src={getPreviewImage(template.cover)} className="h-10 w-10 object-cover rounded-lg" style={getImageStyle(template.imagePosition)} alt={template.name} loading="lazy" decoding="async" /> : <div className="h-10 w-10 rounded-lg bg-secondary" />}
+                          <AdminTemplateCover template={template} className="h-10 w-10 object-cover rounded-lg" />
                           <span className="font-medium">{template.code || template.name}</span>
                         </div>
                       </TableCell>
@@ -702,6 +724,13 @@ function TemplatesPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      {hasNextPage ? (
+        <div className="mt-6 flex justify-center">
+          <Button type="button" variant="outline" disabled={isFetchingNextPage} onClick={() => void fetchNextPage()}>
+            {isFetchingNextPage ? t("loading") : "Ավելին"}
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }

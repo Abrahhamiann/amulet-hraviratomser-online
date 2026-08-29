@@ -1,47 +1,17 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Eye, LogIn, Pencil, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import alertGuruAnimation from '../assets/animations/editor-exit-alert.lottie?url';
-import { API_URL, qrImageUrl, siteUrl } from '../config/env.js';
+import { API_URL, apiAssetUrl, qrImageUrl, siteUrl } from '../config/env.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { resolveTemplateCardImage } from '../occasionTemplates/templateCardAssets.js';
 
-const backgroundPreviewQueue = [];
-let activeBackgroundPreviews = 0;
-
-const drainBackgroundPreviewQueue = () => {
-  while (activeBackgroundPreviews < 2 && backgroundPreviewQueue.length) {
-    const entry = backgroundPreviewQueue.shift();
-    if (entry.cancelled) continue;
-    activeBackgroundPreviews += 1;
-    entry.started = true;
-    entry.start(entry.release);
-  }
-};
-
-const enqueueBackgroundPreview = (start) => {
-  const entry = {
-    cancelled: false,
-    released: false,
-    started: false,
-    start,
-    release() {
-      if (entry.released) return;
-      entry.released = true;
-      if (entry.started) activeBackgroundPreviews = Math.max(0, activeBackgroundPreviews - 1);
-      drainBackgroundPreviewQueue();
-    }
-  };
-  backgroundPreviewQueue.push(entry);
-  drainBackgroundPreviewQueue();
-  return () => {
-    entry.cancelled = true;
-    entry.release();
-  };
-};
+let activeCatalogPreview = null;
+const LazyDotLottie = lazy(() => import('@lottiefiles/dotlottie-react').then((module) => ({
+  default: module.DotLottieReact
+})));
 
 export default function TemplateCard({ template, priority = false }) {
   const { t } = useLanguage();
@@ -53,27 +23,32 @@ export default function TemplateCard({ template, priority = false }) {
   const [remotePreviewReady, setRemotePreviewReady] = useState(false);
   const [remotePreviewFailed, setRemotePreviewFailed] = useState(false);
   const [previewRequested, setPreviewRequested] = useState(false);
-  const [coverReady, setCoverReady] = useState(false);
+  const [cardImageFailed, setCardImageFailed] = useState(false);
   const loginButtonRef = useRef(null);
   const qrModalRef = useRef(null);
   const qrContentRef = useRef(null);
-  const backgroundPreviewCancelRef = useRef(null);
-  const backgroundPreviewReleaseRef = useRef(null);
   const imagePosition = template.imagePosition || {};
   const x = Number.isFinite(Number(imagePosition.x)) ? Number(imagePosition.x) : 50;
   const y = Number.isFinite(Number(imagePosition.y)) ? Number(imagePosition.y) : 50;
   const zoom = Number.isFinite(Number(imagePosition.zoom)) ? Math.min(2, Math.max(1, Number(imagePosition.zoom))) : 1;
   const objectPosition = `${x}% ${y}%`;
-  const storedMainImage = template.mainImageStored
+  const storedMainImage = template.mainImageThumbnail
+    ? apiAssetUrl(template.mainImageThumbnail)
+    : template.mainImageStored
     ? `${API_URL}/templates/${template._id}/card-image?v=${encodeURIComponent(template.updatedAt || '')}`
     : '';
-  const cardImage = storedMainImage || resolveTemplateCardImage(template.mainImage);
+  const primaryCardImage = storedMainImage || apiAssetUrl(resolveTemplateCardImage(template.mainImage));
+  const fallbackCardImage = apiAssetUrl(resolveTemplateCardImage(template.designKey));
+  const cardImage = cardImageFailed && fallbackCardImage !== primaryCardImage
+    ? fallbackCardImage
+    : primaryCardImage;
   const mainImage = cardImage;
   // Catalog cards are controlled only by admin-provided media: the main image
   // at rest and the saved full-page screenshot while hovered/focused.
   const hasAdminPagePreview = Boolean(template.pagePreviewAvailable);
   const remotePagePreview = hasAdminPagePreview
-    ? `${API_URL}/templates/${template._id}/page-preview?v=${encodeURIComponent(template.updatedAt || '')}`
+    ? apiAssetUrl(template.pagePreviewThumbnail || template.pagePreviewImage)
+      || `${API_URL}/templates/${template._id}/page-preview?v=${encodeURIComponent(template.updatedAt || '')}`
     : '';
   // Request the real screenshot after the cover is ready (or immediately on
   // intent), then keep it behind the cover until decoding has completed.
@@ -86,16 +61,17 @@ export default function TemplateCard({ template, priority = false }) {
     if (remotePagePreview && !remotePreviewFailed) setPreviewRequested(true);
   }, [remotePagePreview, remotePreviewFailed]);
   const requestPreview = useCallback(() => {
-    backgroundPreviewCancelRef.current?.();
-    backgroundPreviewCancelRef.current = null;
-    backgroundPreviewReleaseRef.current = null;
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (prefersReducedMotion || connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || '')) return;
+    activeCatalogPreview?.stop();
+    activeCatalogPreview = { id: template._id, stop: () => setPreviewRequested(false) };
     showPreview();
-  }, [showPreview]);
-  const releaseBackgroundPreview = () => {
-    backgroundPreviewReleaseRef.current?.();
-    backgroundPreviewReleaseRef.current = null;
-    backgroundPreviewCancelRef.current = null;
-  };
+  }, [prefersReducedMotion, showPreview, template._id]);
+  const stopPreview = useCallback(() => {
+    setPreviewRequested(false);
+    setRemotePreviewReady(false);
+    if (activeCatalogPreview?.id === template._id) activeCatalogPreview = null;
+  }, [template._id]);
   const openQr = () => {
     requestPreview();
     setQrOpen(true);
@@ -158,33 +134,13 @@ export default function TemplateCard({ template, priority = false }) {
     setRemotePreviewReady(false);
     setRemotePreviewFailed(false);
     setPreviewRequested(false);
-    setCoverReady(false);
   }, [remotePagePreview]);
 
-  useEffect(() => {
-    if (!coverReady || !remotePagePreview || remotePreviewFailed) return undefined;
-    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    if (connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || '')) return undefined;
+  useEffect(() => setCardImageFailed(false), [primaryCardImage]);
 
-    const queuePreview = () => {
-      backgroundPreviewCancelRef.current = enqueueBackgroundPreview((release) => {
-        backgroundPreviewReleaseRef.current = release;
-        showPreview();
-      });
-    };
-    if ('requestIdleCallback' in window) {
-      const idleId = window.requestIdleCallback(queuePreview, { timeout: priority ? 800 : 2200 });
-      return () => {
-        window.cancelIdleCallback(idleId);
-        backgroundPreviewCancelRef.current?.();
-      };
-    }
-    const timeoutId = window.setTimeout(queuePreview, priority ? 250 : 900);
-    return () => {
-      window.clearTimeout(timeoutId);
-      backgroundPreviewCancelRef.current?.();
-    };
-  }, [coverReady, priority, remotePagePreview, remotePreviewFailed, showPreview]);
+  useEffect(() => () => {
+    if (activeCatalogPreview?.id === template._id) activeCatalogPreview = null;
+  }, [template._id]);
 
   return (
     <article
@@ -200,7 +156,9 @@ export default function TemplateCard({ template, priority = false }) {
       }}
       aria-label={`${template.code || template.title}. ${t('scanQr')}`}
       onPointerEnter={requestPreview}
+      onPointerLeave={stopPreview}
       onFocus={requestPreview}
+      onBlur={stopPreview}
     >
       <div className="template-image catalog-template-preview">
         {catalogPagePreview ? (
@@ -211,15 +169,16 @@ export default function TemplateCard({ template, priority = false }) {
             loading="eager"
             decoding="async"
             fetchPriority="low"
+            style={{
+              '--template-preview-duration': `${Math.max(18, Math.min(52, Number(template.pagePreviewMeta?.height || 4400) / 105))}s`
+            }}
             onLoad={() => {
-              releaseBackgroundPreview();
               setRemotePreviewReady(false);
               window.requestAnimationFrame(() => {
                 window.requestAnimationFrame(() => setRemotePreviewReady(true));
               });
             }}
             onError={() => {
-              releaseBackgroundPreview();
               setRemotePreviewReady(false);
               setRemotePreviewFailed(true);
             }}
@@ -232,7 +191,7 @@ export default function TemplateCard({ template, priority = false }) {
             loading={priority ? 'eager' : 'lazy'}
             decoding="async"
             fetchPriority={priority ? 'high' : 'auto'}
-            onLoad={() => setCoverReady(true)}
+            onError={() => setCardImageFailed(true)}
             style={{
               '--template-image-zoom': zoom,
               objectPosition,
@@ -249,7 +208,6 @@ export default function TemplateCard({ template, priority = false }) {
             alt={template.title}
             loading="eager"
             decoding="async"
-            onLoad={() => setCoverReady(true)}
             style={{ objectPosition, transformOrigin: objectPosition }}
           />
         )}
@@ -353,11 +311,13 @@ export default function TemplateCard({ template, priority = false }) {
               <X size={20} />
             </button>
             <span className="auth-required-animation" aria-hidden="true">
-              <DotLottieReact
-                src={alertGuruAnimation}
-                autoplay={!prefersReducedMotion}
-                loop={!prefersReducedMotion}
-              />
+              <Suspense fallback={null}>
+                <LazyDotLottie
+                  src={alertGuruAnimation}
+                  autoplay={!prefersReducedMotion}
+                  loop={!prefersReducedMotion}
+                />
+              </Suspense>
             </span>
             <h2 id="auth-required-title">{t('templateAuthRequiredTitle')}</h2>
             <p id="auth-required-description">{t('templateAuthRequiredText')}</p>

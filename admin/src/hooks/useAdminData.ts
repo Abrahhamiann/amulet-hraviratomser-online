@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { adminApi } from "@/lib/api";
 
 export function useAdminData<T>(key: unknown, fetcher: () => Promise<T>, fallback: T, staleTime = 0) {
@@ -17,7 +17,20 @@ export function useAdminData<T>(key: unknown, fetcher: () => Promise<T>, fallbac
 
 export const useDashboard = (period = "all") => useAdminData(["dashboard", period], () => adminApi.dashboard(period), null);
 export const useOrders = () => useAdminData("orders", adminApi.orders, []);
-export const useTemplates = () => useAdminData("templates", adminApi.templates, [], 60_000);
+export const useTemplates = (search = "") => {
+  const query = useInfiniteQuery({
+    queryKey: ["admin", "templates", search],
+    initialPageParam: "",
+    queryFn: ({ pageParam }) => adminApi.templates({ cursor: String(pageParam || ""), search }),
+    getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.nextCursor : undefined,
+    retry: false,
+    staleTime: 60_000,
+  });
+  return {
+    ...query,
+    data: query.data?.pages.flatMap((page) => page.items) || [],
+  };
+};
 export const useCustomers = () => useAdminData("customers", adminApi.customers, []);
 export const usePayments = () => useAdminData("payments", adminApi.payments, []);
 export const useMessages = () => useAdminData("messages", adminApi.messages, []);

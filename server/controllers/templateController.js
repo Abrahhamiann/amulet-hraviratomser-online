@@ -1,4 +1,5 @@
 import asyncHandler from 'express-async-handler';
+import mongoose from 'mongoose';
 import Template from '../models/Template.js';
 import { makeSlug } from '../utils/slug.js';
 import { nextTemplateCode, reindexTemplateCodes } from '../utils/templateCode.js';
@@ -11,6 +12,38 @@ const TEMPLATE_LIST_FIELDS = [
   'pagePreviewAvailable', 'imagePosition', 'isFeatured', 'createdAt', 'updatedAt'
 ].join(' ');
 
+const clampLimit = (value) => Math.min(48, Math.max(1, Number.parseInt(value, 10) || 24));
+
+const decodeCursor = (value) => {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(Buffer.from(String(value), 'base64url').toString('utf8'));
+    if (!parsed?.id || !mongoose.isValidObjectId(parsed.id)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+const encodeCursor = (template, sort) => Buffer.from(JSON.stringify({
+  id: String(template._id),
+  value: sort === 'newest' ? template.createdAt : template.price
+})).toString('base64url');
+
+const cursorQuery = (cursor, sort) => {
+  if (!cursor) return null;
+  const id = new mongoose.Types.ObjectId(cursor.id);
+  if (sort === 'price_asc' || sort === 'price_desc') {
+    const price = Number(cursor.value);
+    if (!Number.isFinite(price)) return null;
+    const operator = sort === 'price_asc' ? '$gt' : '$lt';
+    return { $or: [{ price: { [operator]: price } }, { price, _id: { [operator]: id } }] };
+  }
+  const createdAt = new Date(cursor.value);
+  if (Number.isNaN(createdAt.getTime())) return null;
+  return { $or: [{ createdAt: { $lt: createdAt } }, { createdAt, _id: { $lt: id } }] };
+};
+
 const mediaProjection = {
   mainImage: {
     $cond: [
@@ -21,12 +54,35 @@ const mediaProjection = {
   },
   mainImageStored: {
     $regexMatch: { input: { $ifNull: ['$mainImage', ''] }, regex: /^data:image\//i }
-  }
+  },
+  mainImageThumbnail: {
+    $cond: [
+      { $regexMatch: { input: { $ifNull: ['$mainImageThumbnail', ''] }, regex: /^data:image\//i } },
+      '',
+      '$mainImageThumbnail'
+    ]
+  },
+  pagePreviewImage: {
+    $cond: [
+      { $regexMatch: { input: { $ifNull: ['$pagePreviewImage', ''] }, regex: /^data:image\//i } },
+      '',
+      '$pagePreviewImage'
+    ]
+  },
+  pagePreviewThumbnail: {
+    $cond: [
+      { $regexMatch: { input: { $ifNull: ['$pagePreviewThumbnail', ''] }, regex: /^data:image\//i } },
+      '',
+      '$pagePreviewThumbnail'
+    ]
+  },
+  pagePreviewMeta: 1
 };
 
 export const getTemplates = asyncHandler(async (req, res) => {
   const { category, search, sort = 'newest', featured } = req.query;
-  const query = { isActive: { $ne: false }, deletedAt: null, designKey: { $in: PUBLIC_DESIGN_KEYS } };
+  const limit = clampLimit(req.query.limit);
+  const query = { isActive: true, deletedAt: null, designKey: { $in: PUBLIC_DESIGN_KEYS } };
   if (category === 'other') query.category = { $in: ['corporate', 'new_year', 'meeting', 'military'] };
   else if (category) query.category = category;
   if (featured === 'true') query.isFeatured = true;
@@ -38,20 +94,31 @@ export const getTemplates = asyncHandler(async (req, res) => {
     ];
   }
 
+  const normalizedSort = ['newest', 'price_asc', 'price_desc'].includes(sort) ? sort : 'newest';
   const sortMap = {
-    newest: { createdAt: -1 },
-    price_asc: { price: 1 },
-    price_desc: { price: -1 }
+    newest: { createdAt: -1, _id: -1 },
+    price_asc: { price: 1, _id: 1 },
+    price_desc: { price: -1, _id: -1 }
   };
+
+  const continuation = cursorQuery(decodeCursor(req.query.cursor), normalizedSort);
+  if (continuation) query.$and = [continuation];
 
   const selectedFields = Object.fromEntries(TEMPLATE_LIST_FIELDS.split(' ').map((field) => [field, 1]));
   const templates = await Template.aggregate([
     { $match: query },
-    { $sort: sortMap[sort] || sortMap.newest },
+    { $sort: sortMap[normalizedSort] },
+    { $limit: limit + 1 },
     { $project: { ...selectedFields, ...mediaProjection } }
   ]);
+  const hasMore = templates.length > limit;
+  const items = hasMore ? templates.slice(0, limit) : templates;
   res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
-  res.json(templates);
+  res.json({
+    items,
+    hasMore,
+    nextCursor: hasMore && items.length ? encodeCursor(items.at(-1), normalizedSort) : null
+  });
 });
 
 const sendEmbeddedImage = (res, source, fallbackType = 'image/webp') => {
@@ -139,6 +206,8 @@ export const updateTemplate = asyncHandler(async (req, res) => {
   }
   const previousCategory = template.category;
   const { code: _ignoredCode, ...rawUpdates } = req.body;
+  if (rawUpdates.mainImage === template.mainImage) delete rawUpdates.mainImage;
+  if (rawUpdates.pagePreviewImage === template.pagePreviewImage) delete rawUpdates.pagePreviewImage;
   const updates = await optimizeTemplateMedia(rawUpdates);
   updates.category = updates.category || template.category;
   updates.editorType = updates.editorType || (

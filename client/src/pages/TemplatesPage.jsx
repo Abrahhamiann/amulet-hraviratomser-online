@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronDown, Search } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../api/axios.js';
 import ErrorState from '../components/ErrorState.jsx';
@@ -12,8 +12,13 @@ import { categories } from '../data/categories.js';
 export default function TemplatesPage() {
   const { t } = useLanguage();
   const [params, setParams] = useSearchParams();
-  const [allTemplates, setAllTemplates] = useState([]);
+  const [templates, setTemplates] = useState([]);
   const [state, setState] = useState('loading');
+  const [nextCursor, setNextCursor] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const loadMoreRef = useRef(null);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const category = params.get('category') || '';
@@ -37,36 +42,54 @@ export default function TemplatesPage() {
   }, []);
 
   useEffect(() => {
+    const timeoutId = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => window.clearTimeout(timeoutId);
+  }, [search]);
+
+  useEffect(() => {
     const controller = new AbortController();
     setState('loading');
-    api.get('/templates', { signal: controller.signal }).then(({ data }) => {
-      setAllTemplates(data);
+    setTemplates([]);
+    api.get('/templates', {
+      signal: controller.signal,
+      params: { limit: 24, category: category || undefined, search: debouncedSearch || undefined, sort }
+    }).then(({ data }) => {
+      setTemplates(data.items || []);
+      setNextCursor(data.nextCursor || null);
+      setHasMore(Boolean(data.hasMore));
       setState('ready');
     }).catch((error) => {
       if (error?.code !== 'ERR_CANCELED') setState('error');
     });
     return () => controller.abort();
-  }, []);
+  }, [category, debouncedSearch, sort]);
 
-  const templates = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
-    const filtered = allTemplates.filter((template) => {
-      const matchesCategory = !category || (
-        category === 'other'
-          ? ['corporate', 'new_year', 'meeting', 'military'].includes(template.category)
-          : template.category === category
-      );
-      const matchesSearch = !normalizedSearch
-        || String(template.code || '').toLowerCase().includes(normalizedSearch)
-        || String(template.title || '').toLowerCase().includes(normalizedSearch);
-      return matchesCategory && matchesSearch;
-    });
-    return [...filtered].sort((first, second) => {
-      if (sort === 'price_asc') return Number(first.price) - Number(second.price);
-      if (sort === 'price_desc') return Number(second.price) - Number(first.price);
-      return new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime();
-    });
-  }, [allTemplates, category, search, sort]);
+  const loadMore = useCallback(async () => {
+    if (!hasMore || !nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const { data } = await api.get('/templates', {
+        params: { limit: 24, cursor: nextCursor, category: category || undefined, search: debouncedSearch || undefined, sort }
+      });
+      setTemplates((current) => [...current, ...(data.items || [])]);
+      setNextCursor(data.nextCursor || null);
+      setHasMore(Boolean(data.hasMore));
+    } catch {
+      setHasMore(false);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [category, debouncedSearch, hasMore, loadingMore, nextCursor, sort]);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target || !hasMore) return undefined;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) void loadMore();
+    }, { rootMargin: '600px 0px' });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [hasMore, loadMore]);
 
   const update = (key, value) => {
     const next = new URLSearchParams(params);
@@ -170,7 +193,11 @@ export default function TemplatesPage() {
 
       {state === 'loading' && <Loading text={t('loading')} />}
       {state === 'error' && <ErrorState text={t('error')} />}
-      {state === 'ready' && <div className="templates-grid catalog-grid">{templates.map((template, index) => <TemplateCard key={template._id} template={template} priority={index < 5} />)}</div>}
+      {state === 'ready' && <>
+        <div className="templates-grid catalog-grid">{templates.map((template, index) => <TemplateCard key={template._id} template={template} priority={index < 5} />)}</div>
+        {hasMore && <div ref={loadMoreRef} className="catalog-load-more" aria-hidden="true" />}
+        {loadingMore && <Loading text={t('loading')} />}
+      </>}
     </section>
   );
 }
