@@ -102,12 +102,13 @@ sudo systemctl restart ssh
 
 ## 3. Установка софта
 
-### 3.1 Node.js 20 LTS
+### 3.1 Node.js 22 LTS (не ниже 22.12.0)
 
 ```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt install -y nodejs
-node -v && npm -v          # ожидаем v20.x
+hash -r
+node -v && npm -v          # ожидаем Node v22.12.0 или новее
 ```
 
 ### 3.2 MongoDB 8.0

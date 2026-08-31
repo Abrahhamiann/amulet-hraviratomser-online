@@ -36,10 +36,16 @@ const DEFAULT_DESIGN_KEY = 'ivory-vows';
 const FAQ_SETTING_KEY = 'faqItems';
 const REVENUE_RESET_SETTING_KEY = 'revenueResetAt';
 const FAQ_LANGUAGES = ['hy', 'en', 'ru'];
-const FAQ_IDS = [
+const LEGACY_FAQ_IDS = [
   'faq-price-includes', 'faq-production-time', 'faq-sharing', 'faq-languages',
   'faq-edit-after-purchase', 'faq-responsive', 'faq-rsvp', 'faq-location-map',
   'faq-replace-photos', 'faq-link-duration', 'faq-privacy', 'faq-custom-design'
+];
+const FAQ_IDS = [
+  ...LEGACY_FAQ_IDS,
+  'faq-no-app-required', 'faq-preview-before-purchase', 'faq-music', 'faq-multiple-venues',
+  'faq-view-rsvp', 'faq-rsvp-options', 'faq-event-types', 'faq-payment',
+  'faq-promo-code', 'faq-after-purchase', 'faq-change-template', 'faq-support'
 ];
 const DEFAULT_FAQ_ITEMS = FAQ_IDS.map((id, index) => ({
   id,
@@ -267,7 +273,28 @@ const normalizeFaqItems = (items) => {
 
 const resolveFaqItems = (saved) => {
   const savedItems = normalizeFaqItems(saved?.value?.items);
-  if (saved?.value?.version === 2) return savedItems;
+  const savedVersion = Number(saved?.value?.version) || 0;
+  const explicitlyDeletedIds = new Set(
+    Array.isArray(saved?.value?.deletedDefaultIds)
+      ? saved.value.deletedDefaultIds.map(String)
+      : []
+  );
+
+  // Version 2 stored the exact list but did not track deleted defaults. During
+  // migration, treat missing legacy defaults as intentional deletions while
+  // still adding FAQ entries introduced after that version.
+  if (savedVersion === 2) {
+    const savedIds = new Set(savedItems.map((item) => item.id));
+    LEGACY_FAQ_IDS.filter((id) => !savedIds.has(id)).forEach((id) => explicitlyDeletedIds.add(id));
+  }
+
+  if (savedVersion >= 2) {
+    const savedIds = new Set(savedItems.map((item) => item.id));
+    const newDefaults = DEFAULT_FAQ_ITEMS.filter((item) => (
+      !savedIds.has(item.id) && !explicitlyDeletedIds.has(item.id)
+    ));
+    return [...savedItems, ...newDefaults];
+  }
   if (!savedItems.length) return DEFAULT_FAQ_ITEMS;
 
   const savedById = new Map(savedItems.map((item) => [item.id, item]));
@@ -551,9 +578,11 @@ export const getAdminFaq = asyncHandler(async (req, res) => {
 
 export const updateAdminFaq = asyncHandler(async (req, res) => {
   const items = normalizeFaqItems(req.body?.items);
+  const submittedIds = new Set(items.map((item) => item.id));
+  const deletedDefaultIds = FAQ_IDS.filter((id) => !submittedIds.has(id));
   const setting = await Setting.findOneAndUpdate(
     { key: FAQ_SETTING_KEY },
-    { value: { items, initialized: true, version: 2 } },
+    { value: { items, deletedDefaultIds, initialized: true, version: 3 } },
     { new: true, upsert: true, setDefaultsOnInsert: true }
   );
   res.json({ items: normalizeFaqItems(setting.value?.items) });

@@ -30,5 +30,30 @@ const scopedTemplateAlias = {
 };
 
 export default defineConfig({
-  plugins: [scopedTemplateAlias, react(), tailwindcss()]
+  plugins: [scopedTemplateAlias, react(), tailwindcss()],
+  build: {
+    // DotLottie ships a large WASM-capable runtime, but it is isolated in its
+    // own on-demand chunk (about 70 kB gzip) and no longer inflates the app shell.
+    chunkSizeWarningLimit: 700,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          const normalizedId = id.replaceAll('\\', '/');
+          if (normalizedId.includes('/node_modules/react/') || normalizedId.includes('/node_modules/react-dom/') || normalizedId.includes('/node_modules/react-router-dom/')) {
+            return 'react-vendor';
+          }
+          if (normalizedId.includes('/node_modules/motion/') || normalizedId.includes('/node_modules/framer-motion/')) {
+            return 'motion-vendor';
+          }
+          if (normalizedId.includes('/node_modules/@lottiefiles/')) return 'lottie-vendor';
+          if (normalizedId.includes('/src/vendorTemplates/')) {
+            const relative = normalizedId.split('/src/vendorTemplates/')[1];
+            const templateFamily = relative?.split('/')[0];
+            if (templateFamily) return `template-${templateFamily}`;
+          }
+          return undefined;
+        }
+      }
+    }
+  }
 });

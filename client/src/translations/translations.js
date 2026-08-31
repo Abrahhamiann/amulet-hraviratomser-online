@@ -1345,4 +1345,51 @@ Object.assign(ru, {
   editorExitDiscard: 'Не сохранять'
 });
 
+// These defaults seed the server-managed FAQ. After the first save, admins can
+// freely edit, hide, reorder, add, or delete every entry from the admin panel.
+en.faqItems.push(
+  ['Do guests need an account or an app?', 'No. Guests open the invitation directly in their browser and do not need to register or install anything.'],
+  ['Can I preview the invitation before buying it?', 'Yes. You can customize and preview the invitation in your account before continuing to payment.'],
+  ['Can I add music to the invitation?', 'Yes. You can select available music or upload a supported audio file. Browser autoplay rules may require the guest to tap once to start it.'],
+  ['Can one invitation include several venues and times?', 'Yes. You can add multiple schedule entries with their own time, title, address, and map link.'],
+  ['Where can I see guest responses?', 'RSVP responses, attendance status, and the submitted guest count are available from your account.'],
+  ['Can I ask guests about their group size or meal preference?', 'Yes. The RSVP settings can include guest count, meal preference, and an additional question or note.'],
+  ['What invitation types are available?', 'Amulet includes invitations for weddings, engagements, baptisms, birthdays, corporate events, and other occasions shown in the catalog.'],
+  ['How does payment work?', 'Choose a template, customize it, review the result, then continue to the secure checkout shown by Amulet.'],
+  ['Can I use a promo code?', 'Yes. If you have an active promo code, enter it during checkout before completing the payment.'],
+  ['What happens after purchase?', 'After successful payment, the invitation receives its shareable public link and remains available in your account.'],
+  ['Can I change the invitation template while editing?', 'Yes. You can choose another available design in the editor and continue customizing your invitation.'],
+  ['What should I do if I need help?', 'Contact the Amulet team through the website contact form. We can help with ordering, editing, and technical questions.']
+);
+
+hy.faqItems.push(
+  ['Հյուրերին հաշիվ կամ հավելվա՞ծ է անհրաժեշտ', 'Ոչ։ Հյուրերը հրավերը բացում են անմիջապես դիտարկիչում՝ առանց գրանցվելու կամ որևէ հավելված տեղադրելու։'],
+  ['Կարո՞ղ եմ մինչև գնելը նախադիտել հրավերը', 'Այո։ Մինչև վճարման անցնելը կարող եք Ձեր հաշվում ձևավորել և ամբողջությամբ նախադիտել հրավերը։'],
+  ['Կարո՞ղ եմ հրավերին երաժշտություն ավելացնել', 'Այո։ Կարող եք ընտրել հասանելի երաժշտությունից կամ վերբեռնել աջակցվող ձայնային ֆայլ։ Դիտարկիչի կանոնների պատճառով հյուրից կարող է պահանջվել մեկ հպում՝ երաժշտությունը միացնելու համար։'],
+  ['Կարո՞ղ է մեկ հրավերում լինել մի քանի վայր և ժամ', 'Այո։ Կարող եք ավելացնել ծրագրի մի քանի կետ՝ առանձին ժամով, անվանումով, հասցեով և քարտեզի հղումով։'],
+  ['Որտե՞ղ կարող եմ տեսնել հյուրերի պատասխանները', 'RSVP պատասխանները, մասնակցության կարգավիճակը և նշված հյուրերի քանակը հասանելի են Ձեր անձնական էջում։'],
+  ['Կարո՞ղ եմ հարցնել հյուրերի քանակը կամ սննդի նախընտրությունը', 'Այո։ RSVP կարգավորումներում կարող եք միացնել հյուրերի քանակը, սննդի նախընտրությունը և լրացուցիչ հարցը կամ նշումը։'],
+  ['Ի՞նչ միջոցառումների հրավերներ կան', 'Amulet-ում կան հարսանիքի, նշանադրության, մկրտության, ծննդյան, կորպորատիվ և կատալոգում ներկայացված այլ միջոցառումների հրավերներ։'],
+  ['Ինչպե՞ս է կատարվում վճարումը', 'Ընտրեք շաբլոնը, ձևավորեք և ստուգեք արդյունքը, ապա անցեք Amulet-ում ցուցադրվող անվտանգ վճարման փուլին։'],
+  ['Կարո՞ղ եմ կիրառել պրոմոկոդ', 'Այո։ Եթե ունեք գործող պրոմոկոդ, մուտքագրեք այն վճարման փուլում՝ մինչև գնումն ավարտելը։'],
+  ['Ի՞նչ է տեղի ունենում գնումից հետո', 'Հաջող վճարումից հետո հրավերը ստանում է տարածելու համար նախատեսված հանրային հղում և մնում է հասանելի Ձեր հաշվում։'],
+  ['Կարո՞ղ եմ խմբագրելիս փոխել հրավերի շաբլոնը', 'Այո։ Խմբագրիչում կարող եք ընտրել մեկ այլ հասանելի դիզայն և շարունակել ձևավորել հրավերը։'],
+  ['Ի՞նչ անել, եթե օգնության կարիք ունեմ', 'Կապվեք Amulet-ի թիմի հետ կայքի կապի ձևի միջոցով։ Մենք կօգնենք պատվերի, խմբագրման և տեխնիկական հարցերով։']
+);
+
+ru.faqItems.push(
+  ['Нужны ли гостям аккаунт или приложение?', 'Нет. Гости открывают приглашение прямо в браузере без регистрации и установки приложения.'],
+  ['Можно ли посмотреть приглашение до покупки?', 'Да. До перехода к оплате приглашение можно настроить и полностью посмотреть в своем аккаунте.'],
+  ['Можно ли добавить музыку в приглашение?', 'Да. Можно выбрать доступную музыку или загрузить поддерживаемый аудиофайл. Из-за правил браузера гостю может потребоваться одно нажатие для запуска.'],
+  ['Можно ли указать несколько мест и времени в одном приглашении?', 'Да. Можно добавить несколько пунктов программы с отдельным временем, названием, адресом и ссылкой на карту.'],
+  ['Где посмотреть ответы гостей?', 'Ответы RSVP, статус участия и указанное количество гостей доступны в личном кабинете.'],
+  ['Можно ли спросить количество гостей или предпочтения в еде?', 'Да. В настройках RSVP можно включить количество гостей, предпочтения в еде и дополнительный вопрос или примечание.'],
+  ['Для каких событий есть приглашения?', 'В Amulet есть приглашения на свадьбы, помолвки, крещения, дни рождения, корпоративные и другие события из каталога.'],
+  ['Как проходит оплата?', 'Выберите шаблон, настройте и проверьте результат, затем перейдите к безопасной оплате, показанной в Amulet.'],
+  ['Можно ли применить промокод?', 'Да. Если у вас есть действующий промокод, введите его на этапе оформления до завершения оплаты.'],
+  ['Что произойдет после покупки?', 'После успешной оплаты приглашение получает публичную ссылку для отправки и остается доступным в вашем аккаунте.'],
+  ['Можно ли сменить шаблон во время редактирования?', 'Да. В редакторе можно выбрать другой доступный дизайн и продолжить настройку приглашения.'],
+  ['Что делать, если нужна помощь?', 'Свяжитесь с командой Amulet через форму обратной связи на сайте. Мы поможем с заказом, редактированием и техническими вопросами.']
+);
+
 export const translations = { hy, en, ru };

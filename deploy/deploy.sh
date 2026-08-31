@@ -5,6 +5,12 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+if ! node -e 'const [major, minor] = process.versions.node.split(".").map(Number); process.exit(major > 22 || (major === 22 && minor >= 12) ? 0 : 1)'; then
+  echo "!! Требуется Node.js >= 22.12.0 (сейчас: $(node --version 2>/dev/null || echo 'не установлен'))." >&2
+  echo "!! Обновите Node.js до 22 LTS по инструкции в DEPLOYMENT.md и повторите deploy." >&2
+  exit 1
+fi
+
 LOCKFILES=(package-lock.json admin/package-lock.json)
 if [ -n "$(git status --porcelain -- "${LOCKFILES[@]}")" ]; then
   echo "==> վերականգնում ենք production-ում փոփոխված lock file-ները"
