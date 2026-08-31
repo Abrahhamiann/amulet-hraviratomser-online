@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Eye, LogIn, Pencil, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
@@ -10,10 +10,12 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 import { resolveTemplateCardImage } from '../occasionTemplates/templateCardAssets.js';
 import { preloadOccasionTemplate } from '../occasionTemplates/templateManifest.js';
 
-let activeCatalogPreview = null;
 const LazyDotLottie = lazy(() => import('@lottiefiles/dotlottie-react').then((module) => ({
   default: module.DotLottieReact
 })));
+
+const TOUCH_PREVIEW_DELAY_MS = 160;
+const TOUCH_PREVIEW_MOVE_TOLERANCE = 10;
 
 export default function TemplateCard({ template, priority = false }) {
   const { t } = useLanguage();
@@ -24,11 +26,14 @@ export default function TemplateCard({ template, priority = false }) {
   const [authReturnPath, setAuthReturnPath] = useState('/templates');
   const [remotePreviewReady, setRemotePreviewReady] = useState(false);
   const [remotePreviewFailed, setRemotePreviewFailed] = useState(false);
-  const [previewRequested, setPreviewRequested] = useState(false);
   const [cardImageFailed, setCardImageFailed] = useState(false);
+  const [touchPreviewing, setTouchPreviewing] = useState(false);
   const loginButtonRef = useRef(null);
   const qrModalRef = useRef(null);
   const qrContentRef = useRef(null);
+  const touchPreviewTimerRef = useRef(null);
+  const touchStartRef = useRef(null);
+  const suppressTouchClickRef = useRef(false);
   const imagePosition = template.imagePosition || {};
   const x = Number.isFinite(Number(imagePosition.x)) ? Number(imagePosition.x) : 50;
   const y = Number.isFinite(Number(imagePosition.y)) ? Number(imagePosition.y) : 50;
@@ -50,32 +55,51 @@ export default function TemplateCard({ template, priority = false }) {
   const hasAdminPagePreview = Boolean(template.pagePreviewAvailable);
   const remotePagePreview = hasAdminPagePreview
     ? apiAssetUrl(template.pagePreviewThumbnail || template.pagePreviewImage)
-      || `${API_URL}/templates/${template._id}/page-preview?v=${encodeURIComponent(template.updatedAt || '')}`
+      || `${API_URL}/templates/${template._id}/page-preview?catalog=1&v=${encodeURIComponent(template.updatedAt || '')}`
     : '';
-  // Request the real screenshot after the cover is ready (or immediately on
-  // intent), then keep it behind the cover until decoding has completed.
-  const catalogPagePreview = previewRequested && !remotePreviewFailed ? remotePagePreview : '';
+  // Keep the lightweight catalog screenshot mounted behind the cover so the
+  // browser can fetch and decode it before hover. Native lazy-loading limits
+  // this work to cards near the viewport instead of downloading the full grid.
+  const catalogPagePreview = !prefersReducedMotion && !remotePreviewFailed ? remotePagePreview : '';
   const pagePreview = qrOpen && remotePreviewReady ? remotePagePreview : '';
   const previewPath = `/templates/${template._id}/live`;
   const previewUrl = useMemo(() => siteUrl(previewPath), [previewPath]);
   const qrUrl = qrImageUrl(previewUrl, 220, 12);
-  const showPreview = useCallback(() => {
-    if (remotePagePreview && !remotePreviewFailed) setPreviewRequested(true);
-  }, [remotePagePreview, remotePreviewFailed]);
-  const requestPreview = useCallback(() => {
-    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    if (prefersReducedMotion || connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || '')) return;
-    activeCatalogPreview?.stop();
-    activeCatalogPreview = { id: template._id, stop: () => setPreviewRequested(false) };
-    showPreview();
-  }, [prefersReducedMotion, showPreview, template._id]);
-  const stopPreview = useCallback(() => {
-    setPreviewRequested(false);
-    setRemotePreviewReady(false);
-    if (activeCatalogPreview?.id === template._id) activeCatalogPreview = null;
-  }, [template._id]);
+  const clearTouchPreviewTimer = () => {
+    if (touchPreviewTimerRef.current !== null) {
+      window.clearTimeout(touchPreviewTimerRef.current);
+      touchPreviewTimerRef.current = null;
+    }
+  };
+  const startTouchPreview = (event) => {
+    if (event.pointerType !== 'touch' || !catalogPagePreview) return;
+    clearTouchPreviewTimer();
+    touchStartRef.current = { x: event.clientX, y: event.clientY };
+    suppressTouchClickRef.current = false;
+    touchPreviewTimerRef.current = window.setTimeout(() => {
+      touchPreviewTimerRef.current = null;
+      suppressTouchClickRef.current = true;
+      setTouchPreviewing(true);
+    }, TOUCH_PREVIEW_DELAY_MS);
+  };
+  const moveTouchPreview = (event) => {
+    if (event.pointerType !== 'touch' || !touchStartRef.current) return;
+    const distance = Math.hypot(
+      event.clientX - touchStartRef.current.x,
+      event.clientY - touchStartRef.current.y
+    );
+    if (distance <= TOUCH_PREVIEW_MOVE_TOLERANCE) return;
+    clearTouchPreviewTimer();
+    touchStartRef.current = null;
+    suppressTouchClickRef.current = true;
+    setTouchPreviewing(false);
+  };
+  const stopTouchPreview = () => {
+    clearTouchPreviewTimer();
+    touchStartRef.current = null;
+    setTouchPreviewing(false);
+  };
   const openQr = () => {
-    requestPreview();
     void preloadOccasionTemplate(template);
     void import('../pages/TemplateLivePreviewPage.jsx');
     void api.get(`/templates/${template._id}`).catch(() => {});
@@ -138,21 +162,36 @@ export default function TemplateCard({ template, priority = false }) {
   useEffect(() => {
     setRemotePreviewReady(false);
     setRemotePreviewFailed(false);
-    setPreviewRequested(false);
   }, [remotePagePreview]);
 
   useEffect(() => setCardImageFailed(false), [primaryCardImage]);
 
   useEffect(() => () => {
-    if (activeCatalogPreview?.id === template._id) activeCatalogPreview = null;
-  }, [template._id]);
+    if (touchPreviewTimerRef.current !== null) window.clearTimeout(touchPreviewTimerRef.current);
+  }, []);
 
   return (
     <article
-      className={`template-card reveal catalog-template-card${remotePreviewReady ? ' is-preview-ready' : ''}`}
+      className={`template-card reveal catalog-template-card${remotePreviewReady ? ' is-preview-ready' : ' is-preview-loading'}${touchPreviewing ? ' is-touch-previewing' : ''}`}
       role="button"
       tabIndex={0}
-      onClick={openQr}
+      onClick={(event) => {
+        if (suppressTouchClickRef.current) {
+          suppressTouchClickRef.current = false;
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
+        openQr();
+      }}
+      onPointerDown={startTouchPreview}
+      onPointerMove={moveTouchPreview}
+      onPointerUp={stopTouchPreview}
+      onPointerCancel={stopTouchPreview}
+      onLostPointerCapture={stopTouchPreview}
+      onContextMenu={(event) => {
+        if (touchPreviewing) event.preventDefault();
+      }}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
@@ -160,10 +199,6 @@ export default function TemplateCard({ template, priority = false }) {
         }
       }}
       aria-label={`${template.code || template.title}. ${t('scanQr')}`}
-      onPointerEnter={requestPreview}
-      onPointerLeave={stopPreview}
-      onFocus={requestPreview}
-      onBlur={stopPreview}
     >
       <div className="template-image catalog-template-preview">
         {catalogPagePreview ? (
@@ -171,18 +206,13 @@ export default function TemplateCard({ template, priority = false }) {
             className={`catalog-template-scroll-shot${remotePreviewReady ? ' is-ready' : ''}`}
             src={catalogPagePreview}
             alt={`${template.title} — ամբողջական էջ`}
-            loading="eager"
+            loading={priority ? 'eager' : 'lazy'}
             decoding="async"
-            fetchPriority="low"
+            fetchPriority={priority ? 'high' : 'auto'}
             style={{
               '--template-preview-duration': `${Math.max(18, Math.min(52, Number(template.pagePreviewMeta?.height || 4400) / 105))}s`
             }}
-            onLoad={() => {
-              setRemotePreviewReady(false);
-              window.requestAnimationFrame(() => {
-                window.requestAnimationFrame(() => setRemotePreviewReady(true));
-              });
-            }}
+            onLoad={() => setRemotePreviewReady(true)}
             onError={() => {
               setRemotePreviewReady(false);
               setRemotePreviewFailed(true);
@@ -211,8 +241,9 @@ export default function TemplateCard({ template, priority = false }) {
             className="catalog-template-final-cover"
             src={cardImage}
             alt={template.title}
-            loading="eager"
+            loading={priority ? 'eager' : 'lazy'}
             decoding="async"
+            fetchPriority={priority ? 'high' : 'auto'}
             style={{ objectPosition, transformOrigin: objectPosition }}
           />
         )}

@@ -14895,11 +14895,17 @@ body.templates-route.templates-route .catalog-template-preview > .catalog-templa
   object-fit: cover;
   opacity: 1;
   pointer-events: none;
-  transform: none;
-  transition: opacity .42s ease;
+  transform: translate3d(0, 0, 0) scale(var(--template-image-zoom, 1));
+  transform-origin: center;
+  transition: opacity .2s ease-out, transform .2s ease-out;
+  will-change: opacity, transform;
 }
 
-body.templates-route.templates-route .catalog-template-card.is-preview-ready:is(:hover, :focus-visible) .catalog-template-final-cover {
+body.templates-route.templates-route .catalog-template-card.is-preview-loading:is(:hover, :focus-visible, .is-touch-previewing) .catalog-template-final-cover {
+  transform: translate3d(0, 0, 0) scale(calc(var(--template-image-zoom, 1) + .018));
+}
+
+body.templates-route.templates-route .catalog-template-card.is-preview-ready:is(:hover, :focus-visible, .is-touch-previewing) .catalog-template-final-cover {
   opacity: 0;
 }
 
@@ -14927,7 +14933,7 @@ body.templates-route.templates-route .catalog-template-preview > .catalog-templa
   will-change: transform;
 }
 
-body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-visible) .catalog-template-scroll-shot.is-ready {
+body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-visible, .is-touch-previewing) .catalog-template-scroll-shot.is-ready {
   filter: saturate(1) contrast(1.02);
   animation: catalogTemplateScroll var(--template-preview-duration, 42s) linear infinite;
 }
@@ -15006,8 +15012,20 @@ body.templates-route.templates-route .catalog-new-badge {
   transition: opacity .35s ease;
 }
 
-body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-visible) :where(.catalog-template-caption, .catalog-new-badge) {
+body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-visible, .is-touch-previewing) :where(.catalog-template-caption, .catalog-new-badge) {
   opacity: 0;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  body.templates-route.templates-route .catalog-template-card {
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  body.templates-route.templates-route .catalog-template-card.is-touch-previewing {
+    transform: translateY(-2px);
+  }
 }
 
 @media (min-width: 881px) {
@@ -15052,7 +15070,7 @@ body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-vi
     transition: none;
   }
 
-  body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-visible) .catalog-template-scroll-shot.is-ready {
+  body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-visible, .is-touch-previewing) .catalog-template-scroll-shot.is-ready {
     animation: none;
     transform: none;
   }

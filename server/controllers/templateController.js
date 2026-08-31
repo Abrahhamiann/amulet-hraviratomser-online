@@ -225,14 +225,18 @@ export const getTemplateCardImage = asyncHandler(async (req, res) => {
 
 export const getTemplatePagePreview = asyncHandler(async (req, res) => {
   const template = await Template.findById(req.params.id)
-    .select('pagePreviewImage deletedAt isActive designKey updatedAt')
+    .select('pagePreviewImage pagePreviewThumbnail deletedAt isActive designKey updatedAt')
     .lean();
   if (!template || template.deletedAt || template.isActive === false || !PUBLIC_DESIGN_KEYS.includes(template.designKey)) {
     res.status(404);
     throw new Error('Template preview not found');
   }
 
-  const source = String(template.pagePreviewImage || '').trim();
+  const source = String(
+    req.query.catalog === '1'
+      ? template.pagePreviewThumbnail || template.pagePreviewImage
+      : template.pagePreviewImage
+  ).trim();
   if (sendEmbeddedImage(res, source)) return;
   if (/^https?:\/\//i.test(source)) {
     res.redirect(302, source);
