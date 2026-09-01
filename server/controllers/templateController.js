@@ -13,12 +13,7 @@ const TEMPLATE_LIST_FIELDS = [
 ].join(' ');
 
 const clampLimit = (value) => Math.min(48, Math.max(1, Number.parseInt(value, 10) || 24));
-const TEMPLATE_CACHE_TTL_MS = 5 * 60 * 1000;
-const TEMPLATE_CACHE_STALE_MS = 60 * 60 * 1000;
-const TEMPLATE_CACHE_MAX_ENTRIES = 200;
 const DYNAMIC_TEMPLATE_CACHE_CONTROL = 'no-store';
-const templateListCache = new Map();
-const templateListInflight = new Map();
 
 const normalizedListParams = (raw = {}) => ({
   category: String(raw.category || '').trim(),
@@ -28,19 +23,6 @@ const normalizedListParams = (raw = {}) => ({
   cursor: String(raw.cursor || '').trim(),
   limit: clampLimit(raw.limit)
 });
-
-const templateCacheKey = (params) => JSON.stringify(params);
-
-const pruneTemplateCache = () => {
-  if (templateListCache.size < TEMPLATE_CACHE_MAX_ENTRIES) return;
-  const oldestKey = templateListCache.keys().next().value;
-  if (oldestKey) templateListCache.delete(oldestKey);
-};
-
-export const clearTemplateCatalogCache = () => {
-  templateListCache.clear();
-  templateListInflight.clear();
-};
 
 const decodeCursor = (value) => {
   if (!value) return null;
@@ -146,49 +128,18 @@ const queryTemplatePage = async (rawParams = {}) => {
   };
 };
 
-const loadTemplatePage = async (rawParams = {}) => {
-  const params = normalizedListParams(rawParams);
-  const key = templateCacheKey(params);
-  const now = Date.now();
-  const cached = templateListCache.get(key);
-  if (cached && cached.expiresAt > now) return { payload: cached.payload, status: 'HIT' };
-
-  const refresh = () => {
-    if (templateListInflight.has(key)) return templateListInflight.get(key);
-    const request = queryTemplatePage(params)
-      .then((payload) => {
-        pruneTemplateCache();
-        templateListCache.delete(key);
-        templateListCache.set(key, {
-          payload,
-          expiresAt: Date.now() + TEMPLATE_CACHE_TTL_MS,
-          staleUntil: Date.now() + TEMPLATE_CACHE_STALE_MS
-        });
-        return payload;
-      })
-      .finally(() => templateListInflight.delete(key));
-    templateListInflight.set(key, request);
-    return request;
-  };
-
-  if (cached && cached.staleUntil > now) {
-    void refresh().catch(() => {});
-    return { payload: cached.payload, status: 'STALE' };
-  }
-
-  return { payload: await refresh(), status: 'MISS' };
-};
-
-export const warmTemplateCatalogCache = async () => {
-  await loadTemplatePage({ limit: 24, sort: 'newest' });
+export const verifyTemplateCatalogQuery = async () => {
+  // Startup database-read health check. Dynamic catalog JSON is not cached so
+  // administrator price and availability changes are immediate.
+  await queryTemplatePage({ limit: 24, sort: 'newest' });
 };
 
 export const getTemplates = asyncHandler(async (req, res) => {
-  const { payload, status } = await loadTemplatePage(req.query);
+  const payload = await queryTemplatePage(req.query);
   // Prices and availability are admin-managed business data. They must not be
   // served from a browser/CDN cache after an administrator changes them.
   res.set('Cache-Control', DYNAMIC_TEMPLATE_CACHE_CONTROL);
-  res.set('X-Amulet-Cache', status);
+  res.set('X-Amulet-Cache', 'BYPASS');
   res.json(payload);
 });
 
@@ -273,7 +224,6 @@ export const createTemplate = asyncHandler(async (req, res) => {
     slug
   });
   await clearTemplateDeletionMarker(slug);
-  clearTemplateCatalogCache();
   res.status(201).json(template);
 });
 
@@ -299,7 +249,6 @@ export const updateTemplate = asyncHandler(async (req, res) => {
   if (req.body.title && !req.body.slug) template.slug = makeSlug(req.body.title);
   await template.save();
   if (previousCategory !== template.category) await reindexTemplateCodes(previousCategory);
-  clearTemplateCatalogCache();
   res.json(template);
 });
 
@@ -312,6 +261,5 @@ export const deleteTemplate = asyncHandler(async (req, res) => {
   const category = template.category;
   await deleteTemplatePermanently(template, req.user?._id || null);
   await reindexTemplateCodes(category);
-  clearTemplateCatalogCache();
   res.json({ message: 'Template deleted' });
 });

@@ -29,7 +29,7 @@ import { ensureTemplateCodes } from './utils/templateCode.js';
 import Template from './models/Template.js';
 import { purgeSoftDeletedTemplates } from './utils/templateDeletion.js';
 import { ensureMediaRoot, getMediaRoot } from './utils/mediaStorage.js';
-import { warmTemplateCatalogCache } from './controllers/templateController.js';
+import { verifyTemplateCatalogQuery } from './controllers/templateController.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -124,10 +124,10 @@ const startServer = async () => {
   );
   await ensureTemplateCodes();
   try {
-    await warmTemplateCatalogCache();
-    console.log('Template catalog cache warmed.');
+    await verifyTemplateCatalogQuery();
+    console.log('Template catalog query verified.');
   } catch (error) {
-    console.warn(`Template catalog cache warmup skipped: ${error.message}`);
+    console.warn(`Template catalog verification skipped: ${error.message}`);
   }
   startContactReminderScheduler();
   const server = app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
