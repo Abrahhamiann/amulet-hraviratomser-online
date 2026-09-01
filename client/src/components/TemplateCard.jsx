@@ -102,7 +102,7 @@ export default function TemplateCard({ template, priority = false }) {
   const openQr = () => {
     void preloadOccasionTemplate(template);
     void import('../pages/TemplateLivePreviewPage.jsx');
-    void api.get(`/templates/${template._id}`).catch(() => {});
+    void api.get(`/templates/${template._id}`, { params: { fresh: Date.now() } }).catch(() => {});
     setQrOpen(true);
   };
   const closeQr = () => setQrOpen(false);

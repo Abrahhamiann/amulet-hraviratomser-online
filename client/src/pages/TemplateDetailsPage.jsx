@@ -17,7 +17,7 @@ export default function TemplateDetailsPage() {
   const [state, setState] = useState('loading');
 
   useEffect(() => {
-    api.get(`/templates/${id}`).then(({ data }) => {
+    api.get(`/templates/${id}`, { params: { fresh: Date.now() } }).then(({ data }) => {
       if (!isSupportedOccasionTemplate(data)) {
         setState('error');
         return;

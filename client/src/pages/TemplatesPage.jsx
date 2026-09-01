@@ -62,7 +62,13 @@ export default function TemplatesPage() {
     setTemplates([]);
     api.get('/templates', {
       signal: controller.signal,
-      params: { limit: 24, category: category || undefined, search: debouncedSearch || undefined, sort }
+      params: {
+        limit: 24,
+        category: category || undefined,
+        search: debouncedSearch || undefined,
+        sort,
+        fresh: Date.now()
+      }
     }).then(({ data }) => {
       setTemplates(data.items || []);
       setNextCursor(data.nextCursor || null);
@@ -79,7 +85,14 @@ export default function TemplatesPage() {
     setLoadingMore(true);
     try {
       const { data } = await api.get('/templates', {
-        params: { limit: 24, cursor: nextCursor, category: category || undefined, search: debouncedSearch || undefined, sort }
+        params: {
+          limit: 24,
+          cursor: nextCursor,
+          category: category || undefined,
+          search: debouncedSearch || undefined,
+          sort,
+          fresh: Date.now()
+        }
       });
       setTemplates((current) => [...current, ...(data.items || [])]);
       setNextCursor(data.nextCursor || null);

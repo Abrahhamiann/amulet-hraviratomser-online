@@ -16,6 +16,7 @@ const clampLimit = (value) => Math.min(48, Math.max(1, Number.parseInt(value, 10
 const TEMPLATE_CACHE_TTL_MS = 5 * 60 * 1000;
 const TEMPLATE_CACHE_STALE_MS = 60 * 60 * 1000;
 const TEMPLATE_CACHE_MAX_ENTRIES = 200;
+const DYNAMIC_TEMPLATE_CACHE_CONTROL = 'no-store';
 const templateListCache = new Map();
 const templateListInflight = new Map();
 
@@ -184,7 +185,9 @@ export const warmTemplateCatalogCache = async () => {
 
 export const getTemplates = asyncHandler(async (req, res) => {
   const { payload, status } = await loadTemplatePage(req.query);
-  res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+  // Prices and availability are admin-managed business data. They must not be
+  // served from a browser/CDN cache after an administrator changes them.
+  res.set('Cache-Control', DYNAMIC_TEMPLATE_CACHE_CONTROL);
   res.set('X-Amulet-Cache', status);
   res.json(payload);
 });
@@ -254,7 +257,7 @@ export const getTemplate = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Template not found');
   }
-  res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600');
+  res.set('Cache-Control', DYNAMIC_TEMPLATE_CACHE_CONTROL);
   res.json(template);
 });
 
