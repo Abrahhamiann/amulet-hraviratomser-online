@@ -155,7 +155,7 @@ sudo systemctl restart mongod
 ```
 
 Тогда в `server/.env` строка подключения будет:
-`MONGO_URI=mongodb://amulet_admin:ПАРОЛЬ@127.0.0.1:27017/amulet?authSource=admin`
+`MONGO_URI=mongodb://amulet_admin:ПАРОЛЬ@127.0.0.1:27017/e_invite?authSource=admin`
 
 ### 3.3 nginx и Certbot
 
@@ -211,7 +211,8 @@ nano server/.env
 ```env
 NODE_ENV=production
 PORT=5000
-MONGO_URI=mongodb://127.0.0.1:27017/amulet
+MONGO_URI=mongodb://127.0.0.1:27017/e_invite
+MONGO_DB_NAME=e_invite
 JWT_SECRET=<первый openssl rand -hex 32>
 
 CLIENT_URL=https://amulet.am
@@ -262,7 +263,7 @@ nano client/.env
 VITE_API_URL=https://server.amulet.am/api
 VITE_SITE_URL=https://amulet.am
 
-VITE_GOOGLE_CLIENT_ID=954385897484-mvsr9ocebf559dl1b9v7rfvvu4unfqbr.apps.googleusercontent.com
+# Google Client ID берётся во время работы из GOOGLE_CLIENT_ID server/.env.
 
 VITE_CONTACT_PHONE_DISPLAY=041 401415
 VITE_CONTACT_PHONE_E164=+37441401415
@@ -336,6 +337,8 @@ npm run super-admin:create
 Команда создаёт только super admin и не удаляет данные. Повторный запуск с тем же email меняет пароль этого super admin и завершает его старые сессии. Если пользователь с таким email уже существует, но не является super admin, команда безопасно завершится с ошибкой и не повысит его роль.
 
 > **Опасно:** `npm run seed` — это только demo seed для новой/одноразовой базы. Он удаляет пользователей, шаблоны, заказы, приглашения, RSVP и сообщения перед созданием тестовых данных. Не запускай его на рабочей базе.
+
+API startup никогда не создаёт статические шаблоны и не удаляет бизнес-данные. Каталог управляется только через админ-панель. В production demo seed дополнительно заблокирован без явного аварийного флага.
 
 ---
 
@@ -487,7 +490,7 @@ crontab -e
 Добавить (каждый день в 03:30, хранить 14 дней):
 
 ```cron
-30 3 * * * /usr/bin/mongodump --uri="mongodb://127.0.0.1:27017/amulet" --archive=/home/deploy/backups/amulet-$(date +\%F).gz --gzip >/dev/null 2>&1
+30 3 * * * /usr/bin/mongodump --uri="mongodb://127.0.0.1:27017/e_invite" --archive=/home/deploy/backups/amulet-$(date +\%F).gz --gzip >/dev/null 2>&1
 40 3 * * * find /home/deploy/backups -name 'amulet-*.gz' -mtime +14 -delete
 ```
 
@@ -566,6 +569,8 @@ ls -R .output | head -40                 # посмотреть, что реал
 | `server/.env` | `SERVER_URL` | `https://server.amulet.am` | справочно / внешние интеграции |
 | `server/.env` | `CORS_EXTRA_ORIGINS` | `https://www.amulet.am` | дополнительные origin-ы |
 | `server/.env` | `AUTH_COOKIE_DOMAIN` | `.amulet.am` | общая кука на поддоменах |
+| `server/.env` | `MONGO_DB_NAME` | `e_invite` | защита от подключения к пустой/неверной базе |
+| `server/.env` | `GOOGLE_CLIENT_ID` | OAuth Web Client ID | единый runtime ID для сайта и API |
 | `server/.env` | `TELEGRAM_BOT_TOKEN` | токен от BotFather | при старте Node.js-бота |
 | `server/.env` | `TELEGRAM_BOT_USERNAME` | username без `@` | при старте Node.js-бота |
 | `server/.env` | `TELEGRAM_BOT_API_URL` | `http://127.0.0.1:5000/api/telegram/bot` | локальная связь бота с API |

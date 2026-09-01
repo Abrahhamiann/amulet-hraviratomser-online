@@ -11,8 +11,6 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 import { startPayment } from '../utils/checkout.js';
 import { getApiErrorKey, getLocalizedApiError } from '../utils/apiErrors.js';
 
-import { GOOGLE_CLIENT_ID as googleClientId } from '../config/env.js';
-
 const GOOGLE_SCRIPT_ID = 'google-identity-services';
 let googleScriptPromise;
 
@@ -86,7 +84,8 @@ export default function AuthPage() {
   const [error, setError] = useState('');
   const [existingEmailWarningOpen, setExistingEmailWarningOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [googleStatus, setGoogleStatus] = useState(googleClientId ? 'loading' : 'missing');
+  const [googleRuntimeClientId, setGoogleRuntimeClientId] = useState('');
+  const [googleStatus, setGoogleStatus] = useState('loading');
   const [googleLoadAttempt, setGoogleLoadAttempt] = useState(0);
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const requestedPath = typeof location.state?.returnTo === 'string'
@@ -131,7 +130,22 @@ export default function AuthPage() {
   };
 
   useEffect(() => {
-    if (!googleClientId || !googleRef.current || !googleButtonRef.current) return undefined;
+    let cancelled = false;
+    api.get('/auth/google-config')
+      .then(({ data }) => {
+        if (cancelled) return;
+        const clientId = String(data?.clientId || '').trim();
+        setGoogleRuntimeClientId(clientId);
+        if (!clientId) setGoogleStatus('missing');
+      })
+      .catch(() => {
+        if (!cancelled) setGoogleStatus('error');
+      });
+    return () => { cancelled = true; };
+  }, [googleLoadAttempt]);
+
+  useEffect(() => {
+    if (!googleRuntimeClientId || !googleRef.current || !googleButtonRef.current) return undefined;
     let cancelled = false;
     let resizeObserver;
     let renderFrame = 0;
@@ -140,7 +154,7 @@ export default function AuthPage() {
     loadGoogleIdentity().then(() => {
       if (cancelled || !window.google?.accounts?.id || !googleRef.current || !googleButtonRef.current) return;
       window.google.accounts.id.initialize({
-        client_id: googleClientId,
+        client_id: googleRuntimeClientId,
         callback: async ({ credential }) => {
           try {
             setError(''); setBusy(true);
@@ -187,7 +201,7 @@ export default function AuthPage() {
       window.removeEventListener('resize', scheduleRender);
       window.cancelAnimationFrame(renderFrame);
     };
-  }, [mode, googleLoadAttempt, initialized]);
+  }, [mode, googleLoadAttempt, googleRuntimeClientId, initialized]);
 
   useEffect(() => {
     if (!existingEmailWarningOpen) return undefined;
@@ -204,19 +218,35 @@ export default function AuthPage() {
 
   const submit = async (event) => {
     event.preventDefault();
+    const submittedValues = Object.fromEntries(new FormData(event.currentTarget).entries());
+    const submittedForm = {
+      ...form,
+      ...submittedValues,
+      phone: sanitizePhoneInput(submittedValues.phone ?? form.phone)
+    };
     setBusy(true); setError(''); setStatus('');
     try {
       if (mode === 'register') {
-        if (!Object.values(passwordChecks).every(Boolean)) throw new Error(t('authPasswordRulesError'));
-        if (form.password !== form.confirmPassword) throw new Error(t('authPasswordsMismatch'));
-        const { data } = await api.post('/auth/register', form, { timeout: 25_000 });
+        const submittedPasswordChecks = {
+          length: String(submittedForm.password).length >= 8,
+          uppercase: /[A-Z]/.test(submittedForm.password),
+          lowercase: /[a-z]/.test(submittedForm.password),
+          number: /\d/.test(submittedForm.password),
+          special: /[^A-Za-z0-9]/.test(submittedForm.password)
+        };
+        if (!Object.values(submittedPasswordChecks).every(Boolean)) throw new Error(t('authPasswordRulesError'));
+        if (submittedForm.password !== submittedForm.confirmPassword) throw new Error(t('authPasswordsMismatch'));
+        const { data } = await api.post('/auth/register', submittedForm, { timeout: 25_000 });
         setVerificationEmail(data.email);
         setCode(Array(6).fill(''));
         setStatus(t('authCodeSent'));
         window.setTimeout(() => codeRefs.current[0]?.focus(), 120);
         return;
       }
-      const { data } = await api.post('/auth/login', { identifier: form.identifier, password: form.password });
+      const { data } = await api.post('/auth/login', {
+        identifier: submittedForm.identifier,
+        password: submittedForm.password
+      });
       saveSession(data);
     } catch (err) {
       if (mode === 'register' && getApiErrorKey(err) === 'authAccountExists') {
@@ -264,17 +294,17 @@ export default function AuthPage() {
               <button type="button" aria-pressed={mode === 'register'} className={mode === 'register' ? 'is-active' : ''} onClick={() => changeMode('register')}><UserPlus size={16} />{t('authRegister')}</button>
             </div>
             <form className="auth-form" onSubmit={submit} noValidate>
-              {mode === 'register' && <label><span>{t('contactName')}</span><input autoComplete="name" value={form.name} onChange={(event) => update('name', event.target.value)} placeholder={t('authNamePlaceholder')} required /></label>}
+              {mode === 'register' && <label><span>{t('contactName')}</span><input name="name" autoComplete="name" value={form.name} onChange={(event) => update('name', event.target.value)} placeholder={t('authNamePlaceholder')} required /></label>}
               {mode === 'register' ? (
                 <>
-                  <label><span>Email</span><input ref={emailInputRef} type="email" autoComplete="email" value={form.email} onChange={(event) => update('email', event.target.value)} required /></label>
-                  <label><span>{t('phone')}</span><div className="auth-input-icon"><Phone size={17} /><input type="tel" inputMode="tel" pattern="[+]?[0-9]*" maxLength={16} autoComplete="tel" value={form.phone} onChange={(event) => update('phone', sanitizePhoneInput(event.target.value))} required /></div></label>
+                  <label><span>Email</span><input name="email" ref={emailInputRef} type="email" autoComplete="email" value={form.email} onChange={(event) => update('email', event.target.value)} required /></label>
+                  <label><span>{t('phone')}</span><div className="auth-input-icon"><Phone size={17} /><input name="phone" type="tel" inputMode="tel" pattern="[+]?[0-9]*" maxLength={16} autoComplete="tel" value={form.phone} onChange={(event) => update('phone', sanitizePhoneInput(event.target.value))} required /></div></label>
                 </>
-              ) : <label><span>{t('authIdentifier')}</span><input ref={identifierInputRef} autoComplete="username" value={form.identifier} onChange={(event) => update('identifier', event.target.value)} required /></label>}
-              <label><span>{t('password')}</span><input type="password" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} value={form.password} onChange={(event) => update('password', event.target.value)} required minLength={8} maxLength={128} /></label>
+              ) : <label><span>{t('authIdentifier')}</span><input name="identifier" ref={identifierInputRef} autoComplete="username" value={form.identifier} onChange={(event) => update('identifier', event.target.value)} required /></label>}
+              <label><span>{t('password')}</span><input name="password" type="password" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} value={form.password} onChange={(event) => update('password', event.target.value)} required minLength={8} maxLength={128} /></label>
               {mode === 'register' && (
                 <>
-                  <label><span>{t('authRepeatPassword')}</span><input type="password" autoComplete="new-password" value={form.confirmPassword} onChange={(event) => update('confirmPassword', event.target.value)} required minLength={8} maxLength={128} /></label>
+                  <label><span>{t('authRepeatPassword')}</span><input name="confirmPassword" type="password" autoComplete="new-password" value={form.confirmPassword} onChange={(event) => update('confirmPassword', event.target.value)} required minLength={8} maxLength={128} /></label>
                   <PasswordRequirements checks={passwordChecks} t={t} />
                 </>
               )}

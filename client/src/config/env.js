@@ -67,8 +67,6 @@ export const apiAssetUrl = (value = '') => {
   }
 };
 
-export const GOOGLE_CLIENT_ID = read('VITE_GOOGLE_CLIENT_ID');
-
 // Contact / social links.
 export const CONTACT_PHONE_DISPLAY = read('VITE_CONTACT_PHONE_DISPLAY', '041 401415');
 export const CONTACT_PHONE_E164 = read('VITE_CONTACT_PHONE_E164', '+37441401415');

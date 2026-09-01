@@ -51,13 +51,17 @@ export const register = asyncHandler(async (req, res) => {
   const { email, phone, password, confirmPassword, name } = req.body || {};
   const normalizedEmail = normalizeEmail(email);
   const normalizedPhone = normalizePhone(phone);
-  if (!String(name || '').trim() || !normalizedEmail || !normalizedPhone || !password || !confirmPassword) {
+  if (!String(name || '').trim() || !normalizedEmail || !String(phone || '').trim() || !password || !confirmPassword) {
     res.status(400);
     throw new Error('Name, email, phone, password, and password confirmation are required');
   }
   if (!isValidEmail(normalizedEmail)) {
     res.status(400);
     throw new Error('A valid email address is required');
+  }
+  if (!normalizedPhone) {
+    res.status(400);
+    throw new Error('A valid phone number is required');
   }
   if (password !== confirmPassword) {
     res.status(400);
@@ -314,6 +318,11 @@ export const googleAuth = asyncHandler(async (req, res) => {
 
   setAuthCookie(res, signToken(user));
   res.json({ success: true, user: publicUser(user) });
+});
+
+export const googleAuthConfig = asyncHandler(async (_req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json({ clientId: String(process.env.GOOGLE_CLIENT_ID || '').trim() });
 });
 
 export const me = asyncHandler(async (req, res) => {

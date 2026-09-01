@@ -25,10 +25,7 @@ import telegramRoutes from './routes/telegramRoutes.js';
 import { getPublicFaq } from './controllers/adminController.js';
 import { startContactReminderScheduler } from './utils/contactReminder.js';
 import { authCookieName } from './utils/authCookie.js';
-import { ensureCuratedTemplates } from './utils/ensureCuratedTemplates.js';
-import { ensureDefaultReviews } from './utils/ensureDefaultReviews.js';
 import { ensureTemplateCodes } from './utils/templateCode.js';
-import { removeLegacyEngagementTemplates } from './utils/removeLegacyEngagementTemplates.js';
 import Template from './models/Template.js';
 import { purgeSoftDeletedTemplates } from './utils/templateDeletion.js';
 import { ensureMediaRoot, getMediaRoot } from './utils/mediaStorage.js';
@@ -117,57 +114,33 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'change_this_secret' |
   throw new Error('JWT_SECRET must be configured with at least 32 characters');
 }
 
-const existingAmuletServer = async () => {
+const startServer = async () => {
+  await connectDB();
+  await Template.updateMany({ isActive: { $exists: false } }, { $set: { isActive: true } });
+  await purgeSoftDeletedTemplates();
+  await Template.updateMany(
+    { pagePreviewImage: { $exists: true, $nin: ['', null] }, pagePreviewAvailable: { $ne: true } },
+    { $set: { pagePreviewAvailable: true } }
+  );
+  await ensureTemplateCodes();
   try {
-    const response = await fetch(`http://127.0.0.1:${PORT}/api/health`, {
-      signal: AbortSignal.timeout(1200)
-    });
-    const payload = await response.json();
-    return response.ok && payload?.status === 'ok'
-      && (!payload.service || payload.service === 'e-invite-server');
-  } catch {
-    return false;
+    await warmTemplateCatalogCache();
+    console.log('Template catalog cache warmed.');
+  } catch (error) {
+    console.warn(`Template catalog cache warmup skipped: ${error.message}`);
   }
+  startContactReminderScheduler();
+  const server = app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
+  server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+      console.error(`Port ${PORT} is already in use by another application. Stop it or set a different PORT in server/.env.`);
+      process.exit(1);
+    }
+    throw error;
+  });
 };
 
-existingAmuletServer()
-  .then(async (alreadyRunning) => {
-    if (alreadyRunning) {
-      console.log(`Amulet server is already running on port ${PORT}. Reusing the existing process.`);
-      return;
-    }
-    await connectDB();
-    await Template.updateMany({ isActive: { $exists: false } }, { $set: { isActive: true } });
-    await purgeSoftDeletedTemplates();
-    await Template.updateMany(
-      { pagePreviewImage: { $exists: true, $nin: ['', null] }, pagePreviewAvailable: { $ne: true } },
-      { $set: { pagePreviewAvailable: true } }
-    );
-    await removeLegacyEngagementTemplates();
-    await ensureCuratedTemplates();
-    await ensureTemplateCodes();
-    await ensureDefaultReviews();
-    try {
-      await warmTemplateCatalogCache();
-      console.log('Template catalog cache warmed.');
-    } catch (error) {
-      console.warn(`Template catalog cache warmup skipped: ${error.message}`);
-    }
-    startContactReminderScheduler();
-    const server = app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
-    server.on('error', async (error) => {
-      if (error.code === 'EADDRINUSE' && await existingAmuletServer()) {
-        console.log(`Amulet server is already running on port ${PORT}. Reusing the existing process.`);
-        process.exit(0);
-      }
-      if (error.code === 'EADDRINUSE') {
-        console.error(`Port ${PORT} is already in use by another application. Stop it or set a different PORT in server/.env.`);
-        process.exit(1);
-      }
-      throw error;
-    });
-  })
-  .catch((error) => {
-    console.error(error.message);
-    process.exit(1);
-  });
+startServer().catch((error) => {
+  console.error(error.message);
+  process.exit(1);
+});

@@ -3,7 +3,6 @@
 const path = require('path');
 
 const ROOT = __dirname;
-const VENV_PYTHON = path.join(ROOT, '.venv', 'bin', 'python');
 
 module.exports = {
   apps: [
@@ -28,13 +27,12 @@ module.exports = {
     },
     {
       name: 'amulet-bot',
-      cwd: path.join(ROOT, 'telegram_bot'),
-      script: 'bot.py',
-      interpreter: VENV_PYTHON,
+      cwd: path.join(ROOT, 'server'),
+      script: 'telegram-bot/bot.js',
       instances: 1, // long polling: exactly one instance, never more
       exec_mode: 'fork',
       max_memory_restart: '300M',
-      env: { PYTHONUNBUFFERED: '1' }
+      env: { NODE_ENV: 'production' }
     }
   ]
 };

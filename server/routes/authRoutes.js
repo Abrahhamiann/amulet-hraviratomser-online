@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   googleAuth,
+  googleAuthConfig,
   login,
   logout,
   me,
@@ -20,6 +21,7 @@ router.post('/verify-email', verifyEmail);
 router.post('/forgot-password', requestPasswordReset);
 router.post('/verify-reset-code', verifyPasswordResetCode);
 router.post('/reset-password', resetPassword);
+router.get('/google-config', googleAuthConfig);
 router.post('/google', googleAuth);
 router.post('/logout', logout);
 router.get('/me', protect, me);

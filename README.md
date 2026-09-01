@@ -21,6 +21,7 @@ npm install
 
 ```env
 MONGO_URI=mongodb://127.0.0.1:27017/e_invite
+MONGO_DB_NAME=e_invite
 JWT_SECRET=change_this_secret
 PORT=5000
 CLIENT_URL=http://localhost:5173
@@ -50,6 +51,7 @@ Remove-Item Env:SUPER_ADMIN_NAME, Env:SUPER_ADMIN_EMAIL, Env:SUPER_ADMIN_PASSWOR
 Running the same command with an existing super-admin email changes that account's password and revokes its existing sessions. For safety, it refuses to promote an existing regular user or admin automatically.
 
 > Warning: `npm run seed` is the destructive demo-data seed. It deletes users, templates, orders, invitations, RSVPs, and contact messages before recreating sample data. Use it only on a new/disposable database.
+> Production startup never seeds templates or reviews and never runs legacy catalog cleanup. Templates are changed only through the admin panel.
 
 4. Optional: seed sample data on a new/disposable database only:
 

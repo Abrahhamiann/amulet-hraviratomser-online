@@ -23,6 +23,9 @@ git pull --ff-only
 echo "==> npm ci (client + server workspaces)"
 npm ci --include=dev
 
+echo "==> production environment preflight"
+npm run check:production
+
 echo "==> сборка client"
 npm run build --workspace client
 
@@ -35,11 +38,8 @@ if [ ! -f admin/.output/server/index.mjs ]; then
   exit 1
 fi
 
-echo "==> зависимости бота"
-.venv/bin/pip install -q -r telegram_bot/requirements.txt
-
 echo "==> перезапуск процессов"
-pm2 reload ecosystem.config.cjs --update-env
+pm2 startOrReload ecosystem.config.cjs --update-env
 pm2 save
 
 echo "==> health check"

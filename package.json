@@ -23,7 +23,8 @@
     "build:admin": "npm run build --prefix admin",
     "seed": "npm run seed --workspace server",
     "super-admin:create": "npm run super-admin:create --workspace server",
-    "check:arca": "npm run check:arca --workspace server"
+    "check:arca": "npm run check:arca --workspace server",
+    "check:production": "node scripts/check-production-config.mjs"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

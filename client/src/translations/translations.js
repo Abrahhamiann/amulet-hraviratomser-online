@@ -803,7 +803,7 @@ Object.assign(en, {
   authCreateAccount: 'Create account',
   authSignIn: 'Sign in',
   authOr: 'or',
-  authGoogleMissing: 'Add VITE_GOOGLE_CLIENT_ID to enable Google sign-in',
+  authGoogleMissing: 'Google sign-in is not configured on the server',
   authGoogleLoading: 'Loading Google sign-in...',
   authGoogleRetry: 'Google sign-in did not load. Try again',
   authRequestFailed: 'The request took too long. Please try again.',
@@ -836,7 +836,7 @@ Object.assign(hy, {
   authCreateAccount: 'Գրանցվել',
   authSignIn: 'Մուտք գործել',
   authOr: 'կամ',
-  authGoogleMissing: 'Google մուտքի համար ավելացրու VITE_GOOGLE_CLIENT_ID',
+  authGoogleMissing: 'Google մուտքը կարգավորված չէ server-ում',
   authGoogleLoading: 'Google մուտքը բեռնվում է...',
   authGoogleRetry: 'Google մուտքը չբեռնվեց։ Փորձել կրկին',
   authRequestFailed: 'Հարցումը շատ երկար տևեց։ Փորձիր կրկին։',
@@ -869,7 +869,7 @@ Object.assign(ru, {
   authCreateAccount: 'Зарегистрироваться',
   authSignIn: 'Войти',
   authOr: 'или',
-  authGoogleMissing: 'Добавьте VITE_GOOGLE_CLIENT_ID для входа через Google',
+  authGoogleMissing: 'Вход через Google не настроен на сервере',
   authGoogleLoading: 'Загрузка входа через Google...',
   authGoogleRetry: 'Вход через Google не загрузился. Повторить',
   authRequestFailed: 'Запрос выполнялся слишком долго. Попробуйте ещё раз.',
@@ -1293,7 +1293,7 @@ Object.assign(ru, { validationRequired: 'Обязательное поле' });
 // intentionally returns stable English messages; the client maps them to these keys.
 Object.assign(hy, {
   authFieldsRequired: 'Անունը, email-ը, հեռախոսահամարը, գաղտնաբառը և դրա հաստատումը պարտադիր են։',
-  authEmailInvalid: 'Մուտքագրեք վավեր email հասցե։', authAccountExists: 'Այս տվյալներով հաշիվ արդեն գոյություն ունի։', authPhoneInUse: 'Այս հեռախոսահամարն արդեն օգտագործվում է։',
+  authEmailInvalid: 'Մուտքագրեք վավեր email հասցե։', authPhoneInvalid: 'Մուտքագրեք վավեր հեռախոսահամար։', authAccountExists: 'Այս տվյալներով հաշիվ արդեն գոյություն ունի։', authPhoneInUse: 'Այս հեռախոսահամարն արդեն օգտագործվում է։',
   authExistingEmailTitle: 'Այս email-ով հաշիվ արդեն կա', authExistingEmailText: 'Այս հասցեով արդեն գրանցված հաշիվ կա։ Մուտք գործեք գործող հաշիվ կամ վերականգնեք գաղտնաբառը։',
   authLoginRequired: 'Email-ը կամ հեռախոսահամարը և գաղտնաբառը պարտադիր են։', authInvalidCredentials: 'Email-ը, հեռախոսահամարը կամ գաղտնաբառը սխալ է։', authVerifyBeforeLogin: 'Մուտք գործելուց առաջ հաստատեք Ձեր email-ը։',
   authVerificationRequired: 'Email-ը և հաստատման կոդը պարտադիր են։', authCodeExpired: 'Հաստատման կոդի ժամկետը լրացել է։', authTooManyVerificationAttempts: 'Չափազանց շատ փորձեր են կատարվել։ Խնդրում ենք կրկին գրանցվել։',
@@ -1302,7 +1302,7 @@ Object.assign(hy, {
   reviewPurchaseRequired: 'Կարծիք թողնելու համար անհրաժեշտ է ավարտված գնում։', reviewTooShort: 'Կարծիքի տեքստը չափազանց կարճ է։', reviewAlreadySubmitted: 'Այս գնման համար արդեն կարծիք եք ուղարկել։'
 });
 Object.assign(en, {
-  authFieldsRequired: 'Name, email, phone, password, and password confirmation are required.', authEmailInvalid: 'Enter a valid email address.', authAccountExists: 'An account with these details already exists.', authPhoneInUse: 'This phone number is already in use.',
+  authFieldsRequired: 'Name, email, phone, password, and password confirmation are required.', authEmailInvalid: 'Enter a valid email address.', authPhoneInvalid: 'Enter a valid phone number.', authAccountExists: 'An account with these details already exists.', authPhoneInUse: 'This phone number is already in use.',
   authExistingEmailTitle: 'An account already uses this email', authExistingEmailText: 'This email is already registered. Sign in to the existing account or reset its password.',
   authLoginRequired: 'Email or phone and password are required.', authInvalidCredentials: 'The email, phone number, or password is incorrect.', authVerifyBeforeLogin: 'Verify your email before signing in.', authVerificationRequired: 'Email and verification code are required.', authCodeExpired: 'The verification code has expired.', authTooManyVerificationAttempts: 'Too many attempts. Please register again.',
   authResetCodeInvalid: 'The reset code is invalid or expired.', authTooManyResetAttempts: 'Too many attempts. Request a new code.', authResetRequired: 'Reset details and password are required.', authResetSessionInvalid: 'The password reset session is invalid or expired.',
@@ -1310,7 +1310,7 @@ Object.assign(en, {
   reviewPurchaseRequired: 'A completed purchase is required to add a review.', reviewTooShort: 'The review text is too short.', reviewAlreadySubmitted: 'A review has already been submitted for this purchase.'
 });
 Object.assign(ru, {
-  authFieldsRequired: 'Укажите имя, email, телефон, пароль и подтверждение пароля.', authEmailInvalid: 'Введите корректный email.', authAccountExists: 'Аккаунт с такими данными уже существует.', authPhoneInUse: 'Этот номер телефона уже используется.',
+  authFieldsRequired: 'Укажите имя, email, телефон, пароль и подтверждение пароля.', authEmailInvalid: 'Введите корректный email.', authPhoneInvalid: 'Введите корректный номер телефона.', authAccountExists: 'Аккаунт с такими данными уже существует.', authPhoneInUse: 'Этот номер телефона уже используется.',
   authExistingEmailTitle: 'Аккаунт с этой почтой уже существует', authExistingEmailText: 'Этот email уже зарегистрирован. Войдите в существующий аккаунт или восстановите пароль.',
   authLoginRequired: 'Укажите email или телефон и пароль.', authInvalidCredentials: 'Неверный email, номер телефона или пароль.', authVerifyBeforeLogin: 'Подтвердите email перед входом.', authVerificationRequired: 'Укажите email и код подтверждения.', authCodeExpired: 'Срок действия кода подтверждения истёк.', authTooManyVerificationAttempts: 'Слишком много попыток. Зарегистрируйтесь повторно.',
   authResetCodeInvalid: 'Код восстановления неверен или истёк.', authTooManyResetAttempts: 'Слишком много попыток. Запросите новый код.', authResetRequired: 'Укажите данные восстановления и пароль.', authResetSessionInvalid: 'Сеанс восстановления пароля недействителен или истёк.',

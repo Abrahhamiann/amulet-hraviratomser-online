@@ -1,6 +1,7 @@
 const EXACT_API_ERROR_KEYS = {
   'Name, email, phone, password, and password confirmation are required': 'authFieldsRequired',
   'A valid email address is required': 'authEmailInvalid',
+  'A valid phone number is required': 'authPhoneInvalid',
   'Passwords do not match': 'authPasswordsMismatch',
   'Password must be 8-128 characters and include uppercase, lowercase, number, and special character': 'authPasswordRulesError',
   'Account already exists': 'authAccountExists',

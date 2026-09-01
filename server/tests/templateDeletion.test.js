@@ -75,7 +75,7 @@ test('restart cleanup permanently removes legacy soft-deleted templates and pres
   }
 });
 
-test('curated startup provisioning does not reactivate a deleted template', async () => {
+test('manual curated provisioning does not reactivate a deleted template', async () => {
   const originalUpdateOne = Template.updateOne;
   const originalSettingExists = Setting.exists;
   const deletedAt = new Date('2026-08-22T10:00:00.000Z');
@@ -116,7 +116,7 @@ test('curated startup provisioning does not reactivate a deleted template', asyn
   }
 });
 
-test('curated startup provisioning never recreates a template with a permanent deletion marker', async () => {
+test('manual curated provisioning never recreates a template with a permanent deletion marker', async () => {
   const originalUpdateOne = Template.updateOne;
   const originalSettingExists = Setting.exists;
   const deletedSlug = 'sacred-beginnings';

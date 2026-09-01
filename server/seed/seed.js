@@ -132,6 +132,9 @@ const templates = [
 ];
 
 const run = async () => {
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_DESTRUCTIVE_SEED !== 'ERASE_PRODUCTION_DATA') {
+    throw new Error('Refusing to run the destructive demo seed in production');
+  }
   await connectDB();
   await Promise.all([
     User.deleteMany(),
