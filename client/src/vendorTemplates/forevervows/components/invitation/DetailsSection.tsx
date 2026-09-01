@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useInvitationData } from "../../data/invitation";
 import { Reveal, Section } from "./Reveal";
 import { Shoe, Gift, Notes, Squiggle } from "./Doodles";

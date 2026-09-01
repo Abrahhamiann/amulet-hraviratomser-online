@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { MapPin, Navigation } from "lucide-react";
 import type { InvitationData } from "@/data/invitation";
 import { Reveal, SectionHeading } from "./primitives";

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { motion } from "motion/react";
 import type { InvitationConfig } from "@/config/invitation";
 import { FloatingDecorations } from "./FloatingDecorations";

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { CalendarHeart, Clock, MapPin, Sparkles } from "lucide-react";
 import type { InvitationConfig } from "@/config/invitation";
 import { Reveal } from "./Reveal";

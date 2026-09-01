@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { invitation } from "@/data/invitation";
 
 import { CalendarGlyph, CrossIcon } from "./icons";

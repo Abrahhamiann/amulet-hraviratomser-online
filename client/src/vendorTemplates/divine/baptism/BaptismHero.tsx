@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { motion, useReducedMotion } from "motion/react";
 
 import { invitation } from "@/data/invitation";

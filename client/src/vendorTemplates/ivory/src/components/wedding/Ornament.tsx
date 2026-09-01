@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { cn } from "@/lib/utils";
 
 /** Thin botanical divider used between sections. */

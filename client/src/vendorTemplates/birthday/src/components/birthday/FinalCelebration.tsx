@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { InvitationConfig } from "@/config/invitation";
 import { FloatingDecorations } from "./FloatingDecorations";
 import { Reveal, RevealScale } from "./Reveal";

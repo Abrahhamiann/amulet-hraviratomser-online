@@ -8,7 +8,7 @@ import { adminApi, clearToken } from "@/lib/api";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
-  notFoundComponent: () => <Navigate to="/admin/" replace />,
+  notFoundComponent: () => <Navigate to="/admin" replace />,
 });
 
 function AdminLayout() {

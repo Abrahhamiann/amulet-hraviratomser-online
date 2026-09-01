@@ -8,7 +8,7 @@ import questioningWarningAnimation from '../assets/animations/questioning-warnin
 import Loading from '../components/Loading.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
-import { startStripeCheckout } from '../utils/checkout.js';
+import { startPayment } from '../utils/checkout.js';
 import { getApiErrorKey, getLocalizedApiError } from '../utils/apiErrors.js';
 
 import { GOOGLE_CLIENT_ID as googleClientId } from '../config/env.js';
@@ -124,7 +124,7 @@ export default function AuthPage() {
           .catch(() => navigate(`/templates/${pendingTemplate}/live?edit=1`, { replace: true }));
         return;
       }
-      startStripeCheckout(pendingTemplate, parsedDraft, { promoCode: pendingPromo || '' }).catch(() => navigate(`/templates/${pendingTemplate}/live`, { replace: true }));
+      startPayment(pendingTemplate, parsedDraft, { promoCode: pendingPromo || '' }).catch(() => navigate(`/templates/${pendingTemplate}/live`, { replace: true }));
       return;
     }
     navigate(requestedPath, { replace: true });

@@ -16,20 +16,42 @@ export default function PaymentSuccessPage() {
   const [state, setState] = useState('loading');
   const [order, setOrder] = useState(null);
   const [copied, setCopied] = useState(false);
-  const sessionId = params.get('session_id');
+  const paymentId = params.get('paymentId');
 
   useEffect(() => {
-    if (!user || !sessionId) return undefined;
+    if (!user || !paymentId) return undefined;
+    let cancelled = false;
+    let timer;
+    let attempts = 0;
 
-    api.post('/payments/confirm-checkout-session', { sessionId })
-      .then(({ data }) => {
-        const purchasedTemplateId = data?.templateId?._id || data?.templateId;
-        clearPurchasedPromo(user, purchasedTemplateId);
-        setOrder(data);
-        setState('ready');
-      })
-      .catch(() => setState('error'));
-  }, [sessionId, user]);
+    const verify = async () => {
+      try {
+        const { data } = await api.get(`/payments/arca/${paymentId}/status`);
+        if (cancelled) return;
+        if (data.status === 'PAID' && data.order) {
+          const purchasedTemplateId = data.order?.templateId?._id || data.order?.templateId;
+          clearPurchasedPromo(user, purchasedTemplateId);
+          setOrder(data.order);
+          setState('ready');
+          return;
+        }
+        if (['FAILED', 'CANCELLED', 'REFUNDED'].includes(data.status) || attempts >= 20) {
+          setState('error');
+          return;
+        }
+        attempts += 1;
+        timer = window.setTimeout(verify, 2000);
+      } catch {
+        if (!cancelled) setState('error');
+      }
+    };
+
+    verify();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [paymentId, user]);
 
   if (!initialized) return <Loading text={t('loading')} />;
   if (!user) return <Navigate to="/login" replace />;

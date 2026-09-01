@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Reveal } from "./Reveal";
 import { GoldRule, SectionLabel } from "./Ornaments";
 import type { InvitationData } from "@/data/invitation";

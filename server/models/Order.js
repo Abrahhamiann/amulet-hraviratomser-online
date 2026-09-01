@@ -41,7 +41,9 @@ const orderSchema = new mongoose.Schema(
       enum: ['unpaid', 'paid', 'refunded'],
       default: 'unpaid'
     },
-    stripeSessionId: { type: String, unique: true, sparse: true },
+    paymentProvider: { type: String, enum: ['arca', 'manual'], default: 'manual' },
+    providerPaymentId: { type: String, unique: true, sparse: true },
+    paymentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Payment', unique: true, sparse: true },
     invitationId: { type: mongoose.Schema.Types.ObjectId, ref: 'Invitation' },
     status: {
       type: String,

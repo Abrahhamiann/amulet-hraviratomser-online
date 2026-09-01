@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { ScheduleItem } from "@/config/invitation";
 import { Reveal } from "./Reveal";
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { CoupleMonogram } from "./decor";
 

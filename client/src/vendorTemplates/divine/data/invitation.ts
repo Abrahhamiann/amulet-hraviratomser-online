@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Amulet — Baptism invitation content.
  * All editable fields live here so the Amulet editor can patch this object

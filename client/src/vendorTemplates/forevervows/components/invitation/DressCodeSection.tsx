@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { motion } from "motion/react";
 import { useInvitationData } from "../../data/invitation";
 import { Reveal, Section } from "./Reveal";

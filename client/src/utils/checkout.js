@@ -13,10 +13,12 @@ const redirectToLogin = (templateId, draft = null, options = {}) => {
   window.location.replace('/login');
 };
 
-export const startStripeCheckout = async (templateId, draft = null, options = {}) => {
+export const startPayment = async (templateId, draft = null, options = {}) => {
   try {
-    const { data } = await api.post('/payments/create-checkout-session', { templateId, draft, ...options });
-    window.location.assign(data.url);
+    const { data } = await api.post('/payments/arca/create', { templateId, draft, ...options });
+    const paymentUrl = data.paymentUrl || data.url;
+    if (!paymentUrl) throw new Error('Payment URL was not returned');
+    window.location.assign(paymentUrl);
   } catch (error) {
     if (error.response?.status === 401) {
       redirectToLogin(templateId, draft, options);

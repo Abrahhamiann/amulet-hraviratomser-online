@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { CalendarDays, Clock, MapPin } from "lucide-react";
 import type { WeddingConfig } from "@/data/wedding";
 import { Reveal, Section, SectionTitle, Botanical } from "./primitives";

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState } from "react";
 import { Particles } from "./Particles";
 import { CrossIcon, DoveIcon, OliveBranch } from "./Ornaments";

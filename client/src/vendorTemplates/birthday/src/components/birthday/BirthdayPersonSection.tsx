@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { InvitationConfig } from "@/config/invitation";
 import { Reveal, RevealScale } from "./Reveal";
 

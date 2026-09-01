@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { SVGProps } from "react";
 import { motion } from "motion/react";
 

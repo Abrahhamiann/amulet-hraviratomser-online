@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { ReactNode } from "react";
 import { useReveal } from "@/hooks/use-reveal";
 import { cn } from "@/lib/utils";

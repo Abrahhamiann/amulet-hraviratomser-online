@@ -9,6 +9,7 @@ const promoCodeSchema = new mongoose.Schema(
     value: { type: Number, required: true, min: 0 },
     maxUses: { type: Number, default: 0, min: 0 },
     usageCount: { type: Number, default: 0, min: 0 },
+    redemptionPaymentIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Payment', select: false }],
     isActive: { type: Boolean, default: true },
     expiresAt: { type: Date, default: null },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }

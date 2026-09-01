@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { wedding } from "@/data/wedding";
 import { Reveal } from "./Reveal";
 

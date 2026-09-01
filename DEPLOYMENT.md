@@ -19,7 +19,7 @@
 - VPS: Ubuntu 24.04 LTS, **минимум 2 vCPU / 4 GB RAM / 40 GB SSD** (сборка клиента прожорливая; при 2 GB обязательно добавить swap — шаг 2.4).
 - Доступ к DNS домена `amulet.am`.
 - Доступ к GitHub-репозиторию `Abrahhamiann/amulet-hraviratomser-online`.
-- Ключи/доступы: Google OAuth Client ID, Stripe (secret + publishable), SMTP-пароль приложения Gmail, токен бота от @BotFather.
+- Ключи/доступы: Google OAuth Client ID, ArCa `_api` логин/пароль, SMTP-пароль приложения Gmail, токен бота от @BotFather.
 
 ---
 
@@ -232,7 +232,15 @@ SMTP_USER=amuletarmenia@gmail.com
 SMTP_PASS=<app password Gmail, 16 символов без пробелов>
 AMULET_EMAIL_FROM="Amulet <amuletarmenia@gmail.com>"
 
-STRIPE_SECRET_KEY=sk_live_...
+PAYMENT_PROVIDER=arca
+ARCA_API_BASE_URL=https://epg.arca.am/payment/rest
+ARCA_USERNAME=<логин с суффиксом _api>
+ARCA_PASSWORD=<пароль API-пользователя>
+ARCA_CURRENCY=051
+ARCA_LANGUAGE=hy
+ARCA_REQUEST_TIMEOUT_MS=15000
+FRONTEND_URL=https://amulet.am
+BACKEND_URL=https://server.amulet.am
 
 TELEGRAM_BOT_TOKEN=<токен от @BotFather>
 TELEGRAM_BOT_USERNAME=<имя бота без @>
@@ -255,7 +263,6 @@ VITE_API_URL=https://server.amulet.am/api
 VITE_SITE_URL=https://amulet.am
 
 VITE_GOOGLE_CLIENT_ID=954385897484-mvsr9ocebf559dl1b9v7rfvvu4unfqbr.apps.googleusercontent.com
-VITE_STRIPE_PUBLISHABLE_KEY=pk_live_...
 
 VITE_CONTACT_PHONE_DISPLAY=041 401415
 VITE_CONTACT_PHONE_E164=+37441401415
@@ -428,10 +435,10 @@ Google Cloud Console → APIs & Services → Credentials → твой OAuth Clie
 
 Без этого кнопка «Войти через Google» молча не работает.
 
-### Stripe
-- В `server/.env` — `sk_live_...`, в `client/.env` — `pk_live_...`.
-- Success/cancel URL строятся из `CLIENT_URL`, отдельной настройки в Stripe не требуют.
-- Вебхуки в проекте не используются: оплата подтверждается через `POST /api/payments/confirm-checkout-session`.
+### ArCa / AraratBank
+- В `server/.env` используются только логин и пароль пользователя с суффиксом `_api`; `_web` предназначен для панели банка.
+- Клиент возвращается на `${FRONTEND_URL}/payment/success?paymentId=...`, после чего сервер проверяет оплату через ArCa REST API.
+- Полная инструкция и список значений для подтверждения банком: `docs/ARCA_PAYMENT_SETUP.md`.
 
 ### Telegram
 - У @BotFather: `/setcommands`, `/setdescription` — по желанию.
@@ -553,7 +560,8 @@ ls -R .output | head -40                 # посмотреть, что реал
 
 | Файл | Переменная | Прод-значение | Когда применяется |
 |---|---|---|---|
-| `server/.env` | `CLIENT_URL` | `https://amulet.am` | CORS, ссылки в письмах/Telegram, Stripe success/cancel |
+| `server/.env` | `CLIENT_URL` | `https://amulet.am` | CORS, ссылки в письмах/Telegram |
+| `server/.env` | `FRONTEND_URL` | `https://amulet.am` | ArCa return/fail URL |
 | `server/.env` | `ADMIN_URL` | `https://admin.amulet.am` | CORS |
 | `server/.env` | `SERVER_URL` | `https://server.amulet.am` | справочно / внешние интеграции |
 | `server/.env` | `CORS_EXTRA_ORIGINS` | `https://www.amulet.am` | дополнительные origin-ы |

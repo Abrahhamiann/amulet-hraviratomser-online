@@ -73,7 +73,7 @@ const paymentStatus = (status) => {
   return 'pending';
 };
 
-const paymentMethod = (order) => order.stripeSessionId ? 'Stripe' : 'Manual';
+const paymentMethod = (order) => order.paymentProvider === 'arca' ? 'ArCa' : 'Manual';
 
 const clampNumber = (value, min, max, fallback) => {
   const number = Number(value);
@@ -388,7 +388,7 @@ export const getAdminDashboard = asyncHandler(async (req, res) => {
       name,
       value: Math.round((count / categoryTotal) * 100)
     })),
-    paymentMethodStats: ['Stripe', 'Manual'].map((name) => ({
+    paymentMethodStats: ['ArCa', 'Manual'].map((name) => ({
       name,
       value: periodOrders.filter((order) => paymentMethod(order) === name).length
     })).filter((item) => item.value > 0),

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { CalendarDays, Clock, MapPin, Navigation } from "lucide-react";

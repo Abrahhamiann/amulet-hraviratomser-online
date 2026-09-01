@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { CalendarDays, Church, Clock } from "lucide-react";
 import { Reveal } from "./Reveal";
 import { GoldRule, SectionLabel } from "./Ornaments";

@@ -6,7 +6,10 @@ export const notFound = (req, res, next) => {
 
 export const errorHandler = (err, req, res, next) => {
   const statusCode = res.statusCode === 200 ? (err.statusCode || 500) : res.statusCode;
-  res.status(statusCode).json({
-    message: err.message || 'Server error'
-  });
+  const payload = { message: err.publicMessage || err.message || 'Server error' };
+  if (err.publicCode) {
+    payload.success = false;
+    payload.code = err.publicCode;
+  }
+  res.status(statusCode).json(payload);
 };

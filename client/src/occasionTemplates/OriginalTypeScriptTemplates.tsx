@@ -814,7 +814,7 @@ function IvoryVowsTemplate(props: TemplateProps) {
     const images = (draft.gallery || []).map(resolveTemplateImage).filter(Boolean);
     return images.length
       ? images.map((src, index) => ({ src, alt: `${draft.mainNames || wedding.couple.groom.name} ${index + 1}` }))
-      : wedding.gallery;
+      : [...wedding.gallery];
   }, [draft.gallery, draft.mainNames]);
   const dressCodeData = useMemo(() => ({
     text: draft.dressCode || wedding.dressCode.text,

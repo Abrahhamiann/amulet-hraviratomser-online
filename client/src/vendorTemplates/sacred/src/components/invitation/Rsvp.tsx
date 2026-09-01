@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, type FormEvent } from "react";
 import { Reveal } from "./Reveal";
 import { GoldRule, SectionLabel } from "./Ornaments";

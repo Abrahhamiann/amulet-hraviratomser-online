@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useRef, useState } from "react";
 
 /** Reveals an element once it scrolls into view. */

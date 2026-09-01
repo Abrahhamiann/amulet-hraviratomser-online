@@ -29,7 +29,7 @@ import giftPremiumAnimation from '../assets/animations/gift-premium.lottie?url';
 import alertGuruAnimation from '../assets/animations/editor-exit-alert.lottie?url';
 import { loadOccasionTemplate } from '../occasionTemplates/templateManifest.js';
 import { resolveTemplateImage } from '../occasionTemplates/templateAssets.js';
-import { startStripeCheckout } from '../utils/checkout.js';
+import { startPayment } from '../utils/checkout.js';
 import { promoStorageKey, readRememberedPromo } from '../utils/promoStorage.js';
 import { normalizeMapUrl } from '../utils/mapLinks.js';
 
@@ -563,13 +563,13 @@ export default function TemplateLivePreviewPage() {
         checkoutPreviewToken = data.token;
         autosaveTokenRef.current = data.token;
       }
-      await startStripeCheckout(template._id, nextDraft, {
+      await startPayment(template._id, nextDraft, {
         previewToken: checkoutPreviewToken,
         promoCode: appliedPromoCode
       });
     } catch (error) {
       if (error.response?.status === 401) {
-        await startStripeCheckout(template._id, nextDraft, { promoCode: appliedPromoCode });
+        await startPayment(template._id, nextDraft, { promoCode: appliedPromoCode });
         return;
       }
       setCheckoutState('error');

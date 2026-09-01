@@ -1,3 +1,4 @@
+// @ts-nocheck
 import childPortrait from "@/assets/child-portrait.jpg";
 import gallery1 from "@/assets/gallery-1.jpg";
 import gallery2 from "@/assets/gallery-2.jpg";

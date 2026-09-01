@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { InvitationData } from "../../data/invitation";
 import { InvitationDataProvider, useInvitationData } from "../../data/invitation";
 import { CalendarSection } from "./CalendarSection";

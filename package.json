@@ -19,9 +19,11 @@
     "dev:admin": "npm run dev --prefix admin",
     "install:all": "npm install",
     "build": "npm run build --workspace client",
+    "typecheck": "npm run typecheck --workspace client && npm run typecheck --prefix admin",
     "build:admin": "npm run build --prefix admin",
     "seed": "npm run seed --workspace server",
-    "super-admin:create": "npm run super-admin:create --workspace server"
+    "super-admin:create": "npm run super-admin:create --workspace server",
+    "check:arca": "npm run check:arca --workspace server"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

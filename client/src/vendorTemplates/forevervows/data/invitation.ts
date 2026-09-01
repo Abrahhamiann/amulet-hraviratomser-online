@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createContext, createElement, useContext, type ReactNode } from "react";
 import coupleMain from "../../../assets/morph/engagement-smile.jpg";
 import coupleSmall from "../../../assets/morph/wedding-forest-optimized.jpg";

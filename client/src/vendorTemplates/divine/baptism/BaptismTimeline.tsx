@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { motion, useScroll, useSpring, useTransform } from "motion/react";
 import { useRef } from "react";
 

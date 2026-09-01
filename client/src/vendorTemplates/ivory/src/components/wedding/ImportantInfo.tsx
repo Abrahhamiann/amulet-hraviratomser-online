@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Clock3, Shirt, Baby } from "lucide-react";
 import { wedding } from "@/data/wedding";
 import { Reveal } from "./Reveal";

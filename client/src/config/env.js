@@ -68,7 +68,6 @@ export const apiAssetUrl = (value = '') => {
 };
 
 export const GOOGLE_CLIENT_ID = read('VITE_GOOGLE_CLIENT_ID');
-export const STRIPE_PUBLISHABLE_KEY = read('VITE_STRIPE_PUBLISHABLE_KEY');
 
 // Contact / social links.
 export const CONTACT_PHONE_DISPLAY = read('VITE_CONTACT_PHONE_DISPLAY', '041 401415');

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { invitation } from "@/data/invitation";
 
 import { Reveal, SectionTitle } from "./primitives";

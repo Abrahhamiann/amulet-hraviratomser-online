@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState } from "react";
 import { Reveal } from "./Reveal";
 import { GoldRule } from "./Ornaments";

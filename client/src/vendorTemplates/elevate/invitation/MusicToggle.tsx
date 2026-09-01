@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useRef, useState } from "react";
 import { Music, Pause } from "lucide-react";
 import type { InvitationData } from "@/data/invitation";

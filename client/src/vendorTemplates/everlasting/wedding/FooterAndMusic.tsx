@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { motion, useReducedMotion } from "motion/react";
 import { Music, Pause } from "lucide-react";
 import { useEffect, useRef, useState } from "react";

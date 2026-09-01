@@ -1,3 +1,4 @@
+// @ts-nocheck
 import hero from "@/assets/hero.jpg";
 import bride from "@/assets/bride.jpg";
 import groom from "@/assets/groom.jpg";

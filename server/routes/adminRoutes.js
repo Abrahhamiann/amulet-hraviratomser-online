@@ -44,6 +44,7 @@ import {
   getAdminReviews,
   updateAdminReview
 } from '../controllers/adminReviewController.js';
+import { refundPayment } from '../controllers/paymentController.js';
 
 const router = express.Router();
 
@@ -68,6 +69,7 @@ router.get('/customers', getAdminCustomers);
 router.get('/customers/:id', getAdminCustomer);
 router.post('/customers/:id/email', sendAdminCustomerEmail);
 router.get('/payments', getAdminPayments);
+router.post('/payments/:paymentId/refund', validateObjectId('paymentId'), refundPayment);
 router.get('/messages', getAdminMessages);
 router.post('/messages/:id/reply', replyAdminMessage);
 router.delete('/messages/:id', deleteAdminMessage);

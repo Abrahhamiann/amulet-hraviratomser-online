@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Hero } from "./Hero";
 import { Introduction } from "./Introduction";
 import { ChildPhoto } from "./ChildPhoto";

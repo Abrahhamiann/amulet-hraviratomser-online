@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { wedding } from "@/data/wedding";
 
 export function Footer() {

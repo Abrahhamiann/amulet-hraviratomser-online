@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createFileRoute } from "@tanstack/react-router";
 import { BaptismInvitation } from "@/components/invitation/BaptismInvitation";
 import { invitation } from "@/data/invitation";

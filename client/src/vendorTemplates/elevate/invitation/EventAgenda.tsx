@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { motion, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
 import type { InvitationData } from "@/data/invitation";

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useRef, useState, type FormEvent } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useInvitationData } from "../../data/invitation";

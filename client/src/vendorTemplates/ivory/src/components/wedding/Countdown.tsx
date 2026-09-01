@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState } from "react";
 import { wedding } from "@/data/wedding";
 import { Reveal } from "./Reveal";

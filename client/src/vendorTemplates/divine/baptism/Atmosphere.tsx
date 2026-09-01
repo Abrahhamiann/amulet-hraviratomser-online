@@ -1,3 +1,4 @@
+// @ts-nocheck
 /** Gentle floating light particles + drifting rays. Deterministic (SSR-safe). */
 const PARTICLES = [
   { l: 6, t: 18, s: 3, d: 0, dur: 15 },

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, type FormEvent } from "react";
 import { z } from "zod";
 import { wedding } from "@/data/wedding";

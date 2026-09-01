@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Particles } from "./Particles";
 import { Reveal } from "./Reveal";
 import type { InvitationData } from "@/data/invitation";

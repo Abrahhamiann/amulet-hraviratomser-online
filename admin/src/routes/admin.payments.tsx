@@ -22,7 +22,7 @@ function PaymentsPage() {
   const refunded = payments.filter((payment: any) => payment.status === "refunded").length;
   const pending = payments.filter((payment: any) => payment.status === "pending").length;
   const revenue = payments.filter((payment: any) => payment.status === "paid").reduce((sum: number, payment: any) => sum + payment.amount, 0);
-  const paymentMethodStats = ["Stripe", "Manual"].map((name) => ({ name: name === "Manual" ? t("manual") : name, value: payments.filter((payment: any) => payment.method === name).length })).filter((item) => item.value > 0);
+  const paymentMethodStats = ["ArCa", "Manual"].map((name) => ({ name: name === "Manual" ? t("manual") : name, value: payments.filter((payment: any) => payment.method === name).length })).filter((item) => item.value > 0);
 
   const exportCsv = () => {
     const rows = [["transaction", "customer", "order", "amount", "method", "status", "date"], ...payments.map((item: any) => [item.txId, item.customer, item.order, item.amount, item.method, item.status, item.date])];

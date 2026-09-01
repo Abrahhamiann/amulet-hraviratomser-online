@@ -1,3 +1,4 @@
+// @ts-nocheck
 export const invite = {
   bride: "Աննա",
   groom: "Դավիթ",

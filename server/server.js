@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { connectDB } from './config/db.js';
+import { arcaConfigurationStatus } from './config/arca.js';
 import { allowedOrigins as resolveAllowedOrigins } from './config/env.js';
 import { errorHandler, notFound } from './middleware/error.js';
 import { parseCookies } from './middleware/cookies.js';
@@ -37,6 +38,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, '.env') });
+
+const paymentConfiguration = arcaConfigurationStatus();
+if (paymentConfiguration.configured) {
+  console.info(`ArCa payment provider configured (${paymentConfiguration.baseHost}).`);
+} else {
+  console.warn(`ArCa payment provider is not fully configured. Missing: ${paymentConfiguration.missing.join(', ')}`);
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -78,7 +86,15 @@ app.use('/media', express.static(getMediaRoot(), {
   }
 }));
 
-app.get('/api/health', (req, res) => res.json({ status: 'ok', service: 'e-invite-server' }));
+app.get('/api/health', (req, res) => res.json({
+  status: 'ok',
+  service: 'e-invite-server',
+  payment: {
+    provider: paymentConfiguration.provider,
+    configured: paymentConfiguration.configured,
+    baseHost: paymentConfiguration.baseHost
+  }
+}));
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.get('/api/faq', getPublicFaq);

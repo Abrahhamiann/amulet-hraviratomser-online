@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
 import { invitation } from "@/config/invitation";

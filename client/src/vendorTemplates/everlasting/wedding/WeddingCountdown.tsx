@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Reveal, Section } from "./primitives";

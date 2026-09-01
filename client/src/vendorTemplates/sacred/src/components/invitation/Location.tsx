@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { MapPin } from "lucide-react";
 import { Reveal } from "./Reveal";
 import { GoldRule, SectionLabel } from "./Ornaments";

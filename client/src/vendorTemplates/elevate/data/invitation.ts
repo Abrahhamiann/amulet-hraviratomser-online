@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * AMULET — Corporate Invitation template content.
  *

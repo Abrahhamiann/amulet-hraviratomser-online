@@ -1,3 +1,4 @@
+// @ts-nocheck
 /** Deterministic pseudo-random so SSR and client markup match. */
 export function seeded(seed: number) {
   let s = seed;

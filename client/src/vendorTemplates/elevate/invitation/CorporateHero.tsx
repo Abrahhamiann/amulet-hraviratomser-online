@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
 import { ChevronDown } from "lucide-react";

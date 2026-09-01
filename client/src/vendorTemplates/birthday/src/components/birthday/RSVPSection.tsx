@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { AnimatePresence, motion } from "motion/react";
 import { useState, type FormEvent } from "react";
 import { ConfettiBurst } from "./ConfettiBurst";

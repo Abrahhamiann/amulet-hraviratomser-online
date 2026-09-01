@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { pickColor, seeded } from "./decor";
 
 function Balloon({ color, size }: { color: string; size: number }) {

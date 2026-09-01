@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { InvitationData } from "@/data/invitation";
 import { CountUp, Reveal, SectionHeading } from "./primitives";
 

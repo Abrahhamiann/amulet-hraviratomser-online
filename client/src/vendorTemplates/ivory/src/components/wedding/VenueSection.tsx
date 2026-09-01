@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { MapPin, Clock } from "lucide-react";
 import { Reveal } from "./Reveal";
 
