@@ -155,7 +155,7 @@ sudo systemctl restart mongod
 ```
 
 Тогда в `server/.env` строка подключения будет:
-`MONGO_URI=mongodb://amulet_admin:ПАРОЛЬ@127.0.0.1:27017/e_invite?authSource=admin`
+`MONGO_URI=mongodb://amulet_admin:ПАРОЛЬ@127.0.0.1:27017/amulet?authSource=admin`
 
 ### 3.3 nginx и Certbot
 
@@ -211,8 +211,9 @@ nano server/.env
 ```env
 NODE_ENV=production
 PORT=5000
-MONGO_URI=mongodb://127.0.0.1:27017/e_invite
-MONGO_DB_NAME=e_invite
+MONGO_URI=mongodb://127.0.0.1:27017/amulet
+# Необязательная проверка: если указано, имя должно совпадать с MONGO_URI.
+MONGO_DB_NAME=amulet
 JWT_SECRET=<первый openssl rand -hex 32>
 
 CLIENT_URL=https://amulet.am
@@ -490,7 +491,7 @@ crontab -e
 Добавить (каждый день в 03:30, хранить 14 дней):
 
 ```cron
-30 3 * * * /usr/bin/mongodump --uri="mongodb://127.0.0.1:27017/e_invite" --archive=/home/deploy/backups/amulet-$(date +\%F).gz --gzip >/dev/null 2>&1
+30 3 * * * /usr/bin/mongodump --uri="mongodb://127.0.0.1:27017/amulet" --archive=/home/deploy/backups/amulet-$(date +\%F).gz --gzip >/dev/null 2>&1
 40 3 * * * find /home/deploy/backups -name 'amulet-*.gz' -mtime +14 -delete
 ```
 
@@ -568,8 +569,8 @@ ls -R .output | head -40                 # посмотреть, что реал
 | `server/.env` | `ADMIN_URL` | `https://admin.amulet.am` | CORS |
 | `server/.env` | `SERVER_URL` | `https://server.amulet.am` | справочно / внешние интеграции |
 | `server/.env` | `CORS_EXTRA_ORIGINS` | `https://www.amulet.am` | дополнительные origin-ы |
-| `server/.env` | `AUTH_COOKIE_DOMAIN` | `.amulet.am` | общая кука на поддоменах |
-| `server/.env` | `MONGO_DB_NAME` | `e_invite` | защита от подключения к пустой/неверной базе |
+| `server/.env` | `AUTH_COOKIE_DOMAIN` | пусто или `.amulet.am` | необязательный host-only или общий cookie-domain |
+| `server/.env` | `MONGO_DB_NAME` | совпадает с `MONGO_URI` | необязательная защита от случайной смены базы |
 | `server/.env` | `GOOGLE_CLIENT_ID` | OAuth Web Client ID | единый runtime ID для сайта и API |
 | `server/.env` | `TELEGRAM_BOT_TOKEN` | токен от BotFather | при старте Node.js-бота |
 | `server/.env` | `TELEGRAM_BOT_USERNAME` | username без `@` | при старте Node.js-бота |

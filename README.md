@@ -21,6 +21,7 @@ npm install
 
 ```env
 MONGO_URI=mongodb://127.0.0.1:27017/e_invite
+# Optional: when set, it must match the database name inside MONGO_URI.
 MONGO_DB_NAME=e_invite
 JWT_SECRET=change_this_secret
 PORT=5000
