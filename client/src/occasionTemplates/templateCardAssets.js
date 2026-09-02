@@ -65,4 +65,4 @@ const cardImages = {
   'asset:curated/army-camouflage/soldier-photo.jpg': armyCamouflage
 };
 
-export const resolveTemplateCardImage = (image, fallback = '') => cardImages[image] || fallback || image;
+export const resolveTemplateCardImage = (image, fallback = '') => cardImages[image] || image || fallback;

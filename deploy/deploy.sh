@@ -5,6 +5,62 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+GITHUB_REPOSITORY="Abrahhamiann/amulet-hraviratomser-online"
+GITHUB_SSH_REMOTE="git@github.com:${GITHUB_REPOSITORY}.git"
+DEPLOY_SSH_DIR="${AMULET_DEPLOY_SSH_DIR:-${HOME}/.ssh}"
+DEPLOY_SSH_KEY="${AMULET_DEPLOY_SSH_KEY:-${DEPLOY_SSH_DIR}/amulet_github_deploy}"
+GITHUB_ED25519_HOST_KEY='github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl'
+
+configure_github_access() {
+  local origin_url
+  origin_url="$(git remote get-url origin 2>/dev/null || true)"
+
+  case "$origin_url" in
+    "$GITHUB_SSH_REMOTE") ;;
+    "https://github.com/${GITHUB_REPOSITORY}.git"|"https://"*"@github.com/${GITHUB_REPOSITORY}.git")
+      echo "==> switching GitHub origin from HTTPS to SSH"
+      git remote set-url origin "$GITHUB_SSH_REMOTE"
+      ;;
+    *)
+      echo "!! Անսպասելի origin URL: ${origin_url:-<չկա>}" >&2
+      echo "!! Անվտանգության համար deploy-ը remote-ը չի փոխել։" >&2
+      exit 1
+      ;;
+  esac
+
+  install -d -m 700 "$DEPLOY_SSH_DIR"
+  touch "${DEPLOY_SSH_DIR}/known_hosts"
+  chmod 600 "${DEPLOY_SSH_DIR}/known_hosts"
+  if ! ssh-keygen -F github.com -f "${DEPLOY_SSH_DIR}/known_hosts" >/dev/null 2>&1; then
+    printf '%s\n' "$GITHUB_ED25519_HOST_KEY" >> "${DEPLOY_SSH_DIR}/known_hosts"
+  fi
+
+  if [ ! -f "$DEPLOY_SSH_KEY" ]; then
+    ssh-keygen -q -t ed25519 -N '' -C 'amulet-production-deploy' -f "$DEPLOY_SSH_KEY"
+    echo "!! Ստեղծվեց GitHub deploy key։ Մի անգամ ավելացրեք ներքևի public key-ը" >&2
+    echo "!! GitHub → repository Settings → Deploy keys → Add deploy key (Read-only):" >&2
+    cat "${DEPLOY_SSH_KEY}.pub" >&2
+    echo "!! Ավելացնելուց հետո նորից գործարկեք նույն deploy հրամանը։" >&2
+    exit 1
+  fi
+
+  chmod 600 "$DEPLOY_SSH_KEY"
+  local quoted_deploy_key
+  printf -v quoted_deploy_key '%q' "$DEPLOY_SSH_KEY"
+  export GIT_TERMINAL_PROMPT=0
+  export GIT_SSH_COMMAND="ssh -i ${quoted_deploy_key} -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes"
+
+  echo "==> GitHub SSH access preflight"
+  if ! git ls-remote --exit-code origin HEAD >/dev/null 2>&1; then
+    echo "!! GitHub-ը չի ընդունել VPS deploy key-ը։" >&2
+    echo "!! Ստուգեք, որ այս public key-ը ավելացված է ${GITHUB_REPOSITORY} repository-ի Deploy keys բաժնում (Read-only):" >&2
+    cat "${DEPLOY_SSH_KEY}.pub" >&2
+    exit 1
+  fi
+}
+
+configure_github_access
+
 if ! node -e 'const [major, minor] = process.versions.node.split(".").map(Number); process.exit(major > 22 || (major === 22 && minor >= 12) ? 0 : 1)'; then
   echo "!! Требуется Node.js >= 22.12.0 (сейчас: $(node --version 2>/dev/null || echo 'не установлен'))." >&2
   echo "!! Обновите Node.js до 22 LTS по инструкции в DEPLOYMENT.md и повторите deploy." >&2
@@ -19,6 +75,18 @@ fi
 
 echo "==> git pull"
 git pull --ff-only
+
+PRODUCTION_MEDIA_ROOT="/var/lib/amulet/media"
+LEGACY_MEDIA_ROOT="$ROOT/server/media"
+NGINX_MEDIA_SITE="/etc/nginx/sites-enabled/server.amulet.am"
+if [ ! -d "$PRODUCTION_MEDIA_ROOT" ] || [ ! -w "$PRODUCTION_MEDIA_ROOT" ] || ! grep -q 'location \^~ /media/' "$NGINX_MEDIA_SITE" 2>/dev/null; then
+  echo "==> configuring persistent template media storage"
+  bash "$ROOT/deploy/setup-media-storage.sh"
+fi
+if [ -d "$LEGACY_MEDIA_ROOT" ]; then
+  echo "==> migrating legacy uploaded template images"
+  cp -a -n "$LEGACY_MEDIA_ROOT/." "$PRODUCTION_MEDIA_ROOT/"
+fi
 
 echo "==> npm ci (client + server workspaces)"
 npm ci --include=dev

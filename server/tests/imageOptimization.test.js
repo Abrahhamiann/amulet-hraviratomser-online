@@ -9,6 +9,22 @@ import {
   isEmbeddedImage,
   optimizeTemplateMedia
 } from '../utils/imageOptimization.js';
+import { getMediaRoot } from '../utils/mediaStorage.js';
+
+test('production media storage does not use a relative development directory', () => {
+  const previousNodeEnv = process.env.NODE_ENV;
+  const previousMediaRoot = process.env.MEDIA_ROOT;
+  try {
+    process.env.NODE_ENV = 'production';
+    process.env.MEDIA_ROOT = './media';
+    assert.equal(getMediaRoot(), '/var/lib/amulet/media');
+  } finally {
+    if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previousNodeEnv;
+    if (previousMediaRoot === undefined) delete process.env.MEDIA_ROOT;
+    else process.env.MEDIA_ROOT = previousMediaRoot;
+  }
+});
 
 test('template schema persists a generated card thumbnail separately from the original image', () => {
   assert.equal(Template.schema.path('mainImageThumbnail')?.instance, 'String');

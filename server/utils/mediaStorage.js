@@ -6,11 +6,20 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const getMediaRoot = () => path.resolve(process.env.MEDIA_ROOT || (
-  process.env.NODE_ENV === 'production'
-    ? '/var/lib/amulet/media'
-    : path.resolve(__dirname, '../uploads/media')
-));
+const PRODUCTION_MEDIA_ROOT = '/var/lib/amulet/media';
+
+export const getMediaRoot = () => {
+  const configured = String(process.env.MEDIA_ROOT || '').trim();
+  if (process.env.NODE_ENV === 'production') {
+    // The production nginx config serves /media from this persistent directory.
+    // A copied development value such as MEDIA_ROOT=./media must not silently
+    // store uploads inside the release checkout where nginx cannot see them.
+    return configured && path.isAbsolute(configured)
+      ? path.resolve(configured)
+      : PRODUCTION_MEDIA_ROOT;
+  }
+  return path.resolve(configured || path.resolve(__dirname, '../uploads/media'));
+};
 
 const publicBase = () => String(
   process.env.MEDIA_PUBLIC_URL

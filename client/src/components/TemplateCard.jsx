@@ -46,9 +46,7 @@ export default function TemplateCard({ template, priority = false }) {
     : '';
   const primaryCardImage = storedMainImage || apiAssetUrl(resolveTemplateCardImage(template.mainImage));
   const fallbackCardImage = apiAssetUrl(resolveTemplateCardImage(template.designKey));
-  const cardImage = cardImageFailed && fallbackCardImage !== primaryCardImage
-    ? fallbackCardImage
-    : primaryCardImage;
+  const cardImage = cardImageFailed ? '' : (primaryCardImage || fallbackCardImage);
   const mainImage = cardImage;
   // Catalog cards are controlled only by admin-provided media: the main image
   // at rest and the saved full-page screenshot while hovered/focused.

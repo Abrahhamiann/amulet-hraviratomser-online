@@ -436,7 +436,7 @@ const sameImageList = (first: string[], second: string[]) => (
 const getPreviewImage = (image?: string) => apiAssetUrl(templateAssetPreviews[image || ""] || image || "");
 
 function AdminTemplateCover({ template, className }: { template: any; className: string }) {
-  const primary = resolveAdminTemplateCover(template.cover, template.designKey);
+  const primary = template.cover ? resolveAdminTemplateCover(template.cover) : "";
   const fallback = resolveAdminTemplateCover(undefined, template.designKey);
   const [source, setSource] = useState(primary || fallback);
 
@@ -451,7 +451,7 @@ function AdminTemplateCover({ template, className }: { template: any; className:
       style={getImageStyle(template.imagePosition)}
       loading="lazy"
       decoding="async"
-      onError={() => setSource((current) => current !== fallback ? fallback : "")}
+      onError={() => setSource("")}
     />
   );
 }

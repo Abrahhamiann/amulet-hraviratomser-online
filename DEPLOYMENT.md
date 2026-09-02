@@ -176,16 +176,27 @@ pm2 -v
 
 ## 4. Код проекта
 
+Для приватного репозитория один раз создай отдельный read-only deploy key:
+
+```bash
+install -d -m 700 /home/deploy/.ssh
+ssh-keygen -t ed25519 -N '' -C 'amulet-production-deploy' -f /home/deploy/.ssh/amulet_github_deploy
+cat /home/deploy/.ssh/amulet_github_deploy.pub
+```
+
+Добавь выведенный public key в GitHub → repository **Settings → Deploy keys → Add deploy key**. Доступ на запись не включай. Затем клонируй репозиторий с этим ключом:
+
 ```bash
 sudo mkdir -p /var/www/amulet
 sudo chown -R deploy:deploy /var/www/amulet
 cd /var/www/amulet
 
-git clone https://github.com/Abrahhamiann/amulet-hraviratomser-online.git
+GIT_SSH_COMMAND='ssh -i /home/deploy/.ssh/amulet_github_deploy -o IdentitiesOnly=yes' \
+  git clone git@github.com:Abrahhamiann/amulet-hraviratomser-online.git
 cd amulet-hraviratomser-online
 ```
 
-> Если репозиторий приватный — сгенерируй на сервере ключ `ssh-keygen -t ed25519 -C "amulet-server"`, добавь `~/.ssh/id_ed25519.pub` в GitHub → Settings → Deploy keys, и клонируй по SSH: `git clone git@github.com:Abrahhamiann/amulet-hraviratomser-online.git`.
+`deploy/deploy.sh` сам использует этот ключ, проверяет SSH-доступ без интерактивного ввода и переводит старый HTTPS `origin` на SSH.
 
 Итоговый путь к проекту: **`/var/www/amulet/amulet-hraviratomser-online`** — он используется во всех конфигах ниже.
 
@@ -249,6 +260,9 @@ TELEGRAM_BOT_USERNAME=<имя бота без @>
 TELEGRAM_BOT_API_SECRET=<второй openssl rand -hex 32>
 TELEGRAM_BOT_API_URL=http://127.0.0.1:5000/api/telegram/bot
 TELEGRAM_ADMIN_CHAT_IDS=<твой chat id>,<второй chat id>
+
+MEDIA_ROOT=/var/lib/amulet/media
+MEDIA_PUBLIC_URL=/media
 ```
 
 `server/.env` — единый файл окружения для API и Node.js Telegram-бота. Отдельного `telegram_bot/.env` нет: `server/server.js` и `server/telegram-bot/bot.js` читают одни и те же настройки. Локальный `TELEGRAM_BOT_API_URL` позволяет боту обращаться к API напрямую, минуя nginx и внешний SSL.
@@ -465,6 +479,14 @@ bash deploy/deploy.sh
 
 `deploy/deploy.sh` использует текущий Node.js flow: `git pull` → `npm install` → сборка клиента → установка и сборка админки → перезапуск API, админки и Node.js Telegram-бота через `ecosystem.config.cjs` → health-check. Python/venv в деплое не нужны.
 
+Скрипт также проверяет постоянное хранилище `/var/lib/amulet/media`, настраивает его при необходимости и безопасно копирует туда старые загруженные изображения из `server/media`. Поэтому изображения карточек не теряются при обновлении checkout и совпадают с nginx `/media/` location.
+
+GitHub-доступ выполняется через `/home/deploy/.ssh/amulet_github_deploy`. Username, password и Personal Access Token в скрипт не записываются. Если ключ ещё не создан, первый запуск создаст его, покажет public key и остановится; после добавления ключа в GitHub все последующие обновления запускаются одной командой без prompt:
+
+```bash
+bash /var/www/amulet/amulet-hraviratomser-online/deploy/deploy.sh
+```
+
 Вручную то же самое:
 
 ```bash
@@ -523,6 +545,9 @@ sudo journalctl -u mongod -n 100 --no-pager
 
 **`JWT_SECRET must be configured with at least 32 characters`**
 В `server/.env` секрет короче 32 символов или остался `change_this_secret`. Сгенерируй `openssl rand -hex 32`.
+
+**`git pull` спрашивает GitHub Username/Password или возвращает HTTP 401**
+Репозиторий использует HTTPS remote. Запусти `deploy/deploy.sh`: он заменит штатный HTTPS `origin` на SSH и создаст `/home/deploy/.ssh/amulet_github_deploy`, если ключа ещё нет. Добавь показанный `.pub` ключ в GitHub → repository Settings → Deploy keys (Read-only), затем повтори ту же команду. Пароль GitHub и токен вводить не нужно.
 
 **Сайт открывается, но все запросы падают с CORS**
 `CLIENT_URL` / `ADMIN_URL` в `server/.env` должны в точности совпадать с адресом в браузере — со схемой `https://` и **без** слэша в конце. Для `www.amulet.am` добавь его в `CORS_EXTRA_ORIGINS`. После правки — `pm2 reload amulet-api`.
