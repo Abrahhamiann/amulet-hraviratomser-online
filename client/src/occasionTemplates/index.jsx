@@ -72,6 +72,18 @@ import {
   isBirthdayCrimsonTemplate
 } from './BirthdayCrimsonTemplate.jsx';
 import {
+  ArmyCamouflageCardPreview,
+  ArmyCamouflageInvitationView,
+  ArmyCamouflageLivePreview,
+  ArmyCeremonialCardPreview,
+  ArmyCeremonialInvitationView,
+  ArmyCeremonialLivePreview,
+  getArmyCamouflageDraft,
+  getArmyCeremonialDraft,
+  isArmyCamouflageTemplate,
+  isArmyCeremonialTemplate
+} from './ArmyInvitationTemplates.jsx';
+import {
   AngelicBaptismCardPreview,
   AngelicBaptismInvitationView,
   AngelicBaptismLivePreview,
@@ -110,6 +122,8 @@ export const availableOccasionTemplates = [
   { key: 'birthday-space', label: 'Տիեզերական տարեդարձ' },
   { key: 'birthday-watercolor', label: 'Ջրաներկ տարեդարձ' },
   { key: 'birthday-crimson', label: 'Կարմիր տարեդարձ' },
+  { key: 'army-ceremonial', label: 'Հանդիսավոր բանակի քեֆ' },
+  { key: 'army-camouflage', label: 'Քողարկանախշ բանակի քեֆ' },
   { key: 'ivory-vows', label: 'Փղոսկրե երդումներ · հարսանիք' },
   { key: 'divine-blessing', label: 'Աստվածային օրհնություն · մկրտություն' },
   { key: 'elevate-invite', label: 'Վերելք · կորպորատիվ միջոցառում' },
@@ -178,6 +192,24 @@ export const occasionTemplates = [
     LivePreview: BirthdayCrimsonLivePreview,
     PublicView: BirthdayCrimsonInvitationView,
     getInitialDraft: getBirthdayCrimsonDraft
+  },
+  {
+    key: 'army-ceremonial',
+    aliases: ['army-ceremonial', 'amulet-army-invitation'],
+    match: isArmyCeremonialTemplate,
+    CardPreview: ArmyCeremonialCardPreview,
+    LivePreview: ArmyCeremonialLivePreview,
+    PublicView: ArmyCeremonialInvitationView,
+    getInitialDraft: getArmyCeremonialDraft
+  },
+  {
+    key: 'army-camouflage',
+    aliases: ['army-camouflage', 'army-invitation-camouflage'],
+    match: isArmyCamouflageTemplate,
+    CardPreview: ArmyCamouflageCardPreview,
+    LivePreview: ArmyCamouflageLivePreview,
+    PublicView: ArmyCamouflageInvitationView,
+    getInitialDraft: getArmyCamouflageDraft
   },
   {
     key: 'ivory-vows',

@@ -3,6 +3,8 @@ import engagementSong from '../../assets/audio/john-legend-all-of-you.mp3';
 import baptismSong from '../../assets/audio/yiruma-river-flows-in-you.mp3';
 import birthdaySong from '../../vendorTemplates/cnund1/src/assets/audio/happy-birthday.mp3';
 import birthdayWatercolorSong from '../../vendorTemplates/cnund2/src/assets/audio/happy-birthday.mp3';
+import armyCeremonialSong from '../../vendorTemplates/armyCeremonial/src/assets/invitation-song.mp3';
+import armyCamouflageSong from '../../vendorTemplates/armyCamouflage/src/assets/invitation-song.mp3';
 import harsaniqOneSong from '../../vendorTemplates/harsaniq1/src/assets/song.mp3';
 import angelicBaptismSong from '../../vendorTemplates/knunq1/src/assets/audio/baptism-music.mp3';
 import polaroidEngagementSong from '../../vendorTemplates/nshanadrutyun1/src/assets/audio/music.mp3';
@@ -25,7 +27,9 @@ export const builtInTracks = [
   { id: 'golden-heart-engagement', title: 'Invitation Song', artist: '', meta: 'Ոսկե սիրտ · նշանադրություն', src: goldenHeartSong },
   { id: 'last-bell', title: 'Վերջին զանգ', artist: '', meta: 'Վերջին զանգ', src: lastBellSong },
   { id: 'happy-birthday', title: 'Happy Birthday', artist: '', meta: 'Տիեզերական ծննդյան հրավեր', src: birthdaySong },
-  { id: 'happy-birthday-watercolor', title: 'Happy Birthday · Watercolor', artist: '', meta: 'Ջրաներկ ծննդյան հրավեր', src: birthdayWatercolorSong }
+  { id: 'happy-birthday-watercolor', title: 'Happy Birthday · Watercolor', artist: '', meta: 'Ջրաներկ ծննդյան հրավեր', src: birthdayWatercolorSong },
+  { id: 'army-ceremonial', title: 'Բանակի քեֆ · Հանդիսավոր', artist: '', meta: 'Հանդիսավոր բանակի քեֆի հրավեր', src: armyCeremonialSong },
+  { id: 'army-camouflage', title: 'Բանակի քեֆ · Քողարկանախշ', artist: '', meta: 'Քողարկանախշ բանակի քեֆի հրավեր', src: armyCamouflageSong }
 ];
 
 export const normalizeInvitationGallery = (_image, gallery = []) => (Array.isArray(gallery) ? gallery : [])

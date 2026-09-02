@@ -17,6 +17,8 @@ import polaroidEngagement from '../assets/template-card-thumbnails/polaroid-enga
 import goldenHeartEngagement from '../assets/template-card-thumbnails/golden-heart-engagement.webp';
 import cinematicEngagement from '../assets/template-card-thumbnails/cinematic-engagement.webp';
 import lastBell from '../assets/template-card-thumbnails/last-bell.webp';
+import armyCeremonial from '../vendorTemplates/armyCeremonial/src/assets/soldier-photo.jpg';
+import armyCamouflage from '../vendorTemplates/armyCamouflage/src/assets/soldier-photo.jpg';
 
 const cardImages = {
   'sacred-beginnings': sacredBeginnings,
@@ -38,6 +40,8 @@ const cardImages = {
   'golden-heart-engagement': goldenHeartEngagement,
   'cinematic-engagement': cinematicEngagement,
   'last-bell': lastBell,
+  'army-ceremonial': armyCeremonial,
+  'army-camouflage': armyCamouflage,
   'asset:curated/sacred/child-portrait.jpg': sacredBeginnings,
   'asset:curated/birthday/portrait.jpg': birthdaySparkle,
   'asset:curated/birthday-space/final-reference.png': birthdaySpace,
@@ -56,7 +60,9 @@ const cardImages = {
   'asset:curated/polaroid-engagement/couple-1.jpg': polaroidEngagement,
   'asset:curated/golden-heart-engagement/couple-mountain.jpg': goldenHeartEngagement,
   'asset:curated/cinematic-engagement/couple-1.jpg': cinematicEngagement,
-  'asset:curated/last-bell/bell-photo.jpg': lastBell
+  'asset:curated/last-bell/bell-photo.jpg': lastBell,
+  'asset:curated/army-ceremonial/soldier-photo.jpg': armyCeremonial,
+  'asset:curated/army-camouflage/soldier-photo.jpg': armyCamouflage
 };
 
 export const resolveTemplateCardImage = (image, fallback = '') => cardImages[image] || fallback || image;

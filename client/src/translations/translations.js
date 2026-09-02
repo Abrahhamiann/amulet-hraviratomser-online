@@ -478,6 +478,10 @@ Object.assign(ru, {
 
 
 
+Object.assign(hy, { editorMilitaryTitle: 'Բանակի քեֆի հրավերի խմբագրում', editorSoldierName: 'Զորակոչիկի անունը', editorMilitaryMessage: 'Բանակ ճանապարհելու հրավերի տեքստ' });
+Object.assign(en, { editorMilitaryTitle: 'Edit army send-off invitation', editorSoldierName: "Conscript's name", editorMilitaryMessage: 'Army send-off invitation text' });
+Object.assign(ru, { editorMilitaryTitle: 'Редактирование приглашения на проводы в армию', editorSoldierName: 'Имя призывника', editorMilitaryMessage: 'Текст приглашения на проводы в армию' });
+
 // Complete keys that previously fell back to English in four supported locales.
 
 Object.assign(hy, { editorCheckBasics: 'Հիմնական տվյալներ', editorCheckVenue: 'Միջոցառման վայր', editorCheckImage: 'Գլխավոր նկար', editorCheckMusic: 'Երաժշտություն', editorCheckRsvp: 'Հյուրերի պատասխաններ', editorPreviewError: 'Չհաջողվեց բացել նախադիտումը։ Խնդրում ենք կրկին փորձել։', editorBuyInvitation: 'Գնել հրավերը', editorBuySubtitle: 'Ստուգեք արդյունքը և անցեք պրոմոկոդի ու վճարման անվտանգ փուլին։', editorPrivateUntilPurchase: 'Անձնական՝ մինչև գնումը', editorPrivateUntilPurchaseText: 'Նախադիտման հղումը հասանելի է միայն Ձեր հաշվին։ Գնումից հետո հրավերը կստանա հանրային հղում։', editorReadinessCheck: 'Պատրաստության ստուգում', editorCheckOnMobile: 'Հեռախոսով ստուգել', editorRefreshing: 'Թարմացվում է...', editorPreparing: 'Պատրաստվում է...', editorPaymentNote: 'Հաջորդ քայլում կարող եք կիրառել պրոմոկոդ, տեսնել նվերը և միայն հետո անցնել ArCa վճարմանը։', editorTemplatesSubtitle: 'Ընտրեք այլ հրավեր և շարունակեք խմբագրումը նոր դիզայնով։', editorSearchTemplate: 'Փնտրել ձևանմուշ...', editorTemplatesLoadError: 'Չհաջողվեց բեռնել ձևանմուշները', editorReopenHint: 'Փակեք և կրկին բացեք խմբագրիչը։', editorTryAnotherSearch: 'Փորձեք այլ որոնման բառ։', editorPaletteSubtitle: 'Ընտրեք այս հրավերի համար պատրաստված {count} ներդաշնակ գունային համակարգերից մեկը։', editorColorSystem: 'Գունային համակարգ', enabled: 'միացված', disabled: 'անջատված' });

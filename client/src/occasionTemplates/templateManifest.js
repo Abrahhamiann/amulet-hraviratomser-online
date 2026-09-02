@@ -14,6 +14,8 @@ const definitions = [
   ['birthday-space', ['space-birthday', 'cnund1'], () => import('./BirthdaySpaceTemplate.jsx'), 'BirthdaySpace'],
   ['birthday-watercolor', ['watercolor-birthday', 'cnund2'], () => import('./BirthdayWatercolorTemplate.jsx'), 'BirthdayWatercolor'],
   ['birthday-crimson', ['emma-birthday', 'cnund3'], () => import('./BirthdayCrimsonTemplate.jsx'), 'BirthdayCrimson'],
+  ['army-ceremonial', ['amulet-army-invitation'], () => import('./ArmyInvitationTemplates.jsx'), 'ArmyCeremonial'],
+  ['army-camouflage', ['army-invitation-camouflage'], () => import('./ArmyInvitationTemplates.jsx'), 'ArmyCamouflage'],
   ['ivory-vows', ['amulet-ivory-vows', 'ivory-wedding'], originalModule, 'IvoryVows'],
   ['divine-blessing', ['divine-blessing-baptism'], originalModule, 'DivineBlessing'],
   ['elevate-invite', ['elevate-corporate'], originalModule, 'ElevateInvite'],

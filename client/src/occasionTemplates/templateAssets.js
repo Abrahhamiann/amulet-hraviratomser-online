@@ -85,6 +85,8 @@ import cinematicEngagementVenue from '../vendorTemplates/nshanadrutyun3/src/asse
 import lastBellHero from '../vendorTemplates/verjinzang1/src/assets/bell-photo.jpg';
 import lastBellSchool from '../vendorTemplates/verjinzang1/src/assets/school.jpg';
 import lastBellVenue from '../vendorTemplates/verjinzang1/src/assets/venue.jpg';
+import armyCeremonialPhoto from '../vendorTemplates/armyCeremonial/src/assets/soldier-photo.jpg';
+import armyCamouflagePhoto from '../vendorTemplates/armyCamouflage/src/assets/soldier-photo.jpg';
 
 export const templateAssetSources = {
   'asset:curated/sacred/child-portrait.jpg': sacredPortrait,
@@ -174,7 +176,9 @@ export const templateAssetSources = {
   'asset:curated/cinematic-engagement/restaurant.png': cinematicEngagementVenue,
   'asset:curated/last-bell/bell-photo.jpg': lastBellHero,
   'asset:curated/last-bell/school.jpg': lastBellSchool,
-  'asset:curated/last-bell/venue.jpg': lastBellVenue
+  'asset:curated/last-bell/venue.jpg': lastBellVenue,
+  'asset:curated/army-ceremonial/soldier-photo.jpg': armyCeremonialPhoto,
+  'asset:curated/army-camouflage/soldier-photo.jpg': armyCamouflagePhoto
 };
 
 export const templateDefaultGalleryIds = {
@@ -208,6 +212,12 @@ export const templateDefaultGalleryIds = {
     'asset:curated/birthday-crimson/dinner.png',
     'asset:curated/birthday-crimson/music.png',
     'asset:curated/birthday-crimson/martini.png'
+  ],
+  'army-ceremonial': [
+    'asset:curated/army-ceremonial/soldier-photo.jpg'
+  ],
+  'army-camouflage': [
+    'asset:curated/army-camouflage/soldier-photo.jpg'
   ],
   'ivory-vows': [
     'asset:curated/ivory/hero.jpg',

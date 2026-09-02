@@ -109,6 +109,8 @@ import cinematicEngagementVenue from "../../../client/src/vendorTemplates/nshana
 import lastBellHero from "../../../client/src/vendorTemplates/verjinzang1/src/assets/bell-photo.jpg";
 import lastBellSchool from "../../../client/src/vendorTemplates/verjinzang1/src/assets/school.jpg";
 import lastBellVenue from "../../../client/src/vendorTemplates/verjinzang1/src/assets/venue.jpg";
+import armyCeremonialPhoto from "../../../client/src/vendorTemplates/armyCeremonial/src/assets/soldier-photo.jpg";
+import armyCamouflagePhoto from "../../../client/src/vendorTemplates/armyCamouflage/src/assets/soldier-photo.jpg";
 
 export const Route = createFileRoute("/admin/templates")({ component: TemplatesPage });
 
@@ -124,6 +126,8 @@ const staticDesignOptions = [
   { key: "birthday-space", label: "Տիեզերական տարեդարձ", category: "birth" },
   { key: "birthday-watercolor", label: "Ջրաներկ տարեդարձ", category: "birth" },
   { key: "birthday-crimson", label: "Կարմիր տարեդարձ", category: "birth" },
+  { key: "army-ceremonial", label: "Հանդիսավոր բանակի քեֆ", category: "military" },
+  { key: "army-camouflage", label: "Քողարկանախշ բանակի քեֆ", category: "military" },
   { key: "ivory-vows", label: "Փղոսկրե երդումներ · հարսանիք", category: "wedding" },
   { key: "divine-blessing", label: "Աստվածային օրհնություն · մկրտություն", category: "baptism" },
   { key: "elevate-invite", label: "Elevate · գործարար միջոցառում", category: "corporate" },
@@ -140,8 +144,8 @@ const staticDesignOptions = [
   { key: "last-bell", label: "Վերջին զանգ", category: "corporate" },
 ];
 
-const adminCategoryOptions = ["wedding", "baptism", "birth", "engagement", "other"];
-const otherTemplateCategories = new Set(["corporate", "new_year", "meeting", "military"]);
+const adminCategoryOptions = ["wedding", "baptism", "birth", "engagement", "military", "other"];
+const otherTemplateCategories = new Set(["corporate", "new_year", "meeting"]);
 const toAdminCategory = (category?: string) => (
   otherTemplateCategories.has(String(category || "").toLowerCase()) ? "other" : category
 );
@@ -235,6 +239,8 @@ const templateAssetPreviews: Record<string, string> = {
   "asset:curated/last-bell/bell-photo.jpg": lastBellHero,
   "asset:curated/last-bell/school.jpg": lastBellSchool,
   "asset:curated/last-bell/venue.jpg": lastBellVenue,
+  "asset:curated/army-ceremonial/soldier-photo.jpg": armyCeremonialPhoto,
+  "asset:curated/army-camouflage/soldier-photo.jpg": armyCamouflagePhoto,
 };
 
 const defaultDesignGalleries: Record<string, string[]> = {
@@ -268,6 +274,12 @@ const defaultDesignGalleries: Record<string, string[]> = {
     "asset:curated/birthday-crimson/dinner.png",
     "asset:curated/birthday-crimson/music.png",
     "asset:curated/birthday-crimson/martini.png",
+  ],
+  "army-ceremonial": [
+    "asset:curated/army-ceremonial/soldier-photo.jpg",
+  ],
+  "army-camouflage": [
+    "asset:curated/army-camouflage/soldier-photo.jpg",
   ],
   "ivory-vows": [
     "asset:curated/ivory/hero.jpg",
@@ -858,7 +870,7 @@ function TemplateForm({ form, setForm }: any) {
       <div className="space-y-2"><Label>{t("slug")}</Label><Input value={form.slug} onChange={(event) => set("slug", event.target.value)} /></div>
       <div className="space-y-2"><Label>{t("category")}</Label><select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={toAdminCategory(form.category)} onChange={(event) => updateCategory(event.target.value)}>{adminCategoryOptions.map((value) => <option key={value} value={value}>{formatAdminCategory(value, lang)}</option>)}</select></div>
       <div className="space-y-2"><Label>{t("price")}</Label><Input type="number" value={form.price} onChange={(event) => set("price", event.target.value)} /></div>
-      <div className="space-y-2 sm:col-span-2"><Label>Խմբագրման բաժին</Label><select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={form.editorType} onChange={(event) => set("editorType", event.target.value)}>{[['wedding', 'Հարսանիքի խմբագրում'], ['baptism', 'Մկրտության խմբագրում'], ['engagement', 'Նշանադրության խմբագրում'], ['birth', 'Ծնունդի խմբագրում'], ['corporate', 'Կորպորատիվ խմբագրում']].map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><p className="text-xs text-muted-foreground">Ընտրում է տվյալ առիթին համապատասխան դաշտերը՝ անկախ դիզայնից։</p></div>
+      <div className="space-y-2 sm:col-span-2"><Label>Խմբագրման բաժին</Label><select className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={form.editorType} onChange={(event) => set("editorType", event.target.value)}>{[['wedding', 'Հարսանիքի խմբագրում'], ['baptism', 'Մկրտության խմբագրում'], ['engagement', 'Նշանադրության խմբագրում'], ['birth', 'Ծնունդի խմբագրում'], ['corporate', 'Կորպորատիվ խմբագրում'], ['military', 'Բանակի քեֆի հրավիրատոմս']].map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><p className="text-xs text-muted-foreground">Ընտրում է տվյալ առիթին համապատասխան դաշտերը՝ անկախ դիզայնից։</p></div>
       <div className="space-y-2 sm:col-span-2">
         <Label>{t("invitationDesign")}</Label>
         <select

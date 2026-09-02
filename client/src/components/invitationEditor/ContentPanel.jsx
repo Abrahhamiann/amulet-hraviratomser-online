@@ -88,6 +88,9 @@ const editorProfiles = {
   },
   corporate: {
     title: 'editorCorporateTitle', dualNames: false, nameLabel: 'editorEventName', messageLabel: 'editorCorporateMessage', venueTypes: ['party', 'location']
+  },
+  military: {
+    title: 'editorMilitaryTitle', dualNames: false, nameLabel: 'editorSoldierName', messageLabel: 'editorMilitaryMessage', venueTypes: ['party', 'location']
   }
 };
 
@@ -128,6 +131,14 @@ const getEditorCapabilities = (template = {}) => {
     groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
     dress: true, dressCodeVisible: true, dressPalette: true,
     rsvpDescription: true, rsvpDeadline: true, futureDateOnly: true
+  };
+  if (key.includes('army-ceremonial') || key.includes('amulet-army-invitation') || key.includes('army-camouflage') || key.includes('army-invitation-camouflage')) return {
+    ...base, family: false, familyVisible: false,
+    groomFamilyTitle: false, brideFamilyTitle: false, venues: true,
+    rsvpDescription: true, rsvpDeadline: true, rsvpQuestion: false,
+    rsvpGuestCount: true, rsvpMeal: false, maxVenues: 1,
+    dress: false, dressCodeVisible: false, dressPalette: false,
+    closing: true, finalMessageVisible: true
   };
   if (key.includes('ivory-vows') || key.includes('ivory-wedding')) return {
     ...base, openingVisible: false, family: false, familyVisible: false,

@@ -18,6 +18,8 @@ import polaroidEngagementCover from "../../../client/src/vendorTemplates/nshanad
 import goldenHeartCover from "../../../client/src/vendorTemplates/nshanadrutyun2/src/assets/images/couple-mountain.jpg";
 import cinematicEngagementCover from "../../../client/src/vendorTemplates/nshanadrutyun3/src/assets/images/couple-1.jpg";
 import lastBellCover from "../../../client/src/vendorTemplates/verjinzang1/src/assets/bell-photo.jpg";
+import armyCeremonialCover from "../../../client/src/vendorTemplates/armyCeremonial/src/assets/soldier-photo.jpg";
+import armyCamouflageCover from "../../../client/src/vendorTemplates/armyCamouflage/src/assets/soldier-photo.jpg";
 import { apiAssetUrl } from "./env";
 
 const coverByAsset: Record<string, string> = {
@@ -41,6 +43,8 @@ const coverByAsset: Record<string, string> = {
   "asset:curated/golden-heart-engagement/couple-mountain.jpg": goldenHeartCover,
   "asset:curated/cinematic-engagement/couple-1.jpg": cinematicEngagementCover,
   "asset:curated/last-bell/bell-photo.jpg": lastBellCover,
+  "asset:curated/army-ceremonial/soldier-photo.jpg": armyCeremonialCover,
+  "asset:curated/army-camouflage/soldier-photo.jpg": armyCamouflageCover,
 };
 
 const coverByDesign: Record<string, string> = {
@@ -64,6 +68,8 @@ const coverByDesign: Record<string, string> = {
   "golden-heart-engagement": goldenHeartCover,
   "cinematic-engagement": cinematicEngagementCover,
   "last-bell": lastBellCover,
+  "army-ceremonial": armyCeremonialCover,
+  "army-camouflage": armyCamouflageCover,
 };
 
 export function resolveAdminTemplateCover(cover?: string, designKey?: string) {

@@ -12,7 +12,7 @@ const templateSchema = new mongoose.Schema(
     },
     editorType: {
       type: String,
-      enum: ['wedding', 'baptism', 'birth', 'corporate', 'engagement']
+      enum: ['wedding', 'baptism', 'birth', 'corporate', 'engagement', 'military']
     },
     price: { type: Number, required: true },
     description: { type: String, required: true },
