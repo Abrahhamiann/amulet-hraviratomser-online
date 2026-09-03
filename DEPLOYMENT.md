@@ -176,27 +176,18 @@ pm2 -v
 
 ## 4. Код проекта
 
-Для приватного репозитория один раз создай отдельный read-only deploy key:
-
-```bash
-install -d -m 700 /home/deploy/.ssh
-ssh-keygen -t ed25519 -N '' -C 'amulet-production-deploy' -f /home/deploy/.ssh/amulet_github_deploy
-cat /home/deploy/.ssh/amulet_github_deploy.pub
-```
-
-Добавь выведенный public key в GitHub → repository **Settings → Deploy keys → Add deploy key**. Доступ на запись не включай. Затем клонируй репозиторий с этим ключом:
+Репозиторий публичный, поэтому отдельный GitHub deploy key, username и Personal Access Token не нужны. Клонируй его через read-only HTTPS:
 
 ```bash
 sudo mkdir -p /var/www/amulet
 sudo chown -R deploy:deploy /var/www/amulet
 cd /var/www/amulet
 
-GIT_SSH_COMMAND='ssh -i /home/deploy/.ssh/amulet_github_deploy -o IdentitiesOnly=yes' \
-  git clone git@github.com:Abrahhamiann/amulet-hraviratomser-online.git
+git clone https://github.com/Abrahhamiann/amulet-hraviratomser-online.git
 cd amulet-hraviratomser-online
 ```
 
-`deploy/deploy.sh` сам использует этот ключ, проверяет SSH-доступ без интерактивного ввода и переводит старый HTTPS `origin` на SSH.
+`deploy/deploy.sh` проверяет HTTPS-доступ без интерактивного ввода и автоматически переводит старый SSH `origin` на canonical HTTPS URL.
 
 Итоговый путь к проекту: **`/var/www/amulet/amulet-hraviratomser-online`** — он используется во всех конфигах ниже.
 
@@ -481,7 +472,7 @@ bash deploy/deploy.sh
 
 Скрипт также проверяет постоянное хранилище `/var/lib/amulet/media`, настраивает его при необходимости и безопасно копирует туда старые загруженные изображения из `server/media`. Поэтому изображения карточек не теряются при обновлении checkout и совпадают с nginx `/media/` location.
 
-GitHub-доступ выполняется через `/home/deploy/.ssh/amulet_github_deploy`. Username, password и Personal Access Token в скрипт не записываются. Если ключ ещё не создан, первый запуск создаст его, покажет public key и остановится; после добавления ключа в GitHub все последующие обновления запускаются одной командой без prompt:
+GitHub-доступ выполняется через публичный read-only HTTPS URL. Username, password, Personal Access Token и deploy key не требуются, поэтому обновление сразу запускается одной командой без prompt:
 
 ```bash
 bash /var/www/amulet/amulet-hraviratomser-online/deploy/deploy.sh
@@ -547,7 +538,7 @@ sudo journalctl -u mongod -n 100 --no-pager
 В `server/.env` секрет короче 32 символов или остался `change_this_secret`. Сгенерируй `openssl rand -hex 32`.
 
 **`git pull` спрашивает GitHub Username/Password или возвращает HTTP 401**
-Репозиторий использует HTTPS remote. Запусти `deploy/deploy.sh`: он заменит штатный HTTPS `origin` на SSH и создаст `/home/deploy/.ssh/amulet_github_deploy`, если ключа ещё нет. Добавь показанный `.pub` ключ в GitHub → repository Settings → Deploy keys (Read-only), затем повтори ту же команду. Пароль GitHub и токен вводить не нужно.
+Проверь, что repository остаётся public, затем запусти `deploy/deploy.sh`: он заменит старый SSH или credential-bearing HTTPS `origin` на публичный canonical HTTPS URL. Пароль GitHub, токен и deploy key вводить не нужно.
 
 **Сайт открывается, но все запросы падают с CORS**
 `CLIENT_URL` / `ADMIN_URL` в `server/.env` должны в точности совпадать с адресом в браузере — со схемой `https://` и **без** слэша в конце. Для `www.amulet.am` добавь его в `CORS_EXTRA_ORIGINS`. После правки — `pm2 reload amulet-api`.
