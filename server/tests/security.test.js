@@ -106,13 +106,23 @@ test('editor preserves intentional blanks and sanitizes template-wide overrides'
     mainNames: '',
     eventMessage: '',
     templateTextOverrides: { 'text-12': '', 'text-13': 'Custom copy', unsafe: 'ignored' },
-    templateImageOverrides: { 'image-2': '', 'image-3': '/replacement.webp', 'image-4': 'javascript:alert(1)' }
+    templateImageOverrides: {
+      'image-2': '',
+      'image-3': '/replacement.webp',
+      'army-soldier-photo': '/soldier.webp',
+      unsafe: '/ignored.webp',
+      'image-4': 'javascript:alert(1)'
+    }
   }, template);
 
   assert.equal(draft.mainNames, '');
   assert.equal(draft.eventMessage, '');
   assert.deepEqual(draft.templateTextOverrides, { 'text-12': '', 'text-13': 'Custom copy' });
-  assert.deepEqual(draft.templateImageOverrides, { 'image-2': '', 'image-3': '/replacement.webp' });
+  assert.deepEqual(draft.templateImageOverrides, {
+    'image-2': '',
+    'image-3': '/replacement.webp',
+    'army-soldier-photo': '/soldier.webp'
+  });
 });
 
 test('account validation normalizes Armenian phone numbers and rejects weak passwords', () => {

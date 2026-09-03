@@ -114,7 +114,10 @@ const normalizeTemplateTextOverrides = (source = {}) => Object.fromEntries(
 
 const normalizeTemplateImageOverrides = (source = {}) => Object.fromEntries(
   Object.entries(source && typeof source === 'object' ? source : {})
-    .filter(([key, value]) => /^image-\d+$/.test(key) && (value === '' || (typeof value === 'string' && isAllowedImage(value))))
+    .filter(([key, value]) => (
+      /^(?:image-\d+|[a-z0-9]+(?:-[a-z0-9]+){1,8})$/i.test(key)
+      && (value === '' || (typeof value === 'string' && isAllowedImage(value)))
+    ))
     .slice(0, 100)
 );
 

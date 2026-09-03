@@ -24,6 +24,11 @@ const DEFAULTS = {
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const crimsonFontFace = `@font-face { font-family: 'BlackWilliam'; src: url('${blackWilliamFont}') format('opentype'); font-weight: 400; font-style: normal; font-display: swap; }`;
+const crimsonThemeAliases = {
+  accent: ['--red', '--red-soft'],
+  text: ['--ink'],
+  overlay: ['--pink', '--pink-2', '--paper']
+};
 const resolvedCrimsonStyles = `${crimsonStyles.replace('./assets/fonts/BlackWilliam.otf', blackWilliamFont)}
 
 .cnund3-music-button {
@@ -310,7 +315,7 @@ export const getBirthdayCrimsonDraft = () => ({
 function BirthdayCrimsonTemplate(props) {
   const draft = props.draft || getBirthdayCrimsonDraft();
   const fontImport = `${crimsonFontFace} :host { --font-display: 'BlackWilliam', cursive; }`;
-  return <TemplateShell props={props}><OriginalTemplateSurface css={resolvedCrimsonStyles} draft={draft} fontImport={fontImport} globalFontImport={crimsonFontFace} label="Կարմիր ձեռագիր ծննդյան հրավեր"><BirthdayCrimsonDocument draft={draft} onRsvpSubmit={props.onRsvpSubmit} /></OriginalTemplateSurface></TemplateShell>;
+  return <TemplateShell props={props}><OriginalTemplateSurface css={resolvedCrimsonStyles} draft={draft} fontImport={fontImport} globalFontImport={crimsonFontFace} label="Կարմիր ձեռագիր ծննդյան հրավեր" themeVariableAliases={crimsonThemeAliases}><BirthdayCrimsonDocument draft={draft} onRsvpSubmit={props.onRsvpSubmit} /></OriginalTemplateSurface></TemplateShell>;
 }
 
 export const BirthdayCrimsonCardPreview = () => <div className="original-template-card-preview" style={{ background: '#fdecef' }}><img src={cocktails} alt="" style={{ objectFit: 'contain', objectPosition: 'right bottom' }} /><div /><span>React template</span><strong>Կարմիր տարեդարձ</strong></div>;

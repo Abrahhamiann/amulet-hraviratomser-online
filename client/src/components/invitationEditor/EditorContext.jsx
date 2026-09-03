@@ -48,8 +48,34 @@ const getTemplateRsvpDefaults = (template = {}) => {
   return {};
 };
 
+const prepareTemplateImageOverrides = (draft = {}, template = {}) => {
+  const overrides = { ...(draft.templateImageOverrides || {}) };
+  const templateKey = [template.designKey, template.slug, template.title].filter(Boolean).join(' ').toLowerCase();
+  if (templateKey.includes('army-ceremonial')
+    || templateKey.includes('amulet-army-invitation')
+    || templateKey.includes('army-camouflage')) {
+    [
+      ['image-0', 'army-hero-emblem'],
+      ['image-2', 'army-small-emblem'],
+      ['image-3', 'army-footer-emblem']
+    ].forEach(([legacyKey, stableKey]) => {
+      if (!Object.prototype.hasOwnProperty.call(overrides, stableKey)
+        && Object.prototype.hasOwnProperty.call(overrides, legacyKey)) {
+        overrides[stableKey] = overrides[legacyKey];
+      }
+      delete overrides[legacyKey];
+    });
+  }
+
+  // Blank fixed-image overrides made the asset permanently invisible. In the
+  // editor, a missing key consistently means "use the template default".
+  return Object.fromEntries(Object.entries(overrides)
+    .filter(([, value]) => typeof value === 'string' && value.trim()));
+};
+
 const prepareTemplateDraft = (draft, template) => ({
   ...draft,
+  templateImageOverrides: prepareTemplateImageOverrides(draft, template),
   rsvpSettings: { ...getTemplateRsvpDefaults(template), ...(draft?.rsvpSettings || {}) }
 });
 

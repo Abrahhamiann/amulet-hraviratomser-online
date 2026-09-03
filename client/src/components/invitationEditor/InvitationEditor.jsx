@@ -782,7 +782,10 @@ function PreviewWorkspace({ PreviewComponent }) {
       update((draft) => {
         if (field.startsWith('gallery.')) {
           const index = Number(field.split('.')[1]);
-          if (Number.isInteger(index) && index >= 0 && index < (draft.gallery || []).length) draft.gallery[index] = image;
+          if (Number.isInteger(index) && index >= 0 && index < (draft.gallery || []).length) {
+            draft.gallery[index] = image;
+            if (index === 0) draft.image = image;
+          }
           return;
         }
         const key = field.replace(/^templateImageOverrides\./, '');

@@ -16,6 +16,11 @@ const resolvedBirthdaySpaceStyles = birthdaySpaceStyles.replace(
   birthdaySpaceFont
 );
 const birthdaySpaceFontFace = `@font-face { font-family: 'BubbleSans'; src: url('${birthdaySpaceFont}') format('opentype'); font-weight: 400; font-style: normal; font-display: swap; }`;
+const birthdaySpaceThemeAliases = {
+  accent: ['--purple', '--blue', '--yellow', '--orange', '--pink'],
+  text: ['--ink', '--ink-dark', '--muted'],
+  overlay: ['--paper', '--white', '--purple-soft', '--blue-soft']
+};
 
 const DEFAULTS = {
   childName: 'Արմենի',
@@ -275,7 +280,7 @@ export const getBirthdaySpaceDraft = () => ({
 function BirthdaySpaceTemplate(props) {
   const draft = props.draft || getBirthdaySpaceDraft();
   const fontImport = `${birthdaySpaceFontFace} :host { --font-body: 'BubbleSans', system-ui, sans-serif; --font-display: 'BubbleSans', system-ui, sans-serif; }`;
-  return <TemplateShell props={props}><OriginalTemplateSurface css={resolvedBirthdaySpaceStyles} draft={draft} fontImport={fontImport} globalFontImport={birthdaySpaceFontFace} label="Տիեզերական ծննդյան հրավեր"><BirthdaySpaceDocument draft={draft} onRsvpSubmit={props.onRsvpSubmit} /></OriginalTemplateSurface></TemplateShell>;
+  return <TemplateShell props={props}><OriginalTemplateSurface css={resolvedBirthdaySpaceStyles} draft={draft} fontImport={fontImport} globalFontImport={birthdaySpaceFontFace} label="Տիեզերական ծննդյան հրավեր" themeVariableAliases={birthdaySpaceThemeAliases}><BirthdaySpaceDocument draft={draft} onRsvpSubmit={props.onRsvpSubmit} /></OriginalTemplateSurface></TemplateShell>;
 }
 
 export const BirthdaySpaceCardPreview = () => <div className="original-template-card-preview"><img src={cardImage} alt="" /><div /><span>React template</span><strong>Տիեզերական տարեդարձ</strong></div>;

@@ -320,7 +320,7 @@ const applyTemplateOverrides = (root: HTMLDivElement, draft: Draft = {}) => {
     if (!image.dataset.templateImageKey) image.dataset.templateImageKey = key;
     if (!image.dataset.templateImageDefault) image.dataset.templateImageDefault = image.currentSrc || image.src;
     if (Object.prototype.hasOwnProperty.call(imageOverrides, key)) {
-      const nextSource = String(imageOverrides[key] ?? '');
+      const nextSource = resolveTemplateImage(String(imageOverrides[key] ?? ''));
       image.hidden = !nextSource;
       if (nextSource && image.src !== nextSource) image.src = nextSource;
       image.dataset.templateImageOverridden = 'true';
@@ -508,16 +508,39 @@ export function OriginalTemplateSurface({ children, css, fontImport, adapterCss 
       '--champagne': `color-mix(in srgb, ${accent} 36%, ${overlay})`,
       '--gold': accent,
       '--gold-soft': `color-mix(in srgb, ${accent} 58%, ${overlay})`,
+      '--gold-2': `color-mix(in srgb, ${accent} 70%, ${text})`,
+      '--accent-warm': accent,
+      '--accent-soft': `color-mix(in srgb, ${accent} 58%, ${overlay})`,
       '--ink': text,
       '--ink-soft': `color-mix(in srgb, ${text} 68%, ${overlay})`,
+      '--text': text,
+      '--charcoal': text,
+      '--navy': text,
+      '--navy-deep': `color-mix(in srgb, ${text} 82%, ${overlay})`,
+      '--silver': `color-mix(in srgb, ${text} 72%, ${overlay})`,
       '--blush': `color-mix(in srgb, #e7a3ad 52%, ${overlay})`,
+      '--rose': accent,
       '--peach': `color-mix(in srgb, #efb18b 48%, ${overlay})`,
       '--lavender': `color-mix(in srgb, #bda6db 48%, ${overlay})`,
       '--sky': `color-mix(in srgb, #95c6df 46%, ${overlay})`,
       '--coral': accent,
+      '--dusty': `color-mix(in srgb, ${accent} 52%, ${overlay})`,
       '--mint': `color-mix(in srgb, #89c9b2 45%, ${overlay})`,
       '--sage': `color-mix(in srgb, #8fa481 48%, ${overlay})`,
       '--dusty-blue': `color-mix(in srgb, #8ba9c8 48%, ${overlay})`,
+      '--warm-white': overlay,
+      '--soft-gray': `color-mix(in srgb, ${text} 8%, ${overlay})`,
+      '--silk-accent': accent,
+      '--silk-on-accent': overlay,
+      '--silk-bg': overlay,
+      '--silk-paper': `color-mix(in srgb, ${text} 5%, ${overlay})`,
+      '--silk-ink': text,
+      '--silk-muted': `color-mix(in srgb, ${text} 68%, ${overlay})`,
+      '--silk-border': `color-mix(in srgb, ${accent} 30%, ${overlay})`,
+      '--silk-soft': `color-mix(in srgb, ${accent} 12%, ${overlay})`,
+      '--silk-glass': `color-mix(in srgb, ${text} 7%, ${overlay})`,
+      '--silk-hero-text': text,
+      '--silk-ring': accent,
       '--gradient-heaven': `radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, ${text} 12%, ${overlay}) 0%, ${overlay} 72%)`,
       '--gradient-warm': `linear-gradient(180deg, ${overlay} 0%, color-mix(in srgb, ${accent} 12%, ${overlay}) 100%)`
     } as CSSProperties;
@@ -539,6 +562,8 @@ export function OriginalTemplateSurface({ children, css, fontImport, adapterCss 
 
     const shadow = host.shadowRoot || host.attachShadow({ mode: 'open' });
     const style = document.createElement('style');
+    const themeLayer = document.createElement('style');
+    themeLayer.dataset.amuletTheme = 'true';
     const root = document.createElement('div');
     root.className = 'original-template-document';
     style.textContent = `${fontImport}\n${isolatedCss}\n${adapterCss}\n
@@ -563,7 +588,7 @@ export function OriginalTemplateSurface({ children, css, fontImport, adapterCss 
       @media (max-width: 640px) { .amulet-extra-venues-list article { grid-template-columns: auto minmax(0, 1fr); align-items: start; padding: 18px; } .amulet-extra-venues-list article > a { grid-column: 1 / -1; width: 100%; } }
       @media (prefers-reduced-motion: reduce) { .amulet-extra-venues-list a { transition: none; } }
     `;
-    shadow.replaceChildren(style, root);
+    shadow.replaceChildren(style, themeLayer, root);
     setPortalRoot(root);
 
     const applyLocalization = () => {
@@ -588,6 +613,23 @@ export function OriginalTemplateSurface({ children, css, fontImport, adapterCss 
       setPortalRoot(null);
     };
   }, [adapterCss, fontImport, isolatedCss]);
+
+  useLayoutEffect(() => {
+    const themeLayer = hostRef.current?.shadowRoot?.querySelector<HTMLStyleElement>('style[data-amulet-theme]');
+    if (!themeLayer) return;
+    if (!themeStyle) {
+      themeLayer.textContent = '';
+      return;
+    }
+    const declarations = Object.entries(themeStyle)
+      .filter(([property, value]) => property.startsWith('--') && value != null)
+      .map(([property, value]) => `${property}: ${String(value)} !important;`)
+      .join('\n');
+    // Imported templates often redeclare their variables on the app's root
+    // element. Applying the selected palette there prevents those defaults
+    // from shadowing the editor's variables inherited from :host.
+    themeLayer.textContent = `.original-template-document > * {\n${declarations}\n}`;
+  }, [portalRoot, themeStyle]);
 
   useLayoutEffect(() => {
     const ownerDocument = hostRef.current?.ownerDocument;

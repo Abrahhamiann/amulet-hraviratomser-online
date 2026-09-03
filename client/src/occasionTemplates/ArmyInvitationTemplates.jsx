@@ -34,7 +34,7 @@ const camouflageStyles = camouflageStylesSource
   .replace('./assets/camouflage-bg.png', camouflageBackgroundUrl);
 
 const fontFace = (url) => `@font-face { font-family: 'Arzumanian Aero Sans'; src: url('${url}') format('truetype'); font-weight: 400; font-style: normal; font-display: swap; }`;
-const getAdapterCss = (background) => `
+const getAdapterCss = (background, variant) => `
   :host {
     --background: ${background};
     --foreground: #fff;
@@ -43,8 +43,35 @@ const getAdapterCss = (background) => `
     font-family: var(--font-body);
   }
   .original-template-document { min-width: 320px; }
+  ${variant === 'ceremonial' ? `
+    .page-shell {
+      color: var(--text);
+      background:
+        radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--text) 14%, transparent), transparent 36%),
+        linear-gradient(180deg, var(--blue-950) 0%, var(--blue-800) 48%, color-mix(in srgb, var(--text) 24%, var(--blue-700)) 100%);
+    }
+    .intro-section { background: linear-gradient(180deg, color-mix(in srgb, var(--blue-900) 74%, transparent), color-mix(in srgb, var(--blue-700) 38%, transparent)); }
+    .details-section { background: color-mix(in srgb, var(--text) 4%, var(--blue-900)); }
+    .rsvp-section { background: linear-gradient(180deg, color-mix(in srgb, var(--blue-950) 76%, transparent), var(--blue-950)); }
+    .footer { background: var(--blue-950); }
+  ` : `
+    .global-overlay { background: linear-gradient(180deg, color-mix(in srgb, var(--dark) 74%, transparent), color-mix(in srgb, var(--olive-2) 58%, transparent) 34%, var(--dark)); }
+    .intro-section, .details-section, .quote-section, .rsvp-section, .footer { background-color: var(--dark); }
+  `}
   .army-template-studio .reveal { opacity: 1 !important; filter: none !important; transform: none !important; }
 `;
+
+const CEREMONIAL_THEME_ALIASES = {
+  accent: ['--gold', '--gold-2'],
+  text: ['--text', '--muted'],
+  overlay: ['--blue-950', '--blue-900', '--blue-800', '--blue-700']
+};
+
+const CAMOUFLAGE_THEME_ALIASES = {
+  accent: ['--gold', '--gold-soft'],
+  text: ['--cream'],
+  overlay: ['--olive', '--olive-2', '--dark', '--glass']
+};
 
 const formatDate = (value) => {
   const date = new Date(`${value || DEFAULTS.eventDate}T12:00:00`);
@@ -190,7 +217,16 @@ const customizeArmyTemplate = (root, draft, onRsvpSubmit, mode) => {
 
   const closing = mark(root, '.footer p', { 'data-editor-field': 'closingMessage' });
   setText(closing, draft.closingMessage || 'Սիրով սպասում ենք Ձեզ');
+  const imageOverrides = draft.templateImageOverrides || {};
+  const stableImageKey = (stableKey, legacyKey) => (
+    Object.prototype.hasOwnProperty.call(imageOverrides, stableKey)
+      ? stableKey
+      : (Object.prototype.hasOwnProperty.call(imageOverrides, legacyKey) ? legacyKey : stableKey)
+  );
+  mark(root, '.hero-emblem', { 'data-template-image-key': stableImageKey('army-hero-emblem', 'image-0') });
   const soldier = mark(root, '.soldier-photo', { 'data-template-image-key': 'army-soldier-photo' });
+  mark(root, '.small-emblem img', { 'data-template-image-key': stableImageKey('army-small-emblem', 'image-2') });
+  mark(root, '.footer img', { 'data-template-image-key': stableImageKey('army-footer-emblem', 'image-3') });
   const photo = resolveTemplateImage(draft.gallery?.[0] || draft.image);
   if (soldier && photo && soldier.getAttribute('src') !== photo) soldier.setAttribute('src', photo);
   if (soldier) soldier.alt = `${name}-ի լուսանկարը`;
@@ -252,10 +288,11 @@ function ArmyTemplate({ variant, ...props }) {
   const customize = useCallback((root) => customizeArmyTemplate(root, draft, props.onRsvpSubmit, props.mode), [draft, props.mode, props.onRsvpSubmit]);
   const App = ceremonial ? CeremonialApp : CamouflageApp;
   const styles = ceremonial ? ceremonialStyles : camouflageStyles;
-  const adapterCss = getAdapterCss(ceremonial ? '#081a30' : '#171b12');
+  const adapterCss = getAdapterCss(ceremonial ? '#081a30' : '#171b12', ceremonial ? 'ceremonial' : 'camouflage');
   const fontUrl = ceremonial ? ceremonialFontUrl : camouflageFontUrl;
+  const themeVariableAliases = ceremonial ? CEREMONIAL_THEME_ALIASES : CAMOUFLAGE_THEME_ALIASES;
   const label = ceremonial ? 'Կապույտ հանդիսավոր բանակի քեֆի հրավեր' : 'Քողարկանախշ բանակի քեֆի հրավեր';
-  return <TemplateShell props={props}><OriginalTemplateSurface css={styles} adapterCss={adapterCss} draft={draft} fontImport={fontFace(fontUrl)} globalFontImport={fontFace(fontUrl)} label={label} customize={customize}><App /></OriginalTemplateSurface></TemplateShell>;
+  return <TemplateShell props={props}><OriginalTemplateSurface css={styles} adapterCss={adapterCss} draft={draft} fontImport={fontFace(fontUrl)} globalFontImport={fontFace(fontUrl)} label={label} customize={customize} themeVariableAliases={themeVariableAliases}><App /></OriginalTemplateSurface></TemplateShell>;
 }
 
 export const ArmyCeremonialLivePreview = (props) => <ArmyTemplate {...props} variant="ceremonial" />;

@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Check, FileAudio, ImagePlus, Music2, Pause, Play, Search, Trash2 } from 'lucide-react';
+import { Check, FileAudio, ImagePlus, Music2, Pause, Play, RotateCcw, Search, Trash2 } from 'lucide-react';
 import { resolveTemplateImage } from '../../occasionTemplates/templateAssets.js';
 import { useEditor } from './EditorContext.jsx';
 import { EmptyState, Field, PanelHeader, Toggle } from './EditorControls.jsx';
@@ -81,7 +81,13 @@ export default function MediaPanel() {
     setError('');
     try {
       const image = await prepareImage(file);
-      update((draft) => { draft.gallery[index] = image; });
+      update((draft) => {
+        draft.gallery[index] = image;
+        // The first gallery item is the primary/hero image across invitation
+        // adapters. Keep the legacy `image` field in sync so templates that
+        // still read it update immediately instead of only after remounting.
+        if (index === 0) draft.image = image;
+      });
     } catch (uploadError) {
       setError(uploadError.message?.startsWith('media') ? t(uploadError.message) : (uploadError.message || t('editorImageUploadError')));
     }
@@ -94,9 +100,11 @@ export default function MediaPanel() {
     try {
       const images = await Promise.all(Array.from(files).slice(0, available).map(prepareImage));
       update((draft) => {
+        const wasEmpty = !(draft.gallery || []).length;
         draft.gallery = [...(draft.gallery || []), ...images]
           .filter((item, index, items) => item && items.indexOf(item) === index)
           .slice(0, MAX_GALLERY_IMAGES);
+        if (wasEmpty && draft.gallery[0]) draft.image = draft.gallery[0];
       });
     } catch (uploadError) {
       setError(uploadError.message?.startsWith('media') ? t(uploadError.message) : (uploadError.message || t('editorImageUploadError')));
@@ -128,7 +136,10 @@ export default function MediaPanel() {
                 <img src={resolveTemplateImage(value)} alt={`${t('editorGalleryImage')} ${index + 1}`} />
                 <input type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => { void replaceGalleryImage(index, event.target.files?.[0]); event.target.value = ''; }} />
               </label>
-              <button type="button" onClick={() => update((draft) => { draft.gallery.splice(index, 1); })} aria-label={`${t('delete')}: ${t('editorGalleryImage')} ${index + 1}`}><Trash2 size={15} /></button>
+              <button type="button" onClick={() => update((draft) => {
+                draft.gallery.splice(index, 1);
+                if (index === 0) draft.image = draft.gallery[0] || '';
+              })} aria-label={`${t('delete')}: ${t('editorGalleryImage')} ${index + 1}`}><Trash2 size={15} /></button>
             </div>
           </article>)}
         </div>
@@ -141,7 +152,8 @@ export default function MediaPanel() {
         <div className="invite-editor-template-image-list">
           {otherImages.map((item, index) => {
             const overrides = data.templateImageOverrides || {};
-            const value = Object.prototype.hasOwnProperty.call(overrides, item.key) ? overrides[item.key] : item.defaultValue;
+            const overrideExists = Object.prototype.hasOwnProperty.call(overrides, item.key);
+            const value = overrideExists ? overrides[item.key] : item.defaultValue;
             return <article key={item.key} data-editor-field={`templateImageOverrides.${item.key}`}>
               <strong>{item.label || item.alt || `${t('editorInvitationImage')} ${index + 1}`}</strong>
               <div className="invite-editor-template-image-control">
@@ -155,7 +167,11 @@ export default function MediaPanel() {
                   : <span className="invite-editor-template-image-empty"><ImagePlus size={24} /><b>{t('editorUploadNewImage')}</b><small>{t('editorReplaceDeletedImage')}</small></span>}
                 <input type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={(event) => { void replaceTemplateImage(item.key, event.target.files?.[0]); event.target.value = ''; }} />
               </label>
-              {value && <button type="button" onClick={() => update((draft) => { draft.templateImageOverrides = { ...(draft.templateImageOverrides || {}), [item.key]: '' }; })} aria-label={`${t('delete')}: ${item.label || item.alt || `${t('image')} ${index + 1}`}`}><Trash2 size={15} /></button>}
+              {overrideExists && <button type="button" onClick={() => update((draft) => {
+                const nextOverrides = { ...(draft.templateImageOverrides || {}) };
+                delete nextOverrides[item.key];
+                draft.templateImageOverrides = nextOverrides;
+              })} aria-label={`${t('editorRestore')}: ${item.label || item.alt || `${t('image')} ${index + 1}`}`}><RotateCcw size={15} /></button>}
               </div>
             </article>;
           })}

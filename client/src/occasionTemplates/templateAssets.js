@@ -87,6 +87,7 @@ import lastBellSchool from '../vendorTemplates/verjinzang1/src/assets/school.jpg
 import lastBellVenue from '../vendorTemplates/verjinzang1/src/assets/venue.jpg';
 import armyCeremonialPhoto from '../vendorTemplates/armyCeremonial/src/assets/soldier-photo.jpg';
 import armyCamouflagePhoto from '../vendorTemplates/armyCamouflage/src/assets/soldier-photo.jpg';
+import { apiAssetUrl } from '../config/env.js';
 
 export const templateAssetSources = {
   'asset:curated/sacred/child-portrait.jpg': sacredPortrait,
@@ -318,7 +319,11 @@ export const templateDefaultGalleryIds = {
   ]
 };
 
-export const resolveTemplateImage = (image) => templateAssetSources[image] || image;
+// Persisted uploads are served by the API, while bundled template assets are
+// served by Vite/the public client. Resolve that distinction here so every
+// invitation surface (editor, private preview and purchased view) behaves the
+// same way.
+export const resolveTemplateImage = (image) => apiAssetUrl(templateAssetSources[image] || image);
 
 export const resolveTemplateImages = (images = []) => images
   .map(resolveTemplateImage)

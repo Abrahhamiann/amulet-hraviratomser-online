@@ -23,6 +23,11 @@ const MONTHS = ['Հունվար', 'Փետրվար', 'Մարտ', 'Ապրիլ', '�
 const MONTHS_GENITIVE = ['Հունվարի', 'Փետրվարի', 'Մարտի', 'Ապրիլի', 'Մայիսի', 'Հունիսի', 'Հուլիսի', 'Օգոստոսի', 'Սեպտեմբերի', 'Հոկտեմբերի', 'Նոյեմբերի', 'Դեկտեմբերի'];
 const WEEKDAYS = ['Կիր', 'Երկ', 'Երք', 'Չոր', 'Հնգ', 'Ուր', 'Շբ'];
 const watercolorFontFace = `@font-face { font-family: "Bubble Sans"; src: url('${bubbleSansFont}') format('opentype'); font-weight: 400; font-style: normal; font-display: swap; }`;
+const watercolorThemeAliases = {
+  accent: ['--blue', '--blue-dark', '--peach', '--peach-light', '--gold'],
+  text: ['--ink', '--ink-soft'],
+  overlay: ['--paper', '--white']
+};
 const resolvedWatercolorStyles = `${watercolorStyles.replace('./assets/fonts/BubbleSans.otf', bubbleSansFont)}
 
 /* Amulet integration fix: Bubble Sans needs its full line box so the age glyph is not clipped. */
@@ -243,7 +248,7 @@ export const getBirthdayWatercolorDraft = () => ({
 function BirthdayWatercolorTemplate(props) {
   const draft = props.draft || getBirthdayWatercolorDraft();
   const fontImport = `${watercolorFontFace} :host { --font-body: "Bubble Sans", Arial, sans-serif; --font-display: "Bubble Sans", Arial, sans-serif; }`;
-  return <TemplateShell props={props}><OriginalTemplateSurface css={resolvedWatercolorStyles} draft={draft} fontImport={fontImport} globalFontImport={watercolorFontFace} label="Ջրաներկ ծննդյան հրավեր"><BirthdayWatercolorDocument draft={draft} onRsvpSubmit={props.onRsvpSubmit} /></OriginalTemplateSurface></TemplateShell>;
+  return <TemplateShell props={props}><OriginalTemplateSurface css={resolvedWatercolorStyles} draft={draft} fontImport={fontImport} globalFontImport={watercolorFontFace} label="Ջրաներկ ծննդյան հրավեր" themeVariableAliases={watercolorThemeAliases}><BirthdayWatercolorDocument draft={draft} onRsvpSubmit={props.onRsvpSubmit} /></OriginalTemplateSurface></TemplateShell>;
 }
 
 export const BirthdayWatercolorCardPreview = () => <div className="original-template-card-preview"><img src={background} alt="" /><img src={flowers} alt="" style={{ position: 'absolute', inset: 'auto -12% -24% auto', width: '72%', opacity: .82 }} /><div /><span>React template</span><strong>Ջրաներկ տարեդարձ</strong></div>;
