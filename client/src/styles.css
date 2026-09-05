@@ -14941,7 +14941,7 @@ body.templates-route.templates-route .catalog-template-preview > .catalog-templa
 
 body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-visible, .is-touch-previewing) .catalog-template-scroll-shot.is-ready {
   filter: saturate(1) contrast(1.02);
-  animation: catalogTemplateScroll var(--template-preview-duration, 42s) linear infinite;
+  animation: templatePreviewScroll var(--template-preview-duration, 30s) linear infinite;
 }
 
 body.templates-route.templates-route .catalog-template-skeleton {
@@ -14969,9 +14969,9 @@ body.templates-route.templates-route .catalog-template-card {
   contain-intrinsic-size: auto var(--catalog-card-height);
 }
 
-@keyframes catalogTemplateScroll {
+@keyframes templatePreviewScroll {
   0% { transform: translate3d(0, 0, 0); }
-  45%, 55% { transform: translate3d(0, calc(-100% + var(--catalog-card-height)), 0); }
+  45%, 55% { transform: translate3d(0, calc(0px - var(--template-preview-distance, 0px)), 0); }
   100% { transform: translate3d(0, 0, 0); }
 }
 
@@ -15105,7 +15105,7 @@ body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-vi
   object-fit: contain;
   object-position: top center;
   will-change: transform;
-  animation: templateQrAutoScroll 52s linear infinite;
+  animation: templatePreviewScroll var(--template-preview-duration, 30s) linear infinite;
   transition: opacity .42s ease;
 }
 
@@ -15125,11 +15125,6 @@ body.templates-route.templates-route .catalog-template-card:is(:hover, :focus-vi
   opacity: 1;
 }
 
-@keyframes templateQrAutoScroll {
-  0% { transform: translate3d(0, 0, 0); }
-  45%, 55% { transform: translate3d(0, calc(-100% + 100cqh), 0); }
-  100% { transform: translate3d(0, 0, 0); }
-}
 
 /* Final modal overflow contract: scrolling stays usable while its track stays hidden. */
 @media (min-width: 881px) {

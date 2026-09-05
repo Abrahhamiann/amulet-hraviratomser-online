@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { resolveTemplateCardImage } from '../occasionTemplates/templateCardAssets.js';
 import { preloadOccasionTemplate } from '../occasionTemplates/templateManifest.js';
+import ScrollingPreviewImage from './ScrollingPreviewImage.jsx';
 
 const LazyDotLottie = lazy(() => import('@lottiefiles/dotlottie-react').then((module) => ({
   default: module.DotLottieReact
@@ -24,7 +25,7 @@ export default function TemplateCard({ template, priority = false }) {
   const [qrOpen, setQrOpen] = useState(false);
   const [authWarningOpen, setAuthWarningOpen] = useState(false);
   const [authReturnPath, setAuthReturnPath] = useState('/templates');
-  const [remotePreviewReady, setRemotePreviewReady] = useState(false);
+  const [loadedPreview, setLoadedPreview] = useState('');
   const [remotePreviewFailed, setRemotePreviewFailed] = useState(false);
   const [cardImageFailed, setCardImageFailed] = useState(false);
   const [touchPreviewing, setTouchPreviewing] = useState(false);
@@ -55,6 +56,7 @@ export default function TemplateCard({ template, priority = false }) {
     ? apiAssetUrl(template.pagePreviewThumbnail || template.pagePreviewImage)
       || `${API_URL}/templates/${template._id}/page-preview?catalog=1&v=${encodeURIComponent(template.updatedAt || '')}`
     : '';
+  const remotePreviewReady = Boolean(remotePagePreview && loadedPreview === remotePagePreview);
   // Keep the lightweight catalog screenshot mounted behind the cover so the
   // browser can fetch and decode it before hover. Native lazy-loading limits
   // this work to cards near the viewport instead of downloading the full grid.
@@ -158,7 +160,6 @@ export default function TemplateCard({ template, priority = false }) {
   };
 
   useEffect(() => {
-    setRemotePreviewReady(false);
     setRemotePreviewFailed(false);
   }, [remotePagePreview]);
 
@@ -200,19 +201,16 @@ export default function TemplateCard({ template, priority = false }) {
     >
       <div className="template-image catalog-template-preview">
         {catalogPagePreview ? (
-          <img
+          <ScrollingPreviewImage
             className={`catalog-template-scroll-shot${remotePreviewReady ? ' is-ready' : ''}`}
             src={catalogPagePreview}
             alt={`${template.title} — ամբողջական էջ`}
             loading={priority ? 'eager' : 'lazy'}
             decoding="async"
             fetchPriority={priority ? 'high' : 'auto'}
-            style={{
-              '--template-preview-duration': `${Math.max(18, Math.min(52, Number(template.pagePreviewMeta?.height || 4400) / 105))}s`
-            }}
-            onLoad={() => setRemotePreviewReady(true)}
+            onLoad={() => setLoadedPreview(remotePagePreview)}
             onError={() => {
-              setRemotePreviewReady(false);
+              setLoadedPreview('');
               setRemotePreviewFailed(true);
             }}
           />
@@ -274,7 +272,7 @@ export default function TemplateCard({ template, priority = false }) {
             </button>
             <div className="template-qr-preview">
               {pagePreview ? (
-                <img
+                <ScrollingPreviewImage
                   className="template-qr-auto-scroll"
                   src={pagePreview}
                   alt={`${template.title} — ամբողջական էջ`}
