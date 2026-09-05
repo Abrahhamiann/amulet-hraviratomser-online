@@ -177,7 +177,7 @@ const hy = {
   about: 'Մեր մասին',
   contact: 'Կապ',
   orderNow: 'Գնել',
-  viewTemplates: 'Դիտել հրավերները',
+  viewTemplates: 'Տեսնել հրավերները',
   orderCustom: 'Գնել անհատական հրավեր',
   heroTitle: '1 հրավեր՝ 1000 զանգի փոխարեն',
   heroDevice: 'Հարսանեկան հրավեր',

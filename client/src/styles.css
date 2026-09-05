@@ -2920,12 +2920,16 @@ body { background: #fff; }
   width: max-content;
   max-width: 100%;
   display: grid;
-  grid-template-columns: max-content max-content;
+  grid-template-columns: minmax(0, max-content) minmax(0, max-content);
   gap: 12px;
   align-items: center;
 }
 .home-intro-actions .btn {
-  white-space: nowrap;
+  /* Percentage-based minimums inside intrinsic grid tracks overlap in WebKit. */
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .home-about-btn {
   color: #d8b98e;
@@ -11743,8 +11747,10 @@ body,
     pointer-events: auto;
   }
 
+  .mobile-header-language,
   .mobile-header-language .language-picker {
-    position: relative;
+    /* Anchor the menu to the whole action group, keeping it inside small screens. */
+    position: static;
   }
 
   .mobile-header-language .language-select {
@@ -11852,7 +11858,7 @@ body,
   .nav-shell {
     max-width: 1120px;
     display: grid;
-    grid-template-columns: minmax(84px, 1fr) auto minmax(96px, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     justify-content: center;
     gap: 16px;
@@ -11886,7 +11892,7 @@ body,
 @media (max-width: 1180px) and (min-width: 881px) {
   .nav-shell {
     max-width: 100%;
-    grid-template-columns: minmax(70px, .55fr) auto minmax(90px, .55fr);
+    grid-template-columns: auto minmax(0, 1fr) auto;
   }
 
   .home-intro-media .home-device-suite {
@@ -13239,9 +13245,9 @@ body.templates-route .templates-catalog-hero h1 {
 
 @media (min-width: 881px) {
   .photo-gallery-hero {
-    height: 530px;
+    height: auto;
     min-height: 530px;
-    max-height: 530px;
+    max-height: none;
     align-content: center;
     padding-top: 24px;
     padding-bottom: 24px;

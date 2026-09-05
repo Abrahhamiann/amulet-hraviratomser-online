@@ -294,7 +294,7 @@ export default function AuthPage() {
               <button type="button" aria-pressed={mode === 'register'} className={mode === 'register' ? 'is-active' : ''} onClick={() => changeMode('register')}><UserPlus size={16} />{t('authRegister')}</button>
             </div>
             <form className="auth-form" onSubmit={submit} noValidate>
-              {mode === 'register' && <label><span>{t('contactName')}</span><input name="name" autoComplete="name" value={form.name} onChange={(event) => update('name', event.target.value)} placeholder={t('authNamePlaceholder')} required /></label>}
+              {mode === 'register' && <label><span>{t('contactName')}</span><input name="name" autoComplete="name" value={form.name} onChange={(event) => update('name', event.target.value)} required /></label>}
               {mode === 'register' ? (
                 <>
                   <label><span>Email</span><input name="email" ref={emailInputRef} type="email" autoComplete="email" value={form.email} onChange={(event) => update('email', event.target.value)} required /></label>

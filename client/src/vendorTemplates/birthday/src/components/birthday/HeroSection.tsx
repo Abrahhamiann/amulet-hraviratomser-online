@@ -67,7 +67,7 @@ export function HeroSection({ data, start }: { data: InvitationConfig; start: bo
             className="group relative inline-flex min-h-12 items-center gap-3 rounded-full px-8 py-3.5 font-sans text-sm font-medium uppercase tracking-[0.2em] text-accent-foreground shadow-glow transition-transform duration-300 hover:scale-[1.04] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
             style={{ backgroundImage: "var(--gradient-gold)", backgroundSize: "200% 100%" }}
           >
-            Դիտել հրավերը
+            Տեսնել հրավերը
             <span className="transition-transform duration-300 group-hover:translate-y-1">↓</span>
           </a>
         </motion.div>
