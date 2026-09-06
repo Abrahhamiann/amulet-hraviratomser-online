@@ -24,7 +24,8 @@ import templateRoutes from './routes/templateRoutes.js';
 import telegramRoutes from './routes/telegramRoutes.js';
 import { getPublicFaq } from './controllers/adminController.js';
 import { startContactReminderScheduler } from './utils/contactReminder.js';
-import { authCookieName } from './utils/authCookie.js';
+import { protect, adminOnly } from './middleware/auth.js';
+import { browserRequestGuard, createRateLimiter, securityHeaders, validateRequestShape } from './middleware/security.js';
 import { ensureTemplateCodes } from './utils/templateCode.js';
 import Template from './models/Template.js';
 import { purgeSoftDeletedTemplates } from './utils/templateDeletion.js';
@@ -46,6 +47,18 @@ if (paymentConfiguration.configured) {
 const app = express();
 const PORT = process.env.PORT || 5000;
 const allowedOrigins = resolveAllowedOrigins();
+app.disable('x-powered-by');
+app.set('query parser', 'simple');
+// Only the local nginx reverse proxy may supply the client address.
+app.set('trust proxy', 'loopback');
+app.use(securityHeaders);
+app.use(browserRequestGuard(allowedOrigins));
+app.use('/api', createRateLimiter({ limit: 600, windowMs: 60000 }));
+const authLimiter = createRateLimiter({ limit: 20, windowMs: 15 * 60000 });
+app.use('/api/auth', (req, res, next) => req.method === 'POST' ? authLimiter(req, res, next) : next());
+const writeLimiter = createRateLimiter({ limit: 30, windowMs: 10 * 60000 });
+app.use(['/api/contact', '/api/orders', '/api/rsvp', '/api/previews', '/api/payments', '/api/reviews', '/api/promocodes'],
+  (req, res, next) => req.method === 'POST' ? writeLimiter(req, res, next) : next());
 
 app.use(cors({
   origin(origin, callback) {
@@ -53,25 +66,27 @@ app.use(cors({
       callback(null, true);
       return;
     }
-    callback(new Error('Not allowed by CORS'));
+    callback(Object.assign(new Error('Not allowed by CORS'), { statusCode: 403 }));
   },
   credentials: true
 }));
 app.use(parseCookies);
+const mediaJson = express.json({ limit: '15mb', inflate: false });
+const smallJson = express.json({ limit: '64kb', inflate: false });
 app.use((req, res, next) => {
-  const unsafeMethod = !['GET', 'HEAD', 'OPTIONS'].includes(req.method);
-  if (!unsafeMethod || !req.cookies?.[authCookieName()]) return next();
-
-  const origin = req.get('origin');
-  const fetchSite = req.get('sec-fetch-site');
-  if (fetchSite === 'cross-site' || (origin && !allowedOrigins.includes(origin))) {
-    res.status(403).json({ message: 'Cross-site request blocked' });
-    return;
-  }
-  next();
+  const mediaRoute = /^(?:\/api\/previews\/?|\/api\/payments\/arca\/create\/?|\/api\/(?:admin\/)?(?:templates|invitations)(?:\/[^/]+)?\/?)$/i.test(req.path);
+  if (!mediaRoute || !['POST', 'PUT', 'PATCH'].includes(req.method)) return smallJson(req, res, next);
+  protect(req, res, (error) => {
+    if (error) return next(error);
+    if (/\/api\/(?:admin\/)?(?:templates|invitations)/i.test(req.path)) {
+      return adminOnly(req, res, () => mediaJson(req, res, next));
+    }
+    mediaJson(req, res, next);
+  });
 });
-app.use(express.json({ limit: '15mb' }));
-app.use(morgan('dev'));
+app.use(validateRequestShape);
+// Do not log invitation/preview bearer URLs or query-string credentials.
+app.use(morgan(':method :status :response-time ms'));
 
 await ensureMediaRoot();
 app.use('/media', express.static(getMediaRoot(), {
@@ -130,7 +145,9 @@ const startServer = async () => {
     console.warn(`Template catalog verification skipped: ${error.message}`);
   }
   startContactReminderScheduler();
-  const server = app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
+  const server = app.listen(PORT, process.env.HOST || (process.env.NODE_ENV === 'production' ? '127.0.0.1' : '0.0.0.0'), () => console.log(`Server running on port ${PORT}`));
+  server.requestTimeout = 30000;
+  server.headersTimeout = 15000;
   server.on('error', (error) => {
     if (error.code === 'EADDRINUSE') {
       console.error(`Port ${PORT} is already in use by another application. Stop it or set a different PORT in server/.env.`);

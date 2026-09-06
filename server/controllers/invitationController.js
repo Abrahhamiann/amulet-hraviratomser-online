@@ -7,14 +7,6 @@ import { PUBLIC_DESIGN_KEYS } from '../utils/templateDesign.js';
 import { optimizeInvitationDraftMedia } from '../utils/imageOptimization.js';
 
 const CURRENT_DESIGN_KEYS = new Set(PUBLIC_DESIGN_KEYS);
-const PUBLIC_INVITATION_CACHE_TTL_MS = 5 * 60 * 1000;
-const publicInvitationCache = new Map();
-
-const pruneInvitationCache = () => {
-  if (publicInvitationCache.size < 500) return;
-  const oldestKey = publicInvitationCache.keys().next().value;
-  if (oldestKey) publicInvitationCache.delete(oldestKey);
-};
 
 const persistInvitationMedia = async (payload = {}) => {
   const customization = payload.customization && typeof payload.customization === 'object'
@@ -42,14 +34,6 @@ export const getInvitationBySlug = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Invitation not found');
   }
-  const cached = publicInvitationCache.get(identifier);
-  if (cached?.expiresAt > Date.now()) {
-    res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600');
-    res.set('X-Amulet-Cache', 'HIT');
-    res.json(cached.payload);
-    return;
-  }
-
   const invitation = await Invitation.findOne({ slug: identifier, isPublished: true })
     .select('slug templateId eventType names date time location mapLink mapLinks message gallery colors colorPaletteId language customization isPublished updatedAt')
     .populate({ path: 'templateId', select: 'title slug category editorType designKey' })
@@ -62,14 +46,9 @@ export const getInvitationBySlug = asyncHandler(async (req, res) => {
     res.status(410);
     throw new Error('Invitation template is no longer available');
   }
-  pruneInvitationCache();
-  publicInvitationCache.delete(identifier);
-  publicInvitationCache.set(identifier, {
-    payload: invitation,
-    expiresAt: Date.now() + PUBLIC_INVITATION_CACHE_TTL_MS
-  });
-  res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600');
-  res.set('X-Amulet-Cache', 'MISS');
+  // Publication is an access decision: check it on every request, including
+  // after updates through the separate admin API. Do not cache personal data.
+  res.set('Cache-Control', 'no-store');
   res.json(invitation);
 });
 
@@ -128,7 +107,6 @@ export const updateInvitation = asyncHandler(async (req, res) => {
     customization: media.customization
   });
   await invitation.save();
-  publicInvitationCache.delete(invitation.slug);
   res.json(invitation);
 });
 
@@ -138,7 +116,6 @@ export const deleteInvitation = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error('Invitation not found');
   }
-  publicInvitationCache.delete(invitation.slug);
   await invitation.deleteOne();
   res.json({ message: 'Invitation deleted' });
 });

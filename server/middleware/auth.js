@@ -9,13 +9,14 @@ const authenticate = async (req) => {
 
   let decoded;
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET);
+    decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+    if (!decoded || typeof decoded.id !== 'string' || !/^[a-f0-9]{24}$/i.test(decoded.id)) return null;
   } catch {
     return null;
   }
 
   const user = await User.findById(decoded.id).select('+tokenVersion');
-  if (!user || (Number(decoded.v) || 0) !== (Number(user.tokenVersion) || 0)) return null;
+  if (!user || !user.isEmailVerified || (Number(decoded.v) || 0) !== (Number(user.tokenVersion) || 0)) return null;
   return user;
 };
 

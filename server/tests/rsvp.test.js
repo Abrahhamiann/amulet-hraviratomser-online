@@ -56,6 +56,7 @@ test('every invitation RSVP form uses an uncapped numeric guest field', () => {
 test('stores a native-template RSVP without a phone and notifies the owner before responding', async () => {
   process.env.TELEGRAM_BOT_TOKEN = 'test-token';
   const invitation = {
+    isPublished: true,
     _id: '507f1f77bcf86cd799439011',
     orderId: '507f1f77bcf86cd799439022',
     names: 'Anna & Armen'
@@ -146,6 +147,7 @@ test('returns stored RSVP replies on the purchased invitation owner page', async
 
 test('stores an HTML form guest count exactly without an arbitrary upper cap', async () => {
   const invitation = {
+    isPublished: true,
     _id: '507f1f77bcf86cd799439011',
     orderId: '507f1f77bcf86cd799439022',
     names: 'Anna & Armen'

@@ -6,6 +6,7 @@ dist/
 client/dist/
 server/dist/
 coverage/
+.browser-test/
 
 .env
 .env.*

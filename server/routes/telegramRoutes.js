@@ -32,7 +32,7 @@ const botOnly = (req, res, next) => {
     .map((value) => value?.trim() || '')
     .filter(Boolean);
   const valid = expectedSecrets.some((expected) => (
-    received.length === expected.length
+    Buffer.byteLength(received) === Buffer.byteLength(expected)
     && crypto.timingSafeEqual(Buffer.from(received), Buffer.from(expected))
   ));
 

@@ -450,6 +450,9 @@ export const verifyArcaPayment = async ({ paymentId, user }) => {
   const normalized = normalizeArcaStatus(response);
   const returnedAmount = arcaResponseValue(response, 'amount');
   const returnedCurrency = arcaResponseValue(response, 'currency');
+  if (normalized.status === 'PAID' && (returnedAmount == null || returnedCurrency == null)) {
+    throw paymentError(502, 'PAYMENT_VERIFICATION_INCOMPLETE', 'Payment provider omitted required verification fields');
+  }
   if (returnedAmount !== undefined && String(returnedAmount) !== payment.providerAmount) {
     return failVerification(payment, 'PAYMENT_AMOUNT_MISMATCH', 'ArCa payment amount verification failed', response);
   }

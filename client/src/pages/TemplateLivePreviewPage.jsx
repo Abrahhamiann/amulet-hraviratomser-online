@@ -666,7 +666,7 @@ export default function TemplateLivePreviewPage() {
     navigate(`/templates/${templateId}/live?edit=1`);
   };
 
-  if (!initialized || state === 'loading') return <Loading text={t('loading')} />;
+  if (!initialized || state === 'loading') return <Loading fullScreen text={t('loading')} />;
   if (state === 'error') return <ErrorState text={t('error')} />;
 
   const LivePreview = occasionTemplate?.LivePreview;

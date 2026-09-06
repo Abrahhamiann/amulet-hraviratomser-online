@@ -29,6 +29,7 @@ export const getMailTransporter = () => {
     host,
     port,
     secure,
+    requireTLS: !secure,
     auth: { user, pass },
     connectionTimeout: Math.min(timeoutMs, 10_000),
     greetingTimeout: Math.min(timeoutMs, 10_000),

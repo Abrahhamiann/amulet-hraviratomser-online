@@ -43,7 +43,7 @@ function CustomersPage() {
   const [profile, setProfile] = useState<any>(null);
   const [emailTarget, setEmailTarget] = useState<any>(null);
   const [deleteTarget, setDeleteTarget] = useState<any>(null);
-  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "Useramulet2026!" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
   const [emailForm, setEmailForm] = useState({ subject: "", message: "" });
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
@@ -60,7 +60,7 @@ function CustomersPage() {
       await queryClient.invalidateQueries({ queryKey: ["admin", "customers"] });
       toast.success(t("done"));
       setOpen(false);
-      setForm({ name: "", email: "", phone: "", password: "Useramulet2026!" });
+      setForm({ name: "", email: "", phone: "", password: "" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("failed"));
     } finally {

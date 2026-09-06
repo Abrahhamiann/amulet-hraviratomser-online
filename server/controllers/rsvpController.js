@@ -5,7 +5,7 @@ import { notifyInvitationOwnerOfRsvp } from '../utils/telegram.js';
 
 export const createRSVP = asyncHandler(async (req, res) => {
   const invitation = await Invitation.findById(req.params.invitationId);
-  if (!invitation) {
+  if (!invitation || !invitation.isPublished) {
     res.status(404);
     throw new Error('Invitation not found');
   }

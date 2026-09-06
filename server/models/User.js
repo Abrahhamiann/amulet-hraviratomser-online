@@ -44,7 +44,10 @@ userSchema.index({ 'telegram.chatId': 1 }, { sparse: true });
 
 userSchema.pre('save', async function hashPassword(next) {
   if (!this.isModified('password') || !this.password) return next();
-  if (/^\$2[aby]\$/.test(this.password)) return next();
+  if (this.$locals.passwordIsHashed === true) {
+    delete this.$locals.passwordIsHashed;
+    return next();
+  }
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });

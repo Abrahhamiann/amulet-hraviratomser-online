@@ -110,7 +110,7 @@ export default function InvitationPage() {
     else navigator.clipboard.writeText(url);
   };
 
-  if (state === 'loading') return <Loading text={t('loading')} />;
+  if (state === 'loading') return <Loading fullScreen text={t('loading')} />;
   if (state === 'error') return <ErrorState text={t('error')} />;
 
   const eventDate = new Date(invitation.date);

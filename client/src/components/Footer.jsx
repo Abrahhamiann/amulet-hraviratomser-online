@@ -1,14 +1,29 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { COMPANY_SITE_URL } from '../config/env.js';
+import { useLanguage } from '../context/LanguageContext.jsx';
+import paymentMethodsLogo from '../assets/payments/payment-methods.webp';
 
 export default function Footer() {
+  const { t } = useLanguage();
   return (
     <footer className="footer">
       <Link className="footer-wordmark" to="/" aria-label="Amulet">
         <span>Amulet</span>
       </Link>
-      <a className="footer-rsoft" href={COMPANY_SITE_URL} target="_blank" rel="noreferrer">&copy;2026 R'SOFT | All Rights Reserved</a>
+      <div className="footer-meta">
+        <a className="footer-rsoft" href={COMPANY_SITE_URL} target="_blank" rel="noreferrer">&copy;2026 R'SOFT | {t('allRightsReserved')}</a>
+        <div className="footer-payments" role="group" aria-label={t('paymentMethods')}>
+          <img
+            className="footer-payment-methods-logo"
+            src={paymentMethodsLogo}
+            alt="ArCa, Mastercard, Visa, MIR, VTB and Idram"
+            width="1200"
+            height="122"
+            loading="lazy"
+          />
+        </div>
+      </div>
     </footer>
   );
 }

@@ -219,7 +219,7 @@ export default function TemplatesPage() {
       {state === 'ready' && <>
         <div className="templates-grid catalog-grid">{templates.map((template, index) => <TemplateCard key={template._id} template={template} priority={index < 5} />)}</div>
         {hasMore && <div ref={loadMoreRef} className="catalog-load-more" aria-hidden="true" />}
-        {loadingMore && <Loading text={t('loading')} />}
+        {loadingMore && <Loading inline text={t('loading')} />}
       </>}
     </section>
   );

@@ -23,6 +23,7 @@ export class AmuletApi {
       try {
         const response = await fetch(url, {
           method,
+          redirect: 'error',
           headers: {
             'Content-Type': 'application/json',
             'X-Telegram-Bot-Secret': this.secret

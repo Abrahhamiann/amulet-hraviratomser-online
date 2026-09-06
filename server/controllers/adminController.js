@@ -10,7 +10,7 @@ import User from '../models/User.js';
 import { emailShell, sendMail } from '../utils/mailer.js';
 import { deliverContactReply } from '../utils/contactReply.js';
 import { makeSlug } from '../utils/slug.js';
-import { normalizePhone } from '../utils/accountValidation.js';
+import { isStrongPassword, isValidEmail, normalizePhone } from '../utils/accountValidation.js';
 import { clearTemplateDeletionMarker, deleteTemplatePermanently } from '../utils/templateDeletion.js';
 import { ensureTemplateCodes, nextTemplateCode, reindexTemplateCodes } from '../utils/templateCode.js';
 import { PUBLIC_DESIGN_KEYS, templateCategoryForDesign, templateEditorTypeForCategory } from '../utils/templateDesign.js';
@@ -780,7 +780,11 @@ export const replyAdminMessage = asyncHandler(async (req, res) => {
 });
 
 export const createAdminUser = asyncHandler(async (req, res) => {
-  const { name, email, phone, password = 'Adminamulet2026!', role = 'user' } = req.body;
+  const { name, email, phone, password, role = 'user' } = req.body;
+  if (typeof name !== 'string' || name.trim().length > 160 || !isValidEmail(email) || !isStrongPassword(password)) {
+    res.status(400);
+    throw new Error('Valid name, email and a strong password are required');
+  }
   if (!name || !email) {
     res.status(400);
     throw new Error('Name and email are required');

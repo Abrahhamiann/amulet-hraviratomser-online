@@ -212,7 +212,7 @@ export default function HomePage() {
             height="1086"
             loading="eager"
             decoding="async"
-            fetchPriority="high"
+            fetchpriority="high"
             draggable="false"
           />
         </div>
@@ -273,6 +273,7 @@ export default function HomePage() {
                 src={getYouTubeEmbedUrl(creationVideoUrl)}
                 title={t('creationFlowTitle')}
                 loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
               />

@@ -121,6 +121,8 @@ const en = {
   dashboard: 'Dashboard',
   logout: 'Logout',
   loading: 'Loading...',
+  allRightsReserved: 'All Rights Reserved',
+  paymentMethods: 'Payment methods',
   loadMore: 'Load more',
   error: 'Something went wrong',
   required: 'Please fill required fields',
@@ -274,6 +276,8 @@ const hy = {
   dashboard: 'Վահանակ',
   logout: 'Ելք',
   loading: 'Բեռնվում է...',
+  allRightsReserved: 'Բոլոր իրավունքները պաշտպանված են',
+  paymentMethods: 'Վճարման եղանակներ',
   loadMore: 'Ցույց տալ ավելին',
   error: 'Ինչ-որ բան սխալ է',
   required: 'Խնդրում ենք լրացնել պարտադիր դաշտերը',
@@ -425,6 +429,8 @@ Object.assign(ru, {
   dashboard: 'Панель',
   logout: 'Выход',
   loading: 'Загрузка...',
+  allRightsReserved: 'Все права защищены',
+  paymentMethods: 'Способы оплаты',
   loadMore: 'Показать ещё',
   error: 'Что-то пошло не так',
   required: 'Заполните обязательные поля',
@@ -1007,7 +1013,7 @@ Object.assign(ru, {
 
 Object.assign(hy, {
   occasionBrowserKicker: 'Առիթներ',
-  occasionBrowserTitle: 'Կատալոգ ըստ առիթի',
+  occasionBrowserTitle: 'Հրավերներ ըստ միջոցառման',
   editRequiredTitle: 'Նախ խմբագրեք հրավերը',
   editRequiredText: 'Գնելուց առաջ լրացրեք անունները, օրը, ժամը և միջոցառման մյուս անհրաժեշտ մանրամասները։',
   editRequiredAction: 'Խմբագրել հիմա',
@@ -1016,7 +1022,7 @@ Object.assign(hy, {
 
 Object.assign(en, {
   occasionBrowserKicker: 'Occasions',
-  occasionBrowserTitle: 'Browse by occasion',
+  occasionBrowserTitle: 'Invitations by event',
   editRequiredTitle: 'Edit your invitation first',
   editRequiredText: 'Before ordering, add the names, date, time, and the other details for your event.',
   editRequiredAction: 'Edit now',
@@ -1025,7 +1031,7 @@ Object.assign(en, {
 
 Object.assign(ru, {
   occasionBrowserKicker: 'События',
-  occasionBrowserTitle: 'Выберите приглашение по случаю',
+  occasionBrowserTitle: 'Приглашения по типам мероприятий',
   editRequiredTitle: 'Сначала отредактируйте приглашение',
   editRequiredText: 'Перед заказом укажите имена, дату, время и другие необходимые данные мероприятия.',
   editRequiredAction: 'Редактировать',

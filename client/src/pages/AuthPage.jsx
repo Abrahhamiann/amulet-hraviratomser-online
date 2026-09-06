@@ -12,7 +12,7 @@ import { startPayment } from '../utils/checkout.js';
 import { getApiErrorKey, getLocalizedApiError } from '../utils/apiErrors.js';
 
 const GOOGLE_SCRIPT_ID = 'google-identity-services';
-let googleScriptPromise;
+let googleScriptState = { locale: '', promise: null };
 
 const sanitizePhoneInput = (value) => {
   const rawValue = String(value || '');
@@ -20,13 +20,27 @@ const sanitizePhoneInput = (value) => {
   return `${prefix}${rawValue.replace(/\D/g, '')}`.slice(0, 16);
 };
 
-const loadGoogleIdentity = () => {
-  if (window.google?.accounts?.id) return Promise.resolve(window.google.accounts.id);
-  if (googleScriptPromise) return googleScriptPromise;
+const loadGoogleIdentity = (locale) => {
+  const googleLocale = ['hy', 'en', 'ru'].includes(locale) ? locale : 'en';
+  const localizedScriptSrc = `https://accounts.google.com/gsi/client?hl=${googleLocale}`;
+  const currentScript = document.getElementById(GOOGLE_SCRIPT_ID)
+    || document.querySelector('script[src^="https://accounts.google.com/gsi/client"]');
+  const currentLocale = currentScript?.dataset.locale || '';
 
-  googleScriptPromise = new Promise((resolve, reject) => {
-    let script = document.getElementById(GOOGLE_SCRIPT_ID)
-      || document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+  if (currentLocale === googleLocale && currentScript?.dataset.loaded === 'true' && window.google?.accounts?.id) {
+    return Promise.resolve(window.google.accounts.id);
+  }
+  if (googleScriptState.locale === googleLocale && googleScriptState.promise) return googleScriptState.promise;
+
+  currentScript?.remove();
+  const script = document.createElement('script');
+  script.id = GOOGLE_SCRIPT_ID;
+  script.src = localizedScriptSrc;
+  script.dataset.locale = googleLocale;
+  script.async = true;
+  script.defer = true;
+
+  const scriptPromise = new Promise((resolve, reject) => {
     const timeoutId = window.setTimeout(() => handleError(), 12_000);
     const cleanup = () => {
       window.clearTimeout(timeoutId);
@@ -44,31 +58,25 @@ const loadGoogleIdentity = () => {
       script?.remove();
       reject(new Error('Google Identity Services failed to load'));
     };
-
-    if (!script) {
-      script = document.createElement('script');
-      script.id = GOOGLE_SCRIPT_ID;
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      document.head.appendChild(script);
-    }
     script.addEventListener('load', handleLoad, { once: true });
     script.addEventListener('error', handleError, { once: true });
-    if (script.dataset.loaded === 'true') handleLoad();
-  }).catch((error) => {
-    googleScriptPromise = undefined;
-    throw error;
+    document.head.appendChild(script);
   });
 
-  return googleScriptPromise;
+  const localizedPromise = scriptPromise.catch((error) => {
+    if (googleScriptState.promise === localizedPromise) googleScriptState = { locale: '', promise: null };
+    throw error;
+  });
+  googleScriptState = { locale: googleLocale, promise: localizedPromise };
+
+  return localizedPromise;
 };
 
 export default function AuthPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { initialized, setAuthenticatedUser, user } = useAuth();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const googleRef = useRef(null);
   const googleButtonRef = useRef(null);
   const emailInputRef = useRef(null);
@@ -151,7 +159,7 @@ export default function AuthPage() {
     let renderFrame = 0;
     let scheduleRender = () => {};
     setGoogleStatus('loading');
-    loadGoogleIdentity().then(() => {
+    loadGoogleIdentity(language).then(() => {
       if (cancelled || !window.google?.accounts?.id || !googleRef.current || !googleButtonRef.current) return;
       window.google.accounts.id.initialize({
         client_id: googleRuntimeClientId,
@@ -177,6 +185,7 @@ export default function AuthPage() {
         button.replaceChildren();
         window.google.accounts.id.renderButton(button, {
           theme: 'outline', size: 'large', shape: 'pill', text: mode === 'register' ? 'signup_with' : 'signin_with',
+          locale: language,
           width
         });
         setGoogleStatus('ready');
@@ -201,7 +210,7 @@ export default function AuthPage() {
       window.removeEventListener('resize', scheduleRender);
       window.cancelAnimationFrame(renderFrame);
     };
-  }, [mode, googleLoadAttempt, googleRuntimeClientId, initialized]);
+  }, [language, mode, googleLoadAttempt, googleRuntimeClientId, initialized]);
 
   useEffect(() => {
     if (!existingEmailWarningOpen) return undefined;

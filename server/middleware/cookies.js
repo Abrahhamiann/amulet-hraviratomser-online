@@ -1,5 +1,5 @@
 export const parseCookies = (req, res, next) => {
-  req.cookies = {};
+  req.cookies = Object.create(null);
   const header = req.headers.cookie;
   if (!header) return next();
 

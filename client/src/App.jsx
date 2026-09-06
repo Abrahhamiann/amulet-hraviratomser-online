@@ -20,7 +20,7 @@ const TemplatesPage = lazy(() => import('./pages/TemplatesPage.jsx'));
 
 export default function App() {
   return (
-    <Suspense fallback={<Loading text="Loading..." />}>
+    <Suspense fallback={<Loading fullScreen />}>
       <Routes>
         <Route element={<PublicLayout />}>
           <Route path="/" element={<HomePage />} />

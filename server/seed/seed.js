@@ -6,6 +6,7 @@ import Order from '../models/Order.js';
 import RSVP from '../models/RSVP.js';
 import Template from '../models/Template.js';
 import User from '../models/User.js';
+import { isStrongPassword } from '../utils/accountValidation.js';
 
 dotenv.config();
 
@@ -132,6 +133,9 @@ const templates = [
 ];
 
 const run = async () => {
+  if (!isStrongPassword(process.env.SEED_ADMIN_PASSWORD)) {
+    throw new Error('Set a unique strong SEED_ADMIN_PASSWORD before running the demo seed');
+  }
   if (process.env.NODE_ENV === 'production' && process.env.ALLOW_DESTRUCTIVE_SEED !== 'ERASE_PRODUCTION_DATA') {
     throw new Error('Refusing to run the destructive demo seed in production');
   }
@@ -147,7 +151,7 @@ const run = async () => {
   await User.create({
     name: 'Admin',
     email: 'admin@einvite.local',
-    password: 'Admin123!',
+    password: process.env.SEED_ADMIN_PASSWORD,
     role: 'super_admin',
     isEmailVerified: true
   });

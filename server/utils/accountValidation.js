@@ -22,7 +22,7 @@ export const passwordRequirements = (value = '') => {
 };
 
 export const isStrongPassword = (value = '') => (
-  Object.values(passwordRequirements(value)).every(Boolean)
+  typeof value === 'string' && Object.values(passwordRequirements(value)).every(Boolean)
 );
 
-export const isValidEmail = (value = '') => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizeEmail(value));
+export const isValidEmail = (value = '') => typeof value === 'string' && value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizeEmail(value));

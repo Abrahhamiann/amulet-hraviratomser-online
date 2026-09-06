@@ -47,6 +47,7 @@ const request = async (endpoint, values, operation) => {
   try {
     response = await fetch(endpointUrl(config.baseUrl, endpoint), {
       method: 'POST',
+      redirect: 'error',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params,
       signal: AbortSignal.timeout(config.timeoutMs)

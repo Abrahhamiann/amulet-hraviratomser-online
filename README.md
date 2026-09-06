@@ -56,6 +56,9 @@ Running the same command with an existing super-admin email changes that account
 
 4. Optional: seed sample data on a new/disposable database only:
 
+Set `SEED_ADMIN_PASSWORD` to a unique strong password first. The seed refuses
+to run without it and no longer creates an account with a shared password.
+
 ```bash
 npm run seed
 ```
