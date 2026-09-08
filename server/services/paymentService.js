@@ -32,7 +32,8 @@ import { createSecureInvitationSlug } from '../utils/invitationSlug.js';
 import { toArcaAmount } from '../utils/paymentAmount.js';
 import { paymentLog, sanitizeArcaResponse } from '../utils/paymentLogger.js';
 import { hashPreviewToken } from '../utils/previewToken.js';
-import { normalizePromoCode, resolvePromo } from '../utils/promo.js';
+import { creatorSnapshot, normalizePromoCode, resolvePromo } from '../utils/promo.js';
+import { notifyCreatorOfPayment } from '../utils/creatorTelegram.js';
 
 const paymentError = (statusCode, code, message) => {
   const error = new Error(message);
@@ -212,6 +213,7 @@ export const createArcaPayment = async ({ user, body }) => {
 
   try {
     payment = await Payment.create({
+      ...creatorSnapshot(promoResult?.promo, amount),
       provider: 'arca',
       status: 'CREATED',
       localOrderId: localOrderId(),
@@ -294,6 +296,10 @@ const buildPurchasedOrder = async (payment) => {
       discountAmount: payment.discountAmount,
       promoCode: payment.promoCode,
       promoGift: payment.promoGift,
+      creatorPromoId: payment.creatorPromoId,
+      creatorName: payment.creatorName,
+      creatorCommissionPercent: payment.creatorCommissionPercent,
+      creatorCommissionAmount: payment.creatorCommissionAmount,
       paymentStatus: 'paid',
       paymentProvider: 'arca',
       providerPaymentId: payment.arcaOrderId,
@@ -337,7 +343,7 @@ const buildPurchasedOrder = async (payment) => {
     await preview.save();
   }
   if (payment.promoCode) {
-    await PromoCode.updateOne({ code: payment.promoCode }, [{
+    await PromoCode.updateOne(payment.creatorPromoId ? { _id: payment.creatorPromoId } : { code: payment.promoCode }, [{
       $set: {
         usageCount: {
           $cond: [
@@ -382,6 +388,9 @@ export const finalizeSuccessfulPayment = async (paymentId, providerResponse) => 
     await payment.save();
 
     let notification;
+    await notifyCreatorOfPayment(payment._id).catch((error) => {
+      console.error('Creator purchase notification deferred:', error.message);
+    });
     try {
       notification = await notifyAdminsOfOrder(order, { paidPurchase: true });
     } catch (error) {

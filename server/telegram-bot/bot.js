@@ -2,6 +2,7 @@ import { AmuletApi, AmuletApiError } from './amuletApi.js';
 import { config } from './config.js';
 import { LANGUAGES, LANGUAGE_NAMES, normalizeLanguage, tr } from './i18n.js';
 import { TelegramApiError, TelegramClient } from './telegramClient.js';
+import { creatorLinkButtons, creatorDashboardButton } from '../utils/creatorPresentation.js';
 
 const PAGE_SIZE = 5;
 const api = new AmuletApi(config.apiUrl, config.apiSecret);
@@ -9,6 +10,7 @@ const telegram = new TelegramClient(config.token);
 const sessions = new Map();
 const shutdown = new AbortController();
 let offset = 0;
+let botUsername = '';
 
 const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 const escapeHtml = (value = '') => String(value)
@@ -100,6 +102,10 @@ const showHome = async (context, welcomeKey = 'menu_title') => {
   try {
     const account = await loadAccount(context);
     const language = sessionFor(context.chatId).language;
+    if (account.creator) {
+      await showCreatorDashboard(context);
+      return;
+    }
     await editOrSend(context, tr(language, welcomeKey, {
       name: escapeHtml(account.name || context.user?.first_name || '')
     }), mainMenu(language, account.notificationsEnabled !== false));
@@ -126,7 +132,18 @@ const start = async (context, token) => {
       languageCode: context.user.language_code || ''
     });
     sessionFor(context.chatId).language = normalizeLanguage(result.language, language);
+    if (result.creator) {
+      await send(context.chatId, '✅ Creator-ի Telegram-ը կապակցված է։ Ձեր պրոմոկոդով վճարված գնումների ծանուցումները կստանաք այստեղ։', { inline_keyboard: [creatorDashboardButton] });
+      await showCreatorDashboard(context);
+      return;
+    }
   } catch (error) {
+    if (token.startsWith('creator_')) {
+      await send(context.chatId, error?.status === 400
+        ? 'Creator-ի հղումը ժամկետանց է կամ չի գտնվել այս սերվերում։ Խնդրեք ադմինին նոր հղում ստեղծել բոտի նույն միջավայրում։'
+        : 'Creator-ի կապակցումը չհաստատվեց։ Նորից բացեք նույն հղումը և սեղմեք Start։ Եթե խնդիրը կրկնվում է՝ տեղեկացրեք ադմինին։');
+      return;
+    }
     // A timeout may happen after the server has already consumed the one-time
     // token. Verify the resulting account before reporting a failed link.
     if (error?.uncertain || error?.status >= 500 || error?.status === 0) {
@@ -271,8 +288,9 @@ const disconnect = async (context) => {
 };
 
 const adminMenu = { inline_keyboard: [
+  [{ text: '👥 Content Creators', callback_data: 'admin:creators:0' }],
   [{ text: '📊 Ամփոփում', callback_data: 'admin:dashboard' }],
-  [{ text: '📦 Պատվերներ', callback_data: 'admin:orders:0' }, { text: '✉️ Նամակներ', callback_data: 'admin:messages:0' }],
+  [{ text: '📦 Գնումներ', callback_data: 'admin:orders:0' }, { text: '✉️ Նամակներ', callback_data: 'admin:messages:0' }],
   [{ text: '🔄 Թարմացնել', callback_data: 'admin:home' }]
 ] };
 const adminBack = [{ text: '← Գլխավոր', callback_data: 'admin:home' }];
@@ -351,12 +369,99 @@ const showAdminMessage = async (context, messageId) => {
   } catch { await editOrSend(context, '<b>Նամակը չի գտնվել։</b>', adminMenu); }
 };
 
+const showCreatorDashboard = async (context, page = 0) => {
+  try {
+    const dashboard = await api.creator(context.chatId, page);
+    if (isAdmin(context.chatId)) await installAdminCommands(context.chatId);
+    else await telegram.call('setMyCommands', { scope: { type: 'chat', chat_id: context.chatId }, commands: [
+      { command: 'creator', description: 'Բացել Creator dashboard-ը' },
+      { command: 'start', description: 'Ստուգել Amulet կապը' },
+      { command: 'help', description: 'Օգնություն' }
+    ] });
+    const money = (value) => `${new Intl.NumberFormat('hy-AM', { maximumFractionDigits: 2 }).format(Number(value) || 0)} ֏`;
+    const text = [
+      '<b>📊 Creator dashboard</b>',
+      escapeHtml(dashboard.name),
+      `Պրոմոկոդեր՝ ${escapeHtml(dashboard.promos.map((p) => `${p.code} (${p.percent}%)`).join(', ').slice(0, 600))}`,
+      '',
+      `<b>Ընդհանուր՝</b> ${dashboard.summary.count} վաճառք · ${money(dashboard.summary.revenue)}`,
+      `<b>Ձեր եկամուտը՝</b> ${money(dashboard.summary.commission)}`,
+      `<b>Այս ամիս՝</b> ${dashboard.month.count} վաճառք · եկամուտ՝ ${money(dashboard.month.commission)}`,
+      
+      `<b>Գնումների պատմություն · ${dashboard.page + 1}/${dashboard.pages}</b>`,
+      ...dashboard.purchases.map((p, index) => [
+        `${index + 1}. <b>${escapeHtml(String(p.title).slice(0, 100))}</b>`,
+        `${formatDateTime(p.paidAt)} (Երևան) · ${escapeHtml(p.code)}`,
+        `${money(p.amount)} · Ձեր բաժինը՝ ${p.percent}% / ${money(p.commission)}`,
+        p.status === 'REFUNDED' ? '↩️ Վերադարձված' : '✅ Վճարված', ''
+      ].join('\n')),
+      ...(dashboard.total ? [] : ['Դեռ գնումներ չկան։'])
+    ].join('\n');
+    const rows = dashboard.purchases.map((p, index) => [{ text: `${index + 1}. Դիտել գնումը`, callback_data: `creator:purchase:${p.id}` }]);
+    const navigation = [];
+    if (dashboard.page > 0) navigation.push({ text: '← Նախորդ', callback_data: `creator:page:${dashboard.page - 1}` });
+    if (dashboard.page + 1 < dashboard.pages) navigation.push({ text: 'Հաջորդ →', callback_data: `creator:page:${dashboard.page + 1}` });
+    if (navigation.length) rows.push(navigation);
+    rows.push([{ text: '🔄 Թարմացնել', callback_data: `creator:page:${dashboard.page}` }]);
+    await editOrSend(context, text, { inline_keyboard: rows });
+  } catch (error) {
+    await editOrSend(context, error?.status === 403
+      ? 'Ձեր Telegram-ը creator պրոմոկոդին կապակցված չէ։ Խնդրեք ադմինին կապակցման հղում։'
+      : 'Չհաջողվեց բեռնել Creator dashboard-ը։ Փորձեք կրկին՝ /creator։');
+  }
+};
+
+const creatorMoney = (value) => `${new Intl.NumberFormat('hy-AM', { maximumFractionDigits: 2 }).format(Number(value) || 0)} ֏`;
+const adminCreatorPager = (page, pages, prefix) => [
+  ...(page > 0 ? [{ text: '← Նախորդ', callback_data: `${prefix}:${page - 1}` }] : []),
+  ...(page + 1 < pages ? [{ text: 'Հաջորդ →', callback_data: `${prefix}:${page + 1}` }] : [])
+];
+const showAdminCreators = async (context, page) => {
+  const result = await api.adminCreators(context.chatId, page);
+  const text = ['<b>👥 Content Creators</b>', `Պրոմոկոդեր՝ ${result.total} · Էջ ${result.page + 1}/${result.pages}`, '',
+    ...result.creators.map((c, i) => `${i + 1}. <b>${escapeHtml(c.name)}</b> · ${escapeHtml(c.code)}\n${escapeHtml(c.contact)} · ${c.connected ? 'կապակցված' : 'չկապակցված'}\nՕգտագործումներ՝ ${c.usageCount} · վճարված գնումներ՝ ${c.count}\nԵկամուտ՝ ${creatorMoney(c.commission)}\n`),
+    ...(result.total ? [] : ['Creator-ներ դեռ չկան։'])].join('\n');
+  const rows = result.creators.map((c, i) => [{ text: `${i + 1}. ${c.name}`.slice(0, 60), callback_data: `admin:creator:${c.id}:0` }]);
+  const pager = adminCreatorPager(result.page, result.pages, 'admin:creators');
+  if (pager.length) rows.push(pager);
+  rows.push(adminBack);
+  await editOrSend(context, text, { inline_keyboard: rows });
+};
+const showAdminCreator = async (context, id, page) => {
+  const c = await api.adminCreator(context.chatId, id, page);
+  const text = [`<b>👤 ${escapeHtml(c.name)}</b>`, `Կապ՝ ${escapeHtml(c.contact)} · ${c.connected ? 'կապակցված' : 'չկապակցված'}`,
+    `Պրոմոկոդ՝ ${escapeHtml(c.promos[0].code)} · ${c.isActive ? 'ակտիվ' : 'անջատված'}`,
+    `Զեղչ՝ ${c.value}${c.discountType === 'percent' ? '%' : ' ֏'} · Creator՝ ${c.promos[0].percent}%`,
+    `Վավեր է մինչև՝ ${c.expiresAt ? formatDateTime(c.expiresAt) + ' (Երևան)' : 'անժամկետ'}`,
+    `Օգտագործումներ՝ ${c.usageCount}/${c.maxUses || '∞'} · վճարված գնումներ՝ ${c.summary.count}`,
+    `Վաճառք՝ ${creatorMoney(c.summary.revenue)} · եկամուտ՝ ${creatorMoney(c.summary.commission)}`,
+    `Այս ամիս՝ ${c.month.count} գնում · եկամուտ՝ ${creatorMoney(c.month.commission)}`,
+    'Վերադարձված վճարումները հանված են եկամտից։', '', `Գնումներ · ${c.page + 1}/${c.pages}`,
+    ...c.purchases.map((p, i) => `${i + 1}. ${escapeHtml(String(p.title).slice(0, 100))}\n${formatDateTime(p.paidAt)} (Երևան) · ${escapeHtml(p.code)}\n${creatorMoney(p.amount)} · բաժին՝ ${creatorMoney(p.commission)} (${p.percent}%) · ${p.status === 'PAID' ? 'վճարված' : 'վերադարձված'}\n`),
+    ...(c.total ? [] : ['Գնումներ դեռ չկան։'])].join('\n');
+  const rows = c.purchases.map((p, i) => [{ text: `${i + 1}. Դիտել գնումը`, callback_data: `admin:cpurchase:${p.id}` }]);
+  if (c.telegramUrl) rows.unshift([{ text: '✈️ Telegram էջ', url: c.telegramUrl }]);
+  const pager = adminCreatorPager(c.page, c.pages, `admin:creator:${id}`);
+  if (pager.length) rows.push(pager);
+  rows.push([{ text: '← Content Creators', callback_data: 'admin:creators:0' }]);
+  await editOrSend(context, text, { inline_keyboard: rows });
+};
+
 const handleAdminCallback = async (context, data) => {
   if (!isAdmin(context.chatId)) {
     await send(context.chatId, 'Այս բաժինը հասանելի է միայն ադմիններին։');
     return;
   }
   if (data === 'admin:home') await showAdminHome(context);
+  else if (data.startsWith('admin:creators:')) await showAdminCreators(context, data.split(':')[2]);
+  else if (data.startsWith('admin:creator:')) await showAdminCreator(context, data.split(':')[2], data.split(':')[3]);
+  else if (data.startsWith('admin:cpurchase:')) {
+    const purchase = await api.adminCreatorPurchase(context.chatId, data.split(':')[2]);
+    await editOrSend(context, purchase.text, { inline_keyboard: [...creatorLinkButtons(purchase.url),
+      [{ text: '📦 Պատվերի բոլոր տվյալները', callback_data: `admin:order:${purchase.orderId}` }],
+      [{ text: '← Creator', callback_data: `admin:creator:${purchase.promoId}:0` }]
+    ] });
+  }
   else if (data === 'admin:dashboard') await showAdminDashboard(context);
   else if (data.startsWith('admin:orders:')) await showAdminOrders(context, data.split(':').at(-1));
   else if (data.startsWith('admin:order:')) await showAdminOrder(context, data.split(':').at(-1));
@@ -379,6 +484,14 @@ const handleAdminCallback = async (context, data) => {
 const handleCallback = async (context) => {
   await telegram.call('answerCallbackQuery', { callback_query_id: context.callback.id }, { attempts: 2 });
   const data = context.callback.data || '';
+  if (data.startsWith('creator:page:')) { await showCreatorDashboard(context, data.split(':')[2]); return; }
+  if (data.startsWith('creator:purchase:')) {
+    try {
+      const purchase = await api.creatorPurchase(context.chatId, data.split(':')[2]);
+      await editOrSend(context, purchase.text, { inline_keyboard: [...creatorLinkButtons(purchase.url), creatorDashboardButton] });
+    } catch { await editOrSend(context, 'Գնումը հասանելի չէ Ձեր creator հաշվին։', { inline_keyboard: [creatorDashboardButton] }); }
+    return;
+  }
   if (data.startsWith('admin:')) { await handleAdminCallback(context, data); return; }
   if (data === 'menu:home') await showHome(context);
   else if (data === 'menu:invitations') await showInvitations(context);
@@ -426,6 +539,7 @@ const handleMessage = async (context, message) => {
   if (!command && await handleAdminTextReply(context, message)) return;
   if (!command) return;
   if (command.name === 'start') await start(context, command.argument.split(/\s+/)[0] || '');
+  else if (command.name === 'creator') await showCreatorDashboard(context);
   else if (command.name === 'invitations') await showInvitations(context);
   else if (command.name === 'language') {
     try { await loadAccount(context); await chooseLanguage(context); } catch (error) { await showApiError(context, error); }
@@ -471,12 +585,13 @@ const userCommandDescriptions = {
   it: ['Apri il menu Amulet', 'Vedi gli inviti', 'Cambia lingua', 'Cambia notifiche', 'Come funziona il bot', 'Scollega Telegram']
 };
 const commandNames = ['start', 'invitations', 'language', 'notifications', 'help', 'disconnect'];
-const commandsFor = (language) => commandNames.map((command, index) => ({ command, description: userCommandDescriptions[language][index] }));
+const commandsFor = (language) => [...commandNames.map((command, index) => ({ command, description: userCommandDescriptions[language][index] })), { command: 'creator', description: 'Բացել Creator dashboard-ը' }];
 const installAdminCommands = async (chatId) => {
   try {
     await telegram.call('setMyCommands', {
       commands: [
         { command: 'admin', description: 'Բացել ադմին պանելը' },
+        { command: 'creator', description: 'Բացել Creator dashboard-ը' },
         { command: 'start', description: 'Ստուգել Amulet կապը' },
         { command: 'cancel', description: 'Չեղարկել ընթացիկ պատասխանը' }
       ],
@@ -488,6 +603,7 @@ const installAdminCommands = async (chatId) => {
   }
 };
 const installCommands = async () => {
+  await telegram.call('setChatMenuButton', { menu_button: { type: 'commands' } });
   await telegram.call('setMyCommands', { commands: commandsFor('en'), scope: { type: 'all_private_chats' } });
   for (const language of LANGUAGES) {
     await telegram.call('setMyCommands', {
@@ -501,7 +617,7 @@ const heartbeatLoop = async () => {
   while (!shutdown.signal.aborted) {
     let delay = 30_000;
     try {
-      await api.heartbeat();
+      await api.heartbeat({ username: botUsername, creatorPromoLinks: true });
     } catch (error) {
       delay = 2_000;
       console.warn('Amulet API heartbeat failed:', error.message);
@@ -533,18 +649,20 @@ const pollingLoop = async () => {
 
 const main = async () => {
   const me = await telegram.call('getMe');
+  botUsername = me.username?.toLowerCase() || '';
   if (!me?.is_bot) throw new Error('TELEGRAM_BOT_TOKEN does not belong to a bot');
   if (config.username && me.username?.toLowerCase() !== config.username.toLowerCase()) {
     throw new Error(`TELEGRAM_BOT_USERNAME must be ${me.username}, not ${config.username}`);
   }
   if (process.argv.includes('--check')) {
-    await api.heartbeat();
+    const result = await api.heartbeat({ probe: true });
+    if (!result.creatorPromoLinks) throw new Error('Update the Amulet API: creator promo links are not supported');
     console.log(`Telegram configuration is valid for @${me.username}; Amulet API is reachable`);
     return;
   }
   await telegram.call('deleteWebhook', { drop_pending_updates: false });
   await installCommands();
-  await api.heartbeat().catch((error) => console.warn('Initial Amulet API heartbeat failed:', error.message));
+  await api.heartbeat({ username: botUsername, creatorPromoLinks: true }).catch((error) => console.warn('Initial Amulet API heartbeat failed:', error.message));
   console.log(`Amulet Telegram bot @${me.username} is running with Node.js`);
   heartbeatLoop().catch((error) => console.error('Heartbeat loop stopped:', error));
   await pollingLoop();

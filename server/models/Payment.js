@@ -1,7 +1,12 @@
 import mongoose from 'mongoose';
+import { creatorFields } from './creatorFields.js';
 
 const paymentSchema = new mongoose.Schema(
   {
+    ...creatorFields,
+    creatorNotifiedAt: { type: Date, default: null },
+    creatorNotificationRetryAt: { type: Date, default: null },
+    creatorNotificationLockAt: { type: Date, default: null },
     provider: { type: String, enum: ['arca'], default: 'arca', required: true },
     status: {
       type: String,

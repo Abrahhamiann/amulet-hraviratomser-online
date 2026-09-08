@@ -14,9 +14,9 @@ const required = (name) => {
 const port = String(process.env.PORT || '5000').trim();
 
 export const config = Object.freeze({
-  token: required('TELEGRAM_BOT_TOKEN'),
-  username: String(process.env.TELEGRAM_BOT_USERNAME || '').trim().replace(/^@/, ''),
-  apiSecret: required('TELEGRAM_BOT_API_SECRET'),
+  token: process.env.TELEGRAM_SHARED_BOT_TOKEN?.trim() || required('TELEGRAM_BOT_TOKEN'),
+  username: String(process.env.TELEGRAM_SHARED_BOT_USERNAME || process.env.TELEGRAM_BOT_USERNAME || '').trim().replace(/^@/, ''),
+  apiSecret: process.env.TELEGRAM_SHARED_BOT_API_SECRET?.trim() || required('TELEGRAM_BOT_API_SECRET'),
   apiUrl: String(
     process.env.TELEGRAM_BOT_API_URL || `http://127.0.0.1:${port}/api/telegram/bot`
   ).trim().replace(/\/$/, ''),

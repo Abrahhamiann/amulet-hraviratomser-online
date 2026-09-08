@@ -53,14 +53,19 @@ export class AmuletApi {
   }
 
   connect(payload) { return this.request('POST', '/connect', { body: payload }); }
-  heartbeat() { return this.request('POST', '/heartbeat', { attempts: 1 }); }
+  heartbeat(body = {}) { return this.request('POST', '/heartbeat', { body, attempts: 1 }); }
   account(chatId) { return this.request('GET', '/account', { query: { chatId } }); }
+  creator(chatId, page = 0) { return this.request('GET', '/creator', { query: { chatId, page } }); }
+  creatorPurchase(chatId, paymentId) { return this.request('GET', `/creator/purchases/${paymentId}`, { query: { chatId } }); }
   invitation(chatId, invitationId) {
     return this.request('GET', `/invitations/${invitationId}`, { query: { chatId } });
   }
   settings(chatId, settings) { return this.request('PATCH', '/settings', { body: { chatId, ...settings } }); }
   disconnect(chatId) { return this.request('DELETE', '/disconnect', { body: { chatId } }); }
   adminDashboard(chatId) { return this.request('GET', '/admin/dashboard', { query: { chatId } }); }
+  adminCreators(chatId, page = 0) { return this.request('GET', '/admin/creators', { query: { chatId, page } }); }
+  adminCreator(chatId, id, page = 0) { return this.request('GET', `/admin/creators/${id}`, { query: { chatId, page } }); }
+  adminCreatorPurchase(chatId, id) { return this.request('GET', `/admin/creator-purchases/${id}`, { query: { chatId } }); }
   adminOrders(chatId, page = 0) { return this.request('GET', '/admin/orders', { query: { chatId, page } }); }
   adminOrder(chatId, orderId) { return this.request('GET', `/admin/orders/${orderId}`, { query: { chatId } }); }
   adminMessages(chatId, page = 0) { return this.request('GET', '/admin/messages', { query: { chatId, page } }); }

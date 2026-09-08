@@ -1,5 +1,12 @@
 import PromoCode from '../models/PromoCode.js';
 
+export const creatorSnapshot = (promo, amount) => promo?.kind === 'creator' ? {
+  creatorPromoId: promo._id,
+  creatorName: promo.creatorName,
+  creatorCommissionPercent: promo.creatorCommissionPercent,
+  creatorCommissionAmount: Math.round(Number(amount) * promo.creatorCommissionPercent) / 100
+} : {};
+
 export const normalizePromoCode = (code) => String(code || '')
   .trim()
   .toUpperCase()

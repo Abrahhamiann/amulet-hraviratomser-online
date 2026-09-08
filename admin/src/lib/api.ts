@@ -95,6 +95,7 @@ export const adminApi = {
   administrators: () => request<any[]>("/admin/administrators"),
   faq: () => request<any>("/admin/faq"),
   promocodes: () => request<any[]>("/admin/promocodes"),
+  creatorTelegramLink: (id: string) => request<{ url: string }>(`/admin/promocodes/${id}/telegram-link`, { method: "POST" }),
   reviews: () => request<any[]>("/admin/reviews"),
   createTemplate: (data: any) =>
     request<any>("/admin/templates", { method: "POST", body: JSON.stringify(data) }),

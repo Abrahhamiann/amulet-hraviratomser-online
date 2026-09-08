@@ -1,4 +1,5 @@
 import asyncHandler from 'express-async-handler';
+import { publishFaqUpdate } from '../utils/faqUpdates.js';
 import mongoose from 'mongoose';
 import ContactMessage from '../models/ContactMessage.js';
 import Invitation from '../models/Invitation.js';
@@ -320,7 +321,7 @@ export const getPublicFaq = asyncHandler(async (req, res) => {
   const saved = await Setting.findOne({ key: FAQ_SETTING_KEY }).select('value updatedAt').lean();
   const items = resolveFaqItems(saved);
   const language = FAQ_LANGUAGES.includes(req.query.language) ? req.query.language : 'hy';
-  res.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+  res.set('Cache-Control', 'no-store');
   res.json({ items: items.filter((item) => item.active).map((item) => {
     const localized = item.translations[language];
     const fallback = item.translations.hy || item.translations.en || Object.values(item.translations).find((value) => value.question && value.answer);
@@ -586,6 +587,7 @@ export const updateAdminFaq = asyncHandler(async (req, res) => {
     { new: true, upsert: true, setDefaultsOnInsert: true }
   );
   res.json({ items: normalizeFaqItems(setting.value?.items) });
+  publishFaqUpdate();
 });
 
 export const createAdminTemplate = asyncHandler(async (req, res) => {

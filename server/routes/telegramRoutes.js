@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { getCreatorDashboard, getCreatorPurchase, getAdminCreators, getAdminCreator, getAdminCreatorPurchase } from '../controllers/creatorController.js';
 import express from 'express';
 import {
   connectTelegramBot,
@@ -51,10 +52,15 @@ router.delete('/disconnect', protect, disconnectTelegram);
 router.post('/bot/connect', botOnly, connectTelegramBot);
 router.post('/bot/heartbeat', botOnly, registerTelegramBotHeartbeat);
 router.get('/bot/account', botOnly, getTelegramBotAccount);
+router.get('/bot/creator', botOnly, getCreatorDashboard);
+router.get('/bot/creator/purchases/:paymentId', botOnly, validateObjectId('paymentId'), getCreatorPurchase);
 router.get('/bot/invitations/:invitationId', botOnly, validateObjectId('invitationId'), getTelegramBotInvitation);
 router.patch('/bot/settings', botOnly, updateTelegramBotSettings);
 router.delete('/bot/disconnect', botOnly, disconnectTelegramBot);
 router.get('/bot/admin/dashboard', botOnly, getTelegramAdminDashboard);
+router.get('/bot/admin/creators', botOnly, getAdminCreators);
+router.get('/bot/admin/creators/:promoId', botOnly, validateObjectId('promoId'), getAdminCreator);
+router.get('/bot/admin/creator-purchases/:paymentId', botOnly, validateObjectId('paymentId'), getAdminCreatorPurchase);
 router.get('/bot/admin/orders', botOnly, getTelegramAdminOrders);
 router.get('/bot/admin/orders/:orderId', botOnly, validateObjectId('orderId'), getTelegramAdminOrder);
 router.get('/bot/admin/messages', botOnly, getTelegramAdminMessages);

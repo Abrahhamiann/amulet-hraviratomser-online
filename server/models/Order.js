@@ -1,7 +1,9 @@
 import mongoose from 'mongoose';
+import { creatorFields } from './creatorFields.js';
 
 const orderSchema = new mongoose.Schema(
   {
+    ...creatorFields,
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null, index: true },
     requestType: { type: String, enum: ['standard', 'custom_design'], default: 'standard' },
     fullName: { type: String, required: true },

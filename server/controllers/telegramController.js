@@ -7,6 +7,8 @@ import Order from '../models/Order.js';
 import RSVP from '../models/RSVP.js';
 import Setting from '../models/Setting.js';
 import User from '../models/User.js';
+import PromoCode from '../models/PromoCode.js';
+import Payment from '../models/Payment.js';
 import { deliverContactReply } from '../utils/contactReply.js';
 import { isTelegramAdmin, normalizeTelegramLanguage } from '../utils/telegram.js';
 
@@ -151,13 +153,19 @@ export const getTelegramStatus = asyncHandler(async (req, res) => {
 });
 
 export const registerTelegramBotHeartbeat = asyncHandler(async (_req, res) => {
+  // Configuration probes must not advertise a running polling process.
+  if (_req.body?.probe === true) return res.json({ ok: true, creatorPromoLinks: true });
   lastBotHeartbeatAt = Date.now();
   await Setting.findOneAndUpdate(
     { key: BOT_HEARTBEAT_SETTING_KEY },
-    { $set: { value: { at: new Date(lastBotHeartbeatAt) } } },
+    { $set: { value: {
+      at: new Date(lastBotHeartbeatAt),
+      username: String(_req.body?.username || '').toLowerCase(),
+      creatorPromoLinks: _req.body?.creatorPromoLinks === true
+    } } },
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
-  res.json({ ok: true, serverTime: new Date(lastBotHeartbeatAt).toISOString() });
+  res.json({ ok: true, creatorPromoLinks: true, serverTime: new Date(lastBotHeartbeatAt).toISOString() });
 });
 
 export const createTelegramLink = asyncHandler(async (req, res) => {
@@ -208,8 +216,21 @@ export const connectTelegramBot = asyncHandler(async (req, res) => {
     throw new Error('Telegram connection is only allowed from a private chat');
   }
 
-  // Consume the token atomically so the same deep link cannot be claimed by
-  // two Telegram accounts during concurrent /start requests.
+  if (String(token).startsWith('creator_')) {
+    const promo = await PromoCode.findOneAndUpdate({
+      kind: 'creator', creatorLinkTokenHash: tokenHash(String(token)),
+      creatorLinkExpires: { $gt: new Date() },
+      $or: [{ creatorLinkClaimedChatId: '' }, { creatorLinkClaimedChatId: null }, { creatorLinkClaimedChatId: String(chatId) }]
+    }, { $set: { creatorChatId: String(chatId), creatorLinkClaimedChatId: String(chatId), creatorConnectedAt: new Date() } }, { new: true });
+    if (!promo) throw Object.assign(new Error('Creator-ի հղումը ժամկետանց է, փոխարինվել է կամ պատկանում է այլ կապակցման։ Խնդրեք ադմինին նոր հղում ստեղծել նույն միջավայրում, որտեղ աշխատում է բոտը։'), { statusCode: 400 });
+    // Keep the hash until expiry so network retries by this chat are idempotent.
+    await Payment.updateMany({ creatorPromoId: promo._id, status: 'PAID', creatorNotifiedAt: null }, {
+      $set: { creatorNotificationRetryAt: null }
+    });
+    return res.json({ connected: true, creator: true, language: 'hy', name: promo.creatorName });
+  }
+
+  // Consume the token atomically to prevent concurrent claims.
   const user = await User.findOneAndUpdate(
     {
       telegramLinkTokenHash: tokenHash(String(token)),
@@ -260,7 +281,14 @@ export const connectTelegramBot = asyncHandler(async (req, res) => {
 });
 
 export const getTelegramBotAccount = asyncHandler(async (req, res) => {
-  const user = await findTelegramUser(req.query.chatId, res);
+  const chatId = String(req.query.chatId || '').trim();
+  const user = chatId ? await User.findOne({ 'telegram.chatId': chatId }) : null;
+  if (!user) {
+    const creators = chatId ? await PromoCode.find({ kind: 'creator', creatorChatId: chatId }).select('code creatorName').lean() : [];
+    if (!creators.length) throw Object.assign(new Error('Telegram account is not connected'), { statusCode: 404 });
+    return res.json({ creator: true, name: creators[0].creatorName, language: 'hy', notificationsEnabled: true,
+      promoCodes: creators.map((promo) => promo.code), invitations: [] });
+  }
   const orders = await Order.find({
     email: user.email,
     $or: [

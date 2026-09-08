@@ -8,7 +8,7 @@ import corporateEvent from '../assets/morph/corporate-event.jpg';
 import engagementSmile from '../assets/morph/engagement-smile.jpg';
 import weddingTemple from '../assets/morph/wedding-temple.jpg';
 import homeDeviceSuite from '../assets/home/amulet-device-suite.webp';
-import homeDeviceSuiteSmall from '../assets/home/amulet-device-suite-768.webp';
+import macbookWeddingScreen from '../assets/home/macbook-wedding-screen.png';
 import api from '../api/axios.js';
 import Button from '../components/Button.jsx';
 import FAQItem from '../components/FAQItem.jsx';
@@ -116,14 +116,20 @@ export default function HomePage() {
   useEffect(() => {
     if (!faqReadyToLoad) return undefined;
     let active = true;
-    api.get('/faq', { params: { language } })
+    let requestVersion = 0;
+    const refresh = () => {
+      const version = ++requestVersion;
+      api.get('/faq', { params: { language, fresh: Date.now() } })
       .then(({ data }) => {
-        if (active && Array.isArray(data?.items)) setManagedFaqItems(data.items);
+        if (active && version === requestVersion && Array.isArray(data?.items)) setManagedFaqItems(data.items);
       })
-      .catch(() => {
-        if (active) setManagedFaqItems(null);
-      });
-    return () => { active = false; };
+      .catch(() => {});
+    };
+    refresh();
+    const events = new EventSource(`${api.defaults.baseURL}/faq/events`, { withCredentials: true });
+    events.addEventListener('changed', refresh);
+    window.addEventListener('focus', refresh);
+    return () => { active = false; events.close(); window.removeEventListener('focus', refresh); };
   }, [faqReadyToLoad, language]);
 
   useEffect(() => {
@@ -193,7 +199,7 @@ export default function HomePage() {
     return () => observer.disconnect();
   }, [language]);
 
-  const staticFaqItems = managedFaqItems?.length
+  const staticFaqItems = managedFaqItems !== null
     ? managedFaqItems.map((item) => [item.question, item.answer])
     : t('faqItems');
   const creationSteps = t('creationSteps');
@@ -202,19 +208,26 @@ export default function HomePage() {
     <>
       <section className="photo-gallery-hero" aria-labelledby="gallery-title">
         <div className="home-intro-media" aria-hidden="true">
-          <img
+          <svg
             className="home-device-suite"
-            src={homeDeviceSuite}
-            srcSet={`${homeDeviceSuiteSmall} 768w, ${homeDeviceSuite} 1448w`}
-            sizes="(max-width: 880px) 86vw, 620px"
-            alt=""
+            viewBox="0 0 1448 1086"
             width="1448"
             height="1086"
-            loading="eager"
-            decoding="async"
-            fetchpriority="high"
-            draggable="false"
-          />
+            focusable="false"
+          >
+            <defs>
+              <clipPath id="home-macbook-screen">
+                <rect x="128" y="145" width="1068" height="693" />
+              </clipPath>
+              <clipPath id="home-phone-foreground">
+                <path d="M1076 1086V367Q1076 297 1146 297H1448V1086Z" />
+              </clipPath>
+            </defs>
+            <image href={homeDeviceSuite} width="1448" height="1086" />
+            <image href={macbookWeddingScreen} x="128" y="145" width="1068" height="693"
+              preserveAspectRatio="xMidYMid slice" clipPath="url(#home-macbook-screen)" />
+            <image href={homeDeviceSuite} width="1448" height="1086" clipPath="url(#home-phone-foreground)" />
+          </svg>
         </div>
         <div className="home-intro-copy">
           <h1 id="gallery-title">{t('newHeroTitle')}</h1>

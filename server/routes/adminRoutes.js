@@ -34,6 +34,7 @@ import { adminOnly, protect } from '../middleware/auth.js';
 import { validateObjectId } from '../middleware/validateObjectId.js';
 import {
   createAdminPromoCode,
+  createCreatorTelegramLink,
   deleteAdminPromoCode,
   getAdminPromoCodes,
   updateAdminPromoCode
@@ -82,6 +83,7 @@ router.get('/faq', getAdminFaq);
 router.put('/faq', updateAdminFaq);
 router.get('/promocodes', getAdminPromoCodes);
 router.post('/promocodes', createAdminPromoCode);
+router.post('/promocodes/:id/telegram-link', validateObjectId(), createCreatorTelegramLink);
 router.put('/promocodes/:id', validateObjectId(), updateAdminPromoCode);
 router.delete('/promocodes/:id', validateObjectId(), deleteAdminPromoCode);
 router.get('/reviews', getAdminReviews);

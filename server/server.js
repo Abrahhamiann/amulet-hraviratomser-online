@@ -1,4 +1,5 @@
 import cors from 'cors';
+import { subscribeFaqUpdates } from './utils/faqUpdates.js';
 import dotenv from 'dotenv';
 import express from 'express';
 import morgan from 'morgan';
@@ -24,6 +25,7 @@ import templateRoutes from './routes/templateRoutes.js';
 import telegramRoutes from './routes/telegramRoutes.js';
 import { getPublicFaq } from './controllers/adminController.js';
 import { startContactReminderScheduler } from './utils/contactReminder.js';
+import { startCreatorNotificationScheduler } from './utils/creatorTelegram.js';
 import { protect, adminOnly } from './middleware/auth.js';
 import { browserRequestGuard, createRateLimiter, securityHeaders, validateRequestShape } from './middleware/security.js';
 import { ensureTemplateCodes } from './utils/templateCode.js';
@@ -110,6 +112,7 @@ app.get('/api/health', (req, res) => res.json({
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.get('/api/faq', getPublicFaq);
+app.get('/api/faq/events', subscribeFaqUpdates);
 app.use('/api/templates', templateRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
@@ -145,6 +148,7 @@ const startServer = async () => {
     console.warn(`Template catalog verification skipped: ${error.message}`);
   }
   startContactReminderScheduler();
+  startCreatorNotificationScheduler();
   const server = app.listen(PORT, process.env.HOST || (process.env.NODE_ENV === 'production' ? '127.0.0.1' : '0.0.0.0'), () => console.log(`Server running on port ${PORT}`));
   server.requestTimeout = 30000;
   server.headersTimeout = 15000;

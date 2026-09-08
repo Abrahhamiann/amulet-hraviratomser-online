@@ -14,6 +14,10 @@ import { useAdminI18n } from "@/lib/i18n";
 export const Route = createFileRoute("/admin/promocodes")({ component: PromoCodesPage });
 
 const emptyForm = {
+  kind: "standard",
+  creatorName: "",
+  creatorContact: "",
+  creatorCommissionPercent: "10",
   code: "",
   description: "",
   giftLabel: "",
@@ -25,6 +29,12 @@ const emptyForm = {
 };
 
 type PromoCode = {
+  kind?: string;
+  creatorName?: string;
+  creatorContact?: string;
+  creatorCommissionPercent?: number;
+  creatorChatId?: string;
+  creatorStats?: { count: number; revenue: number; commission: number };
   _id: string;
   code: string;
   description?: string;
@@ -44,6 +54,10 @@ function PromoCodesPage() {
   const [editingId, setEditingId] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [section, setSection] = useState("standard");
+  const [creatorLink, setCreatorLink] = useState<{ id: string; url: string } | null>(null);
+  const [linkingId, setLinkingId] = useState('');
+  const visibleItems = items.filter((item) => (item.kind || "standard") === section);
 
   const load = () =>
     adminApi
@@ -54,25 +68,31 @@ function PromoCodesPage() {
 
   useEffect(() => {
     void load();
+    const timer = window.setInterval(() => { if (document.visibilityState === 'visible') void load(); }, 30000);
+    return () => window.clearInterval(timer);
   }, []);
 
   const update = (key: string, value: string | boolean) =>
     setForm((current) => ({ ...current, [key]: value }));
   const reset = () => {
-    setForm(emptyForm);
+    setForm({ ...emptyForm, kind: section });
     setEditingId("");
   };
 
   const edit = (item: PromoCode) => {
     setEditingId(item._id);
     setForm({
+      kind: item.kind || "standard",
+      creatorName: item.creatorName || "",
+      creatorContact: item.creatorContact || "",
+      creatorCommissionPercent: String(item.creatorCommissionPercent ?? 10),
       code: item.code || "",
       description: item.description || "",
       giftLabel: item.giftLabel || "",
       discountType: item.discountType || "percent",
-      value: String(item.value || ""),
+      value: String(item.value ?? ""),
       maxUses: String(item.maxUses || 0),
-      expiresAt: item.expiresAt ? new Date(item.expiresAt).toISOString().slice(0, 10) : "",
+      expiresAt: item.expiresAt ? new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Yerevan', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(item.expiresAt)) : "",
       isActive: item.isActive !== false,
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -108,6 +128,13 @@ function PromoCodesPage() {
   return (
     <div>
       <PageHeader title={t("promocodes")} subtitle={t("promoSubtitle")} />
+      <div className="mb-5 flex gap-2" role="group" aria-label="Պրոմոկոդի բաժին">
+        {[['standard', t('promocodes')], ['creator', 'Content creators']].map(([key, label]) => (
+          <Button key={key} variant={section === key ? 'default' : 'outline'} aria-pressed={section === key} onClick={() => {
+            setSection(key); setEditingId(''); setForm({ ...emptyForm, kind: key }); setCreatorLink(null);
+          }}>{label}</Button>
+        ))}
+      </div>
       <div className="grid gap-5 xl:grid-cols-[380px_minmax(0,1fr)]">
         <Card className="h-max rounded-2xl border-border/60 p-5 shadow-[var(--shadow-soft)]">
           <div className="mb-5 flex items-center gap-3">
@@ -119,7 +146,20 @@ function PromoCodesPage() {
               <p className="text-xs text-muted-foreground">{t("promoFormHelp")}</p>
             </div>
           </div>
-          <form className="grid gap-4" onSubmit={save} noValidate>
+          <form className="grid gap-4" onSubmit={save}>
+            {section === 'creator' && <fieldset className="grid gap-4 rounded-xl border border-border p-3">
+              <legend className="px-1 text-sm font-medium">Content creator</legend>
+              <label className="grid gap-2 text-sm">Creator-ի անուն
+                <Input value={form.creatorName} required maxLength={120} onChange={(event) => update('creatorName', event.target.value)} />
+              </label>
+              <label className="grid gap-2 text-sm">Telegram username կամ հեռախոսահամար
+                <Input value={form.creatorContact} required placeholder="@username կամ +374…" onChange={(event) => update('creatorContact', event.target.value)} />
+              </label>
+              <label className="grid gap-2 text-sm">Creator-ի տոկոսը (%)
+                <Input type="number" min="0" max="100" step="0.01" required value={form.creatorCommissionPercent} onChange={(event) => update('creatorCommissionPercent', event.target.value)} />
+              </label>
+              <p className="text-xs text-muted-foreground">Հաշվարկը՝ զեղչից հետո վճարված գումարից։ 20,000 ֏ × 10% = 2,000 ֏։ Փոփոխությունները կիրառվում են նոր վճարումների համար։</p>
+            </fieldset>}
             <label className="grid gap-2">
               <Label htmlFor="promo-code">{t("promoCode")}</Label>
               <Input
@@ -164,7 +204,7 @@ function PromoCodesPage() {
                 <Input
                   id="promo-value"
                   type="number"
-                  min="1"
+                  min={section === 'creator' ? "0" : "1"}
                   max={form.discountType === "percent" ? 90 : undefined}
                   value={form.value}
                   onChange={(event) => update("value", event.target.value)}
@@ -222,13 +262,13 @@ function PromoCodesPage() {
           {loading && (
             <Card className="rounded-2xl p-6 text-sm text-muted-foreground">{t("loading")}</Card>
           )}
-          {!loading && items.length === 0 && (
+          {!loading && visibleItems.length === 0 && (
             <Card className="rounded-2xl p-8 text-center text-muted-foreground">
               <Plus className="mx-auto mb-3 h-6 w-6" />
               {t("noPromoCodes")}
             </Card>
           )}
-          {items.map((item) => (
+          {visibleItems.map((item) => (
             <Card
               key={item._id}
               className="rounded-2xl border-border/60 p-5 shadow-[var(--shadow-soft)]"
@@ -293,6 +333,19 @@ function PromoCodesPage() {
                   </strong>
                 </div>
               </div>
+              {item.kind === 'creator' && <div className="mt-4 grid gap-3 border-t border-border pt-4 text-sm">
+                <p><strong>{item.creatorName}</strong> · {item.creatorContact} · {item.creatorCommissionPercent}%</p>
+                <p>Վաճառքներ՝ {item.creatorStats?.count || 0} · Վճարված՝ {(item.creatorStats?.revenue || 0).toLocaleString()} ֏ · Creator-ի եկամուտ՝ {(item.creatorStats?.commission || 0).toLocaleString()} ֏</p>
+                <p className="text-muted-foreground">Telegram՝ {item.creatorChatId ? 'կապակցված' : 'դեռ կապակցված չէ'}։ Creator-ը պետք է բացի անհատական հղումը և սեղմի Start։ Հղումը գործում է 24 ժամ։</p>
+                <Button type="button" variant="outline" disabled={Boolean(linkingId)} onClick={async () => {
+                  try { setLinkingId(item._id); setCreatorLink(null); const result = await adminApi.creatorTelegramLink(item._id); setCreatorLink({ id: item._id, url: result.url }); }
+                  catch (error) { toast.error(error instanceof Error ? error.message : t('failed')); }
+                  finally { setLinkingId(''); }
+                }}>Ստեղծել Telegram կապակցման հղում</Button>
+                {creatorLink?.id === item._id && <label className="grid gap-2">Ուղարկեք միայն տվյալ creator-ին
+                  <Input readOnly value={creatorLink.url} onFocus={(event) => event.target.select()} />
+                </label>}
+              </div>}
             </Card>
           ))}
         </div>
