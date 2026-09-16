@@ -8,6 +8,8 @@ import corporateEvent from '../assets/morph/corporate-event.jpg';
 import engagementSmile from '../assets/morph/engagement-smile.jpg';
 import weddingTemple from '../assets/morph/wedding-temple.jpg';
 import homeDeviceSuite from '../assets/home/amulet-device-suite.webp';
+import iphoneTutorialFrame from '../assets/editor-devices/iphone-device-frame-clean.png';
+import '../components/tutorialDevice.css';
 import macbookWeddingScreen from '../assets/home/macbook-wedding-screen.png';
 import api from '../api/axios.js';
 import Button from '../components/Button.jsx';
@@ -281,15 +283,25 @@ export default function HomePage() {
             })}
           </div>
           <div className="creation-flow-video flow-reveal" style={{ '--flow-index': creationSteps.length }}>
-            <div className="creation-video-card creation-video-embed">
-              <iframe
-                src={getYouTubeEmbedUrl(creationVideoUrl)}
-                title={t('creationFlowTitle')}
-                loading="lazy"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
+            <div className="creation-tutorial-device">
+              <div className="creation-tutorial-screen">
+                {creationVideoUrl.split('?')[0].endsWith('.mp4') ? <video
+                  src={creationVideoUrl}
+                  poster="/media/amulet-tutorial-poster.jpg"
+                  controls
+                  playsInline
+                  preload="none"
+                  aria-label={t('creationFlowTitle')}
+                /> : <iframe
+                  src={getYouTubeEmbedUrl(creationVideoUrl)}
+                  title={t('creationFlowTitle')}
+                  loading="lazy"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />}
+              </div>
+              <img className="creation-tutorial-frame" src={iphoneTutorialFrame} alt="" width="852" height="1846" loading="lazy" aria-hidden="true" />
             </div>
           </div>
         </div>

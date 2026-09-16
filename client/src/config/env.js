@@ -80,7 +80,7 @@ export const CONTACT_INSTAGRAM_URL = `https://www.instagram.com/${CONTACT_INSTAG
 
 // External services.
 export const QR_API_URL = trimTrailingSlash(read('VITE_QR_API_URL', 'https://api.qrserver.com/v1/create-qr-code/'));
-export const CREATION_VIDEO_URL = read('VITE_CREATION_VIDEO_URL', 'https://youtu.be/WUPRFyeUwCU?si=sAyLMnUu_QknEBLF');
+export const CREATION_VIDEO_URL = read('VITE_CREATION_VIDEO_URL', '/media/amulet-screen-tutorial.mp4');
 export const COMPANY_SITE_URL = read('VITE_COMPANY_SITE_URL', 'https://rsoft.am');
 
 // QR image for any URL, sized in pixels.

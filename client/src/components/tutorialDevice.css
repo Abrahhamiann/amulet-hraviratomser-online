@@ -1,0 +1,51 @@
+/* Keep the supplied device frame separate from the video: YouTube retains
+   its own playback, captions, keyboard controls and fullscreen behavior. */
+.creation-tutorial-device {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 270px);
+  aspect-ratio: 852 / 1846;
+  margin-inline: auto;
+  filter: drop-shadow(0 24px 28px rgb(25 24 23 / 18%));
+}
+
+.creation-tutorial-screen {
+  position: absolute;
+  inset: 1.7% 4.55%;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 10.5% / 4.5%;
+  background: #fff;
+}
+
+.creation-tutorial-screen iframe,
+.creation-tutorial-screen video {
+  display: block;
+  width: 100%;
+  height: 94%;
+  margin-top: 5%;
+  object-fit: contain;
+  border: 0;
+}
+
+.creation-tutorial-screen iframe:focus-visible {
+  outline: 3px solid #d9b98e;
+  outline-offset: -3px;
+}
+
+.creation-tutorial-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (max-width: 560px) {
+  .creation-tutorial-device { width: min(76vw, 270px); }
+}
