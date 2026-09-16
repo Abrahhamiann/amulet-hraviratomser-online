@@ -30,6 +30,8 @@
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-legacy": "^5.4.3",
+    "acorn": "^8.18.0",
+    "sharp": "^0.35.4",
     "typescript": "^5.9.3"
   }
 }

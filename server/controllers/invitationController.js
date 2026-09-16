@@ -5,6 +5,7 @@ import Template from '../models/Template.js';
 import { createSecureInvitationSlug, isSecureInvitationSlug } from '../utils/invitationSlug.js';
 import { PUBLIC_DESIGN_KEYS } from '../utils/templateDesign.js';
 import { optimizeInvitationDraftMedia } from '../utils/imageOptimization.js';
+import { legacyJpeg } from '../utils/legacyImage.js';
 
 const CURRENT_DESIGN_KEYS = new Set(PUBLIC_DESIGN_KEYS);
 
@@ -28,8 +29,7 @@ const persistInvitationMedia = async (payload = {}) => {
   };
 };
 
-export const getInvitationBySlug = asyncHandler(async (req, res) => {
-  const identifier = req.params.slug;
+const publishedInvitation = async (identifier, res) => {
   if (!isSecureInvitationSlug(identifier)) {
     res.status(404);
     throw new Error('Invitation not found');
@@ -46,10 +46,26 @@ export const getInvitationBySlug = asyncHandler(async (req, res) => {
     res.status(410);
     throw new Error('Invitation template is no longer available');
   }
+  return invitation;
+};
+
+export const getInvitationBySlug = asyncHandler(async (req, res) => {
+  const invitation = await publishedInvitation(req.params.slug, res);
   // Publication is an access decision: check it on every request, including
   // after updates through the separate admin API. Do not cache personal data.
   res.set('Cache-Control', 'no-store');
   res.json(invitation);
+});
+
+export const getLegacyInvitationImage = asyncHandler(async (req, res) => {
+  const invitation = await publishedInvitation(req.params.slug, res);
+  const index = Number(req.params.index);
+  if (!/^\d$/.test(req.params.index) || !invitation.gallery?.[index]) {
+    res.status(404);
+    throw new Error('Image not found');
+  }
+  const image = await legacyJpeg(invitation.gallery[index]);
+  res.set('Cache-Control', 'no-store').type('jpeg').send(image);
 });
 
 export const createInvitation = asyncHandler(async (req, res) => {

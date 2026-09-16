@@ -2,6 +2,7 @@
 <html lang="hy">
   <head>
     <meta charset="UTF-8" />
+    <script src="/browser-support.js"></script>
     <meta name="referrer" content="no-referrer" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -11,6 +12,7 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+    <noscript><p>Amulet requires JavaScript to load invitations. <a href="/legacy/">Open Amulet</a></p></noscript>
+    <script type="module" src="/src/bootstrap.js"></script>
   </body>
 </html>

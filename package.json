@@ -19,6 +19,7 @@
     "dev:admin": "npm run dev --prefix admin",
     "install:all": "npm install",
     "build": "npm run build --workspace client",
+    "check:legacy": "node scripts/check-legacy.mjs",
     "typecheck": "npm run typecheck --workspace client && npm run typecheck --prefix admin",
     "build:admin": "npm run build --prefix admin",
     "seed": "npm run seed --workspace server",

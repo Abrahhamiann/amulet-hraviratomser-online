@@ -4,6 +4,7 @@ import {
   deleteTemplate,
   getTemplate,
   getTemplateCardImage,
+  getLegacyTemplateImage,
   getTemplatePagePreview,
   getTemplates,
   updateTemplate
@@ -15,6 +16,7 @@ const router = express.Router();
 
 router.route('/').get(getTemplates).post(protect, adminOnly, createTemplate);
 router.get('/:id/card-image', validateObjectId(), getTemplateCardImage);
+router.get('/:id/legacy-image', validateObjectId(), getLegacyTemplateImage);
 router.get('/:id/page-preview', validateObjectId(), getTemplatePagePreview);
 router
   .route('/:id')

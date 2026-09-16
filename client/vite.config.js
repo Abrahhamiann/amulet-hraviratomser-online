@@ -5,6 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import legacy from "@vitejs/plugin-legacy";
 import { defineConfig } from "vite";
+import { legacySite } from './vite.legacy-site.js';
 
 const clientRoot = path.dirname(fileURLToPath(import.meta.url));
 const vendorRoot = path.join(clientRoot, "src", "vendorTemplates");
@@ -56,6 +57,7 @@ const scopedTemplateAlias = {
 export default defineConfig({
   plugins: [
     scopedTemplateAlias,
+    legacySite(),
 
     react(),
 
@@ -67,14 +69,14 @@ export default defineConfig({
 
       polyfills: true,
       renderLegacyChunks: true,
+      externalSystemJS: false,
+      additionalLegacyPolyfills: ['core-js/proposals/global-this'],
     }),
 
     tailwindcss(),
   ],
 
   build: {
-    target: "es2015",
-
     chunkSizeWarningLimit: 700,
 
     rollupOptions: {

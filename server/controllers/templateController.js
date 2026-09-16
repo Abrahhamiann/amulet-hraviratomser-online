@@ -6,6 +6,7 @@ import { nextTemplateCode, reindexTemplateCodes } from '../utils/templateCode.js
 import { clearTemplateDeletionMarker, deleteTemplatePermanently } from '../utils/templateDeletion.js';
 import { PUBLIC_DESIGN_KEYS, templateCategoryForDesign, templateEditorTypeForCategory } from '../utils/templateDesign.js';
 import { embeddedImageBuffer, optimizeTemplateMedia } from '../utils/imageOptimization.js';
+import { legacyJpeg } from '../utils/legacyImage.js';
 
 const TEMPLATE_LIST_FIELDS = [
   'code', 'title', 'slug', 'category', 'price', 'description', 'designKey',
@@ -175,6 +176,17 @@ export const getTemplateCardImage = asyncHandler(async (req, res) => {
   }
   res.status(404);
   throw new Error('Template image not found');
+});
+
+export const getLegacyTemplateImage = asyncHandler(async (req, res) => {
+  const template = await Template.findById(req.params.id)
+    .select('mainImage mainImageThumbnail deletedAt isActive designKey').lean();
+  if (!template || template.deletedAt || template.isActive === false || !PUBLIC_DESIGN_KEYS.includes(template.designKey)) {
+    res.status(404);
+    throw new Error('Template not found');
+  }
+  const image = await legacyJpeg(template.mainImageThumbnail || template.mainImage);
+  res.set('Cache-Control', 'no-store').type('jpeg').send(image);
 });
 
 export const getTemplatePagePreview = asyncHandler(async (req, res) => {
