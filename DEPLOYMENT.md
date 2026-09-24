@@ -278,7 +278,6 @@ VITE_CONTACT_TELEGRAM=amulet_invitiations
 VITE_CONTACT_EMAIL=amuletarmenia@gmail.com
 VITE_WHATSAPP_BASE_URL=https://wa.me
 VITE_QR_API_URL=https://api.qrserver.com/v1/create-qr-code/
-VITE_CREATION_VIDEO_URL=https://youtu.be/WUPRFyeUwCU?si=sAyLMnUu_QknEBLF
 VITE_COMPANY_SITE_URL=https://rsoft.am
 ```
 

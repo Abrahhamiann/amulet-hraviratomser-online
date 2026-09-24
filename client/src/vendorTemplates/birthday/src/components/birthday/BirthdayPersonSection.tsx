@@ -30,12 +30,11 @@ export function BirthdayPersonSection({ data }: { data: InvitationConfig }) {
               className="h-full w-full rounded-[1.4rem] object-cover"
             />
           </div>
-          <span className="float-slow absolute -right-5 -top-6 text-4xl">🎈</span>
+          <span aria-hidden="true" className="float-slow absolute -right-5 -top-6 text-4xl" />
           <span
             className="float-medium absolute -bottom-6 -left-5 text-3xl"
             style={{ animationDelay: "1.5s" }}
           >
-            ✨
           </span>
           <div className="glass-card absolute -bottom-7 right-4 rounded-2xl px-5 py-3 text-center">
             <p className="font-display text-3xl leading-none text-primary">{data.age}</p>

@@ -40,6 +40,9 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     });
   } catch (error) {
     if (controller.signal.aborted) throw new Error("Request timed out");
+    if (error instanceof TypeError) {
+      throw new Error(`Cannot reach the API at ${API_BASE_URL}. Check that the API is running and this address is configured correctly.`);
+    }
     throw error;
   } finally {
     window.clearTimeout(timeoutId);

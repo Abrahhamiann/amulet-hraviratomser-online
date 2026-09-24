@@ -11,11 +11,11 @@
     "server"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev --workspace server\" \"npm run dev --workspace client\" \"npm run dev:bot\"",
+    "dev": "concurrently \"npm run dev --workspace server\" \"npm run dev --workspace client\" \"npm run dev:admin\"",
     "dev:web": "concurrently \"npm run dev --workspace server\" \"npm run dev --workspace client\"",
-    "dev:bot": "node server/telegram-bot/bot.js",
+    "dev:bot": "node server/telegram-bot/dev.js",
     "check:bot": "node server/telegram-bot/bot.js --check",
-    "dev:all": "npm run dev",
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:bot\"",
     "dev:admin": "npm run dev --prefix admin",
     "install:all": "npm install",
     "build": "npm run build --workspace client",
@@ -24,6 +24,7 @@
     "build:admin": "npm run build --prefix admin",
     "seed": "npm run seed --workspace server",
     "super-admin:create": "npm run super-admin:create --workspace server",
+    "super-admin:create:local": "npm run super-admin:create:local --workspace server",
     "check:arca": "npm run check:arca --workspace server",
     "check:production": "node scripts/check-production-config.mjs"
   },

@@ -242,13 +242,13 @@ const UI_TRANSLATIONS: Record<string, string> = {
   'Order of the celebration': 'Տոնակատարության ծրագիրը',
   'Will You Join the Celebration?': 'Կմիանա՞ք տոնակատարությանը',
   'Please let me know if you’ll be celebrating with us.': 'Խնդրում եմ տեղեկացնել՝ կմիանա՞ք մեր տոնին։',
-  'Your response has been received. 🎂✨': 'Ձեր պատասխանը ստացվել է։ 🎂✨',
+  'Your response has been received.': 'Ձեր պատասխանը ստացվել է։',
   'Send another response': 'Ուղարկել մեկ այլ պատասխան',
   '✓ Yes, I\'ll be there': '✓ Այո, ներկա կլինեմ',
   '✕ Unfortunately, I can\'t come': '✕ Ցավոք, չեմ կարող գալ',
   'Leave a birthday message': 'Թողնել տարեդարձի շնորհավորանք',
   'Optional — write something sweet': 'Ըստ ցանկության՝ գրեք ջերմ խոսքեր',
-  'Send RSVP 🎉': 'Ուղարկել պատասխանը 🎉', 'The details': 'Մանրամասներ',
+  'Send RSVP': 'Ուղարկել պատասխանը', 'The details': 'Մանրամասներ',
   Location: 'Վայր', 'Arrive a little early': 'Խնդրում ենք մի փոքր շուտ գալ',
   Where: 'Վայրը',
   'A candlelit hall wrapped in gardens — easy to find, and impossible to forget. Parking is available just around the corner.': 'Մոմերով լուսավորված, պարտեզներով շրջապատված սրահ, որը հեշտ է գտնել և անհնար է մոռանալ։ Մոտակայքում կա կայանատեղի։',
@@ -766,7 +766,21 @@ function SacredBeginningsTemplate(props: TemplateProps) {
 }
 
 function BirthdaySparkleTemplate(props: TemplateProps) {
-  const { draft = {} } = props;
+  const { draft: originalDraft = {} } = props;
+  const draft = useMemo<Draft>(() => {
+    const withoutEmoji = <T extends string | undefined>(value: T): T => (typeof value === 'string'
+      ? value.replace(/\p{Extended_Pictographic}|\uFE0F|\u200D/gu, '').replace(/ {2,}/g, ' ').trim()
+      : value) as T;
+    return {
+      ...originalDraft,
+      mainNames: withoutEmoji(originalDraft.mainNames),
+      eventMessage: withoutEmoji(originalDraft.eventMessage),
+      closingMessage: withoutEmoji(originalDraft.closingMessage),
+      rsvpQuestion: withoutEmoji(originalDraft.rsvpQuestion),
+      rsvpSettings: Object.fromEntries(Object.entries(originalDraft.rsvpSettings || {}).map(([key, value]) => [key, typeof value === 'string' ? withoutEmoji(value) : value])),
+      templateTextOverrides: Object.fromEntries(Object.entries(originalDraft.templateTextOverrides || {}).map(([key, value]) => [key, withoutEmoji(value)]))
+    };
+  }, [originalDraft]);
   const musicSource = draft.musicEnabled === false ? undefined : (draft.musicUrl || defaultInvitationSong);
   const [revealed, setRevealed] = useState(false);
   const onIntroDone = useCallback(() => setRevealed(true), []);

@@ -7,7 +7,7 @@
     "dev": "vite --host 0.0.0.0 --port 5173 --strictPort",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
-    "preview": "vite preview --port 5173"
+    "preview": "vite build --mode development && vite preview --port 5173"
   },
   "dependencies": {
     "@lottiefiles/dotlottie-react": "^0.17.15",

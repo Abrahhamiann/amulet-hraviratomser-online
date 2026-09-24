@@ -22,9 +22,7 @@ export function FinalCelebration({ data, closingMessage }: { data: InvitationCon
           </h2>
         </RevealScale>
         <Reveal delay={0.15}>
-          <p className="mt-8 text-3xl tracking-[0.35em] sm:text-4xl" aria-hidden="true">
-            🎂 ✨ 🎈 🥂 🎉
-          </p>
+          <p className="mt-8 text-3xl tracking-[0.35em] sm:text-4xl" aria-hidden="true" hidden />
         </Reveal>
         <Reveal delay={0.25}>
           <p className="mt-10 font-display text-2xl sm:text-3xl">{closingMessage || "Կհանդիպենք տոնակատարությանը"}</p>

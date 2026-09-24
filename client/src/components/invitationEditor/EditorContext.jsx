@@ -25,7 +25,7 @@ const getTemplateRsvpDefaults = (template = {}) => {
     guestPlaceholder: 'Ձեր անունը',
     attendingLabel: '✓ Այո, ներկա կլինեմ',
     notAttendingLabel: '✕ Ցավոք, չեմ կարող գալ',
-    submitLabel: 'Ուղարկել պատասխանը 🎉'
+    submitLabel: 'Ուղարկել պատասխանը'
   };
   if (key.includes('ivory-vows')) return {
     title: 'Կտոնե՞ք մեզ հետ',
@@ -73,11 +73,27 @@ const prepareTemplateImageOverrides = (draft = {}, template = {}) => {
     .filter(([, value]) => typeof value === 'string' && value.trim()));
 };
 
-const prepareTemplateDraft = (draft, template) => ({
-  ...draft,
-  templateImageOverrides: prepareTemplateImageOverrides(draft, template),
-  rsvpSettings: { ...getTemplateRsvpDefaults(template), ...(draft?.rsvpSettings || {}) }
-});
+const prepareTemplateDraft = (draft, template) => {
+  const prepared = {
+    ...draft,
+    templateImageOverrides: prepareTemplateImageOverrides(draft, template),
+    rsvpSettings: { ...getTemplateRsvpDefaults(template), ...(draft?.rsvpSettings || {}) }
+  };
+  const key = [template?.designKey, template?.slug, template?.title].filter(Boolean).join(' ').toLowerCase();
+  if (!key.includes('birthday-sparkle') && !key.includes('sparkle-birthday')) return prepared;
+  const withoutEmoji = (value) => typeof value === 'string'
+    ? value.replace(/\p{Extended_Pictographic}|\uFE0F|\u200D/gu, '').replace(/ {2,}/g, ' ').trim()
+    : value;
+  return {
+    ...prepared,
+    mainNames: withoutEmoji(prepared.mainNames),
+    eventMessage: withoutEmoji(prepared.eventMessage),
+    closingMessage: withoutEmoji(prepared.closingMessage),
+    rsvpQuestion: withoutEmoji(prepared.rsvpQuestion),
+    rsvpSettings: Object.fromEntries(Object.entries(prepared.rsvpSettings).map(([field, value]) => [field, withoutEmoji(value)])),
+    templateTextOverrides: Object.fromEntries(Object.entries(prepared.templateTextOverrides || {}).map(([field, value]) => [field, withoutEmoji(value)]))
+  };
+};
 
 function historyReducer(state, action) {
   if (action.type === 'reset') return createHistory(action.draft);

@@ -87,12 +87,10 @@ export function RSVPSection({ onSubmit, settings = {}, question = '' }: { onSubm
                   transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <ConfettiBurst pieces={70} seed={29} />
-                  <div className="relative text-5xl" aria-hidden="true">
-                    🎂
-                  </div>
+                  <div className="relative text-5xl" aria-hidden="true" hidden />
                   <h3 className="relative mt-6 font-display text-3xl">Thank you!</h3>
                   <p className="relative mt-3 font-sans text-base text-muted-foreground">
-                    Your response has been received. 🎂✨
+                    Your response has been received.
                   </p>
                   <button
                     type="button"
@@ -215,7 +213,7 @@ export function RSVPSection({ onSubmit, settings = {}, question = '' }: { onSubm
                       backgroundSize: "200% 100%",
                     }}
                   >
-                    {submitting ? "Ուղարկվում է…" : (settings.submitLabel || "Send RSVP 🎉")}
+                    {submitting ? "Ուղարկվում է…" : (settings.submitLabel || "Send RSVP")}
                   </button>
                 </motion.form>
               )}

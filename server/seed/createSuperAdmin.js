@@ -1,10 +1,17 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import { fileURLToPath } from 'node:url';
 import { connectDB } from '../config/db.js';
 import User from '../models/User.js';
 import { isStrongPassword, isValidEmail, normalizeEmail } from '../utils/accountValidation.js';
 
-dotenv.config();
+const local = process.argv.includes('--local');
+const envResult = dotenv.config({
+  path: fileURLToPath(new URL(local ? '../.env.development' : '../.env', import.meta.url)),
+  override: local
+});
+if (local && envResult.error) throw new Error('Create server/.env.development before seeding a local administrator');
+if (local && process.env.NODE_ENV !== 'development') throw new Error('Local admin seed requires NODE_ENV=development');
 
 const run = async () => {
   const email = normalizeEmail(process.env.SUPER_ADMIN_EMAIL);

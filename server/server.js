@@ -37,7 +37,7 @@ import { verifyTemplateCatalogQuery } from './controllers/templateController.js'
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config({ path: path.join(__dirname, '.env') });
+dotenv.config({ path: path.join(__dirname, process.env.AMULET_DEV_ENV === '1' ? '.env.development' : '.env') });
 
 const paymentConfiguration = arcaConfigurationStatus();
 if (paymentConfiguration.configured) {
@@ -103,6 +103,7 @@ app.use('/media', express.static(getMediaRoot(), {
 app.get('/api/health', (req, res) => res.json({
   status: 'ok',
   service: 'e-invite-server',
+  mode: process.env.AMULET_DEV_ENV === '1' ? 'development' : 'production',
   payment: {
     provider: paymentConfiguration.provider,
     configured: paymentConfiguration.configured,

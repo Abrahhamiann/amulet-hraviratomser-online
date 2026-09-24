@@ -64,6 +64,7 @@ export function HeroSection({ data, start }: { data: InvitationConfig; start: bo
         <motion.div {...line(1.2)} className="mt-12">
           <a
             href="#celebration"
+            data-editor-ignore="navigation"
             className="group relative inline-flex min-h-12 items-center gap-3 rounded-full px-8 py-3.5 font-sans text-sm font-medium uppercase tracking-[0.2em] text-accent-foreground shadow-glow transition-transform duration-300 hover:scale-[1.04] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
             style={{ backgroundImage: "var(--gradient-gold)", backgroundSize: "200% 100%" }}
           >

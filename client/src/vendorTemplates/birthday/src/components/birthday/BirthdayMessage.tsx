@@ -12,20 +12,16 @@ export function BirthdayMessage({ data }: { data: InvitationConfig }) {
             "radial-gradient(ellipse 70% 60% at 50% 40%, color-mix(in oklab, var(--blush) 45%, transparent), transparent 72%)",
         }}
       />
-      <span className="float-slow pointer-events-none absolute left-[8%] top-[18%] text-4xl opacity-80">
-        🎈
-      </span>
+      <span aria-hidden="true" className="float-slow pointer-events-none absolute left-[8%] top-[18%] text-4xl opacity-80" />
       <span
         className="float-medium pointer-events-none absolute right-[10%] top-[26%] text-3xl opacity-80"
         style={{ animationDelay: "2s" }}
       >
-        ✨
       </span>
       <span
         className="float-slow pointer-events-none absolute bottom-[14%] left-[16%] text-3xl opacity-70"
         style={{ animationDelay: "3.5s" }}
       >
-        🎂
       </span>
 
       <RevealScale className="relative mx-auto max-w-3xl text-center">

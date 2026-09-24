@@ -1,5 +1,5 @@
 // Single source of truth for every environment-dependent URL in the admin panel.
-// Change values in admin/.env only — never hardcode a host elsewhere.
+// Production values come from admin/.env; development always uses local services.
 
 const env = (import.meta as any).env ?? {};
 
@@ -12,6 +12,14 @@ const read = (key: string, fallback = "") => {
 
 // REST API root (https://server.amulet.am/api).
 export const API_URL = (() => {
+  // The checked-in deployment .env points at production. A local Vite session
+  // must use the local API so cookies and CORS stay on the same site.
+  if (env.MODE === "development") {
+    const origin = typeof window !== "undefined" && window.location?.hostname
+      ? `${window.location.protocol}//${window.location.hostname}`
+      : "http://localhost";
+    return `${origin}:5000/api`;
+  }
   const configured = trimTrailingSlash(read("VITE_API_URL"));
   if (configured) {
     try {
@@ -48,6 +56,12 @@ export const apiAssetUrl = (value = "") => {
 
 // Public site the admin links to (https://amulet.am).
 export const CLIENT_URL = (() => {
+  if (env.MODE === "development") {
+    const origin = typeof window !== "undefined" && window.location?.hostname
+      ? `${window.location.protocol}//${window.location.hostname}`
+      : "http://localhost";
+    return `${origin}:5173`;
+  }
   const configured = trimTrailingSlash(read("VITE_CLIENT_URL"));
   if (configured) return configured;
   if (typeof window !== "undefined" && window.location?.hostname) {

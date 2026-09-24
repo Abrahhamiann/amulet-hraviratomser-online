@@ -1,5 +1,5 @@
 // Single source of truth for every environment-dependent value on the public site.
-// Change values in client/.env only — never hardcode a host or a contact link elsewhere.
+// Production values come from client/.env; development always uses this device's local services.
 
 const env = import.meta.env;
 
@@ -13,6 +13,11 @@ const read = (key, fallback = '') => {
 // Public URL of this site (https://amulet.am). Falls back to the browser origin,
 // which keeps preview deployments and local dev working without extra config.
 export const SITE_URL = (() => {
+  if (env.MODE === 'development') {
+    return typeof window !== 'undefined' && window.location?.origin
+      ? trimTrailingSlash(window.location.origin)
+      : 'http://localhost:5173';
+  }
   const configured = trimTrailingSlash(read('VITE_SITE_URL'));
   if (configured) return configured;
   if (typeof window !== 'undefined' && window.location?.origin) return trimTrailingSlash(window.location.origin);
@@ -28,6 +33,12 @@ export const siteUrl = (path = '') => {
 
 // REST API root (https://server.amulet.am/api).
 export const API_URL = (() => {
+  if (env.MODE === 'development') {
+    const origin = typeof window !== 'undefined' && window.location?.hostname
+      ? `${window.location.protocol}//${window.location.hostname}`
+      : 'http://localhost';
+    return `${origin}:5000/api`;
+  }
   const configured = trimTrailingSlash(read('VITE_API_URL'));
   if (configured) {
     try {
@@ -80,7 +91,6 @@ export const CONTACT_INSTAGRAM_URL = `https://www.instagram.com/${CONTACT_INSTAG
 
 // External services.
 export const QR_API_URL = trimTrailingSlash(read('VITE_QR_API_URL', 'https://api.qrserver.com/v1/create-qr-code/'));
-export const CREATION_VIDEO_URL = read('VITE_CREATION_VIDEO_URL', '/media/amulet-screen-tutorial.mp4');
 export const COMPANY_SITE_URL = read('VITE_COMPANY_SITE_URL', 'https://rsoft.am');
 
 // QR image for any URL, sized in pixels.

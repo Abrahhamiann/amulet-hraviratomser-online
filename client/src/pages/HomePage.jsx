@@ -1,7 +1,6 @@
 import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { Pencil, Search, Share2, Sparkles } from 'lucide-react';
+import { Maximize2, Pause, Pencil, Play, Search, Share2, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { CREATION_VIDEO_URL } from '../config/env.js';
 import baptismLift from '../assets/morph/baptism-lift.jpg';
 import birthdayCakeLights from '../assets/morph/birthday-cake-lights.jpg';
 import corporateEvent from '../assets/morph/corporate-event.jpg';
@@ -26,7 +25,21 @@ const occasionLinks = [
   { category: 'engagement', image: engagementSmile }
 ];
 
-const creationVideoUrl = CREATION_VIDEO_URL;
+const tutorialPlayLabels = {
+  hy: 'Նվագարկել տեսանյութը',
+  ru: 'Воспроизвести видео',
+  en: 'Play video'
+};
+const tutorialPauseLabels = {
+  hy: 'Դադարեցնել տեսանյութը',
+  ru: 'Приостановить видео',
+  en: 'Pause video'
+};
+const tutorialFullscreenLabels = {
+  hy: 'Դիտել ամբողջ էկրանով',
+  ru: 'Смотреть на весь экран',
+  en: 'View fullscreen'
+};
 
 function DeferredTestimonials() {
   const [ready, setReady] = useState(false);
@@ -60,60 +73,50 @@ function DeferredTestimonials() {
   );
 }
 
-function getYouTubeStartSeconds(value) {
-  if (!value) return '';
-  if (/^\d+$/.test(value)) return value;
-
-  const hours = Number(value.match(/(\d+)h/)?.[1] || 0);
-  const minutes = Number(value.match(/(\d+)m/)?.[1] || 0);
-  const seconds = Number(value.match(/(\d+)s/)?.[1] || 0);
-  const total = (hours * 3600) + (minutes * 60) + seconds;
-  return total ? String(total) : '';
-}
-
-function getYouTubeEmbedUrl(rawUrl) {
-  try {
-    const url = new URL(rawUrl);
-    const host = url.hostname.replace(/^www\./, '');
-    let videoId = '';
-    let embedPath = '';
-
-    if (host === 'youtu.be') {
-      videoId = url.pathname.split('/').filter(Boolean)[0] || '';
-    } else if (host.endsWith('youtube.com') || host.endsWith('youtube-nocookie.com')) {
-      const pathParts = url.pathname.split('/').filter(Boolean);
-      if (url.pathname === '/watch') videoId = url.searchParams.get('v') || '';
-      if (['embed', 'shorts', 'live'].includes(pathParts[0])) videoId = pathParts[1] || '';
-    }
-
-    const listId = url.searchParams.get('list');
-    const start = getYouTubeStartSeconds(url.searchParams.get('start') || url.searchParams.get('t'));
-    const params = new URLSearchParams();
-    if (listId && videoId) params.set('list', listId);
-    if (start) params.set('start', start);
-
-    if (videoId) {
-      embedPath = `/embed/${videoId}`;
-    } else if (listId) {
-      embedPath = '/embed/videoseries';
-      params.set('list', listId);
-    }
-
-    return embedPath
-      ? `https://www.youtube-nocookie.com${embedPath}${params.toString() ? `?${params}` : ''}`
-      : rawUrl;
-  } catch {
-    return rawUrl;
-  }
-}
-
 export default function HomePage() {
   const { language, t } = useLanguage();
   const creationFlowRef = useRef(null);
+  const tutorialVideoRef = useRef(null);
+  const [tutorialPlaying, setTutorialPlaying] = useState(false);
+  const [tutorialFullscreen, setTutorialFullscreen] = useState(false);
   const faqRef = useRef(null);
   const [activeFaqIndex, setActiveFaqIndex] = useState(null);
   const [managedFaqItems, setManagedFaqItems] = useState(null);
   const [faqReadyToLoad, setFaqReadyToLoad] = useState(false);
+
+  useEffect(() => {
+    const video = tutorialVideoRef.current;
+    if (!video) return undefined;
+
+    const syncFullscreen = () => setTutorialFullscreen(document.fullscreenElement === video);
+    const enterSafariFullscreen = () => setTutorialFullscreen(true);
+    const leaveSafariFullscreen = () => setTutorialFullscreen(false);
+    document.addEventListener('fullscreenchange', syncFullscreen);
+    video.addEventListener('webkitbeginfullscreen', enterSafariFullscreen);
+    video.addEventListener('webkitendfullscreen', leaveSafariFullscreen);
+    return () => {
+      document.removeEventListener('fullscreenchange', syncFullscreen);
+      video.removeEventListener('webkitbeginfullscreen', enterSafariFullscreen);
+      video.removeEventListener('webkitendfullscreen', leaveSafariFullscreen);
+    };
+  }, []);
+
+  const openTutorialFullscreen = () => {
+    const video = tutorialVideoRef.current;
+    if (!video) return;
+    setTutorialFullscreen(true);
+    try {
+      if (typeof video.webkitEnterFullscreen === 'function') {
+        video.webkitEnterFullscreen();
+      } else if (typeof video.requestFullscreen === 'function') {
+        Promise.resolve(video.requestFullscreen()).catch(() => setTutorialFullscreen(false));
+      } else {
+        setTutorialFullscreen(false);
+      }
+    } catch {
+      setTutorialFullscreen(false);
+    }
+  };
 
   useEffect(() => {
     if (!faqReadyToLoad) return undefined;
@@ -285,21 +288,45 @@ export default function HomePage() {
           <div className="creation-flow-video flow-reveal" style={{ '--flow-index': creationSteps.length }}>
             <div className="creation-tutorial-device">
               <div className="creation-tutorial-screen">
-                {creationVideoUrl.split('?')[0].endsWith('.mp4') ? <video
-                  src={creationVideoUrl}
+                <video
+                  ref={tutorialVideoRef}
+                  src="/media/amulet-screen-tutorial.mp4"
                   poster="/media/amulet-tutorial-poster.jpg"
-                  controls
+                  controls={tutorialFullscreen}
                   playsInline
                   preload="none"
+                  onPlay={() => setTutorialPlaying(true)}
+                  onPause={() => setTutorialPlaying(false)}
+                  onEnded={() => setTutorialPlaying(false)}
                   aria-label={t('creationFlowTitle')}
-                /> : <iframe
-                  src={getYouTubeEmbedUrl(creationVideoUrl)}
-                  title={t('creationFlowTitle')}
-                  loading="lazy"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />}
+                />
+                <button
+                  className={`creation-tutorial-play${tutorialPlaying ? ' is-playing' : ''}`}
+                  type="button"
+                  onClick={() => {
+                    const video = tutorialVideoRef.current;
+                    if (!video) return;
+                    if (video.paused) video.play();
+                    else video.pause();
+                  }}
+                  aria-label={tutorialPlaying
+                    ? (tutorialPauseLabels[language] || tutorialPauseLabels.en)
+                    : (tutorialPlayLabels[language] || tutorialPlayLabels.en)}
+                >
+                  {tutorialPlaying
+                    ? <Pause size={28} fill="currentColor" aria-hidden="true" />
+                    : <Play size={28} fill="currentColor" aria-hidden="true" />}
+                </button>
+                {tutorialPlaying && (
+                  <button
+                    className="creation-tutorial-fullscreen"
+                    type="button"
+                    onClick={openTutorialFullscreen}
+                    aria-label={tutorialFullscreenLabels[language] || tutorialFullscreenLabels.en}
+                  >
+                    <Maximize2 size={20} aria-hidden="true" />
+                  </button>
+                )}
               </div>
               <img className="creation-tutorial-frame" src={iphoneTutorialFrame} alt="" width="852" height="1846" loading="lazy" aria-hidden="true" />
             </div>

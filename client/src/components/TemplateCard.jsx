@@ -60,8 +60,8 @@ export default function TemplateCard({ template, priority = false }) {
   // Keep the lightweight catalog screenshot mounted behind the cover so the
   // browser can fetch and decode it before hover. Native lazy-loading limits
   // this work to cards near the viewport instead of downloading the full grid.
-  const catalogPagePreview = !prefersReducedMotion && !remotePreviewFailed ? remotePagePreview : '';
-  const pagePreview = qrOpen && remotePreviewReady ? remotePagePreview : '';
+  const catalogPagePreview = !remotePreviewFailed ? remotePagePreview : '';
+  const pagePreview = qrOpen && !remotePreviewFailed ? remotePagePreview : '';
   const previewPath = `/templates/${template._id}/live`;
   const previewUrl = useMemo(() => siteUrl(previewPath), [previewPath]);
   const qrUrl = qrImageUrl(previewUrl, 220, 12);
@@ -277,6 +277,7 @@ export default function TemplateCard({ template, priority = false }) {
                   src={pagePreview}
                   alt={`${template.title} — ամբողջական էջ`}
                   decoding="async"
+                  onError={() => setRemotePreviewFailed(true)}
                 />
               ) : mainImage ? (
                 <img src={mainImage} alt={template.title} />
